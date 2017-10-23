@@ -3,6 +3,11 @@ function [ ] = fn_build_model( story_ht_in, bay_width_in, foundation_fix, story_
 % ASSUMPTIONS:
 % 2d linear model single story, 1 bay, uniform members
 
+%% Initial set up
+num_nodes = (num_bays + 1) * (num_stories + 1);
+nodal_coordinates_x = (0:num_bays)*bay_width;
+nodal_coordinates_y = (0:num_stories)*story_ht;
+
 %% Write TCL file
 file_name = ['Analysis' filesep analysis_id filesep 'model.tcl'];
 fileID = fopen(file_name,'w');
@@ -13,10 +18,12 @@ fprintf(fileID,'model basic -ndm 2 -ndf 3 \n');
 
 % define nodes (inches)
 fprintf(fileID,'# define nodes (inches) \n');
-fprintf(fileID,'node 1 0 0 \n');
-fprintf(fileID,'node 2 %d 0 \n',bay_width_in);
-fprintf(fileID,'node 3 0 %d \n',story_ht_in);
-fprintf(fileID,'node 4 %d %d \n',bay_width_in,story_ht_in);
+for i = 1:num_nodes
+    fprintf(fileID,'node 1 0 0 \n');
+    fprintf(fileID,'node 2 %d 0 \n',bay_width_in);
+    fprintf(fileID,'node 3 0 %d \n',story_ht_in);
+    fprintf(fileID,'node 4 %d %d \n',bay_width_in,story_ht_in);
+end
 
 % set boundary conditions at each node (3dof) (fix = 1, free = 0)
 fprintf(fileID,'# set boundary conditions at each node (3dof) (fix = 1, free = 0) \n');

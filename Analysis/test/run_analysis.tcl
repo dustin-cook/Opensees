@@ -6,18 +6,20 @@ source Analysis/test/recorders.tcl
 source Analysis/test/loads.tcl 
 ## ANALYSIS DEFINITION 
 # Define Constraints 
-constraints Transformation 
+constraints Plain 
 # Define the DOF_numbered object 
-numberer RCM 
+numberer Plain 
 # Construct Linear Solver and linear SOE Objects 
 system BandGeneral 
 # Construct Convergence Test 
 test NormDispIncr 1.0e-6 6 
-# Define Solution ALgorithm 
-algorithm Newton 
+# Define Solution Algorithm 
+algorithm Linear 
 # Define Each Load Step (displacement controlled) 
-integrator LoadControl 1 
+integrator Newmark 0.5 0.25 
 # Define analysis type 
-analysis Static 
+analysis Transient 
 ## Run the Analysis 
-analyze 1 
+analyze 3995 1.000000e-01 
+puts "Done!" 
+wipe 
