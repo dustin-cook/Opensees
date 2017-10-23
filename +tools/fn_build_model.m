@@ -1,12 +1,8 @@
-function [ ] = fn_build_model( story_ht_in, bay_width_in, foundation_fix, story_mass, E, A, I, analysis_id )
+function [ ] = fn_build_model( analysis_id, node, element )
 %UNTITLED6 Summary of this function goes here
 % ASSUMPTIONS:
 % 2d linear model single story, 1 bay, uniform members
 
-%% Initial set up
-num_nodes = (num_bays + 1) * (num_stories + 1);
-nodal_coordinates_x = (0:num_bays)*bay_width;
-nodal_coordinates_y = (0:num_stories)*story_ht;
 
 %% Write TCL file
 file_name = ['Analysis' filesep analysis_id filesep 'model.tcl'];
@@ -18,24 +14,21 @@ fprintf(fileID,'model basic -ndm 2 -ndf 3 \n');
 
 % define nodes (inches)
 fprintf(fileID,'# define nodes (inches) \n');
-for i = 1:num_nodes
-    fprintf(fileID,'node 1 0 0 \n');
-    fprintf(fileID,'node 2 %d 0 \n',bay_width_in);
-    fprintf(fileID,'node 3 0 %d \n',story_ht_in);
-    fprintf(fileID,'node 4 %d %d \n',bay_width_in,story_ht_in);
+for i = 1:length(node.id)
+    fprintf(fileID,'node %d %d %d \n',node.id(i),node.x_coor(i),node.y_coor(i));
 end
 
 % set boundary conditions at each node (3dof) (fix = 1, free = 0)
 fprintf(fileID,'# set boundary conditions at each node (3dof) (fix = 1, free = 0) \n');
-fprintf(fileID,'fix 1 %d %d %d \n',foundation_fix(1),foundation_fix(2),foundation_fix(3));
-fprintf(fileID,'fix 2 %d %d %d \n',foundation_fix(1),foundation_fix(2),foundation_fix(3));
-fprintf(fileID,'fix 3 0 0 0 \n');
-fprintf(fileID,'fix 4 0 0 0 \n');
+for i = 1:length(node.id)
+    fprintf(fileID,'fix %d %d %d %d \n',node.id(i),node.fix{i}(1),node.fix{i}(2),node.fix{i}(3));
+end
 
 % define nodal masses (horizontal) (units?)
 fprintf(fileID,'# define nodal masses (horizontal) (units?) \n');
-fprintf(fileID,'mass 3 %d 0. 0. \n',story_mass/2);
-fprintf(fileID,'mass 4 %d 0. 0. \n',story_mass/2);
+for i = 1:length(node.id)
+fprintf(fileID,'mass %d %d 0. 0. \n',node.id(i), node.mass(i));
+end
 
 % Linear Transformation
 fprintf(fileID,'# Linear Transformation \n');
@@ -45,9 +38,9 @@ fprintf(fileID,'geomTransf Linear 1 \n');
 % element elasticBeamColumn <element id> <start node> <end node> <area sq in> <E ksi> <I in4> <$transfTag>
 fprintf(fileID,'# Define Elements (columns and beam) \n');
 fprintf(fileID,'# element elasticBeamColumn <element id> <start node> <end node> <area sq in> <E ksi> <I in4> <$transfTag> \n');
-fprintf(fileID,'element elasticBeamColumn 1 1 3 %d %d %d 1 \n',A,E,I);
-fprintf(fileID,'element elasticBeamColumn 2 2 4 %d %d %d 1 \n',A,E,I);
-fprintf(fileID,'element elasticBeamColumn 3 3 4 %d %d %d 1 \n',A,E,I);
+for i = 1:length(element.id)
+    fprintf(fileID,'element elasticBeamColumn %d %d %d %d %d %d 1 \n',element.id(i),element.node_start(i),element.node_end(i),element.A(i),element.E(i),element.I(i));
+end
 
 % Close File
 fclose(fileID);

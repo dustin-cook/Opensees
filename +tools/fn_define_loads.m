@@ -1,4 +1,4 @@
-function [ ] = fn_define_loads( story_force_k, story_wieght_k, analysis_id, damp_ratio, analsys_type )
+function [ ] = fn_define_loads( analysis_id, damp_ratio, analsys_type, node )
 %UNTITLED8 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -9,14 +9,17 @@ fileID = fopen(file_name,'w');
 % Define Gravity Loads (node id, axial, shear, moment)
 fprintf(fileID,'# Define Gravity Loads (node id, axial, shear, moment) \n');
 fprintf(fileID,'pattern Plain 1 Linear {  \n');
-fprintf(fileID,'   load 3 0.0 %d 0.0 \n', story_wieght_k/2);
-fprintf(fileID,'   load 4 0.0 %d 0.0 \n', story_wieght_k/2);
+for i = 1:length(node.id)
+    fprintf(fileID,'   load %d 0.0 %d 0.0 \n', node.id(i), node.weight(i));
+end
 fprintf(fileID,'} \n');
 
 % Define Static Lateral Load Patter
 fprintf(fileID,'# Define Load Pattern \n');
 fprintf(fileID,'pattern Plain 2 Linear { \n');
-fprintf(fileID,'  load 3 %d 0.0 0.0 \n', story_force_k);
+for i = 1:length(node.id)
+    fprintf(fileID,'  load %d %d 0.0 0.0 \n', node.id(i), node.force(i));
+end
 fprintf(fileID,'} \n');
 
 % For Dynamic Analysis

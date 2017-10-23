@@ -1,4 +1,4 @@
-function [ ] = fn_define_analysis( analysis )
+function [ ] = fn_define_analysis( analysis, nodes )
 %UNTITLED9 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -9,14 +9,14 @@ if analysis.type == 1 % static load analysis
     analysis_str_id = 'Static';
     time_step = 0;
 elseif analysis.type == 2 % pushover analysis
-    control_node = 3;
+    control_node = nodes(end);
     control_dof = 1;
     num_steps = 10;
     step_size = analysis.max_displ / num_steps;
     int_controller = ['DisplacementControl ' num2str(control_node) ' ' num2str(control_dof) ' ' num2str(step_size)]; 
     analysis_str_id = 'Static';
     time_step = 0;
-elseif analysis.type == 3
+elseif analysis.type == 3  % dynamic analysis
     gamma = 0.5; %trapezoidal
     beta = 0.25;
     int_controller = ['Newmark' ' ' num2str(gamma) ' ' num2str(beta)];
@@ -56,9 +56,9 @@ fprintf(fileID,'numberer Plain \n');
 fprintf(fileID,'# Construct Linear Solver and linear SOE Objects \n');
 fprintf(fileID,'system BandGeneral \n');
 
-% Construct Convergence Test
-fprintf(fileID,'# Construct Convergence Test \n');
-fprintf(fileID,'test NormDispIncr 1.0e-6 6 \n');
+% % Construct Convergence Test
+% fprintf(fileID,'# Construct Convergence Test \n');
+% fprintf(fileID,'test NormDispIncr 1.0e-6 6 \n');
 
 % Define Solution Algorithm
 fprintf(fileID,'# Define Solution Algorithm \n');
@@ -80,16 +80,6 @@ fprintf(fileID,'wipe \n');
 
 % Close File
 fclose(fileID);
-
-
-
-% # display displacement shape of the column
-% recorder display "Displaced shape" 10 10 500 500 -wipe
-% prp 200. 50. 1;
-% vup  0  1 0;
-% vpn  0  0 1;
-% display 1 5 40 
-
 
 
 end
