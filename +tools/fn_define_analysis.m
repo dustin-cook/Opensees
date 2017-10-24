@@ -1,4 +1,4 @@
-function [ ] = fn_define_analysis( analysis, nodes )
+function [ ] = fn_define_analysis( analysis, nodes, dt, eq )
 %UNTITLED9 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -16,13 +16,13 @@ elseif analysis.type == 2 % pushover analysis
     int_controller = ['DisplacementControl ' num2str(control_node) ' ' num2str(control_dof) ' ' num2str(step_size)]; 
     analysis_str_id = 'Static';
     time_step = 0;
-elseif analysis.type == 3  % dynamic analysis
+elseif analysis.type == 3 || analysis.type == 4 % dynamic analysis
     gamma = 0.5; %trapezoidal
     beta = 0.25;
     int_controller = ['Newmark' ' ' num2str(gamma) ' ' num2str(beta)];
     analysis_str_id = 'Transient';
-    num_steps = 3995;
-    time_step = 0.1;
+    num_steps = length(eq);
+    time_step = dt;
 else
     error('Unkown Analysis Type')
 end
