@@ -74,7 +74,7 @@ for i = 1:(length(ag)-1)
   
 end
 
-%Sa = max(abs(u(:,1))) * (2*pi/T)^2;
+Sa = max(abs(u(:,1))) * (2*pi/T)^2;
 
 displacementTH = u(:,1);
 velocityTH = u(:,2);

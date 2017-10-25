@@ -32,9 +32,7 @@ if analysis.type == 3 || analysis.type == 4
     % Define Damping
     fprintf(fileID,'# set damping based on first eigen mode \n');
     fprintf(fileID,'set freq [expr [eigen -fullGenLapack 1]**0.5] \n');
-    fprintf(fileID,'set period [expr 1/$freq] \n');
-    fprintf(fileID,'  rayleigh 0. 0. 0. [expr 2*%d*$period] \n', damp_ratio);
-    fprintf(fileID,'puts $period \n');
+    fprintf(fileID,'  rayleigh 0 0 0 [expr %d*2*2*3.14159*$freq] \n', damp_ratio);
 end
 
 % Close File

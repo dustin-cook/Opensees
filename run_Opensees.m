@@ -39,13 +39,13 @@ A = 9999999999999;
 I = 13824;
 
 if analysis.type == 4
-    periods = 0.05:0.05:1.5;
+    periods = 0.05:0.05:3;
 else
     periods = sqrt(story_mass/(3*E*I/story_ht_in^3));
 end
 
 %% Main Analysis
-for i = 1:num_eqs/2
+for i = 1:1
     % EQ this run
     analysis.eq_name = eqs(i).name;
     dt = 0.01;
@@ -106,9 +106,9 @@ for i = 1:num_eqs/2
         elseif analysis.type == 3 % dynamic analysis
             plot(node.disp_x(end,:))
         elseif analysis.type == 4 % spectra analysis
-            sa(i,j) = (max(abs(node.accel_x(end,:))))/386;
+            sa(i,j) = (max(abs(eq'+node.accel_x(end,:))))/386;
             sd(i,j) = max(abs(node.disp_x(end,:)));
-            psa(i,j) = (sd(i,j)*(((2*pi)/periods(j))^2))/386;
+            psa(i,j) = max(abs(node.disp_x(end,:)*((((2*pi)/periods(j))^2)/386)));
         else
             error('Unkown Analysis Type')
         end
@@ -116,18 +116,19 @@ for i = 1:num_eqs/2
 end
 
 if analysis.type == 4 % spectra analysis
-    med_sa = median(sa);
-    med_sd = median(sd);
-    med_psa = median(psa);
+%     med_sa = median(sa);
+%     med_sd = median(sd);
+%     med_psa = median(psa);
     
     hold on
     grid on
     for i = 1:length(sa(:,1))
         plot(periods,sa(i,:),'b','lineWidth',0.5)
+%         plot(periods,psa(i,:),'k','lineWidth',0.5)
     end
-    plot(periods,med_sa,'k','lineWidth',2)
-    plot(periods,med_sd,'r','lineWidth',2.5)
-    plot(periods,med_psa,'g','lineWidth',2.5)
+%     plot(periods,med_sa,'k','lineWidth',2)
+%     plot(periods,med_sd,'r','lineWidth',2.5)
+%     plot(periods,med_psa,'k','lineWidth',2)
 end
 
 toc
