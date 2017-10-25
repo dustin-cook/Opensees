@@ -1,4 +1,4 @@
-function [ ] = fn_define_analysis( analysis, nodes, dt, eq )
+function [ ] = fn_define_analysis( analysis, nodes, eq, dt, wt )
 %UNTITLED9 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -21,8 +21,8 @@ elseif analysis.type == 3 || analysis.type == 4 % dynamic analysis
     beta = 0.25;
     int_controller = ['Newmark' ' ' num2str(gamma) ' ' num2str(beta)];
     analysis_str_id = 'Transient';
-    num_steps = length(eq);
-    time_step = dt;
+    time_step = analysis.time_step;
+    num_steps = (length(eq)*dt)/time_step;
 else
     error('Unkown Analysis Type')
 end
@@ -38,11 +38,12 @@ fprintf(fileID,'wipe \n');
 % Build Model and Analysis Parameters
 fprintf(fileID,'## Build Model and Analysis Parameters \n');
 fprintf(fileID,'source Analysis/%s/model.tcl \n', analysis.id);
-fprintf(fileID,'source Analysis/%s/recorders.tcl \n', analysis.id);
 fprintf(fileID,'source Analysis/%s/loads.tcl \n', analysis.id);
+fprintf(fileID,'source Analysis/%s/recorders.tcl \n', analysis.id);
 
 % ANALYSIS DEFINITION
 fprintf(fileID,'## ANALYSIS DEFINITION \n');
+fprintf(fileID,'wipeAnalysis \n');
 
 % Define Constraints
 fprintf(fileID,'# Define Constraints \n');
@@ -74,7 +75,7 @@ fprintf(fileID,'analysis %s \n',analysis_str_id);
 
 %% Run the Analysis
 fprintf(fileID,'## Run the Analysis \n');
-fprintf(fileID,'analyze %d %d \n',num_steps, time_step);
+fprintf(fileID,'analyze %d %f \n',num_steps, time_step);
 fprintf(fileID,'puts "Done!" \n');
 fprintf(fileID,'wipe \n');
 

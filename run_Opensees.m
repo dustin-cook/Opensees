@@ -11,6 +11,7 @@ import tools.*
 analysis.id = 'test';
 analysis.type = 4; % 1 = static force analysis, 2 = pushover analysis, 3 = dynamic analysis, 4 = calculate spectra
 analysis.max_displ = 1; % only for pushover analsys
+analysis.time_step = 0.01;
 
 % Create Outputs Directory
 output_dir = ['Analysis' filesep analysis.id];
@@ -30,16 +31,16 @@ num_stories = 1;
 story_ht_in = 1000;
 bay_width_in = 240;
 foundation_fix = [1 1 1];
-story_force_k = 0;
-story_weight_k = 0;
-damp_ratio = 0.05;
 story_mass = 1;
+story_force_k = 0;
+story_weight_k = story_mass*386;
+damp_ratio = 0.001;
 E = 60000;
 A = 9999999999999;
 I = 13824;
 
 if analysis.type == 4
-    periods = 0.05:0.05:3;
+    periods = 0.001:0.05:3.001;
 else
     periods = sqrt(story_mass/(3*E*I/story_ht_in^3));
 end
@@ -63,7 +64,7 @@ for i = 1:1
         fn_build_model( analysis.id, node, element )
         fn_define_recorders( analysis, node.id, element.id )
         fn_define_loads( analysis, damp_ratio, node, dt )
-        fn_define_analysis( analysis, node.id, dt, eq )
+        fn_define_analysis( analysis, node.id, eq, dt )
 
         %% Run Opensees
         command = ['opensees ' 'Analysis' filesep analysis.id filesep 'run_analysis.tcl'];
@@ -106,9 +107,19 @@ for i = 1:1
         elseif analysis.type == 3 % dynamic analysis
             plot(node.disp_x(end,:))
         elseif analysis.type == 4 % spectra analysis
-            sa(i,j) = (max(abs(eq'+node.accel_x(end,:))))/386;
+            total_eq_time = length(eq)*dt;
+            old_time_vec = dt:dt:total_eq_time;
+            new_time_vec = analysis.time_step:analysis.time_step:total_eq_time;
+            new_eq_vec = interp1([0,old_time_vec],[0;eq],new_time_vec);
+            sa(i,j) = max(abs(new_eq_vec+node.accel_x(end,:)/386));
             sd(i,j) = max(abs(node.disp_x(end,:)));
             psa(i,j) = max(abs(node.disp_x(end,:)*((((2*pi)/periods(j))^2)/386)));
+            hold on
+            grid on
+            plot(new_eq_vec)
+            plot(new_eq_vec+node.accel_x(end,:)/386)
+            hold off
+            close
         else
             error('Unkown Analysis Type')
         end

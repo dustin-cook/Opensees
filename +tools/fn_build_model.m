@@ -15,7 +15,7 @@ fprintf(fileID,'model basic -ndm 2 -ndf 3 \n');
 % define nodes (inches)
 fprintf(fileID,'# define nodes (inches) \n');
 for i = 1:length(node.id)
-    fprintf(fileID,'node %d %d %d \n',node.id(i),node.x_coor(i),node.y_coor(i));
+    fprintf(fileID,'node %d %f %f \n',node.id(i),node.x_coor(i),node.y_coor(i));
 end
 
 % set boundary conditions at each node (3dof) (fix = 1, free = 0)
@@ -27,7 +27,7 @@ end
 % define nodal masses (horizontal) (units?)
 fprintf(fileID,'# define nodal masses (horizontal) (units?) \n');
 for i = 1:length(node.id)
-fprintf(fileID,'mass %d %d 0. 0. \n',node.id(i), node.mass(i));
+fprintf(fileID,'mass %d %f 0. 0. \n',node.id(i), node.mass(i));
 end
 
 % Linear Transformation
@@ -39,7 +39,7 @@ fprintf(fileID,'geomTransf Linear 1 \n');
 fprintf(fileID,'# Define Elements (columns and beam) \n');
 fprintf(fileID,'# element elasticBeamColumn <element id> <start node> <end node> <area sq in> <E ksi> <I in4> <$transfTag> \n');
 for i = 1:length(element.id)
-    fprintf(fileID,'element elasticBeamColumn %d %d %d %d %d %d 1 \n',element.id(i),element.node_start(i),element.node_end(i),element.A(i),element.E(i),element.I(i));
+    fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f 1 \n',element.id(i),element.node_start(i),element.node_end(i),element.A(i),element.E(i),element.I(i));
 end
 
 % Close File
