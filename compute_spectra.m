@@ -5,9 +5,9 @@ clc
 
 %% Initailize Paramaters
 % import hbr.str_eng.fn_sdof_th
-dt = 0.01;
+dt = 0.005;
 T = 0.05:0.05:3;
-damp_ratio = 0.0;
+damp_ratio = 0.02;
 
 %% Load in EQ data
 load(['ground_motions' filesep 'data_ground_accel_th.mat']);
@@ -17,7 +17,12 @@ load(['ground_motions' filesep 'data_ground_accel_th.mat']);
 eq_list = fieldnames(pga_th_g);
 num_eq = numel(eq_list);
 for i = 1:1
-    ag = pga_th_g.(eq_list{i});
+%     ag = pga_th_g.(eq_list{i});
+    eq_raw = dlmread('A10000.csv',',')';
+    ag = [];
+    for k = 1:length(eq_raw(1,:))
+    ag = [ag;eq_raw(:,k)];
+    end
     for j = 1:length(T)
         [psuedoAccelerationTH, ~, accelerationTH] = fn_sdof_th(T(j), damp_ratio, ag, dt);
         max_sa(i,j) = max(abs(accelerationTH));
