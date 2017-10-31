@@ -1,16 +1,16 @@
 wipe; 
 model basic -ndm 2 -ndf 3; 
-file mkdir data; 
 node 1 0. 0.; 
 node 2 0. 432. 
 fix 1 1 1 1; 
-mass 2 5.18 0. 0.; 
+mass 2 1 0. 0.; 
 geomTransf Linear 1; 
-element elasticBeamColumn 1 1 2 3600 3225 4792.896333 1; 
+element elasticBeamColumn 1 1 2 99999999 3225 8332.978605 1; 
 recorder Node -file vezna_accel.txt -time -node 2 -dof 1 accel; 
+recorder Node -file vezna_disp.txt -time -node 2 -dof 1 2 3 disp; 
 timeSeries Linear 1 
 pattern Plain 1 1 { 
-   load 2 0. -2000. 0.; 
+   load 2 0. -386. 0.; 
 } 
 constraints Plain; 
 numberer Plain; 
@@ -33,6 +33,6 @@ system BandGeneral;
 algorithm Linear 
 integrator Newmark 0.5 0.25 ; 
 analysis Transient; 
-analyze 3995 0.010000; 
+analyze 7990 0.005000; 
 puts "Done!" 
 wipe 

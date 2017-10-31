@@ -6,7 +6,8 @@ clc
 %% Initailize Paramaters
 % import hbr.str_eng.fn_sdof_th
 dt = 0.005;
-T = 0.05:0.05:3;
+% T = 0.05:0.05:3;
+T = 1;
 damp_ratio = 0.02;
 
 %% Load in EQ data
@@ -24,9 +25,21 @@ for i = 1:1
     ag = [ag;eq_raw(:,k)];
     end
     for j = 1:length(T)
-        [psuedoAccelerationTH, ~, accelerationTH] = fn_sdof_th(T(j), damp_ratio, ag, dt);
+        [psuedoAccelerationTH, displacementTH, accelerationTH] = fn_sdof_th(T(j), damp_ratio, ag, dt);
         max_sa(i,j) = max(abs(accelerationTH));
-        max_sa_psuedo(i,j) = max(abs(psuedoAccelerationTH));    
+        max_sa_psuedo(i,j) = max(abs(psuedoAccelerationTH));   
+        
+        test = load('data/Dfree.out');
+        
+        
+        figure
+        grid on
+        plot(displacementTH)
+        
+        figure
+        grid on
+        plot(test(11:end,2))
+        
     end
 end
 

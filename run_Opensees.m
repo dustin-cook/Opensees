@@ -11,7 +11,7 @@ import tools.*
 analysis.id = 'test';
 analysis.type = 4; % 1 = static force analysis, 2 = pushover analysis, 3 = dynamic analysis, 4 = calculate spectra
 analysis.max_displ = 1; % only for pushover analsys
-analysis.time_step = 0.01;
+analysis.time_step = 0.005;
 
 % Create Outputs Directory
 output_dir = ['Analysis' filesep analysis.id];
@@ -40,7 +40,8 @@ A = 9999999999999;
 I = 13824;
 
 if analysis.type == 4
-    periods = 0.001:0.05:3.001;
+%     periods = 0.001:0.05:3.001;
+    periods = 1;
 else
     periods = sqrt(story_mass/(3*E*I/story_ht_in^3));
 end
@@ -68,14 +69,14 @@ for i = 1:1
         
         % Build and run Vezna Script
 %         num_steps = (length(eq)*dt)/analysis.time_step;
-        num_steps = 3995;
+        num_steps = (3995)*(0.01/analysis.time_step);
         vezna_sdof( period, analysis, dt, num_steps )
         command = ['opensees ' 'vezna_sdof.tcl'];
         system(command);
 
-        %% Run Opensees
-        command = ['opensees ' 'Analysis' filesep analysis.id filesep 'run_analysis.tcl'];
-        system(command);
+%         %% Run Opensees
+%         command = ['opensees ' 'Analysis' filesep analysis.id filesep 'run_analysis.tcl'];
+%         system(command);
 
 %         %% Load outputs and plot
 %         % Nodal Displacement (i)
@@ -129,13 +130,16 @@ for i = 1:1
 
             
             vezna_accel = dlmread('vezna_accel.txt',' ')';
+            vezna_disp = dlmread('vezna_disp.txt',' ')';
             sa_vezna(j) = max(abs(vezna_accel(end,11:end)/386));
             
             
             hold on
             grid on
-            plot(new_eq_vec)
-            plot(new_eq_vec+vezna_accel(end,11:end)/386)
+            plot(vezna_disp(end,11:end))
+%             plot(new_eq_vec)
+%             plot(vezna_accel(end,11:end)/386)
+%             plot(new_eq_vec+vezna_accel(end,11:end)/386)
             hold off
             close
             
