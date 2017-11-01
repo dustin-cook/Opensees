@@ -52,12 +52,12 @@ for i = 1:1
 %     analysis.eq_name = eqs(i).name;
     analysis.eq_name = 'A10000.tcl';
     dt = 0.005;
-%     eq = load([analysis.eq_dir filesep analysis.eq_name]);
-    eq_raw = dlmread('A10000.csv',',')';
-    eq = [];
-    for k = 1:length(eq_raw(1,:))
-    eq = [eq;eq_raw(:,k)];
-    end
+    eq = load([analysis.eq_dir filesep analysis.eq_name]);
+%     eq = dlmread('eq_120111.tcl')'; 
+%     eq = [];
+%     for k = 1:length(eq_raw(1,:))
+%     eq = [eq;eq_raw(:,k)];
+%     end
     
     for j = 1:length(periods)
         % Model properties for this run
@@ -84,29 +84,29 @@ for i = 1:1
         command = ['opensees ' 'Analysis' filesep analysis.id filesep 'run_analysis.tcl'];
         system(command);
 
-        %% Load outputs and plot
-        % Nodal Displacement (i)
-        node.disp_x = dlmread([output_dir filesep 'nodal_disp_x.txt'],' ')';
-        node.disp_y = dlmread([output_dir filesep 'nodal_disp_y.txt'],' ')';
-
-        % Nodal Reaction (k)
-        node.reac_x = dlmread([output_dir filesep 'nodal_reaction_x.txt'],' ')';
-        node.reac_y = dlmread([output_dir filesep 'nodal_reaction_y.txt'],' ')';
-        
-        % Nodal Acceleration (in/s2)
-        node.accel_x = dlmread([output_dir filesep 'nodal_accel_x.txt'],' ')';
-        node.accel_y = dlmread([output_dir filesep 'nodal_accel_y.txt'],' ')';
-
-        % Element Forces
-        for k = 1:length(element.id)
-            ele_force = dlmread([output_dir filesep 'element_' num2str(k) '_force.txt'],' ');
-            element.fx1{k} = ele_force(:,1)';
-            element.fy1{k} = ele_force(:,2)';
-            element.mz1{k} = ele_force(:,3)';
-            element.fx2{k} = ele_force(:,4)';
-            element.fy2{k} = ele_force(:,5)';
-            element.mz2{k} = ele_force(:,6)';
-        end
+%         %% Load outputs and plot
+%         % Nodal Displacement (i)
+%         node.disp_x = dlmread([output_dir filesep 'nodal_disp_x.txt'],' ')';
+%         node.disp_y = dlmread([output_dir filesep 'nodal_disp_y.txt'],' ')';
+% 
+%         % Nodal Reaction (k)
+%         node.reac_x = dlmread([output_dir filesep 'nodal_reaction_x.txt'],' ')';
+%         node.reac_y = dlmread([output_dir filesep 'nodal_reaction_y.txt'],' ')';
+%         
+%         % Nodal Acceleration (in/s2)
+%         node.accel_x = dlmread([output_dir filesep 'nodal_accel_x.txt'],' ')';
+%         node.accel_y = dlmread([output_dir filesep 'nodal_accel_y.txt'],' ')';
+% 
+%         % Element Forces
+%         for k = 1:length(element.id)
+%             ele_force = dlmread([output_dir filesep 'element_' num2str(k) '_force.txt'],' ');
+%             element.fx1{k} = ele_force(:,1)';
+%             element.fy1{k} = ele_force(:,2)';
+%             element.mz1{k} = ele_force(:,3)';
+%             element.fx2{k} = ele_force(:,4)';
+%             element.fy2{k} = ele_force(:,5)';
+%             element.mz2{k} = ele_force(:,6)';
+%         end
 
         %% Display Results
         if analysis.type == 1 % static load analysis
@@ -141,7 +141,7 @@ for i = 1:1
             legend('Location','eastoutside') 
             xlabel('time (s)')
             ylabel('disp (in)')
-            plot1 = plot(new_time_vec,vezna_disp(2,11:4005),'DisplayName','Displacement');
+            plot1 = plot(new_time_vec,vezna_disp(2,11:end),'DisplayName','Displacement');
             saveas(plot1,'Vezna_disp.png')
             hold off
             close
@@ -153,8 +153,8 @@ for i = 1:1
             xlabel('time (s)')
             ylabel('accel (g)')
             plot2 = plot(new_time_vec,new_eq_vec,'DisplayName','Ground Motion');
-            plot2 = plot(new_time_vec,new_eq_vec+vezna_accel(2,11:4005)/386,'DisplayName','Absoulte Acceleration');
-            saveas(plot2,'VExample3_accel.png')
+            plot2 = plot(new_time_vec,new_eq_vec-vezna_accel(2,11:end)/386,'DisplayName','Absoulte Acceleration');
+            saveas(plot2,'Vezna_accel.png')
             hold off
             close
             
@@ -164,7 +164,7 @@ for i = 1:1
             xlabel('time (s)')
             ylabel('disp (in)')
             plot1 = plot(new_time_vec,node.disp_x(end,:),'DisplayName','Displacement');
-            saveas(plot1,'Example3_disp.png')
+            saveas(plot1,'DC_disp.png')
             hold off
             close
 

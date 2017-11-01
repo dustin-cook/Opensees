@@ -6,8 +6,8 @@ clc
 %% Initailize Paramaters
 % import hbr.str_eng.fn_sdof_th
 dt = 0.005;
-% T = 0.05:0.05:3;
-T = 1;
+T = 0.05:0.05:3;
+% T = 1;
 damp_ratio = 0.02;
 
 %% Load in EQ data
@@ -24,32 +24,33 @@ for i = 1:1
     for k = 1:length(eq_raw(1,:))
     ag = [ag;eq_raw(:,k)];
     end
+%     ag = dlmread('eq_120111.tcl')';
     time_vec = dt:dt:(length(ag)*dt);
     for j = 1:length(T)
         [psuedoAccelerationTH, displacementTH, accelerationTH] = fn_sdof_th(T(j), damp_ratio, ag, dt);
         max_sa(i,j) = max(abs(accelerationTH));
         max_sa_psuedo(i,j) = max(abs(psuedoAccelerationTH));   
         
-        hold on
-        grid on
-        legend('Location','eastoutside') 
-        xlabel('time (s)')
-        ylabel('disp (in)')
-        plot1 = plot(time_vec,displacementTH,'DisplayName','Displacement');
-        saveas(plot1,'Newmark_disp.png')
-        hold off
-        close
-
-        hold on
-        grid on
-        legend('Location','eastoutside') 
-        xlabel('time (s)')
-        ylabel('accel (g)')
-        plot2 = plot(time_vec,ag,'DisplayName','Ground Motion');
-        plot2 = plot(time_vec,accelerationTH,'DisplayName','Absoulte Acceleration');
-        saveas(plot2,'Newmark_accel.png')
-        hold off
-        close
+%         hold on
+%         grid on
+%         legend('Location','eastoutside') 
+%         xlabel('time (s)')
+%         ylabel('disp (in)')
+%         plot1 = plot(time_vec,displacementTH*386,'DisplayName','Displacement');
+%         saveas(plot1,'Newmark_disp2.png')
+%         hold off
+%         close
+% 
+%         hold on
+%         grid on
+%         legend('Location','eastoutside') 
+%         xlabel('time (s)')
+%         ylabel('accel (g)')
+%         plot2 = plot(time_vec,ag,'DisplayName','Ground Motion');
+%         plot2 = plot(time_vec,accelerationTH,'DisplayName','Absoulte Acceleration');
+%         saveas(plot2,'Newmark_accel2.png')
+%         hold off
+%         close
         
     end
 end
