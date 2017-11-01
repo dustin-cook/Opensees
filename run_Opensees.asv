@@ -20,7 +20,8 @@ if ~exist(output_dir,'dir')
 end
 
 % Define EQ ground motion
-analysis.eq_dir = 'ground_motions';
+% analysis.eq_dir = 'ground_motions/ATC_63_far_feild';
+analysis.eq_dir = '';
 eqs = dir([analysis.eq_dir filesep '*eq_*']);
 num_eqs = length(eqs);
 
@@ -54,9 +55,9 @@ for i = 1:1
     dt = 0.005;
 %     eq = load([analysis.eq_dir filesep analysis.eq_name]);
     eq_raw = dlmread('A10000.csv',',')';
-    eq = [];
+    ag = [];
     for k = 1:length(eq_raw(1,:))
-    eq = [eq;eq_raw(:,k)];
+    ag = [ag;eq_raw(:,k)];
     end
     
     for j = 1:length(periods)
@@ -131,55 +132,12 @@ for i = 1:1
             new_time_vec = analysis.time_step:analysis.time_step:total_eq_time;
             new_eq_vec = interp1([0,old_time_vec],[0;eq],new_time_vec);
             
-            vezna_disp = dlmread('data/DFree.out',' ')';
-            vezna_accel = dlmread('data/accel.out',' ')';
-            
-            
-            
             hold on
             grid on
-            legend('Location','eastoutside') 
-            xlabel('time (s)')
-            ylabel('disp (in)')
-            plot1 = plot(new_time_vec,vezna_disp(2,11:4005),'DisplayName','Displacement');
-            saveas(plot1,'Vezna_disp.png')
+            plot(new_eq_vec)
+            plot(new_eq_vec+node.accel_x(end,:)/386);
             hold off
             close
-
-            
-            hold on
-            grid on
-            legend('Location','eastoutside') 
-            xlabel('time (s)')
-            ylabel('accel (g)')
-            plot2 = plot(new_time_vec,new_eq_vec,'DisplayName','Ground Motion');
-            plot2 = plot(new_time_vec,new_eq_vec+vezna_accel(2,11:4005)/386,'DisplayName','Absoulte Acceleration');
-            saveas(plot2,'VExample3_accel.png')
-            hold off
-            close
-            
-            hold on
-            grid on
-            legend('Location','eastoutside') 
-            xlabel('time (s)')
-            ylabel('disp (in)')
-            plot1 = plot(new_time_vec,node.disp_x(end,:),'DisplayName','Displacement');
-            saveas(plot1,'Example3_disp.png')
-            hold off
-            close
-
-            
-            hold on
-            grid on
-            legend('Location','eastoutside') 
-            xlabel('time (s)')
-            ylabel('accel (g)')
-            plot2 = plot(new_time_vec,new_eq_vec,'DisplayName','Ground Motion');
-            plot2 = plot(new_time_vec,new_eq_vec+node.accel_x(end,:)/386,'DisplayName','Absoulte Acceleration');
-            saveas(plot2,'DC_accel.png')
-            hold off
-            close
-            
 
 %             sa(i,j) = max(abs(new_eq_vec+node.accel_x(end,:)/386));
 %             sd(i,j) = max(abs(node.disp_x(end,:)));

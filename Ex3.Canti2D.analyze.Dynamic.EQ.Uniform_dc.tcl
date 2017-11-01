@@ -101,8 +101,8 @@ rayleigh $alphaM $betaKcurr $betaKinit $betaKcomm; 				# RAYLEIGH damping
 #  ---------------------------------    perform Dynamic Ground-Motion Analysis
 # Uniform EXCITATION: acceleration input
 set IDloadTag 400;			# load tag
-set dt 0.01;			# time step for input ground motion
-set GMfatt 1.0;			# data in input file is in g Unifts -- ACCELERATION TH
+set dt 0.005;			# time step for input ground motion
+set GMfatt 386;			# data in input file is in g Unifts -- ACCELERATION TH
 set AccelSeries "Series -dt $dt -filePath $GMfile -factor  $GMfatt";			# time series information
 pattern UniformExcitation  $IDloadTag  $GMdirection -accel  $AccelSeries  ;		# create Unifform excitation
 

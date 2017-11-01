@@ -47,6 +47,8 @@ recorder Node -file Data/RBase.out -time -node 1 -dof 1 2 3 reaction;			        
 recorder Drift -file Data/Drift.out -time -iNode 1 -jNode 2 -dof 1  -perpDirn 2 ;		# lateral drift
 recorder Element -file Data/FCol.out -time -ele 1 force;			                    # element forces -- column
 
+recorder Node -file Data/accel.out -time -node 2 -dof 1 2 3 accel;			            # displacements of free nodes
+
 # define GRAVITY -------------------------------------------------------------
 timeSeries Linear 1
 pattern Plain 1 1 {

@@ -24,21 +24,32 @@ for i = 1:1
     for k = 1:length(eq_raw(1,:))
     ag = [ag;eq_raw(:,k)];
     end
+    time_vec = dt:dt:(length(ag)*dt);
     for j = 1:length(T)
         [psuedoAccelerationTH, displacementTH, accelerationTH] = fn_sdof_th(T(j), damp_ratio, ag, dt);
         max_sa(i,j) = max(abs(accelerationTH));
         max_sa_psuedo(i,j) = max(abs(psuedoAccelerationTH));   
         
-        test = load('data/Dfree.out');
-        
-        
-        figure
+        hold on
         grid on
-        plot(displacementTH)
-        
-        figure
+        legend('Location','eastoutside') 
+        xlabel('time (s)')
+        ylabel('disp (in)')
+        plot1 = plot(time_vec,displacementTH,'DisplayName','Displacement');
+        saveas(plot1,'Newmark_disp.png')
+        hold off
+        close
+
+        hold on
         grid on
-        plot(test(11:end,2))
+        legend('Location','eastoutside') 
+        xlabel('time (s)')
+        ylabel('accel (g)')
+        plot2 = plot(time_vec,ag,'DisplayName','Ground Motion');
+        plot2 = plot(time_vec,accelerationTH,'DisplayName','Absoulte Acceleration');
+        saveas(plot2,'Newmark_accel.png')
+        hold off
+        close
         
     end
 end

@@ -70,7 +70,7 @@ set IDctrlDOF 1;			# degree of freedom of displacement read for displacement con
 set iSupportNode "1";		# define support node, if needed.
 
 # nodal masses:
-mass 2 $Mass  1e-9 0.;		# node#, Mx My Mz, Mass=Weight/g, neglect rotational inertia at nodes
+mass 2 1  1e-9 0.;		# node#, Mx My Mz, Mass=Weight/g, neglect rotational inertia at nodes
 
 # Define ELEMENTS -------------------------------------------------------------
 # Material parameters
@@ -83,7 +83,7 @@ set ColTransfType Linear ;			# options, Linear PDelta Corotational
 geomTransf $ColTransfType $ColTransfTag ; 	
 
 # element connectivity:
-element elasticBeamColumn 1 1 2 $ACol $Ec $IzCol $ColTransfTag;			# self-explanatory when using variables
+element elasticBeamColumn 1 1 2 3600 3225 8333 $ColTransfTag;			# self-explanatory when using variables
 
 # Define RECORDERS -------------------------------------------------------------
 recorder Node -file $dataDir/DFree.out -time -node 2 -dof 1 2 3 disp;		# displacements of free nodes
@@ -93,9 +93,11 @@ recorder Drift -file $dataDir/Drift.out -time -iNode 1 -jNode 2 -dof 1   -perpDi
 recorder Element -file $dataDir/FCol.out -time -ele 1 globalForce;			# element forces -- column
 recorder Element -xml $dataDir/PlasticRotation.out -time -ele 1 plasticRotation;		# section deformations, axial and curvature, node j
 
+recorder Node -file $dataDir/accel.out -time -node 2 -dof 1 2 3 accel;		# displacements of free nodes
+
 # define GRAVITY -------------------------------------------------------------
 pattern Plain 1 Linear {
-   load 2 0 -$PCol 0
+   load 2 0 -386. 0
 }
 
 # ------------------------------------------------- apply gravity load
