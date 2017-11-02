@@ -57,10 +57,6 @@ fprintf(fileID,'numberer Plain \n');
 fprintf(fileID,'# Construct Linear Solver and linear SOE Objects \n');
 fprintf(fileID,'system BandGeneral \n');
 
-% % Construct Convergence Test
-% fprintf(fileID,'# Construct Convergence Test \n');
-% fprintf(fileID,'test NormDispIncr 1.0e-6 6 \n');
-
 % Define Solution Algorithm
 fprintf(fileID,'# Define Solution Algorithm \n');
 fprintf(fileID,'algorithm Linear \n');
@@ -75,7 +71,7 @@ fprintf(fileID,'analysis %s \n',analysis_str_id);
 
 %% Run the Analysis
 fprintf(fileID,'## Run the Analysis \n');
-fprintf(fileID,'analyze %d %f \n',num_steps, time_step);
+fprintf(fileID,'analyze %i %f \n',round(num_steps), time_step);
 fprintf(fileID,'puts "Done!" \n');
 fprintf(fileID,'wipe \n');
 

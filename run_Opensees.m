@@ -34,20 +34,20 @@ foundation_fix = [1 1 1];
 story_mass = 1;
 story_force_k = 0;
 story_weight_k = story_mass*386;
-damp_ratio = 0.0;
+damp_ratio = 0.02;
 E = 60000;
 A = 9999999999999;
 I = 13824;
 
 if analysis.type == 4
     periods = 0.001:0.05:3.001;
-%     periods = 1;
+
 else
     periods = sqrt(story_mass/(3*E*I/story_ht_in^3))*2*pi();
 end
 
 %% Main Analysis
-for i = 1:1
+for i = 1:1%length(eqs)
     % EQ this run
     analysis.eq_name = eqs(i).name;
     dt = 0.01;
@@ -56,7 +56,7 @@ for i = 1:1
     for j = 1:length(periods)
         % Model properties for this run
         I = (story_mass * story_ht_in^3) / (3 * (periods(j)/(2*pi))^2 * E );
-        T = sqrt(story_mass/(3*E*I/story_ht_in^3))*2*pi
+        T = sqrt(story_mass/(3*E*I/story_ht_in^3))*2*pi;
         
         %% Create Model Databases
         [ node, element ] = fn_model_table( num_stories, num_bays, story_ht_in, bay_width_in, foundation_fix, story_mass, story_weight_k, story_force_k, A, E, I );
@@ -113,8 +113,9 @@ for i = 1:1
             new_time_vec = analysis.time_step:analysis.time_step:total_eq_time;
             new_eq_vec = interp1([0,old_time_vec],[0;eq],new_time_vec);
             
-            sa(j) = max(abs(new_eq_vec-node.accel_x(end,:)/386));
-            psa(j) = max(abs(((2*pi/T)^2)*node.disp_x(end,:)/386));
+            sa(i,j) = max(abs(new_eq_vec+node.accel_x(end,:)/386));
+            sd(i,j) = max(abs(node.disp_x(end,:)));
+            psa(i,j) = ((2*pi/T)^2)*sd(i,j)/386;
             
 %             figure
 %             hold on
@@ -134,7 +135,7 @@ for i = 1:1
 %             xlabel('time (s)')
 %             ylabel('accel (g)')
 %             plot2 = plot(new_time_vec,new_eq_vec,'DisplayName','Ground Motion');
-%             plot2 = plot(new_time_vec,new_eq_vec-node.accel_x(end,:)/386,'DisplayName','Absoulte Acceleration');
+%             plot2 = plot(new_time_vec,new_eq_vec+node.accel_x(end,:)/386,'DisplayName','Absoulte Acceleration');
 %             saveas(plot2,'DC_accel.png')
 %             hold off
 %             close
@@ -146,21 +147,20 @@ for i = 1:1
 end
 
 if analysis.type == 4 % spectra analysis
-%     med_sa = median(sa);
-%     med_sd = median(sd);
-%     med_psa = median(psa);
+    med_sa = median(sa);
+    med_sd = median(sd);
+    med_psa = median(psa);
     
     figure
     hold on
     grid on
     xlabel('Period (s)')
     ylabel('Sa (g)')
-%     for i = 1:length(sa(:,1))
-        plot3 = plot(periods,sa,'r','lineWidth',1);
-        plot3 = plot(periods,psa,'k','lineWidth',0.5);
-%     end
-%     plot(periods,med_sa,'k','lineWidth',2)
-%     plot(periods,med_sd,'r','lineWidth',2.5)
+    for i = 1:length(sa(:,1))
+        plot3 = plot(periods,sa(i,:),'b','lineWidth',0.5);
+        plot3 = plot(periods,psa(i,:),'k','lineWidth',0.5);
+    end
+%     plot(periods,med_sa,'r','lineWidth',2)
 %     plot(periods,med_psa,'k','lineWidth',2)
     saveas(plot3,'DC_spectra.png')
     hold off
