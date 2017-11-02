@@ -39,13 +39,15 @@ if analysis.type == 3 || analysis.type == 4
     fprintf(fileID,'# Define Seismic Excitation Pattern \n');
     fprintf(fileID,'timeSeries Path 2 -dt %f -filePath %s/%s -factor 386. \n',dt, analysis.eq_dir, analysis.eq_name); % timeSeries Path $tag -dt $dt -filePath $filePath <-factor $cFactor> <-useLast> <-prependZero> <-startTime $tStart>
     fprintf(fileID,'pattern UniformExcitation 3 1 -accel 2 \n'); % pattern UniformExcitation $patternTag $dir -accel $tsTag <-vel0 $vel0> <-fact $cFactor>
-% 
+
     % Define Damping
     fprintf(fileID,'# set damping based on first eigen mode \n');
-    fprintf(fileID,'set freq [expr [eigen -fullGenLapack 1]**0.5] \n');
-    fprintf(fileID,'set period [expr 1/$freq] \n');
+    fprintf(fileID,'set lambda [expr [eigen -fullGenLapack 1]] \n');
+    fprintf(fileID,'set omega [expr sqrt($lambda)] \n');
+    fprintf(fileID,'set pi 3.141593 \n');
+    fprintf(fileID,'set period [expr 2*$pi/$omega] \n');
     fprintf(fileID,'puts $period \n');
-    fprintf(fileID,'rayleigh 0 0 0 [expr %d*2/$freq] \n', damp_ratio);
+    fprintf(fileID,'rayleigh [expr %d*2*$omega] 0 [expr %d*2/$omega] 0 \n', damp_ratio, damp_ratio);
 end
 
 % Close File
