@@ -44,10 +44,8 @@ if analysis.type == 3 || analysis.type == 4
     fprintf(fileID,'# set damping based on first eigen mode \n');
     fprintf(fileID,'set lambda [expr [eigen -fullGenLapack 1]] \n');
     fprintf(fileID,'set omega [expr sqrt($lambda)] \n');
-    fprintf(fileID,'set pi 3.141593 \n');
-    fprintf(fileID,'set period [expr 2*$pi/$omega] \n');
-    fprintf(fileID,'puts $period \n');
     fprintf(fileID,'rayleigh 0 0 0 [expr 2*%d/$omega] \n', damp_ratio, damp_ratio);  %[expr %d*2*$omega]
+    
 end
 
 % Close File

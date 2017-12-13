@@ -38,6 +38,7 @@ fprintf(fileID,'wipe \n');
 % Build Model and Analysis Parameters
 fprintf(fileID,'## Build Model and Analysis Parameters \n');
 fprintf(fileID,'source Analysis/%s/model.tcl \n', analysis.id);
+fprintf(fileID,'source Analysis/%s/eigen.tcl \n', analysis.id);
 fprintf(fileID,'source Analysis/%s/loads.tcl \n', analysis.id);
 fprintf(fileID,'source Analysis/%s/recorders.tcl \n', analysis.id);
 

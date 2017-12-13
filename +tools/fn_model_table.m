@@ -1,12 +1,13 @@
-function [ node, element ] = fn_model_table( num_stories, num_bays, story_ht, bay_width, foundation_fix, story_mass, story_weight, story_force, A, E, I )
+function [ node, element ] = fn_model_table( num_stories, num_bays, floor_ht, bay_width, foundation_fix, story_mass, story_weight, story_force, A_col, E_col, I_col, A_bm, E_bm, I_bm )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
+
 
 %% Create Governing Parameters
 num_nodes = (num_bays + 1) * (num_stories + 1);
 nodes = 1:num_nodes;
 nodal_coordinates_x = (0:num_bays)*bay_width;
-nodal_coordinates_y = (0:num_stories)*story_ht;
+nodal_coordinates_y = floor_ht;
 
 % Create Coordinate Vectors
 nodal_y = [];
@@ -17,15 +18,26 @@ for i = 1:length(nodal_coordinates_y)
 end
 
 % Define Nodal Fixity, Mass, Weight, and force
-for i = 1:num_nodes
-    if i <= (num_bays + 1)
-        nodal_fix{i} = foundation_fix;
-        nodal_mass(i) = 0;
-    else
-        nodal_fix{i} = [0,0,0];
-        nodal_mass(i) = story_mass/(num_bays + 1);
-        nodal_wt(i) = story_weight/(num_bays + 1);
-        nodal_force(i) = story_force/(num_bays + 1);
+node_id = 0;
+for story = 0:num_stories
+    for bay = 1:num_bays+1
+        node_id = node_id+1;
+        if story == 0 % Ground Nodes
+            nodal_fix{node_id} = foundation_fix;
+            nodal_mass(node_id) = 0;
+            nodal_wt(node_id) = 0;
+            nodal_force(node_id) = 0;
+        elseif bay == 1 || bay == num_bays+1 % Frame end nodes
+            nodal_fix{node_id} = [0,0,0];
+            nodal_mass(node_id) = story_mass(story)/(num_bays*2);
+            nodal_wt(node_id) = story_weight(story)/(num_bays*2);
+            nodal_force(node_id) = story_force(story)/(num_bays*2);
+        else
+            nodal_fix{node_id} = [0,0,0];
+            nodal_mass(node_id) = story_mass(story)/(num_bays);
+            nodal_wt(node_id) = story_weight(story)/(num_bays);
+            nodal_force(node_id) = story_force(story)/(num_bays);
+        end
     end
 end
 
@@ -51,9 +63,15 @@ node_start = [col_node_start,beam_node_start];
 node_end = [col_node_end,beam_node_end];
 
 % Define Element Properties
-area = ones(1,num_ele)*A;
-youngs_mod = ones(1,num_ele)*E;
-moment_of_inertia = ones(1,num_ele)*I;
+area_col = ones(1,num_col)*A_col;
+youngs_mod_col = ones(1,num_col)*E_col;
+moment_of_inertia_col = ones(1,num_col)*I_col;
+area_bm = ones(1,num_beam)*A_bm;
+youngs_mod_bm = ones(1,num_beam)*E_bm;
+moment_of_inertia_bm = ones(1,num_beam)*I_bm;
+area = [area_col,area_bm];
+youngs_mod = [youngs_mod_col,youngs_mod_bm];
+moment_of_inertia = [moment_of_inertia_col,moment_of_inertia_bm];
 
 % Create Model Data Table
 node = table(nodes',nodal_x',nodal_y',nodal_fix',nodal_mass',nodal_wt',nodal_force','VariableNames',{'id','x_coor','y_coor','fix','mass','weight','force'});

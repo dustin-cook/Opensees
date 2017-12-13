@@ -9,7 +9,7 @@ import tools.*
 
 %% Define Analysis parameters
 analysis.id = 'test';
-analysis.type = 4; % 1 = static force analysis, 2 = pushover analysis, 3 = dynamic analysis, 4 = calculate spectra
+analysis.type = 3; % 1 = static force analysis, 2 = pushover analysis, 3 = dynamic analysis, 4 = calculate spectra
 analysis.max_displ = 1; % only for pushover analsys
 analysis.time_step = 0.01;
 
@@ -26,27 +26,39 @@ num_eqs = length(eqs);
 
 %% Define Model Parameters
 % 2d linear model single frame, 1 bay, uniform members
-num_bays = 0;
-num_stories = 1;
-story_ht_in = 1000;
-bay_width_in = 240;
+num_bays = 5;
+num_stories = 6;
+story_ht_in = [16.5 13.5 13.5 13.5 13.5 13.2]*12;
+bay_width_in = 300;
 foundation_fix = [1 1 1];
-story_mass = 1;
-story_force_k = 0;
-story_weight_k = story_mass*386;
+story_weight_k = [644.53125	681.1523438	681.1523438	681.1523438	681.1523438	556.640625];
+story_mass = story_weight_k/386;
+story_force_k = [0 0 0 0 0 0];
 damp_ratio = 0.02;
-E = 60000;
-A = 9999999999999;
-I = 13824;
+E_col = 63000;
+A_col = 576;
+I_col = 27648;
+E_bm = 71000;
+A_bm = 720;
+I_bm = 54000;
 
+%% Start Analysis
+% Calculate Additional Building Parameters
+floor_ht = 0;
+for i = 1:length(story_ht_in)
+    floor_ht = [floor_ht sum(story_ht_in(1:i))];
+end
+building_ht = sum(story_ht_in);
+building_mass = sum(story_mass);
+
+% choose periods to run based on analysis type
 if analysis.type == 4
     periods = 0.001:0.05:3.001;
-
 else
-    periods = sqrt(story_mass/(3*E*I/story_ht_in^3))*2*pi();
+    periods = sqrt(building_mass/(3*E_col*I_col/building_ht^3))*2*pi();
 end
 
-%% Main Analysis
+% Main Opensees Analysis
 for i = 1:1%length(eqs)
     % EQ this run
     analysis.eq_name = eqs(i).name;
@@ -55,17 +67,18 @@ for i = 1:1%length(eqs)
     
     for j = 1:length(periods)
         % Model properties for this run
-        I = (story_mass * story_ht_in^3) / (3 * (periods(j)/(2*pi))^2 * E );
-        T = sqrt(story_mass/(3*E*I/story_ht_in^3))*2*pi;
+        I_col = (building_mass * building_ht^3) / (3 * (periods(j)/(2*pi))^2 * E_col );
+        T = sqrt(building_mass/(3*E_col*I_col/building_ht^3))*2*pi;
         
         %% Create Model Databases
-        [ node, element ] = fn_model_table( num_stories, num_bays, story_ht_in, bay_width_in, foundation_fix, story_mass, story_weight_k, story_force_k, A, E, I );
+        [ node, element ] = fn_model_table( num_stories, num_bays, floor_ht, bay_width_in, foundation_fix, story_mass, story_weight_k, story_force_k, A_col, E_col, I_col, A_bm, E_bm, I_bm );
 
         %% Write TCL file
         fn_build_model( analysis.id, node, element )
         fn_define_recorders( analysis, node.id, element.id )
         fn_define_loads( analysis, damp_ratio, node, dt )
         fn_define_analysis( analysis, node.id, eq, dt )
+        fn_eigen_analysis( analysis, node.id )
         
         %% Run Opensees
         command = ['opensees ' 'Analysis' filesep analysis.id filesep 'run_analysis.tcl'];
@@ -107,6 +120,15 @@ for i = 1:1%length(eqs)
             grid on
         elseif analysis.type == 3 % dynamic analysis
             plot(node.disp_x(end,:))
+            max_displ_all_nodes = max(abs(node.disp_x),[],2);
+            for story = 1:num_stories+1
+                max_displ_profile(story) = max(max_displ_all_nodes((story-1)*(num_bays+1)+1:story*(num_bays+1)));
+            end
+            max_drift_profile = (max_displ_profile(2:end) - max_displ_profile(1:end-1))./story_ht_in;
+            max_accel_all_nodes = max(abs(node.accel_x),[],2);
+            for story = 1:num_stories+1
+                max_accel_profile(story) = max(max_accel_all_nodes((story-1)*(num_bays+1)+1:story*(num_bays+1)));
+            end
         elseif analysis.type == 4 % spectra analysis
             total_eq_time = length(eq)*dt;
             old_time_vec = dt:dt:total_eq_time;
@@ -116,36 +138,13 @@ for i = 1:1%length(eqs)
             sa(i,j) = max(abs(new_eq_vec+node.accel_x(end,:)/386));
             sd(i,j) = max(abs(node.disp_x(end,:)));
             psa(i,j) = ((2*pi/T)^2)*sd(i,j)/386;
-            
-%             figure
-%             hold on
-%             grid on
-%             legend('Location','eastoutside') 
-%             xlabel('time (s)')
-%             ylabel('disp (in)')
-%             plot1 = plot(new_time_vec,node.disp_x(end,:),'DisplayName','Displacement');
-%             saveas(plot1,'DC_disp.png')
-%             hold off
-%             close
-% 
-%             figure
-%             hold on
-%             grid on
-%             legend('Location','eastoutside') 
-%             xlabel('time (s)')
-%             ylabel('accel (g)')
-%             plot2 = plot(new_time_vec,new_eq_vec,'DisplayName','Ground Motion');
-%             plot2 = plot(new_time_vec,new_eq_vec+node.accel_x(end,:)/386,'DisplayName','Absoulte Acceleration');
-%             saveas(plot2,'DC_accel.png')
-%             hold off
-%             close
-            
         else
             error('Unkown Analysis Type')
         end
     end
 end
 
+%% Post Process Plotting
 if analysis.type == 4 % spectra analysis
     med_sa = median(sa);
     med_sd = median(sd);
