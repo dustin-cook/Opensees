@@ -31,16 +31,17 @@ num_stories = 6;
 story_ht_in = [16.5 13.5 13.5 13.5 13.5 13.2]*12;
 bay_width_in = 300;
 foundation_fix = [1 1 1];
-story_weight_k = [644.53125	681.1523438	681.1523438	681.1523438	681.1523438	556.640625];
+story_weight_k = [2200	2325	2325	2325	2325	1900];
 story_mass = story_weight_k/386;
 story_force_k = [0 0 0 0 0 0];
-damp_ratio = 0.02;
-E_col = 63000;
-A_col = 576;
-I_col = 27648;
-E_bm = 71000;
-A_bm = 720;
-I_bm = 54000;
+damp_ratio = 0.05;
+
+E_col = [4030 4030 4030 4030 4030 4030];
+A_col = [2304 3264 3264 3264 3264 3264];
+I_col = [110592 96640 96640 96640 96640 96640];
+E_bm = [3605 3605 3605 3605 3605 3605];
+A_bm = [2880 2520 2520 2520 2520 2440];
+I_bm = [216000 370440 370440 370440 370440 316333];
 
 %% Start Analysis
 % Calculate Additional Building Parameters
@@ -55,7 +56,7 @@ building_mass = sum(story_mass);
 if analysis.type == 4
     periods = 0.001:0.05:3.001;
 else
-    periods = sqrt(building_mass/(3*E_col*I_col/building_ht^3))*2*pi();
+    periods = sqrt(building_mass/(3*E_col(1)*I_col(1)/building_ht^3))*2*pi();
 end
 
 % Main Opensees Analysis
@@ -67,8 +68,8 @@ for i = 1:1%length(eqs)
     
     for j = 1:length(periods)
         % Model properties for this run
-        I_col = (building_mass * building_ht^3) / (3 * (periods(j)/(2*pi))^2 * E_col );
-        T = sqrt(building_mass/(3*E_col*I_col/building_ht^3))*2*pi;
+%         I_col = (building_mass * building_ht^3) / (3 * (periods(j)/(2*pi))^2 * E_col(1) );
+%         T = sqrt(building_mass/(3*E_col(1)*I_col/building_ht^3))*2*pi;
         
         %% Create Model Databases
         [ node, element ] = fn_model_table( num_stories, num_bays, floor_ht, bay_width_in, foundation_fix, story_mass, story_weight_k, story_force_k, A_col, E_col, I_col, A_bm, E_bm, I_bm );

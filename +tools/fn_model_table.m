@@ -63,12 +63,20 @@ node_start = [col_node_start,beam_node_start];
 node_end = [col_node_end,beam_node_end];
 
 % Define Element Properties
-area_col = ones(1,num_col)*A_col;
-youngs_mod_col = ones(1,num_col)*E_col;
-moment_of_inertia_col = ones(1,num_col)*I_col;
-area_bm = ones(1,num_beam)*A_bm;
-youngs_mod_bm = ones(1,num_beam)*E_bm;
-moment_of_inertia_bm = ones(1,num_beam)*I_bm;
+area_col = [];
+youngs_mod_col = [];
+moment_of_inertia_col = [];
+area_bm = [];
+youngs_mod_bm = [];
+moment_of_inertia_bm = [];
+for n = 1:num_stories
+    area_col = [area_col,ones(1,num_bays+1)*A_col(n)];
+    youngs_mod_col = [youngs_mod_col,ones(1,num_bays+1)*E_col(n)];
+    moment_of_inertia_col = [moment_of_inertia_col,ones(1,num_bays+1)*I_col(n)];
+    area_bm = [area_bm,ones(1,num_bays)*A_bm(n)];
+    youngs_mod_bm = [youngs_mod_bm,ones(1,num_bays)*E_bm(n)];
+    moment_of_inertia_bm = [moment_of_inertia_bm,ones(1,num_bays)*I_bm(n)];
+end
 area = [area_col,area_bm];
 youngs_mod = [youngs_mod_col,youngs_mod_bm];
 moment_of_inertia = [moment_of_inertia_col,moment_of_inertia_bm];
