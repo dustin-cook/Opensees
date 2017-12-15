@@ -20,7 +20,7 @@ if ~exist(output_dir,'dir')
 end
 
 % Define EQ ground motion
-analysis.eq_dir = 'ground_motions/ATC_63_far_feild';
+analysis.eq_dir = ['ground_motions/ICSB_1979'];
 eqs = dir([analysis.eq_dir filesep '*eq_*']);
 num_eqs = length(eqs);
 
@@ -62,7 +62,7 @@ end
 % Main Opensees Analysis
 for i = 1:1%length(eqs)
     % EQ this run
-    analysis.eq_name = eqs(i).name;
+    analysis.eq_name = 'eq_ew_ground.tcl';
     dt = 0.01;
     eq = load([analysis.eq_dir filesep analysis.eq_name]);
     
