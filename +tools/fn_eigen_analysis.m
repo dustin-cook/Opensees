@@ -1,9 +1,9 @@
-function [ ] = fn_eigen_analysis( analysis, nodes )
+function [ ] = fn_eigen_analysis( output_dir, time_step, nodes )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
 % Write Recorder File
-file_name = ['Analysis' filesep analysis.id filesep 'eigen.tcl'];
+file_name = [output_dir filesep 'eigen.tcl'];
 fileID = fopen(file_name,'w');
 
 % Initail Setup
@@ -12,7 +12,7 @@ fprintf(fileID,'wipeAnalysis \n');
 
 % Record eigenvectors
 fprintf(fileID,'# record eigenvectors \n');
-fprintf(fileID,'recorder Node -file Analysis/%s/mode_shape_1.txt -dT %f -node %s -dof 1 "eigen 1" \n',analysis.id, 2*analysis.time_step, num2str(nodes'));
+fprintf(fileID,'recorder Node -file A%s/mode_shape_1.txt -dT %f -node %s -dof 1 "eigen 1" \n',output_dir, 2*time_step, num2str(nodes'));
 
 % Perform Eigen Analysis
 fprintf(fileID,'# perform eigen analysis\n');
@@ -26,7 +26,7 @@ fprintf(fileID,'}\n');
 
 % Write Output File for periods
 fprintf(fileID,'# write the output file cosisting of periods \n');
-fprintf(fileID,'set period_file Analysis/%s/period.txt \n',analysis.id);
+fprintf(fileID,'set period_file %s/period.txt \n',output_dir);
 fprintf(fileID,'set Periods [open $period_file "w"] \n');
 fprintf(fileID,'foreach t $T { \n');
 fprintf(fileID,'	puts $Periods " $t" \n');

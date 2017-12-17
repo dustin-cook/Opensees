@@ -1,26 +1,26 @@
-function [ ] = fn_define_recorders( analysis, nodes, ele )
+function [ ] = fn_define_recorders( output_dir, analysis_type, nodes, ele )
 %UNTITLED7 Summary of this function goes here
 %   Detailed explanation goes here
 
 % nodal_str = strjoin(num2str(nodes'),',');
 
 % Write Recorder File
-file_name = ['Analysis' filesep analysis.id filesep 'recorders.tcl'];
+file_name = [output_dir, filesep 'recorders.tcl'];
 fileID = fopen(file_name,'w');
 
 % Define recorders
 fprintf(fileID,'# Define recorders \n');
-fprintf(fileID,'recorder Node -file Analysis/%s/nodal_disp_x.txt -node %s -dof 1 disp \n', analysis.id, num2str(nodes'));
-fprintf(fileID,'recorder Node -file Analysis/%s/nodal_disp_y.txt -node %s -dof 2 disp \n', analysis.id, num2str(nodes'));
-fprintf(fileID,'recorder Node -file Analysis/%s/nodal_reaction_x.txt -node %s -dof 1 reaction \n', analysis.id, num2str(nodes'));
-fprintf(fileID,'recorder Node -file Analysis/%s/nodal_reaction_y.txt -node %s -dof 2 reaction \n', analysis.id, num2str(nodes'));
-fprintf(fileID,'recorder Node -file Analysis/%s/nodal_accel_x.txt -node %s -dof 1 accel \n', analysis.id, num2str(nodes'));
-fprintf(fileID,'recorder Node -file Analysis/%s/nodal_accel_y.txt -node %s -dof 2 accel \n', analysis.id, num2str(nodes'));
+fprintf(fileID,'recorder Node -file %s/nodal_disp_x.txt -node %s -dof 1 disp \n', output_dir, num2str(nodes'));
+fprintf(fileID,'recorder Node -file %s/nodal_disp_y.txt -node %s -dof 2 disp \n', output_dir, num2str(nodes'));
+fprintf(fileID,'recorder Node -file %s/nodal_reaction_x.txt -node %s -dof 1 reaction \n', output_dir, num2str(nodes'));
+fprintf(fileID,'recorder Node -file %s/nodal_reaction_y.txt -node %s -dof 2 reaction \n', output_dir, num2str(nodes'));
+fprintf(fileID,'recorder Node -file %s/nodal_accel_x.txt -node %s -dof 1 accel \n', output_dir, num2str(nodes'));
+fprintf(fileID,'recorder Node -file %s/nodal_accel_y.txt -node %s -dof 2 accel \n', output_dir, num2str(nodes'));
 for i=1:length(ele)
-    fprintf(fileID,'recorder Element -file Analysis/%s/element_%d_force.txt -ele %d force \n', analysis.id, ele(i), ele(i));
+    fprintf(fileID,'recorder Element -file %s/element_%d_force.txt -ele %d force \n', output_dir, ele(i), ele(i));
 end
 
-if analysis.type == 3
+if analysis_type == 3
     % Movie Recorders
     fprintf(fileID,'# display displacement shape of the column \n');
     fprintf(fileID,'recorder display "Displaced shape" 10 10 500 500 -wipe \n');

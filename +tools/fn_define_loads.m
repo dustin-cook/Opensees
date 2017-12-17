@@ -1,9 +1,9 @@
-function [ ] = fn_define_loads( analysis, damp_ratio, node, dt )
+function [ ] = fn_define_loads( output_dir, analysis, damp_ratio, node, dt )
 %UNTITLED8 Summary of this function goes here
 %   Detailed explanation goes here
 
 % Write Loads File
-file_name = ['Analysis' filesep analysis.id filesep 'loads.tcl'];
+file_name = [output_dir filesep 'loads.tcl'];
 fileID = fopen(file_name,'w');
 
 % Define Gravity Loads (node id, axial, shear, moment)
@@ -37,7 +37,7 @@ fprintf(fileID,'} \n');
 if analysis.type == 3 || analysis.type == 4
     % Define Seismic Excitation Load
     fprintf(fileID,'# Define Seismic Excitation Pattern \n');
-    fprintf(fileID,'timeSeries Path 2 -dt %f -filePath %s/%s -factor 386. \n',dt, analysis.eq_dir, analysis.eq_name); % timeSeries Path $tag -dt $dt -filePath $filePath <-factor $cFactor> <-useLast> <-prependZero> <-startTime $tStart>
+    fprintf(fileID,'timeSeries Path 2 -dt %f -filePath %s/%s -factor 386. \n',dt, analysis.eq_dir{1}, analysis.eq_name{1}); % timeSeries Path $tag -dt $dt -filePath $filePath <-factor $cFactor> <-useLast> <-prependZero> <-startTime $tStart>
     fprintf(fileID,'pattern UniformExcitation 3 1 -accel 2 \n'); % pattern UniformExcitation $patternTag $dir -accel $tsTag <-vel0 $vel0> <-fact $cFactor>
 
     % Define Damping

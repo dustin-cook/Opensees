@@ -7,50 +7,26 @@ tic
 %% Initial Setup 
 import tools.*
 
-%% Define Analysis parameters
-analysis.id = 'test';
-analysis.type = 3; % 1 = static force analysis, 2 = pushover analysis, 3 = dynamic analysis, 4 = calculate spectra
-analysis.max_displ = 1; % only for pushover analsys
-analysis.time_step = 0.01;
+%% Load Analysis and Model parameters
+analysis = readtable(['inputs' filesep 'analysis.csv'],'ReadVariableNames',true);
+model_table = readtable(['inputs' filesep 'model_2.csv'],'ReadVariableNames',true);
+model = model_table(model_table.id == analysis.model_id,:);
+
+%% Start Analysis
+story_force_k = [0 0 0 0 0 0];
 
 % Create Outputs Directory
-output_dir = ['Analysis' filesep analysis.id];
+output_dir = ['outputs/' analysis.model_name{1}];
 if ~exist(output_dir,'dir')
     mkdir(output_dir);
 end
 
 % Define EQ ground motion
-analysis.eq_dir = ['ground_motions/ICSB_1979'];
-eqs = dir([analysis.eq_dir filesep '*eq_*']);
+eqs = dir([analysis.eq_dir{1} filesep '*eq_*']);
 num_eqs = length(eqs);
 
-%% Define Model Parameters
-% 2d linear model single frame, 1 bay, uniform members
-num_bays = 5;
-num_stories = 6;
-story_ht_in = [16.5 13.5 13.5 13.5 13.5 13.2]*12;
-bay_width_in = 300;
-foundation_fix = [1 1 1];
-story_weight_k = [2200	2325	2325	2325	2325	1900];
-story_mass = story_weight_k/386;
-story_force_k = [0 0 0 0 0 0];
-damp_ratio = 0.05;
-
-E_col = [4030 4030 4030 4030 4030 4030];
-A_col = [2304 3264 3264 3264 3264 3264];
-I_col = [110592 96640 96640 96640 96640 96640];
-E_bm = [3605 3605 3605 3605 3605 3605];
-A_bm = [2880 2520 2520 2520 2520 2440];
-I_bm = [216000 370440 370440 370440 370440 316333];
-
-%% Start Analysis
-% Calculate Additional Building Parameters
-floor_ht = 0;
-for i = 1:length(story_ht_in)
-    floor_ht = [floor_ht sum(story_ht_in(1:i))];
-end
-building_ht = sum(story_ht_in);
-building_mass = sum(story_mass);
+% Break up model table to be used by this method (should be improved later)
+[ I_bm, A_bm, E_bm, I_col, A_col, E_col, damp_ratio, story_weight_k, foundation_fix, story_ht_in, bay_width_in, num_stories, num_bays, floor_ht, story_mass, building_ht, building_mass ] = fn_model_translation( model );
 
 % choose periods to run based on analysis type
 if analysis.type == 4
@@ -62,9 +38,7 @@ end
 % Main Opensees Analysis
 for i = 1:1%length(eqs)
     % EQ this run
-    analysis.eq_name = 'eq_ew_ground.tcl';
-    dt = 0.01;
-    eq = load([analysis.eq_dir filesep analysis.eq_name]);
+    eq = load([analysis.eq_dir{1} filesep analysis.eq_name{1}]);
     
     for j = 1:length(periods)
         % Model properties for this run
@@ -75,14 +49,14 @@ for i = 1:1%length(eqs)
         [ node, element ] = fn_model_table( num_stories, num_bays, floor_ht, bay_width_in, foundation_fix, story_mass, story_weight_k, story_force_k, A_col, E_col, I_col, A_bm, E_bm, I_bm );
 
         %% Write TCL file
-        fn_build_model( analysis.id, node, element )
-        fn_define_recorders( analysis, node.id, element.id )
-        fn_define_loads( analysis, damp_ratio, node, dt )
-        fn_define_analysis( analysis, node.id, eq, dt )
-        fn_eigen_analysis( analysis, node.id )
+        fn_build_model( output_dir, node, element )
+        fn_define_recorders( output_dir, analysis.type, node.id, element.id )
+        fn_define_loads( output_dir, analysis, damp_ratio, node, analysis.eq_dt )
+        fn_define_analysis( output_dir, analysis, node.id, eq, analysis.eq_dt )
+        fn_eigen_analysis( output_dir, analysis.time_step, node.id )
         
         %% Run Opensees
-        command = ['opensees ' 'Analysis' filesep analysis.id filesep 'run_analysis.tcl'];
+        command = ['opensees ' output_dir filesep 'run_analysis.tcl'];
         system(command);
 
         %% Load outputs and plot
@@ -95,8 +69,10 @@ for i = 1:1%length(eqs)
         node.reac_y = dlmread([output_dir filesep 'nodal_reaction_y.txt'],' ')';
         
         % Nodal Acceleration (in/s2)
-        node.accel_x = dlmread([output_dir filesep 'nodal_accel_x.txt'],' ')';
-        node.accel_y = dlmread([output_dir filesep 'nodal_accel_y.txt'],' ')';
+        node.accel_x_rel = dlmread([output_dir filesep 'nodal_accel_x.txt'],' ')';
+        node.accel_y_rel = dlmread([output_dir filesep 'nodal_accel_y.txt'],' ')';
+        node.accel_x_abs = node.accel_x_rel + ones(length(node.id),1)*eq'*386;
+        node.accel_y_abs = node.accel_y_rel + ones(length(node.id),1)*eq'*386;
 
         % Element Forces
         for k = 1:length(element.id)
@@ -120,23 +96,36 @@ for i = 1:1%length(eqs)
             end
             grid on
         elseif analysis.type == 3 % dynamic analysis
-            plot(node.disp_x(end,:))
+            figure
+            plot((1:length(eq))*analysis.eq_dt,node.disp_x(end,:))
+            xlabel('time (s)')
+            ylabel('Roof Displacemnet (in)')
+            grid on
+            figure
+            hold on
+            grid on
+            xlabel('time (s)')
+            ylabel('Roof Acceleration (g)')
+            plot((1:length(eq))*analysis.eq_dt,node.accel_x_abs(end,:)/386,'DisplayName','Roof')
+            plot((1:length(eq))*analysis.eq_dt,node.accel_x_abs(1,:)/386,'DisplayName','Ground')
+            legend('show')
+            hold off
             max_displ_all_nodes = max(abs(node.disp_x),[],2);
             for story = 1:num_stories+1
                 max_displ_profile(story) = max(max_displ_all_nodes((story-1)*(num_bays+1)+1:story*(num_bays+1)));
             end
             max_drift_profile = (max_displ_profile(2:end) - max_displ_profile(1:end-1))./story_ht_in;
-            max_accel_all_nodes = max(abs(node.accel_x),[],2);
+            max_accel_all_nodes = max(abs(node.accel_x_rel),[],2);
             for story = 1:num_stories+1
                 max_accel_profile(story) = max(max_accel_all_nodes((story-1)*(num_bays+1)+1:story*(num_bays+1)));
             end
         elseif analysis.type == 4 % spectra analysis
-            total_eq_time = length(eq)*dt;
-            old_time_vec = dt:dt:total_eq_time;
+            total_eq_time = length(eq)*analysis.eq_dt;
+            old_time_vec = analysis.eq_dt:analysis.eq_dt:total_eq_time;
             new_time_vec = analysis.time_step:analysis.time_step:total_eq_time;
             new_eq_vec = interp1([0,old_time_vec],[0;eq],new_time_vec);
             
-            sa(i,j) = max(abs(new_eq_vec+node.accel_x(end,:)/386));
+            sa(i,j) = max(abs(new_eq_vec+node.accel_x_rel(end,:)/386));
             sd(i,j) = max(abs(node.disp_x(end,:)));
             psa(i,j) = ((2*pi/T)^2)*sd(i,j)/386;
         else

@@ -1,0 +1,2 @@
+id,type,max_disp,time_step,eq_dir,eq_name,eq_dt,model_name,model_id
+1,3,1,0.01,ground_motions/ICSB_1979,eq_ew_ground.tcl,0.01,ICBS_ns_wall_elastic,2

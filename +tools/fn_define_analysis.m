@@ -1,4 +1,4 @@
-function [ ] = fn_define_analysis( analysis, nodes, eq, dt, wt )
+function [ ] = fn_define_analysis( output_dir, analysis, nodes, eq, dt )
 %UNTITLED9 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -28,7 +28,7 @@ else
 end
 
 %% Write Loads File
-file_name = ['Analysis' filesep analysis.id filesep 'run_analysis.tcl'];
+file_name = [output_dir filesep 'run_analysis.tcl'];
 fileID = fopen(file_name,'w');
 
 % Clear set up for this analysis
@@ -37,10 +37,10 @@ fprintf(fileID,'wipe \n');
 
 % Build Model and Analysis Parameters
 fprintf(fileID,'## Build Model and Analysis Parameters \n');
-fprintf(fileID,'source Analysis/%s/model.tcl \n', analysis.id);
-fprintf(fileID,'source Analysis/%s/eigen.tcl \n', analysis.id);
-fprintf(fileID,'source Analysis/%s/loads.tcl \n', analysis.id);
-fprintf(fileID,'source Analysis/%s/recorders.tcl \n', analysis.id);
+fprintf(fileID,'source %s/model.tcl \n', output_dir);
+fprintf(fileID,'source %s/eigen.tcl \n', output_dir);
+fprintf(fileID,'source %s/loads.tcl \n', output_dir);
+fprintf(fileID,'source %s/recorders.tcl \n', output_dir);
 
 % ANALYSIS DEFINITION
 fprintf(fileID,'## ANALYSIS DEFINITION \n');

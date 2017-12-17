@@ -1,11 +1,11 @@
-function [ ] = fn_build_model( analysis_id, node, element )
+function [ ] = fn_build_model( output_dir, node, element )
 %UNTITLED6 Summary of this function goes here
 % ASSUMPTIONS:
 % 2d linear model single story, 1 bay, uniform members
 
 
 %% Write TCL file
-file_name = ['Analysis' filesep analysis_id filesep 'model.tcl'];
+file_name = [output_dir filesep 'model.tcl'];
 fileID = fopen(file_name,'w');
 
 % Define the model (2 dimensions, 3 dof

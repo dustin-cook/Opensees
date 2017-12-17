@@ -27,6 +27,11 @@ for story = 0:num_stories
             nodal_mass(node_id) = 0;
             nodal_wt(node_id) = 0;
             nodal_force(node_id) = 0;
+        elseif num_bays == 0 % Single Column
+            nodal_fix{node_id} = [0,0,0];
+            nodal_mass(node_id) = story_mass(story);
+            nodal_wt(node_id) = story_weight(story);
+            nodal_force(node_id) = story_force(story);
         elseif bay == 1 || bay == num_bays+1 % Frame end nodes
             nodal_fix{node_id} = [0,0,0];
             nodal_mass(node_id) = story_mass(story)/(num_bays*2);
