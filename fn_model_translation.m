@@ -20,7 +20,6 @@ A_bm = str2num(strrep(strrep(model.A_bm{1},'[',''),']',''));
 I_bm = str2num(strrep(strrep(model.I_bm{1},'[',''),']',''));
 
 % Object Methods
-
 floor_ht = zeros(length(story_ht_in+1),1);
 for i = 1:length(story_ht_in)
     floor_ht(i+1) = sum(story_ht_in(1:i));

@@ -1,2 +1,7 @@
-id,num_stories,num_bays,bay_width_in,story_ht_in,foundation_fix,story_weight_k,damp_ratio,E_col,A_col,I_col,E_bm,A_bm,I_bm
-1,6,5,300,[198 162 162 162 162 158.4],[1 1 1],[2200 2325 2325 2325 2325 1900],0.05,[4030 4030 4030 4030 4030 4030],[2304 3264 3264 3264 3264 3264],[110592 96640 96640 96640 96640 96640],[3605 3605 3605 3605 3605 3605],[2880 2520 2520 2520 2520 2440],[216000 370440 370440 370440 370440 316333]
+id,name,num_stories,num_bays,bay_width,foundation,damp_ratio
+1,ICBS_model_1ew,6,5,300,fix,0.05
+2,ICBS_model_1ns,6,0,0,fix,0.05
+3,ICBS_model_2ew,6,11,300,fix,0.05
+4,test_frame,20,3,300,fix,0.05
+5,ICBS_model_3ew,6,11,300,fix,0.05
+6,ICBS_model_4ew,6,11,300,fix,0.05
