@@ -1,29 +1,33 @@
-id,type,d,a,e,i,description,,,
-1,column,1,2304,4030,110592,first story,,,
-2,beam,1,2880,3605,216000,first story,,,
-3,column,1,3264,4030,96640,up stories,,,
-4,beam,1,2520,3605,370440,up stories,,,
-5,beam,1,2440,3605,316333,roof,,,
-6,wall,1,14400,3605,108000000,first story,,,
-7,wall,1,30720,3605,2684354560,2nd story,,,
-8,wall,1,28672,3605,2505397589,up stories,,,
-9,column,1,576,4030,27648,all int and ext first story,,,
-10,beam,1,720,3605,54000,all int and ext first story,,,
-11,column,1,1056,4030,20672,ext up stories,,,
-12,beam,1,540,3605,131220,ext up stories,,,
-13,beam,1,500,3605,104166.6667,ext roof,,,
-14,rigid link,1,999999,3605,1.00E-06,rigid link connecting frames,,,
-15,rigid link,1,999999,3605,1.00E-06,rigid link connecting frames,,,
-16,rigid link,1,999999,3605,1.00E-06,rigid link connecting frames,,,
-17,column,24,576,4030,27648,all int and ext first story,,,
-18,beam,30,720,3605,54000,all int and ext first story,,,
-19,column,18,1056,4030,20672,ext up stories,,,
-20,beam,54,540,3605,131220,ext up stories,,,
-21,beam,50,500,3605,104166.6667,ext roof,,,
-22,rigid link,30,999999,3605,1.00E-06,rigid link connecting frames,,,
-23,rigid link,54,999999,3605,1.00E-06,rigid link connecting frames,,,
-24,rigid link,50,999999,3605,1.00E-06,rigid link connecting frames,,,
-25,beam,35,840,3605,85750,int and ext first story including slab,,,
-26,beam,33,792,3605,71874,int upper story including slab,,,
-27,beam,57,570,3605,154327.5,ext typ story including slab,,,
-28,beam,53,530,3605,124064.1667,ext roof story including slab,,,
+id,type,d,a,e,i,description
+1,column,1,2304,4030,110592,first story
+2,beam,1,2880,3605,216000,first story
+3,column,1,3264,4030,96640,up stories
+4,beam,1,2520,3605,370440,up stories
+5,beam,1,2440,3605,316333,roof
+6,wall,1,14400,3605,108000000,first story
+7,wall,1,30720,3605,2684354560,2nd story
+8,wall,1,28672,3605,2505397589,up stories
+9,column,1,576,4030,27648,all int and ext first story
+10,beam,1,720,3605,54000,all int and ext first story
+11,column,1,1056,4030,20672,ext up stories
+12,beam,1,540,3605,131220,ext up stories
+13,beam,1,500,3605,104166.6667,ext roof
+14,rigid link,1,999999,3605,1.00E-06,rigid link connecting frames
+15,rigid link,1,999999,3605,1.00E-06,rigid link connecting frames
+16,rigid link,1,999999,3605,1.00E-06,rigid link connecting frames
+17,column,24,576,4030,27648,all int and ext first story
+18,beam,30,720,3605,54000,all int and ext first story
+19,column,18,1056,4030,20672,ext up stories
+20,beam,54,540,3605,131220,ext up stories
+21,beam,50,500,3605,104166.6667,ext roof
+22,rigid link,30,999999,3605,1.00E-06,rigid link connecting frames
+23,rigid link,54,999999,3605,1.00E-06,rigid link connecting frames
+24,rigid link,50,999999,3605,1.00E-06,rigid link connecting frames
+25,beam,35,840,3605,85750,int and ext first story including slab depth
+26,beam,33,792,3605,71874,int upper story including slab depth
+27,beam,57,570,3605,154327.5,ext typ story including slab depth
+28,beam,53,530,3605,124064.1667,ext roof story including slab depth
+29,beam,35,1240,3605,90648,int and ext first story including slabACI eff width
+30,beam,33,864,3605,82250,int upper story including slab ACI eff width
+31,beam,57,714,3605,205640,ext typ story including slab ACI eff width
+32,beam,53,674,3605,165465,ext roof story including slab ACI eff width

@@ -5,3 +5,4 @@ id,name,num_stories,num_bays,bay_width,foundation,damp_ratio
 4,test_frame,20,3,300,fix,0.05
 5,ICBS_model_3ew,6,11,300,fix,0.05
 6,ICBS_model_4ew,6,11,300,fix,0.05
+7,ICBS_model_5ew,6,11,300,fix,0.05
