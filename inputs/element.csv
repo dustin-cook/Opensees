@@ -27,7 +27,7 @@ id,type,d,a,e,i,description
 26,beam,33,792,3605,71874,int upper story including slab depth
 27,beam,57,570,3605,154327.5,ext typ story including slab depth
 28,beam,53,530,3605,124064.1667,ext roof story including slab depth
-29,beam,35,1240,3605,90648,int and ext first story including slabACI eff width
-30,beam,33,864,3605,82250,int upper story including slab ACI eff width
-31,beam,57,714,3605,205640,ext typ story including slab ACI eff width
-32,beam,53,674,3605,165465,ext roof story including slab ACI eff width
+29,beam,35,1065,3605,89472,int and ext first story including slabACI eff width
+30,beam,33,855,3605,81746,int upper story including slab ACI eff width
+31,beam,57,624,3605,176859,ext typ story including slab ACI eff width
+32,beam,53,584,3605,142442,ext roof story including slab ACI eff width
