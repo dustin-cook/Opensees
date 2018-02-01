@@ -6,6 +6,7 @@ clc
 tic
 %% Initial Setup
 import tools.*
+import display_model.model_plot
 
 %% Load Analysis and Model parameters
 analysis = readtable(['inputs' filesep 'analysis.csv'],'ReadVariableNames',true);
@@ -29,18 +30,21 @@ for i = 1:1%length(eqs)
     eq = load([analysis.eq_dir{1} filesep analysis.eq_name{1}]);
         
     %% Create Model Databases
-    [ node, element, story_ht, num_node_story ] = fn_model_table( model );
+    [ node, element, story ] = fn_model_table( model );
 
     %% Write TCL file
-    fn_build_model( output_dir, node, element )
+    fn_build_model( output_dir, node, element, story )
     fn_define_recorders( output_dir, analysis.type, node.id, element.id )
     fn_define_loads( output_dir, analysis, model.damp_ratio, node, analysis.eq_dt )
-    fn_define_analysis( output_dir, analysis, node.id, eq, analysis.eq_dt )
     fn_eigen_analysis( output_dir, analysis.time_step, node.id )
-
+    fn_define_analysis( output_dir, analysis, node.id, eq, analysis.eq_dt )
+    
     %% Run Opensees
     command = ['opensees ' output_dir filesep 'run_analysis.tcl'];
     system(command);
+    
+%     %% Plot Model in Matlab for verification
+%     model_plot('3D',1,0,1,1,1,0);
     
     %% Save workspace data
     save([output_dir filesep 'analysis_data'])

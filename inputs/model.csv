@@ -1,8 +1,5 @@
-id,name,num_stories,num_bays,bay_width,foundation,damp_ratio
-1,ICBS_model_1ew,6,5,300,fix,0.05
-2,ICBS_model_1ns,6,0,0,fix,0.05
-3,ICBS_model_2ew,6,11,300,fix,0.05
-4,test_frame,20,3,300,fix,0.05
-5,ICBS_model_3ew,6,11,300,fix,0.05
-6,ICBS_model_4ew,6,11,300,fix,0.05
-7,ICBS_model_5ew,6,11,300,fix,0.05
+id,name,foundation,damp_ratio
+1,3D_test,fix,0.05
+2,ICBS_model_1ns,fix,0.05
+3,ICBS_model_5ew,fix,0.05
+4,ICBS_model_3D,fix,0.05

@@ -32,46 +32,36 @@ file_name = [output_dir filesep 'run_analysis.tcl'];
 fileID = fopen(file_name,'w');
 
 % Clear set up for this analysis
-fprintf(fileID,'## Clear set up for this analysis \n');
 fprintf(fileID,'wipe \n');
 
 % Build Model and Analysis Parameters
-fprintf(fileID,'## Build Model and Analysis Parameters \n');
 fprintf(fileID,'source %s/model.tcl \n', output_dir);
-fprintf(fileID,'source %s/eigen.tcl \n', output_dir);
+% fprintf(fileID,'source %s/eigen.tcl \n', output_dir);
 fprintf(fileID,'source %s/loads.tcl \n', output_dir);
 fprintf(fileID,'source %s/recorders.tcl \n', output_dir);
 
 % ANALYSIS DEFINITION
-fprintf(fileID,'## ANALYSIS DEFINITION \n');
 fprintf(fileID,'wipeAnalysis \n');
 
 % Define Constraints
-fprintf(fileID,'# Define Constraints \n');
 fprintf(fileID,'constraints Plain \n');
 
 % Define the DOF_numbered object
-fprintf(fileID,'# Define the DOF_numbered object \n');
-fprintf(fileID,'numberer Plain \n');
+fprintf(fileID,'numberer RCM \n');
 
 % Construct Linear Solver and linear SOE Objects
-fprintf(fileID,'# Construct Linear Solver and linear SOE Objects \n');
 fprintf(fileID,'system BandGeneral \n');
 
 % Define Solution Algorithm
-fprintf(fileID,'# Define Solution Algorithm \n');
 fprintf(fileID,'algorithm Linear \n');
 
-% Define Each Load Step (displacement controlled)
-fprintf(fileID,'# Define Each Load Step (displacement controlled) \n');
+% Define Each Load Step
 fprintf(fileID,'integrator %s \n',int_controller);
 
 % Define analysis type
-fprintf(fileID,'# Define analysis type \n');
 fprintf(fileID,'analysis %s \n',analysis_str_id);
 
 %% Run the Analysis
-fprintf(fileID,'## Run the Analysis \n');
 fprintf(fileID,'analyze %i %f \n',round(num_steps), time_step);
 fprintf(fileID,'puts "Done!" \n');
 fprintf(fileID,'wipe \n');
