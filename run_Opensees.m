@@ -3,14 +3,22 @@ clear
 close
 clc
 
+%% DEFINE INPTUTS
+analysis.type = 3;
+analysis.max_disp = 1;
+analysis.time_step = 0.01;
+analysis.model_id = 5;
+analysis.gm_id = 1;
+
 tic
 %% Initial Setup
 import tools.*
 import display_model.model_plot
 
 %% Load Analysis and Model parameters
-analysis = readtable(['inputs' filesep 'analysis.csv'],'ReadVariableNames',true);
+gm_table = readtable(['inputs' filesep 'ground_motion.csv'],'ReadVariableNames',true);
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
+ground_motion = gm_table(gm_table.id == analysis.gm_id,:);
 model = model_table(model_table.id == analysis.model_id,:);
 
 %% Start Analysis
@@ -21,13 +29,13 @@ if ~exist(output_dir,'dir')
 end
 
 % Define EQ ground motion
-eqs = dir([analysis.eq_dir{1} filesep '*eq_*']);
+eqs = dir([ground_motion.eq_dir{1} filesep '*eq_*']);
 num_eqs = length(eqs);
 
 % Main Opensees Analysis
 for i = 1:1%length(eqs)
     % EQ this run
-    eq = load([analysis.eq_dir{1} filesep analysis.eq_name{1}]);
+    eq = load([ground_motion.eq_dir{1} filesep ground_motion.eq_name{1}]);
         
     %% Create Model Databases
     [ node, element, story ] = fn_model_table( model );
@@ -35,9 +43,9 @@ for i = 1:1%length(eqs)
     %% Write TCL file
     fn_build_model( output_dir, node, element, story )
     fn_define_recorders( output_dir, analysis.type, node.id, element.id )
-    fn_define_loads( output_dir, analysis, model.damp_ratio, node, analysis.eq_dt )
+    fn_define_loads( output_dir, analysis, model.damp_ratio, node, ground_motion.eq_dt, ground_motion )
     fn_eigen_analysis( output_dir, analysis.time_step, node.id )
-    fn_define_analysis( output_dir, analysis, node.id, eq, analysis.eq_dt )
+    fn_define_analysis( output_dir, analysis, node.id, eq, ground_motion.eq_dt )
     
     %% Run Opensees
     command = ['opensees ' output_dir filesep 'run_analysis.tcl'];

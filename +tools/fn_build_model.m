@@ -27,6 +27,7 @@ end
 fprintf(fileID,'geomTransf PDelta 1 0 0 1 \n'); % Columns
 fprintf(fileID,'geomTransf PDelta 2 0 0 1 \n'); % Beams (x-direction)
 fprintf(fileID,'geomTransf PDelta 3 -1 0 0 \n'); % Girders (y-direction)
+fprintf(fileID,'geomTransf PDelta 4 1 0 0 \n'); % Columns (y-direction)
 
 % Define Elements (columns and beam)
 % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag

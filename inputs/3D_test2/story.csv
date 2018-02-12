@@ -1,0 +1,4 @@
+id,model_id,story_group_id,y_offset,story_ht
+1,5,1,0,300
+2,5,1,300,300
+3,5,1,600,300
