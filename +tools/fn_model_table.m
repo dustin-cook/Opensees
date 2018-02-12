@@ -8,7 +8,6 @@ story_table = readtable(['inputs' filesep model.name{1} filesep 'story.csv'],'Re
 story_group_table = readtable(['inputs' filesep model.name{1} filesep 'story_group.csv'],'ReadVariableNames',true);
 grid_line_table = readtable(['inputs' filesep model.name{1} filesep 'grid_line.csv'],'ReadVariableNames',true);
 element_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
-% node_group_table = readtable(['inputs' filesep 'node_group.csv'],'ReadVariableNames',true);
 
 node.id = 1;
 node.x = 0;
@@ -22,8 +21,6 @@ ele_id = 0;
 node_id = 1;
 for s = 1:length(story.id)
     story_group = story_group_table(story_group_table.story_group_id == story.story_group_id(s),:);
-%     story_group.y_start = story_group.y_start + story.y_offset(s);
-%     story_group.y_end = story_group.y_end + story.y_offset(s);
     for g = 1:length(story_group.id)
         grid_line = grid_line_table(grid_line_table.grid_line_id == story_group.grid_line_id(g),:);
         for e = 1:length(grid_line.id)
@@ -116,9 +113,27 @@ for s = 1:length(story.id)
         elements_at_node = element.id(((element.node_start == story_node(n)) | (element.node_end == story_node(n))) & (element.story == s));
         if length(elements_at_node) > 1
             for e = 1:length(elements_at_node)
+                e_id = elements_at_node(e);
+                if element.orientation(e_id) == 1 
+                    col_d_x = element.depth(e_id);
+                elseif element.orientation(e_id) == 2
+                    bm_d_x = element.depth(e_id);
+                elseif element.orientation(e_id) == 3
+                    bm_d_z = element.depth(e_id);
+                elseif element.orientation(e_id) == 4
+                    col_d_z = element.depth(e_id);
+                end
             end
-            node_id = node_id + 1;
-            ele_id = ele_id + 1;
+            
+            for i = 1:6
+                node_id = node_id + 1;
+                node.id(node_id) = node_id;
+                node.x(node_id) = ele_x_end;
+                node.y(node_id) = ele_y_end;
+                node.z(node_id) = ele_z_end;
+                node.weight(node_id) = grid_line.weight(e)/2;
+                ele_id = ele_id + 1;
+            end
         end
     end
 end
