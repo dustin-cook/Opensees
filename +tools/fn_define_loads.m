@@ -14,7 +14,7 @@ end
 fprintf(fileID,'} \n');
 
 % Write Gravity System Analysis
-fprintf(fileID,'constraints Plain \n');
+fprintf(fileID,'constraints Transformation \n');
 fprintf(fileID,'numberer RCM \n'); % renumber dof's to minimize band-width (optimization)
 fprintf(fileID,'system BandGeneral \n'); % how to store and solve the system of equations in the analysis
 fprintf(fileID,'test EnergyIncr 0.00000001 6 \n'); % determine if convergence has been achieved at the end of an iteration step

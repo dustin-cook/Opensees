@@ -44,7 +44,7 @@ fprintf(fileID,'source %s/recorders.tcl \n', output_dir);
 fprintf(fileID,'wipeAnalysis \n');
 
 % Define Constraints
-fprintf(fileID,'constraints Plain \n');
+fprintf(fileID,'constraints Transformation \n');
 
 % Define the DOF_numbered object
 fprintf(fileID,'numberer RCM \n');

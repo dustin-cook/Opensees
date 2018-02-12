@@ -79,7 +79,7 @@ elseif strcmp(model.foundation,'fix')
 end
 
 % Assign Node Wt and Lateral Force
-node.mass = node.weight*100/386;
+node.mass = node.weight*25/386;
 node.force = zeros(1,length(node.id));
 
 

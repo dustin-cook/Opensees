@@ -24,9 +24,9 @@ fprintf(fileID,'mass %d %f 0. %f 0. 0. 0. \n',node.id(i), node.mass(i), node.mas
 end
 
 % Linear Transformation
-fprintf(fileID,'geomTransf Linear 1 0 0 1 \n'); % Columns
-fprintf(fileID,'geomTransf Linear 2 0 0 1 \n'); % Beams (x-direction)
-fprintf(fileID,'geomTransf Linear 3 1 0 0 \n'); % Girders (y-direction)
+fprintf(fileID,'geomTransf PDelta 1 0 0 1 \n'); % Columns
+fprintf(fileID,'geomTransf PDelta 2 0 0 1 \n'); % Beams (x-direction)
+fprintf(fileID,'geomTransf PDelta 3 -1 0 0 \n'); % Girders (y-direction)
 
 % Define Elements (columns and beam)
 % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
@@ -37,9 +37,11 @@ end
 % Define Rigid Slabs
 for i = 1:length(story.id)
     slab_ht = story.y_offset(i) + story.story_ht(i);
-    node_filter = (node.y == slab_ht);
+    node_filter = (node.y == slab_ht);% & (node.z ~= 450) & (node.x == 0);
     nodes_on_slab = node.id(node_filter);
     fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(nodes_on_slab));
+%     fprintf(fileID,'node %d 750 %d 450 \n',9990+i,slab_ht);
+%     fprintf(fileID,'rigidDiaphragm 2 %d %s \n',9990+i,num2str([13 41 69 97]));
 end
 
 % Print model to file 
