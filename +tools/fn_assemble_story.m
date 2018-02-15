@@ -11,11 +11,11 @@ for j = 1:length(story_group_id)
         story_group.grid_line_id(id) = story_group_id{j}.grid_id(i);
         story_group.orientation(id) = story_group_id{j}.direction(i);
         if story_group.orientation(id) == 1
-            story_group.x_start(id) = 0;
-            story_group.z_start(id) = story_group_id{j}.start(i);
+            story_group.x_start(id) = story_group_id{j}.start_prim(i);
+            story_group.z_start(id) = story_group_id{j}.start_alt(i);
         elseif story_group.orientation(i) == 3
-            story_group.x_start(id) = story_group_id{j}.start(i);
-            story_group.z_start(id) = 0;
+            story_group.x_start(id) = story_group_id{j}.start_alt(i);
+            story_group.z_start(id) = story_group_id{j}.start_prim(i);
         else
             error('Grid Orientation not Recognized')
         end

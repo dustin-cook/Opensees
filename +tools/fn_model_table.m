@@ -1,4 +1,4 @@
-function [ node, element, story, joint ] = fn_model_table( model )
+function [ node, element, story, joint, wall ] = fn_model_table( model )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -22,12 +22,12 @@ node_id = 1;
 for s = 1:length(story.id)
     story_group = story_group_table(story_group_table.story_group_id == story.story_group_id(s),:);
     for g = 1:length(story_group.id)
-        grid_line = grid_line_table(grid_line_table.grid_line_id == story_group.grid_line_id(g),:);
-        for e = 1:length(grid_line.id)
+        frame_line = grid_line_table((grid_line_table.grid_line_id == story_group.grid_line_id(g)) & ~strcmp(element_table.type(grid_line_table.element_id),'wall'),:);
+        for e = 1:length(frame_line.id)
             
             % Element Properties
             ele_id = ele_id + 1;
-            ele = element_table(element_table.id == grid_line.element_id(e),:);
+            ele = element_table(element_table.id == frame_line.element_id(e),:);
             element.id(ele_id) = ele_id;
             element.a(ele_id) = ele.a;
             element.e(ele_id) = ele.e;
@@ -35,25 +35,25 @@ for s = 1:length(story.id)
             element.j(ele_id) = ele.j;
             element.iy(ele_id) = ele.iy;
             element.iz(ele_id) = ele.iz;
-            element.orientation(ele_id) = grid_line.orientation(e);
+            element.orientation(ele_id) = frame_line.orientation(e);
             element.story(ele_id) = s;
             element.depth(ele_id) = ele.d;
             element.width(ele_id) = ele.w;
             
             % Element Global Position
-            ele_y_start = grid_line.y_start(e)*story.story_ht(s) + story.y_offset(s);
-            ele_y_end = grid_line.y_end(e)*story.story_ht(s) + story.y_offset(s);
+            ele_y_start = frame_line.y_start(e)*story.story_ht(s) + story.y_offset(s);
+            ele_y_end = frame_line.y_end(e)*story.story_ht(s) + story.y_offset(s);
             
             if story_group.orientation(g) == 1
-                ele_x_start = grid_line.x_start(e) + story_group.x_start(g);
-                ele_x_end = grid_line.x_end(e) + story_group.x_start(g);
+                ele_x_start = frame_line.x_start(e) + story_group.x_start(g);
+                ele_x_end = frame_line.x_end(e) + story_group.x_start(g);
                 ele_z_start = story_group.z_start(g);
                 ele_z_end = story_group.z_start(g);
             elseif story_group.orientation(g) == 3
                 ele_x_start = story_group.x_start(g);
                 ele_x_end = story_group.x_start(g);
-                ele_z_start = grid_line.x_start(e) + story_group.z_start(g);
-                ele_z_end = grid_line.x_end(e) + story_group.z_start(g);
+                ele_z_start = frame_line.x_start(e) + story_group.z_start(g);
+                ele_z_end = frame_line.x_end(e) + story_group.z_start(g);
             else
                 error('Grid Line Oreintation Not Valid')
             end
@@ -181,6 +181,53 @@ if strcmp(model.foundation,'fix')
     node.fix(foundation_nodes,:) = 1;
 elseif strcmp(model.foundation,'fix')
     node.fix(foundation_nodes,:) = [1 1 1 0 0 0];
+end
+
+% Assign Walls
+wall = [];
+wall_id = 0;
+for s = 1:length(story.id)
+    story_group = story_group_table(story_group_table.story_group_id == story.story_group_id(s),:);
+    for g = 1:length(story_group.id)
+        wall_line = grid_line_table((grid_line_table.grid_line_id == story_group.grid_line_id(g)) & strcmp(element_table.type(grid_line_table.element_id),'wall'),:);
+        for w = 1:length(wall_line.id)
+            
+            % Element Properties
+            wall_id = wall_id + 1;
+            ele = element_table(element_table.id == wall_line.element_id(w),:);
+            wall.id(wall_id) = wall_id;
+            wall.ele_id(wall_id) = ele.id;
+            wall.e(wall_id) = ele.e;
+            wall.poisson_ratio(wall_id) = ele.poisson_ratio;
+            wall.thickness(wall_id) = ele.w;
+            
+            % Element Global Position
+            wall_y_start = wall_line.y_start(w)*story.story_ht(s) + story.y_offset(s);
+            wall_y_end = wall_line.y_end(w)*story.story_ht(s) + story.y_offset(s);
+            
+            if story_group.orientation(g) == 1
+                wall_x_start = wall_line.x_start(w) + story_group.x_start(g);
+                wall_x_end = wall_line.x_end(w) + story_group.x_start(g);
+                wall_z_start = story_group.z_start(g);
+                wall_z_end = story_group.z_start(g);
+            elseif story_group.orientation(g) == 3
+                wall_x_start = story_group.x_start(g);
+                wall_x_end = story_group.x_start(g);
+                wall_z_start = wall_line.x_start(w) + story_group.z_start(g);
+                wall_z_end = wall_line.x_end(w) + story_group.z_start(g);
+            else
+                error('Grid Line Oreintation Not Valid')
+            end
+
+
+            % Look Up wall nodes (should already exist)
+            wall.node_1(wall_id) = node.id(node.x == wall_x_start & node.y == wall_y_start & node.z == wall_z_start);          
+            wall.node_2(wall_id) = node.id(node.x == wall_x_end & node.y == wall_y_start & node.z == wall_z_end);
+            wall.node_3(wall_id) = node.id(node.x == wall_x_end & node.y == wall_y_end & node.z == wall_z_end);
+            wall.node_4(wall_id) = node.id(node.x == wall_x_start & node.y == wall_y_end & node.z == wall_z_start);
+
+        end
+    end
 end
 
 end

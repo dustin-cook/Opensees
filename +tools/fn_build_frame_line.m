@@ -1,12 +1,12 @@
-function [ ] = fn_build_frame_line(input_dir, col_id,beam_id,bay_length,direction)
+function [ ] = fn_build_frame_line(input_dir, col_id, beam_id, wall_id, bay_length, direction, grid_lines)
 %UNTITLED4 Summary of this function goes here
 %   Detailed explanation goes here
 
 id = 0;
 
 for i = 1:length(direction)
-    num_bays = bay_length.(direction{i});
-    % Columns
+    num_bays = bay_length.(direction{i})(grid_lines{i}.bays);
+    % Columns --- COULD MAKE FUNCTION
     if col_id(i) > 0
         for j = 1:(length(num_bays)+1)
             id = id + 1;
@@ -32,7 +32,7 @@ for i = 1:length(direction)
         end
     end
     
-    % Beams
+    % Beams --- COULD MAKE FUNCTION
     if beam_id(i) > 0
         for j = 1:length(num_bays)
             id = id + 1;
@@ -57,6 +57,30 @@ for i = 1:length(direction)
         end
     end
    
+    % Walls --- COULD MAKE FUNCTION
+    if wall_id(i) > 0
+        for j = 1:length(num_bays)
+            id = id + 1;
+            grid_line.id(id) = id;
+            grid_line.grid_line_id(id) = i;
+            grid_line.element_id(id) = wall_id(i);
+            if strcmp(direction{i},'x')
+                grid_line.orientation(id) = 1;
+            elseif strcmp(direction{i},'z')
+                grid_line.orientation(id) = 4;
+            else
+                error('Grid Frame Direction Not Recognized')
+            end
+            if j == 1
+                grid_line.x_start(id) = 0;
+            else
+                grid_line.x_start(id) = sum(num_bays(1:(j-1)));
+            end
+            grid_line.x_end(id) = grid_line.x_start(id) + num_bays(j);
+            grid_line.y_start(id) = 0;
+            grid_line.y_end(id) = 1;
+        end
+    end
 
 end
 T = table(grid_line.id', grid_line.grid_line_id', grid_line.element_id', grid_line.orientation', grid_line.x_start', grid_line.y_start', grid_line.x_end', grid_line.y_end');

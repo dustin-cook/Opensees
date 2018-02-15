@@ -1,7 +1,7 @@
 %% INPUTS
-model_name = '3D_test2';
-story_ht = [300 300];
-story_wt = [1000 1000];
+model_name = 'ICBS_model_3D';
+story_ht = [174];
+story_wt = [2200];
 bay_length.x = [300 300 300 300 300];
 bay_length.z = [300 300 300];
 damp_ratio = 0.05;
@@ -32,19 +32,24 @@ end
 
 %% Build Grid Lines
 col_id = [6 0];
-beam_id = [6 6];
+beam_id = [8 0];
+wall_id = [0 3];
+grid_lines{1}.bays = 1:5;
+grid_lines{2}.bays = 1;
 direction = {'x' 'z'};
-fn_build_frame_line(input_dir, col_id,beam_id,bay_length,direction)
+
+fn_build_frame_line(input_dir, col_id, beam_id, wall_id, bay_length, direction, grid_lines)
 
 %% Asseble Stories
-story_group_id{1}.grid_id = [1 1 1 1 2 2];
-story_group_id{1}.start = [0 300 600 900 0 1500];
-story_group_id{1}.direction = [1 1 1 1 3 3];
+story_group_id{1}.grid_id = [1 1 1 1 2 2 2 2];
+story_group_id{1}.start_prim = [0 0 0 0 300 300 300 300];
+story_group_id{1}.start_alt = [0 300 600 900 0 600 900 1200];
+story_group_id{1}.direction = [1 1 1 1 3 3 3 3];
 
 fn_assemble_story(input_dir, story_group_id);
 
 %% Stack Stories
-story_groups = [1 1];
+story_groups = [1];
 fn_stack_stories(input_dir, story_ht, story_wt, story_groups, model_id)
 
 

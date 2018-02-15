@@ -1,4 +1,4 @@
-function [ node ] = fn_build_model( output_dir, node, element, story, joint )
+function [ node ] = fn_build_model( output_dir, node, element, story, joint, wall )
 %UNTITLED6 Summary of this function goes here
 
 %% Write TCL file
@@ -83,7 +83,7 @@ for i = 1:length(story.id)
 
 end
 
-node.mass = node.weight*10/386;
+node.mass = node.weight/386;
 
 % define nodal masses (horizontal) (k-s2/in)
 for i = 1:length(node.id)
@@ -93,6 +93,18 @@ end
 for i = 1:length(story.id)
     % Define Rigid Slabs
     fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(nodes_on_slab{i}));
+end
+
+% Define Walls Sections
+if isfield(wall,'id')
+wall_id = element.id(end);
+    for i = 1:length(wall.id)
+        wall_id = wall_id + 1;
+        %section ElasticMembranePlateSection $secTag $E $nu $h $rho
+        fprintf(fileID,'section ElasticMembranePlateSection %i %f %f %f 0.0 \n',i,wall.e(i),wall.poisson_ratio(i),wall.thickness(i)); %Elastic Wall Section
+        %element ShellMITC4 $eleTag $iNode $jNode $kNode $lNode $secTag
+        fprintf(fileID,'element ShellMITC4 %i %i %i %i %i %i \n',wall_id,wall.node_1(i),wall.node_3(i),wall.node_3(i),wall.node_4(i),i); % Model Wall as shell
+    end
 end
     
 % Print model to file 
