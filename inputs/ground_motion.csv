@@ -1,2 +1,2 @@
-id,eq_dir,eq_name,eq_dt
-1,ground_motions/ICSB_1979,eq_ew_ground.tcl,0.01
+id,eq_dir,eq_name,eq_dt,x,z
+1,ground_motions/ICSB_1979,eq_ew_ground.tcl,0.01,1,0

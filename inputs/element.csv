@@ -1,18 +1,18 @@
-id,type,d,a,e,iz,iy,g,j,description
-1,rigid link,1,99999,1000,1,1,99999,1,rigid link connecting frames
-2,rigid joint,1,1000,99999,176859,99999,99999,99999,rigid joint
-3,wall,1,14400,3605,108000000,172800,1567,108172800,first story
-4,wall,1,30720,3605,1342177280,72000,1567,1342249280,2nd story
-5,wall,1,28672,3605,1252698795,58538.66667,1567,1252757333,up stories
-6,column,24,576,4030,27648,27648,1752,55296,all int and ext first story
-7,column,18,1056,4030,20672,514500,1752,548520,ext up stories
-8,beam,35,1065,3605,89472,34560,1567,88560,int and ext first story including slabACI eff width
-9,beam,33,855,3605,81746,34560,1567,88560,int upper story including slab ACI eff width
-10,beam,57,624,3605,176859,4500,1567,135720,ext typ story including slab ACI eff width
-11,beam,53,584,3605,142442,4166.666667,1567,108333.3333,ext roof story including slab ACI eff width
-12,wall,1,3600,3605,27000000,43200,1567,27043200,"first story walls B,D,F"
-13,wall,1,3600,3605,27000000,43200,1567,27043200,first story wall E
-14,wall,1,7680,3605,671088640,36000,1567,671124640,second story walls
-15,wall,1,7168,3605,626349397.3,29269,1567,626378667,upper story walls
-16,wall,1,1920,3605,167772160,9000,1567,167781160,second story walls divided into 4
-17,wall,1,1792,3605,156587349.3,7317.25,1567,156594666.8,upper story walls divided into 4
+id,type,d,w,a,e,iz,iy,g,j,description
+1,rigid link,1,1,99999,1000,1,1,99999,1,rigid link connecting frames
+2,rigid joint,1,1,1000,99999,176859,99999,99999,99999,rigid joint
+3,wall,1,1,14400,3605,108000000,172800,1567,108172800,first story
+4,wall,1,1,30720,3605,1342177280,72000,1567,1342249280,2nd story
+5,wall,1,1,28672,3605,1252698795,58538.66667,1567,1252757333,up stories
+6,column,24,27,576,4030,27648,27648,1752,55296,all int and ext first story
+7,column,18,12,1056,4030,20672,514500,1752,548520,ext up stories
+8,beam,35,24,1065,3605,89472,34560,1567,88560,int and ext first story including slabACI eff width
+9,beam,33,24,855,3605,81746,34560,1567,88560,int upper story including slab ACI eff width
+10,beam,57,10,624,3605,176859,4500,1567,135720,ext typ story including slab ACI eff width
+11,beam,53,10,584,3605,142442,4166.666667,1567,108333.3333,ext roof story including slab ACI eff width
+12,wall,1,1,3600,3605,27000000,43200,1567,27043200,"first story walls B,D,F"
+13,wall,1,1,3600,3605,27000000,43200,1567,27043200,first story wall E
+14,wall,1,1,7680,3605,671088640,36000,1567,671124640,second story walls
+15,wall,1,1,7168,3605,626349397.3,29269,1567,626378667,upper story walls
+16,wall,1,1,1920,3605,167772160,9000,1567,167781160,second story walls divided into 4
+17,wall,1,1,1792,3605,156587349.3,7317.25,1567,156594666.8,upper story walls divided into 4

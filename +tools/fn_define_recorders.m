@@ -28,6 +28,7 @@ if analysis_type == 3
     fprintf(fileID,'prp 200. 50. 50.; \n');
     fprintf(fileID,'vup 0 1 0; \n');
     fprintf(fileID,'vpn 0.4 0.25 1; \n');
+%     fprintf(fileID,'viewWindow -200 200 -200 200 \n');
     fprintf(fileID,'display 1 5 40 \n');
 end
 

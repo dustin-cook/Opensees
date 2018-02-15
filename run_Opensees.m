@@ -38,10 +38,10 @@ for i = 1:1%length(eqs)
     eq = load([ground_motion.eq_dir{1} filesep ground_motion.eq_name{1}]);
         
     %% Create Model Databases
-    [ node, element, story ] = fn_model_table( model );
+    [ node, element, story, joint ] = fn_model_table( model );
 
     %% Write TCL file
-    fn_build_model( output_dir, node, element, story )
+    [ node ] = fn_build_model( output_dir, node, element, story, joint );
     fn_define_recorders( output_dir, analysis.type, node.id, element.id )
     fn_define_loads( output_dir, analysis, model.damp_ratio, node, ground_motion.eq_dt, ground_motion )
     fn_eigen_analysis( output_dir, analysis.time_step, node.id )

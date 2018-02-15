@@ -1,4 +1,4 @@
-function [ ] = fn_build_frame_line(input_dir, col_id,beam_id,bay_length,direction,weight)
+function [ ] = fn_build_frame_line(input_dir, col_id,beam_id,bay_length,direction)
 %UNTITLED4 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -54,14 +54,13 @@ for i = 1:length(direction)
             grid_line.x_end(id) = grid_line.x_start(id) + num_bays(j);
             grid_line.y_start(id) = 1;
             grid_line.y_end(id) = 1;
-            grid_line.weight(id) = weight;
         end
     end
    
 
 end
-T = table(grid_line.id', grid_line.grid_line_id', grid_line.element_id', grid_line.orientation', grid_line.x_start', grid_line.y_start', grid_line.x_end', grid_line.y_end', grid_line.weight');
-T.Properties.VariableNames = {'id' 'grid_line_id' 'element_id' 'orientation' 'x_start' 'y_start' 'x_end' 'y_end' 'weight'};
+T = table(grid_line.id', grid_line.grid_line_id', grid_line.element_id', grid_line.orientation', grid_line.x_start', grid_line.y_start', grid_line.x_end', grid_line.y_end');
+T.Properties.VariableNames = {'id' 'grid_line_id' 'element_id' 'orientation' 'x_start' 'y_start' 'x_end' 'y_end'};
 writetable(T,[input_dir filesep 'grid_line.csv'],'WriteVariableNames',true);
 
 end

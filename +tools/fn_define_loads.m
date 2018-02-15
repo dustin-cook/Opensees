@@ -26,8 +26,9 @@ fprintf(fileID,'loadConst -time 0.0 \n');
 
 %% Define Static Lateral Load Patter
 fprintf(fileID,'pattern Plain 2 Linear { \n');
+node_force = 0; % Just turn off for now
 for i = 1:length(node.id)
-    fprintf(fileID,'  load %d %f 0.0 0.0 0.0 0.0 0.0 \n', node.id(i), node.force(i));
+    fprintf(fileID,'  load %d %f 0.0 0.0 0.0 0.0 0.0 \n', node.id(i), node_force);
 end
 fprintf(fileID,'} \n');
 
@@ -37,7 +38,8 @@ if analysis.type == 3 || analysis.type == 4
     % timeSeries Path $tag -dt $dt -filePath $filePath <-factor $cFactor> <-useLast> <-prependZero> <-startTime $tStart>
     fprintf(fileID,'timeSeries Path 1 -dt %f -filePath %s/%s -factor 386. \n',dt, ground_motion.eq_dir{1}, ground_motion.eq_name{1});
     % pattern UniformExcitation $patternTag $dir -accel $tsTag <-vel0 $vel0> <-fact $cFactor>
-    fprintf(fileID,'pattern UniformExcitation 3 1 -accel 1 \n'); 
+    fprintf(fileID,'pattern UniformExcitation 3 1 -accel 1 -fact %f \n',ground_motion.x); 
+    fprintf(fileID,'pattern UniformExcitation 4 3 -accel 1 -fact %f \n',ground_motion.z); 
 
     % Define Damping based on first eigen mode
     fprintf(fileID,'set lambda [expr [eigen -fullGenLapack 1]] \n');
