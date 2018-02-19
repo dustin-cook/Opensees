@@ -97,16 +97,18 @@ for s = 1:length(story.id)
         n_id = story_node(n);
         elements_at_node = element.id(((element.node_start == n_id) | (element.node_end == n_id)) & (element.story == s));
         if length(elements_at_node) > 1
+            
+            bm_d_x = 0;
+            bm_d_z = 0;
+            col_d_x = 0;
+            col_d_z = 0;
             for e = 1:length(elements_at_node)
                 e_id = elements_at_node(e);
-                
                 % Find Joint properties based on elements that frame in
-                bm_d_x = 0;
-                bm_d_z = 0;
                 if element.orientation(e_id) == 1 
                     new_ele.col_y = e_id;
-                    joint_dim_x = element.depth(e_id);
-                    joint_dim_z = element.width(e_id);
+                    col_d_x(e) = element.depth(e_id);
+                    col_d_z(e) = element.width(e_id);
                 elseif element.orientation(e_id) == 2
                     bm_d_x(e) = element.depth(e_id);
                     if element.node_start(e_id) == n_id
@@ -123,11 +125,13 @@ for s = 1:length(story.id)
                     end
                 elseif element.orientation(e_id) == 4
                     new_ele.col_y = e_id;
-                    joint_dim_x = element.width(e_id);
-                    joint_dim_z = element.depth(e_id);
+                    col_d_x(e) = element.width(e_id);
+                    col_d_z(e) = element.depth(e_id);
                 end
             end
             joint_dim_y = max([bm_d_x,bm_d_z]);
+            joint_dim_x = max(col_d_x);
+            joint_dim_z = max(col_d_z);
             
             % Define New Nodes
             new_node.x = [node.x(n_id)-joint_dim_x/2,node.x(n_id)+joint_dim_x/2,node.x(n_id),node.x(n_id),node.x(n_id),node.x(n_id)];
@@ -219,7 +223,6 @@ for s = 1:length(story.id)
                 error('Grid Line Oreintation Not Valid')
             end
 
-
             % Look Up wall nodes (should already exist)
             wall.node_1(wall_id) = node.id(node.x == wall_x_start & node.y == wall_y_start & node.z == wall_z_start);          
             wall.node_2(wall_id) = node.id(node.x == wall_x_end & node.y == wall_y_start & node.z == wall_z_end);
@@ -228,6 +231,12 @@ for s = 1:length(story.id)
 
         end
     end
+end
+
+%% Find first nodes in each story
+for s = 1:length(story.id)
+    filter = (node.x == 0 & node.y == (story.y_offset(s)+story.story_ht(s)) & node.z == 0);
+    story.first_story_node(s) = node.id(filter);
 end
 
 end

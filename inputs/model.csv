@@ -4,5 +4,3 @@ id,name,foundation,damp_ratio
 3,ICBS_model_5ew,fix,0.05
 4,ICBS_model_3D,fix,0.05
 5,3D_test2,fix,0.05
-6,joint3D_test,fix,0.05
-7,3D_wall_test,fix,0.05

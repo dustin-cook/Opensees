@@ -4,10 +4,16 @@ close
 clc
 
 %% Load Analysis and Model parameters
-analysis = readtable(['inputs' filesep 'analysis.csv'],'ReadVariableNames',true);
+analysis.model_id = 4;
+analysis.type = 3;
+analysis.gm_id = 1;
+analysis.name = 'EW_shaking';
+
+gm_table = readtable(['inputs' filesep 'ground_motion.csv'],'ReadVariableNames',true);
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
+ground_motion = gm_table(gm_table.id == analysis.gm_id,:);
 model = model_table(model_table.id == analysis.model_id,:);
-output_dir = ['outputs/' model.name{1}];
+output_dir = ['outputs/' model.name{1} '/' analysis.name];
 
 for i = 1:1%length(eqs)
     %% Load outputs and plot
@@ -50,7 +56,7 @@ for i = 1:1%length(eqs)
         grid on
     elseif analysis.type == 3 % dynamic analysis
         figure
-        plot((1:length(eq))*analysis.eq_dt,node.disp_x(end,:))
+        plot((1:length(eq))*ground_motion.eq_dt,node.disp_x(end,:))
         xlabel('time (s)')
         ylabel('Roof Displacemnet (in)')
         grid on
@@ -60,27 +66,22 @@ for i = 1:1%length(eqs)
         grid on
         xlabel('time (s)')
         ylabel('Roof Acceleration (g)')
-        plot((1:length(eq))*analysis.eq_dt,node.accel_x_abs(end,:)/386,'DisplayName','Roof')
-        plot((1:length(eq))*analysis.eq_dt,node.accel_x_abs(1,:)/386,'DisplayName','Ground')
+        plot((1:length(eq))*ground_motion.eq_dt,node.accel_x_abs(end,:)/386,'DisplayName','Roof')
+        plot((1:length(eq))*ground_motion.eq_dt,node.accel_x_abs(1,:)/386,'DisplayName','Ground')
         legend('show')
         savefig([output_dir filesep 'Roof_Acceleration.fig'])
         hold off
         max_displ_all_nodes = max(abs(node.disp_x),[],2);
         max_accel_all_nodes = max(abs(node.accel_x_rel),[],2);
-        max_displ_profile = max(max_displ_all_nodes(1:(model.num_bays+1)));
-        max_accel_profile = max(max_accel_all_nodes(1:(model.num_bays+1)));
-        for story = 1:(model.num_stories-1)
-            max_displ_profile = [max_displ_profile, max(max_displ_all_nodes(story*num_node_story+(1:(model.num_bays+1))))];
-            max_accel_profile = [max_accel_profile, max(max_accel_all_nodes(story*num_node_story+(1:(model.num_bays+1))))];
-        end
-        max_displ_profile = [max_displ_profile, max(max_displ_all_nodes((end-(model.num_bays*3+1)):end))];
-        max_accel_profile = [max_accel_profile, max(max_accel_all_nodes((end-(model.num_bays*3+1)):end))];
-        max_drift_profile = (max_displ_profile(2:end) - max_displ_profile(1:end-1))./story_ht;
+        max_displ_profile = max_displ_all_nodes([1 story.first_story_node']);
+        max_accel_profile = max_accel_all_nodes([1 story.first_story_node']);
+        max_drift_profile = (max_displ_profile(2:end) - max_displ_profile(1:end-1))./story.story_ht;
     else
         error('Unkown Analysis Type')
     end
     
     % Save Data
+    clear analysis
     save([output_dir filesep 'analysis_data'])
 
 end

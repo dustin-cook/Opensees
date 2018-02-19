@@ -46,8 +46,7 @@ if analysis.type == 3 || analysis.type == 4
     fprintf(fileID,'set omega [expr sqrt($lambda)] \n');
     fprintf(fileID,'set period [expr 6.283185/$omega] \n');
     fprintf(fileID,'puts $period \n');
-    fprintf(fileID,'rayleigh 0 0 0 [expr 2*%d/$omega] \n', damp_ratio);  %[expr %d*2*$omega]
-    
+    fprintf(fileID,'rayleigh 0 0 0 [expr 2*%d/$omega] \n', damp_ratio);  %[expr %d*2*$omega]  
 end
 
 %% Close File

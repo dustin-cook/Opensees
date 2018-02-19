@@ -2,3 +2,5 @@ id,eq_dir,eq_name,eq_dt,x,z
 1,ground_motions/ICSB_1979,eq_ew_ground.tcl,0.01,1,0
 2,ground_motions/ICSB_1979,eq_ew_ground.tcl,0.01,1,0.3
 3,ground_motions/ICSB_1979,eq_ew_ground.tcl,0.01,1,1
+4,ground_motions/ICSB_1979,eq_ew_ground.tcl,0.01,0.3,1
+5,ground_motions/ICSB_1979,eq_ew_ground.tcl,0.01,0,1

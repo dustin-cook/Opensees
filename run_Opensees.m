@@ -4,11 +4,15 @@ close
 clc
 
 %% DEFINE INPTUTS
+% Primary Inputs
+analysis.model_id = 4;
+analysis.gm_id = 1;
+analysis.name = 'EW_shaking';
+
+% Secondary Inputs
 analysis.type = 3;
 analysis.max_disp = 1;
 analysis.time_step = 0.01;
-analysis.model_id = 4;
-analysis.gm_id = 1;
 
 tic
 %% Initial Setup
@@ -23,7 +27,7 @@ model = model_table(model_table.id == analysis.model_id,:);
 
 %% Start Analysis
 % Create Outputs Directory
-output_dir = ['outputs/' model.name{1}];
+output_dir = ['outputs/' model.name{1} '/' analysis.name];
 if ~exist(output_dir,'dir')
     mkdir(output_dir);
 end
@@ -44,7 +48,7 @@ for i = 1:1%length(eqs)
     [ node ] = fn_build_model( output_dir, node, element, story, joint, wall );
     fn_define_recorders( output_dir, analysis.type, node.id, element.id )
     fn_define_loads( output_dir, analysis, model.damp_ratio, node, ground_motion.eq_dt, ground_motion )
-    fn_eigen_analysis( output_dir, analysis.time_step, node.id )
+    fn_eigen_analysis( output_dir, analysis.time_step, story.first_story_node )
     fn_define_analysis( output_dir, analysis, node.id, eq, ground_motion.eq_dt )
     
     %% Run Opensees
