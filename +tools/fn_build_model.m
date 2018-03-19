@@ -18,6 +18,11 @@ for i = 1:length(node.id)
     fprintf(fileID,'fix %d %d %d %d %d %d %d \n',node.id(i),node.fix(i,1),node.fix(i,1),node.fix(i,1),node.fix(i,1),node.fix(i,1),node.fix(i,1));
 end
 
+% define nodal masses (horizontal) (k-s2/in)
+for i = 1:length(node.id)
+    fprintf(fileID,'mass %d %f 0. %f 0. 0. 0. \n',node.id(i), node.mass(i), node.mass(i));
+end
+
 % Linear Transformation
 fprintf(fileID,'geomTransf PDelta 1 0 0 1 \n'); % Columns
 fprintf(fileID,'geomTransf PDelta 2 0 0 1 \n'); % Beams (x-direction)
@@ -50,49 +55,9 @@ for i = 1:length(joint.id)
     fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 99999. 99999. 200000. 200000. 3 \n',joint.id(i)*10+6,joint.center(i),joint.z_pos(i));
 end
 
-% Set Node weight to zero
-node.weight = zeros(1,length(node.id));
-
-% Define Rigid Slabs and assign weight to slab
+% Define Rigid Slabs
 for i = 1:length(story.id)
-    slab_ht = story.y_offset(i) + story.story_ht(i);
-    node_filter = (node.y == slab_ht);% & (node.z ~= 450) & (node.x == 0);
-    nodes_on_slab{i} = node.id(node_filter);
-    
-    % Find slab extreme values
-    max_x = max(node.x(node_filter));
-    min_x = min(node.x(node_filter));
-    max_z = max(node.z(node_filter));
-    min_z = min(node.z(node_filter));
-    
-    % assign each node trib area ratio
-    for j = 1:length(nodes_on_slab{i})
-        n_id = nodes_on_slab{i}(j);
-        if (node.x(n_id) == max_x || node.x(n_id) == min_x) && (node.z(n_id) == max_z || node.z(n_id) == min_z) % Corner Slab Node
-            node.trib_area_ratio(n_id) = 0.25;
-        elseif (node.x(n_id) == max_x || node.x(n_id) == min_x) || (node.z(n_id) == max_z || node.z(n_id) == min_z) % Side Slab Node
-            node.trib_area_ratio(n_id) = 0.5;
-        else % Center Slab Node
-            node.trib_area_ratio(n_id) = 1;
-        end
-    end
-    
-    % total trib ratio
-    wt_per_node = story.story_wt(i)/sum(node.trib_area_ratio(node_filter));
-    node.weight(node_filter) = node.trib_area_ratio(node_filter) * wt_per_node;
-
-end
-
-node.mass = node.weight/386;
-
-% define nodal masses (horizontal) (k-s2/in)
-for i = 1:length(node.id)
-    fprintf(fileID,'mass %d %f 0. %f 0. 0. 0. \n',node.id(i), node.mass(i), node.mass(i));
-end
-
-for i = 1:length(story.id)
-    % Define Rigid Slabs
-    fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(nodes_on_slab{i}));
+    fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(story.nodes_on_slab{i}));
 end
 
 % Define Walls Sections

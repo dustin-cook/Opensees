@@ -13,7 +13,6 @@ node.id = 1;
 node.x = 0;
 node.y = 0;
 node.z = 0;
-node.weight = 0;
 
 % Object Methods
 story = story_table(story_table.model_id == model.id,:);
@@ -237,6 +236,127 @@ end
 for s = 1:length(story.id)
     filter = (node.x == 0 & node.y == (story.y_offset(s)+story.story_ht(s)) & node.z == 0);
     story.first_story_node(s) = node.id(filter);
+end
+
+%% Assign weight to floor levels
+node.weight = zeros(1,length(node.id));
+
+for i = 1:length(story.id)
+    slab_ht = story.y_offset(i) + story.story_ht(i);
+    node_filter = (node.y == slab_ht);% & (node.z ~= 450) & (node.x == 0);
+    story.nodes_on_slab{i} = node.id(node_filter);
+    
+    % Find slab extreme values
+    max_x = max(node.x(node_filter));
+    min_x = min(node.x(node_filter));
+    max_z = max(node.z(node_filter));
+    min_z = min(node.z(node_filter));
+    
+    % assign each node trib area ratio
+    for j = 1:length(story.nodes_on_slab{i})
+        n_id = story.nodes_on_slab{i}(j);
+        if (node.x(n_id) == max_x || node.x(n_id) == min_x) && (node.z(n_id) == max_z || node.z(n_id) == min_z) % Corner Slab Node
+            node.trib_area_ratio(n_id) = 0.25;
+        elseif (node.x(n_id) == max_x || node.x(n_id) == min_x) || (node.z(n_id) == max_z || node.z(n_id) == min_z) % Side Slab Node
+            node.trib_area_ratio(n_id) = 0.5;
+        else % Center Slab Node
+            node.trib_area_ratio(n_id) = 1;
+        end
+    end
+    
+    % total trib ratio
+    wt_per_node = story.story_wt(i)/sum(node.trib_area_ratio(node_filter));
+    node.weight(node_filter) = node.trib_area_ratio(node_filter) * wt_per_node;
+
+end
+
+%% Define Mass
+node.mass = node.weight/386;
+
+%% Offset Mass for Accidental Torsion
+% For X direction %%%% SHOULD CHANGE INTO FUNCTION AND RUN EACH DIR
+% INDEPENDANTLY
+for i = 1:length(story.id)
+    % Find Cental Coordinate and nodes to each side of it
+    building_length = max(node.x(story.nodes_on_slab{i})) - min(node.x(story.nodes_on_slab{i}));
+    node_center = building_length/2;
+    nodes_right = story.nodes_on_slab{i}(node.x(story.nodes_on_slab{i}) > node_center);
+    nodes_left = story.nodes_on_slab{i}(node.x(story.nodes_on_slab{i}) < node_center);
+    mass_as_is = sum(node.mass(story.nodes_on_slab{i}));
+
+    % Iteratevely Increase the Mass till a target offset is reached
+    offset = 0;
+    offset_target = 0.05; % as a percentage of the building length
+    threshold = 0.001;
+    mass_delta = 0;
+    while abs(offset_target-offset) > threshold
+        mass_delta = mass_delta + 0.001;
+        
+        %Infinite loop happen safety device
+        if mass_delta > 0.5
+            error('Could Not FInd Accidental Torsion Adjustment, Recalibrate')
+        end
+        
+        temp_mass = node.mass;
+        temp_mass(nodes_right) = node.mass(nodes_right)*(1+mass_delta);
+        temp_mass(nodes_left) = node.mass(nodes_left)*(1-mass_delta);
+        
+        % Make sure mass still adds up to what it did before
+        mass_new = sum(temp_mass(story.nodes_on_slab{i}));
+        mass_diff = round(abs(mass_new - mass_as_is),2);
+        if mass_diff > 0
+            error('Mass got thrown off trying to find accidental torsion')
+        end
+        
+        % Find new offset
+        offset = (sum(temp_mass(story.nodes_on_slab{i}).*(node.x(story.nodes_on_slab{i}) - node_center))/sum(temp_mass(story.nodes_on_slab{i})))/building_length;
+    end
+    
+    % Set Found Masses
+    node.mass(nodes_right) = node.mass(nodes_right)*(1+mass_delta);
+    node.mass(nodes_left) = node.mass(nodes_left)*(1-mass_delta);
+end
+
+% For Z direction
+for i = 1:length(story.id)
+    % Find Cental Coordinate and nodes to each side of it
+    building_length = max(node.z(story.nodes_on_slab{i})) - min(node.z(story.nodes_on_slab{i}));
+    node_center = building_length/2;
+    nodes_right = story.nodes_on_slab{i}(node.z(story.nodes_on_slab{i}) > node_center);
+    nodes_left = story.nodes_on_slab{i}(node.z(story.nodes_on_slab{i}) < node_center);
+    mass_as_is = sum(node.mass(story.nodes_on_slab{i}));
+
+    % Iteratevely Increase the Mass till a target offset is reached
+    offset = 0;
+    offset_target = 0.05; % as a percentage of the building length
+    threshold = 0.001;
+    mass_delta = 0;
+    while abs(offset_target-offset) > threshold
+        mass_delta = mass_delta + 0.01;
+        
+        %Infinite loop happen safety device
+        if mass_delta > 0.5
+            error('Could Not FInd Accidental Torsion Adjustment, Recalibrate')
+        end
+        
+        temp_mass = node.mass;
+        temp_mass(nodes_right) = node.mass(nodes_right)*(1+mass_delta);
+        temp_mass(nodes_left) = node.mass(nodes_left)*(1-mass_delta);
+        
+        % Make sure mass still adds up to what it did before
+        mass_new = sum(temp_mass(story.nodes_on_slab{i}));
+        mass_diff = round(abs(mass_new - mass_as_is),2);
+        if mass_diff > 0
+            error('Mass got thrown off trying to find accidental torsion')
+        end
+        
+        % Find new offset
+        offset = (sum(temp_mass(story.nodes_on_slab{i}).*(node.z(story.nodes_on_slab{i}) - node_center))/sum(temp_mass(story.nodes_on_slab{i})))/building_length;
+    end
+    
+    % Set Found Masses
+    node.mass(nodes_right) = node.mass(nodes_right)*(1+mass_delta);
+    node.mass(nodes_left) = node.mass(nodes_left)*(1-mass_delta);
 end
 
 end

@@ -1,4 +1,4 @@
-function [ ] = fn_define_analysis( output_dir, analysis, nodes, eq, dt )
+function [ ] = fn_define_analysis( output_dir, analysis, nodes, eq_length, dt )
 %UNTITLED9 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -22,7 +22,7 @@ elseif analysis.type == 3 || analysis.type == 4 % dynamic analysis
     int_controller = ['Newmark' ' ' num2str(gamma) ' ' num2str(beta)];
     analysis_str_id = 'Transient';
     time_step = analysis.time_step;
-    num_steps = (length(eq)*dt)/time_step;
+    num_steps = (eq_length*dt)/time_step;
 else
     error('Unkown Analysis Type')
 end
