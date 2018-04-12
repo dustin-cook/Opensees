@@ -51,19 +51,20 @@ if analysis.type == 3 || analysis.type == 4
     end
 
     % Define Damping based on first eigen mode
-    fprintf(fileID,'set lambda [eigen -fullGenLapack 3] \n');
-    fprintf(fileID,'set pi 3.141593\n');
-    fprintf(fileID,'set i 0 \n');
-    fprintf(fileID,'foreach lam $lambda {\n');
-    fprintf(fileID,'    set i [expr $i+1] \n');
-    fprintf(fileID,'	set omega($i) [expr sqrt($lam)]\n');
-    fprintf(fileID,'	set period($i) [expr 2*$pi/sqrt($lam)]\n');
-    fprintf(fileID,'}\n');
-    fprintf(fileID,'puts $period(1) \n');
-    fprintf(fileID,'puts $period(3) \n');
-    fprintf(fileID,'set alpha [expr 2*%d*(1-$omega(1))/(1/$omega(1) - $omega(1)/($omega(3)*$omega(3)))]\n', damp_ratio);
-    fprintf(fileID,'set beta [expr 2*%d - $alpha/($omega(3)*$omega(3))]\n', damp_ratio);
-    fprintf(fileID,'rayleigh $alpha 0 $beta 0 \n');  
+%     fprintf(fileID,'set lambda [eigen -fullGenLapack 3] \n');
+%     fprintf(fileID,'set pi 3.141593\n');
+%     fprintf(fileID,'set i 0 \n');
+%     fprintf(fileID,'foreach lam $lambda {\n');
+%     fprintf(fileID,'    set i [expr $i+1] \n');
+%     fprintf(fileID,'	set omega($i) [expr sqrt($lam)]\n');
+%     fprintf(fileID,'	set period($i) [expr 2*$pi/sqrt($lam)]\n');
+%     fprintf(fileID,'}\n');
+%     fprintf(fileID,'puts $period(1) \n');
+%     fprintf(fileID,'puts $period(3) \n');
+%     fprintf(fileID,'set alpha [expr 2*%d*(1-$omega(1))/(1/$omega(1) - $omega(1)/($omega(3)*$omega(3)))]\n', damp_ratio);
+%     fprintf(fileID,'set beta [expr 2*%d - $alpha/($omega(3)*$omega(3))]\n', damp_ratio);
+%     fprintf(fileID,'rayleigh $alpha 0 $beta 0 \n');  
+    fprintf(fileID,'rayleigh .5 0 .1 0 \n'); 
 end
 
 %% Close File

@@ -5,9 +5,9 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 4;
-analysis.gm_id = 4;
-analysis.name = 'ASCE_41_LRHA';
+analysis.model_id = 2;
+analysis.gm_id = 1;
+analysis.name = 'test';
 
 % Secondary Inputs
 analysis.type = 3;
@@ -37,9 +37,9 @@ end
 
 %% Write TCL file
 [ node ] = fn_build_model( output_dir, node, element, story, joint, wall );
-fn_define_recorders( output_dir, analysis.type, node.id, element.id )
+fn_define_recorders( output_dir, analysis.type, node.id )
 fn_define_loads( output_dir, analysis, model.damp_ratio, node, ground_motion )
-fn_eigen_analysis( output_dir, analysis.time_step, story.first_story_node )
+% fn_eigen_analysis( output_dir, analysis.time_step, story.first_story_node )
 fn_define_analysis( output_dir, analysis, node.id, ground_motion.eq_length, ground_motion.eq_dt )
 
 %% Run Opensees

@@ -3,6 +3,8 @@ function [ node, element, story, joint, wall ] = fn_model_table( model )
 %   Detailed explanation goes here
 
 
+import tools.*
+
 %% Load data tables
 story_table = readtable(['inputs' filesep model.name{1} filesep 'story.csv'],'ReadVariableNames',true);
 story_group_table = readtable(['inputs' filesep model.name{1} filesep 'story_group.csv'],'ReadVariableNames',true);
@@ -16,8 +18,8 @@ node.z = 0;
 
 % Object Methods
 story = story_table(story_table.model_id == model.id,:);
+element = [];
 ele_id = 0;
-node_id = 1;
 for s = 1:length(story.id)
     story_group = story_group_table(story_group_table.story_group_id == story.story_group_id(s),:);
     for g = 1:length(story_group.id)
@@ -57,32 +59,11 @@ for s = 1:length(story.id)
                 error('Grid Line Oreintation Not Valid')
             end
 
-
-            % Check to see if the starting node exists %COULD MAKE A FUNCTION
-            start_node_check = (node.x == ele_x_start & node.y == ele_y_start & node.z == ele_z_start);
-            if sum(start_node_check) == 0 % New Node
-                node_id = node_id + 1;
-                node.id(node_id) = node_id;
-                node.x(node_id) = ele_x_start;
-                node.y(node_id) = ele_y_start;
-                node.z(node_id) = ele_z_start;
-                element.node_start(ele_id) = node_id;
-            else % Existing Node
-                element.node_start(ele_id) = node.id(start_node_check);
-            end
-
-            % Check to see if the ending node exists %COULD MAKE A FUNCTION
-            end_node_check = (node.x == ele_x_end & node.y == ele_y_end & node.z == ele_z_end);
-            if sum(end_node_check) == 0 % New Node
-                node_id = node_id + 1;
-                node.id(node_id) = node_id;
-                node.x(node_id) = ele_x_end;
-                node.y(node_id) = ele_y_end;
-                node.z(node_id) = ele_z_end;
-                element.node_end(ele_id) = node_id;
-            else % Existing Node
-                element.node_end(ele_id) = node.id(end_node_check);
-            end
+            % Check to see if the element nodes exists and assign
+            [ node, id ] = node_exist( node, ele_x_start, ele_y_start, ele_z_start );
+            element.node_start(ele_id) = node.id(id);
+            [ node, id ] = node_exist( node, ele_x_end, ele_y_end, ele_z_end );
+            element.node_end(ele_id) = node.id(id);
         end
     end
 end
@@ -176,17 +157,7 @@ for s = 1:length(story.id)
     end
 end
 
-
-% Assign Nodal Fixity
-node.fix = zeros(length(node.id),6);
-foundation_nodes = (node.y == 0);
-if strcmp(model.foundation,'fix')
-    node.fix(foundation_nodes,:) = 1;
-elseif strcmp(model.foundation,'fix')
-    node.fix(foundation_nodes,:) = [1 1 1 0 0 0];
-end
-
-% Assign Walls
+%% Assign Walls
 wall = [];
 wall_id = 0;
 for s = 1:length(story.id)
@@ -222,14 +193,27 @@ for s = 1:length(story.id)
                 error('Grid Line Oreintation Not Valid')
             end
 
-            % Look Up wall nodes (should already exist)
-            wall.node_1(wall_id) = node.id(node.x == wall_x_start & node.y == wall_y_start & node.z == wall_z_start);          
-            wall.node_2(wall_id) = node.id(node.x == wall_x_end & node.y == wall_y_start & node.z == wall_z_end);
-            wall.node_3(wall_id) = node.id(node.x == wall_x_end & node.y == wall_y_end & node.z == wall_z_end);
-            wall.node_4(wall_id) = node.id(node.x == wall_x_start & node.y == wall_y_end & node.z == wall_z_start);
-
+            % Check to see if the wall nodes exist and assign nodes
+            [ node, id ] = node_exist( node, wall_x_start, wall_y_start, wall_z_start );
+            wall.node_1(wall_id) = node.id(id); 
+            [ node, id ] = node_exist( node, wall_x_end, wall_y_start, wall_z_end );
+            wall.node_2(wall_id) = node.id(id); 
+            [ node, id ] = node_exist( node, wall_x_end, wall_y_end, wall_z_end );
+            wall.node_3(wall_id) = node.id(id); 
+            [ node, id ] = node_exist( node, wall_x_start, wall_y_end, wall_z_start );
+            wall.node_4(wall_id) = node.id(id); 
+            
         end
     end
+end
+
+%% Assign Nodal Fixity
+node.fix = zeros(length(node.id),6);
+foundation_nodes = (node.y == 0);
+if strcmp(model.foundation,'fix')
+    node.fix(foundation_nodes,:) = 1;
+elseif strcmp(model.foundation,'pin')
+    node.fix(foundation_nodes,:) = [1 1 1 0 0 0];
 end
 
 %% Find first nodes in each story

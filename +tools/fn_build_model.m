@@ -15,7 +15,7 @@ end
 
 % set boundary conditions at each node (6dof) (fix = 1, free = 0)
 for i = 1:length(node.id)
-    fprintf(fileID,'fix %d %d %d %d %d %d %d \n',node.id(i),node.fix(i,1),node.fix(i,1),node.fix(i,1),node.fix(i,1),node.fix(i,1),node.fix(i,1));
+    fprintf(fileID,'fix %d %d %d %d %d %d %d \n',node.id(i),node.fix(i,1),node.fix(i,2),node.fix(i,3),node.fix(i,4),node.fix(i,5),node.fix(i,6));
 end
 
 % define nodal masses (horizontal) (k-s2/in)
@@ -31,8 +31,12 @@ fprintf(fileID,'geomTransf PDelta 4 1 0 0 \n'); % Columns (y-direction)
 
 % Define Elements (columns and beam)
 % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
-for i = 1:length(element.id)
-    fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_start(i),element.node_end(i),element.a(i),element.e(i),element.g(i),element.j(i),element.iy(i),element.iz(i),element.orientation(i));
+if isfield(element,'id')
+    for i = 1:length(element.id)
+        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_start(i),element.node_end(i),element.a(i),element.e(i),element.g(i),element.j(i),element.iy(i),element.iz(i),element.orientation(i));
+    end
+else
+    element.id = 0;
 end
 
 % % Define Materials
@@ -46,19 +50,21 @@ end
 % end
 
 % Define Joints as rigid beam-column elements
-for i = 1:length(joint.id)
-    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 99999. 99999. 200000. 200000. 2 \n',joint.id(i)*10+1,joint.x_neg(i),joint.center(i));
-    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 99999. 99999. 200000. 200000. 2 \n',joint.id(i)*10+2,joint.center(i),joint.x_pos(i));
-    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 99999. 99999. 200000. 200000. 1 \n',joint.id(i)*10+3,joint.y_neg(i),joint.center(i));
-    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 99999. 99999. 200000. 200000. 1 \n',joint.id(i)*10+4,joint.center(i),joint.y_pos(i));
-    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 99999. 99999. 200000. 200000. 3 \n',joint.id(i)*10+5,joint.z_neg(i),joint.center(i));
-    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 99999. 99999. 200000. 200000. 3 \n',joint.id(i)*10+6,joint.center(i),joint.z_pos(i));
+if isfield(joint,'id')
+    for i = 1:length(joint.id)
+        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 99999. 99999. 200000. 200000. 2 \n',joint.id(i)*10+1,joint.x_neg(i),joint.center(i));
+        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 99999. 99999. 200000. 200000. 2 \n',joint.id(i)*10+2,joint.center(i),joint.x_pos(i));
+        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 99999. 99999. 200000. 200000. 1 \n',joint.id(i)*10+3,joint.y_neg(i),joint.center(i));
+        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 99999. 99999. 200000. 200000. 1 \n',joint.id(i)*10+4,joint.center(i),joint.y_pos(i));
+        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 99999. 99999. 200000. 200000. 3 \n',joint.id(i)*10+5,joint.z_neg(i),joint.center(i));
+        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 99999. 99999. 200000. 200000. 3 \n',joint.id(i)*10+6,joint.center(i),joint.z_pos(i));
+    end
 end
 
-% Define Rigid Slabs
-for i = 1:length(story.id)
-    fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(story.nodes_on_slab{i}));
-end
+% % Define Rigid Slabs
+% for i = 1:length(story.id)
+%     fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(story.nodes_on_slab{i}));
+% end
 
 % Define Walls Sections
 if isfield(wall,'id')
@@ -68,7 +74,7 @@ wall_id = element.id(end);
         %section ElasticMembranePlateSection $secTag $E $nu $h $rho
         fprintf(fileID,'section ElasticMembranePlateSection %i %f %f %f 0.0 \n',i,wall.e(i),wall.poisson_ratio(i),wall.thickness(i)); %Elastic Wall Section
         %element ShellMITC4 $eleTag $iNode $jNode $kNode $lNode $secTag
-        fprintf(fileID,'element ShellMITC4 %i %i %i %i %i %i \n',wall_id,wall.node_1(i),wall.node_3(i),wall.node_3(i),wall.node_4(i),i); % Model Wall as shell
+        fprintf(fileID,'element ShellMITC4 %i %i %i %i %i %i \n',wall_id,wall.node_1(i),wall.node_2(i),wall.node_3(i),wall.node_4(i),i); % Model Wall as shell
     end
 end
     
