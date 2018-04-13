@@ -5,7 +5,7 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 2;
+analysis.model_id = 3;
 analysis.gm_id = 1;
 analysis.name = 'test';
 
@@ -33,10 +33,10 @@ if ~exist(output_dir,'dir')
 end
 
 %% Create Model Databases
-[ node, element, story, joint, wall ] = fn_model_table( model );
+[ node, element, story, joint, wall, hinge ] = fn_model_table( model );
 
 %% Write TCL file
-[ node ] = fn_build_model( output_dir, node, element, story, joint, wall );
+[ node ] = fn_build_model( output_dir, node, element, story, joint, wall, hinge );
 fn_define_recorders( output_dir, analysis.type, node.id )
 fn_define_loads( output_dir, analysis, model.damp_ratio, node, ground_motion )
 % fn_eigen_analysis( output_dir, analysis.time_step, story.first_story_node )

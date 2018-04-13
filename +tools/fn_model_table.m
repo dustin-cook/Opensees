@@ -1,4 +1,4 @@
-function [ node, element, story, joint, wall ] = fn_model_table( model )
+function [ node, element, story, joint, wall, hinge ] = fn_model_table( model )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -207,15 +207,6 @@ for s = 1:length(story.id)
     end
 end
 
-%% Assign Nodal Fixity
-node.fix = zeros(length(node.id),6);
-foundation_nodes = (node.y == 0);
-if strcmp(model.foundation,'fix')
-    node.fix(foundation_nodes,:) = 1;
-elseif strcmp(model.foundation,'pin')
-    node.fix(foundation_nodes,:) = [1 1 1 0 0 0];
-end
-
 %% Find first nodes in each story
 for s = 1:length(story.id)
     filter = (node.x == 0 & node.y == (story.y_offset(s)+story.story_ht(s)) & node.z == 0);
@@ -341,6 +332,30 @@ for i = 1:length(story.id)
     % Set Found Masses
     node.mass(nodes_right) = node.mass(nodes_right)*(1+mass_delta);
     node.mass(nodes_left) = node.mass(nodes_left)*(1-mass_delta);
+end
+
+%% Create Nonlinear Springs at the Base and defined nodal fixity
+node.fix = zeros(length(node.id),6);
+foundation_nodes_id = node.id(node.y == 0);
+for i = 1:length(foundation_nodes_id)
+    % Define new nodes at the base to connect springs to
+    new_node_id = node.id(end) + 1;
+    node.id(new_node_id) = new_node_id;
+    
+    % Define Fixity    
+    node.fix(new_node_id,:) = 1;
+    node.fix(foundation_nodes_id(i),:) = [0 1 1 1 1 1];
+        
+    node.x(new_node_id) = node.x(foundation_nodes_id(i));
+    node.y(new_node_id) = node.y(foundation_nodes_id(i));
+    node.z(new_node_id) = node.z(foundation_nodes_id(i));
+    node.weight(new_node_id) = 0;
+    node.mass(new_node_id) = 0;
+    node.trib_area_ration(new_node_id) = 0;
+    
+    hinge.id(i) = i;
+    hinge.node_1(i) = new_node_id;
+    hinge.node_2(i) = foundation_nodes_id(i);
 end
 
 end

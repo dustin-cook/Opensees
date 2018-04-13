@@ -6,7 +6,7 @@ clc
 model_name = 'ICBS_model_1ns';
 story_ht = [174 162 162 162 162 158];
 story_wt = [2200 2325 2325 2325 2325 1900];
-bay_length.x = [300 300 300 300 300 50 300 300 300 300 300];
+bay_length.x = [300 300 300 300 300];
 bay_length.z = [0];
 damp_ratio = 0.05;
 foundation = 'fix';
