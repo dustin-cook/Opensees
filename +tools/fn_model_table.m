@@ -1,4 +1,4 @@
-function [ node, element, story, joint, wall, hinge ] = fn_model_table( model )
+function [ node, element, story, joint, wall, hinge ] = fn_model_table( model, analysis )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -337,25 +337,35 @@ end
 %% Create Nonlinear Springs at the Base and defined nodal fixity
 node.fix = zeros(length(node.id),6);
 foundation_nodes_id = node.id(node.y == 0);
+hinge = [];
 for i = 1:length(foundation_nodes_id)
-    % Define new nodes at the base to connect springs to
-    new_node_id = node.id(end) + 1;
-    node.id(new_node_id) = new_node_id;
-    
-    % Define Fixity    
-    node.fix(new_node_id,:) = 1;
-    node.fix(foundation_nodes_id(i),:) = [0 1 1 1 1 1];
-        
-    node.x(new_node_id) = node.x(foundation_nodes_id(i));
-    node.y(new_node_id) = node.y(foundation_nodes_id(i));
-    node.z(new_node_id) = node.z(foundation_nodes_id(i));
-    node.weight(new_node_id) = 0;
-    node.mass(new_node_id) = 0;
-    node.trib_area_ration(new_node_id) = 0;
-    
-    hinge.id(i) = i;
-    hinge.node_1(i) = new_node_id;
-    hinge.node_2(i) = foundation_nodes_id(i);
+    if analysis.nonlinear == 0
+        % Define Fixity
+        node.fix(foundation_nodes_id(i),:) = 1;
+    else
+        % Define new nodes at the base to connect to springs
+        new_node_id = node.id(end) + 1;
+        node.id(new_node_id) = new_node_id;
+
+        % Define Fixity    
+        node.fix(new_node_id,:) = 1;
+        if analysis.nonlinear == 1
+            node.fix(foundation_nodes_id(i),:) = [0 1 1 1 1 1];
+        elseif analysis.nonlinear == 2
+            node.fix(foundation_nodes_id(i),:) = [1 1 1 1 1 0];
+        end
+
+        node.x(new_node_id) = node.x(foundation_nodes_id(i));
+        node.y(new_node_id) = node.y(foundation_nodes_id(i));
+        node.z(new_node_id) = node.z(foundation_nodes_id(i));
+        node.weight(new_node_id) = 0;
+        node.mass(new_node_id) = 0;
+        node.trib_area_ration(new_node_id) = 0;
+
+        hinge.id(i) = i;
+        hinge.node_1(i) = new_node_id;
+        hinge.node_2(i) = foundation_nodes_id(i);
+    end
 end
 
 end

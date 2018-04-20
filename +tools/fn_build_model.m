@@ -1,4 +1,4 @@
-function [ node ] = fn_build_model( output_dir, node, element, story, joint, wall, hinge )
+function [ node ] = fn_build_model( output_dir, node, element, story, joint, wall, hinge, analysis )
 %UNTITLED6 Summary of this function goes here
 
 %% Write TCL file
@@ -80,12 +80,18 @@ end
 % Define Plastic Hinges
 if isfield(hinge,'id')
     %uniaxialMaterial ElasticPP $matTag $E $epsyP
-    fprintf(fileID,'uniaxialMaterial ElasticPP 1 1000000 0.5 \n'); % Elastic Perfectly Plastic Material
+    fprintf(fileID,'uniaxialMaterial ElasticPP 1 100 0.5 \n'); % Elastic Perfectly Plastic Material
+    %uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
+    fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented 2 100 1 1 0 0 100 100 100 100 1 1 1 1 0.05 0.05 0.05 0.05 0 0 0.05 0.05 1 1 \n');
         
     for i = 1:length(hinge.id)
         element.id(end + 1) = element.id(end) + 1;
         %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
-        fprintf(fileID,'element zeroLength %i %i %i -mat 1 -dir 1 \n',element.id(end),hinge.node_1(i),hinge.node_2(i)); % Element Id for Hinge
+        if analysis.nonlinear == 1 % Shear Spring
+            fprintf(fileID,'element zeroLength %i %i %i -mat 1 -dir 1 \n',element.id(end),hinge.node_1(i),hinge.node_2(i)); % Element Id for Hinge
+        elseif analysis.nonlinear == 2 % Rotational Spring
+            fprintf(fileID,'element zeroLength %i %i %i -mat 2 -dir 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i)); % Element Id for Hinge
+        end
     end
 end
 
