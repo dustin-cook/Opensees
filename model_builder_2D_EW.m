@@ -5,7 +5,8 @@ clc
 %% INPUTS
 model_name = 'ICBS_model_5ew';
 story_ht = [174 162 162 162 162 158];
-story_wt = [2200 2325 2325 2325 2325 1900];
+story_dead_load = (1/2)*[2200 2325 2325 2325 2325 1900];
+story_live_load = (0.25/2)*[550, 550, 550, 550, 550, 550];
 bay_length.x = [300 300 300 300 300 100 300 300 300 300 300];
 bay_length.z = [0];
 damp_ratio = 0.05;
@@ -35,40 +36,53 @@ else
 end
 
 %% Build Grid Lines
-col_id = [6 0 7 7 6];
-beam_id = [8 1 10 11 9];
-wall_id = [0 0 0 0 0];
-grid_lines{1}.bays = 1:5;
-grid_lines{2}.bays = 6;
-grid_lines{3}.bays = 1:5;
-grid_lines{4}.bays = 1:5;
-grid_lines{5}.bays = 7:11;
+col_id = [6 7 8 9 0 10 11 11];
+beam_id = [12 12 12 12 1 13 14 15];
+wall_id = [0 0 0 0 0 0 0 0];
+grid_lines{1}.bays = 7:11;
+grid_lines{2}.bays = 7:11;
+grid_lines{3}.bays = 7:11;
+grid_lines{4}.bays = 7:11;
+grid_lines{5}.bays = 6;
+grid_lines{6}.bays = 1:5;
+grid_lines{7}.bays = 1:5;
+grid_lines{8}.bays = 1:5;
 
-direction = {'x' 'x' 'x' 'x' 'x'};
+direction = {'x' 'x' 'x' 'x' 'x' 'x' 'x' 'x'};
 
 fn_build_frame_line(input_dir, col_id, beam_id, wall_id, bay_length, direction, grid_lines)
 
 %% Asseble Stories
-story_group_id{1}.grid_id = [1 1 2];
+story_group_id{1}.grid_id = [6 1 5];
 story_group_id{1}.start_prim = [0 1600 1500];
 story_group_id{1}.start_alt = [0 0 0];
 story_group_id{1}.direction = [1 1 1];
 
-story_group_id{2}.grid_id = [3 5 2];
+story_group_id{2}.grid_id = [7 2 5];
 story_group_id{2}.start_prim = [0 1600 1500];
 story_group_id{2}.start_alt = [0 0 0];
 story_group_id{2}.direction = [1 1 1];
 
-story_group_id{3}.grid_id = [4 5 2];
+story_group_id{3}.grid_id = [7 3 5];
 story_group_id{3}.start_prim = [0 1600 1500];
 story_group_id{3}.start_alt = [0 0 0];
 story_group_id{3}.direction = [1 1 1];
+
+story_group_id{4}.grid_id = [7 4 5];
+story_group_id{4}.start_prim = [0 1600 1500];
+story_group_id{4}.start_alt = [0 0 0];
+story_group_id{4}.direction = [1 1 1];
+
+story_group_id{5}.grid_id = [8 4 5];
+story_group_id{5}.start_prim = [0 1600 1500];
+story_group_id{5}.start_alt = [0 0 0];
+story_group_id{5}.direction = [1 1 1];
 
 
 fn_assemble_story(input_dir, story_group_id);
 
 %% Stack Stories
-story_groups = [1 2 3 3 3 3];
-fn_stack_stories(input_dir, story_ht, story_wt, story_groups, model_id)
+story_groups = [1 2 3 4 4 5];
+fn_stack_stories(input_dir, story_ht, story_dead_load, story_live_load, story_groups, model_id)
 
 

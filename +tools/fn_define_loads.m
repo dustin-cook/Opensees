@@ -8,8 +8,16 @@ fileID = fopen(file_name,'w');
 
 %% Define Gravity Loads (node id, axial, shear, moment)
 fprintf(fileID,'pattern Plain 1 Linear {  \n');
-for i = 1:length(node.id)
-    fprintf(fileID,'   load %d 0.0 -%f 0.0 0.0 0.0 0.0 \n', node.id(i), node.weight(i));
+if strcmp(analysis.dims,'2D')
+    for i = 1:length(node.id) 
+        fprintf(fileID,'   load %d 0.0 -%f 0.0 \n', node.id(i), node.dead_load(i)*analysis.dead_load + node.live_load(i)*analysis.live_load);
+    end
+elseif strcmp(analysis.dims,'3D')
+    for i = 1:length(node.id) 
+        fprintf(fileID,'   load %d 0.0 -%f 0.0 0.0 0.0 0.0 \n', node.id(i), node.dead_load(i)*analysis.dead_load + node.live_load(i)*analysis.live_load);
+    end
+else
+    error('Number of Dimensions Not Recognized')
 end
 fprintf(fileID,'} \n');
 
@@ -24,13 +32,13 @@ fprintf(fileID,'analysis Static	 \n');
 fprintf(fileID,'analyze 10 \n');
 fprintf(fileID,'loadConst -time 0.0 \n');
 
-%% Define Static Lateral Load Patter
-fprintf(fileID,'pattern Plain 2 Linear { \n');
-node_force = 0; % Just turn off for now
-for i = 1:length(node.id)
-    fprintf(fileID,'  load %d %f 0.0 0.0 0.0 0.0 0.0 \n', node.id(i), node_force);
-end
-fprintf(fileID,'} \n');
+%% Define Static Lateral Load Pattern
+% fprintf(fileID,'pattern Plain 2 Linear { \n');
+% node_force = 0; % Just turn off for now
+% for i = 1:length(node.id)
+%     fprintf(fileID,'  load %d %f 0.0 0.0 0.0 0.0 0.0 \n', node.id(i), node_force);
+% end
+% fprintf(fileID,'} \n');
 
 %% For Dynamic Analysis
 if analysis.type == 3 || analysis.type == 4
@@ -50,21 +58,27 @@ if analysis.type == 3 || analysis.type == 4
         fprintf(fileID,'pattern UniformExcitation 5 2 -accel 3 -fact %f \n',ground_motion.y_ratio); 
     end
 
-    % Define Damping based on first eigen mode
-%     fprintf(fileID,'set lambda [eigen -fullGenLapack 3] \n');
-%     fprintf(fileID,'set pi 3.141593\n');
-%     fprintf(fileID,'set i 0 \n');
-%     fprintf(fileID,'foreach lam $lambda {\n');
-%     fprintf(fileID,'    set i [expr $i+1] \n');
-%     fprintf(fileID,'	set omega($i) [expr sqrt($lam)]\n');
-%     fprintf(fileID,'	set period($i) [expr 2*$pi/sqrt($lam)]\n');
-%     fprintf(fileID,'}\n');
-%     fprintf(fileID,'puts $period(1) \n');
-%     fprintf(fileID,'puts $period(3) \n');
-%     fprintf(fileID,'set alpha [expr 2*%d*(1-$omega(1))/(1/$omega(1) - $omega(1)/($omega(3)*$omega(3)))]\n', damp_ratio);
-%     fprintf(fileID,'set beta [expr 2*%d - $alpha/($omega(3)*$omega(3))]\n', damp_ratio);
-%     fprintf(fileID,'rayleigh $alpha 0 $beta 0 \n');  
-    fprintf(fileID,'rayleigh .5 0 .1 0 \n'); 
+    % Define Damping based on eigen modes
+    fprintf(fileID,'set lambda [eigen -fullGenLapack 6] \n');
+    fprintf(fileID,'puts $lambda \n');
+    fprintf(fileID,'set pi 3.141593\n');
+    fprintf(fileID,'set i 0 \n');
+    fprintf(fileID,'foreach lam $lambda {\n');
+    fprintf(fileID,'    set i [expr $i+1] \n');
+    fprintf(fileID,'	set omega($i) [expr sqrt($lam)]\n');
+    fprintf(fileID,'	set period($i) [expr 2*$pi/sqrt($lam)]\n');
+    fprintf(fileID,'}\n');
+    fprintf(fileID,'puts $period(1) \n');
+    fprintf(fileID,'set alpha [expr 2*%d*(1-$omega(1))/(1/$omega(1) - $omega(1)/($omega(3)*$omega(3)))]\n', damp_ratio);
+    fprintf(fileID,'set beta [expr 2*%d - $alpha/($omega(3)*$omega(3))]\n', damp_ratio);
+    if strcmp(analysis.damping,'rayleigh')
+        fprintf(fileID,'rayleigh $alpha 0 $beta 0 \n'); 
+    elseif strcmp(analysis.damping,'modal')
+        fprintf(fileID,'modalDamping %d \n',damp_ratio); 
+        fprintf(fileID,'rayleigh 0 $beta 0 0 \n'); 
+    else
+        error('Damping Type Not Recognized')
+    end
 end
 
 %% Close File

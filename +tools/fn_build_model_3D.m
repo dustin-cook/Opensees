@@ -1,4 +1,4 @@
-function [ node ] = fn_build_model( output_dir, node, element, story, joint, wall, hinge, analysis )
+function [ node ] = fn_build_model_3D( output_dir, node, element, story, joint, wall, hinge, analysis )
 %UNTITLED6 Summary of this function goes here
 
 %% Write TCL file

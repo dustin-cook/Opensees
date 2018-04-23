@@ -36,7 +36,7 @@ fprintf(fileID,'wipe \n');
 
 % Build Model and Analysis Parameters
 fprintf(fileID,'source %s/model.tcl \n', output_dir);
-% fprintf(fileID,'source %s/eigen.tcl \n', output_dir);
+fprintf(fileID,'source %s/eigen.tcl \n', output_dir);
 fprintf(fileID,'source %s/loads.tcl \n', output_dir);
 fprintf(fileID,'source %s/recorders.tcl \n', output_dir);
 
