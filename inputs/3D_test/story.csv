@@ -1,4 +1,0 @@
-id,model_id,story_group_id,y_offset,story_ht,story_dead_load,story_live_load
-1,1,1,0,200,2000,137.5
-2,1,1,200,200,2000,137.5
-3,1,1,400,200,2000,137.5

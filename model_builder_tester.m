@@ -16,7 +16,7 @@ foundation = 'fix';
 import tools.*
 
 %% Create Input Directory
-input_dir = ['inputs/' model_name];
+input_dir = ['inputs' filesep 'models' filesep model_name];
 if ~exist(input_dir,'dir')
     mkdir(input_dir);
 end
@@ -37,8 +37,8 @@ end
 
 %% Build Grid Lines
 col_id = [6 0];
-beam_id = [6 0];
-wall_id = [0 19];
+beam_id = [6 6];
+wall_id = [0 0];
 grid_lines{1}.bays = 1;
 grid_lines{2}.bays = 1;
 
