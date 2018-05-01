@@ -1,4 +1,4 @@
-id,eq_dir,eq_dt,eq_length,eq_name_x
+id,eq_dir,eq_dt,eq_length,eq_name
 1,ground_motions/ICSB_1979,0.01,5688,gm_ew.tcl
 2,ground_motions/ICSB_1979,0.01,5688,gm_ns.tcl
 3,ground_motions/ICSB_1979,0.01,5688,gm_vert.tcl

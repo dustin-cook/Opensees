@@ -6,53 +6,69 @@ clc
 %% Load Analysis and Model parameters
 analysis.model_id = 1;
 analysis.gm_id = 3;
-analysis.name = 'test';
+analysis.name = 'modal_7';
 
 %% Load Analysis Data
+gm_seq_table = readtable(['inputs' filesep 'ground_motion_sequence.csv'],'ReadVariableNames',true);
 gm_table = readtable(['inputs' filesep 'ground_motion.csv'],'ReadVariableNames',true);
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
-ground_motion = gm_table(gm_table.id == analysis.gm_id,:);
+ground_motion_seq = gm_seq_table(gm_seq_table.id == analysis.gm_id,:);
 model = model_table(model_table.id == analysis.model_id,:);
 output_dir = ['outputs/' model.name{1} '/' analysis.name];
 plot_dir = [output_dir filesep 'plots'];
 load([output_dir filesep 'analysis_data.mat'])
 dirs_ran = [];
-if ~isempty(ground_motion.eq_name_x{1})
+if ground_motion_seq.eq_id_x~=0
     dirs_ran = [dirs_ran, 'x'];
+    ground_motion.x = gm_table(gm_table.id == ground_motion_seq.eq_id_x,:);
 end
-if ~isempty(ground_motion.eq_name_y{1})
+if ground_motion_seq.eq_id_y~=0
     dirs_ran = [dirs_ran, 'y'];
+    ground_motion.y = gm_table(gm_table.id == ground_motion_seq.eq_id_y,:);
 end
-if ~isempty(ground_motion.eq_name_z{1})
+if ground_motion_seq.eq_id_z~=0
     dirs_ran = [dirs_ran, 'z'];
+    ground_motion.z = gm_table(gm_table.id == ground_motion_seq.eq_id_z,:);
+end
+
+%% Load Period data
+periods = dlmread([output_dir filesep 'period.txt']);
+T_1 = periods(1);
+T_2 = periods(2);
+
+%% Load Spectra and Calculate Sa
+spectra_table_x = readtable([ground_motion.x.eq_dir{1} filesep 'spectra_' erase(erase(ground_motion.x.eq_name{1},'.tcl'),'gm_') '.csv'],'ReadVariableNames',true);
+Sa_1 = linterp(spectra_table_x.period,spectra_table_x.psa_5,T_1);
+if isfield(ground_motion,'z')
+    spectra_table_z = readtable([ground_motion.z.eq_dir{1} filesep 'spectra_' erase(erase(ground_motion.z.eq_name{1},'.tcl'),'gm_') '.csv'],'ReadVariableNames',true);
+    Sa_2 = linterp(spectra_table_z.period,spectra_table_z.psa_5,T_2);
 end
 
 %% Caclulate C1 and C2 Factors
-periods = dlmread([output_dir filesep 'period.txt']);
-T1 = periods(1);
-site_class = 'D';
-if strcmp(site_class,'A') || strcmp(site_class,'B')
-    a = 130;
-elseif strcmp(site_class,'C')
-    a = 90;
-else
-    a = 60;
-end
-num_stories = length(story.id);
-if num_stories >= 3 || T1 >= 1
-    c_m = 1;
-else
-    c_m = 0.9; % Need to update this to work in two directions and accept building types
-end
-c_s = .1; % Need to substitute with actual Cs value
-s_a = .4; % Need to substiute with actual Sa calue
-u_strength = s_a*c_m/c_s;
-c1 = 1 + (u_strength-1)/(a*T1^2);
-c2 = 1 + (1/800)*((u_strength-1)/T1)^2;
+% site_class = 'D';
+% if strcmp(site_class,'A') || strcmp(site_class,'B')
+%     a = 130;
+% elseif strcmp(site_class,'C')
+%     a = 90;
+% else
+%     a = 60;
+% end
+% num_stories = length(story.id);
+% if num_stories >= 3 || T_1 >= 1
+%     c_m = 1;
+% else
+%     c_m = 0.9; % Need to update this to work in two directions and accept building types
+% end
+% c_s = .1; % Need to substitute with actual Cs value
+% u_strength = Sa_1*c_m/c_s;
+% c1 = 1 + (u_strength-1)/(a*T_1^2);
+% c2 = 1 + (1/800)*((u_strength-1)/T_1)^2;
 
+c1 = 1;
+c2 = 1;
 %% Load and Read Outputs
 for i = 1:length(dirs_ran)
-eq.(dirs_ran(i)) = load([ground_motion.eq_dir{1} filesep ground_motion.(['eq_name_' dirs_ran(i)]){1}]);
+eq.(dirs_ran(i)) = load([ground_motion.(dirs_ran(i)).eq_dir{1} filesep ground_motion.(dirs_ran(i)).eq_name{1}]);
 
 % Nodal Displacement (in)
 node.(['disp_' dirs_ran(i)]) = c1*c2*dlmread([output_dir filesep ['nodal_disp_' dirs_ran(i) '.txt']],' ')';
@@ -106,8 +122,8 @@ for i = 1:length(story.id)
 end
 
 %% Torsional Amplification Check
-TAR_x = max_disp_profile_x ./ ave_disp_profile_x;
-TAR_z = max_disp_profile_z ./ ave_disp_profile_z;
+TAR_x = max_disp_profile_x(2:end) ./ ave_disp_profile_x(2:end);
+TAR_z = max_disp_profile_z(2:end) ./ ave_disp_profile_z(2:end);
 
 if sum(TAR_x > 1.2) > 0 || sum(TAR_z > 1.2) > 0 
     warning('Torsional Amplification Exceeds Limit. Forces and displacements caused by accidental torsion shall be amplified by a factor Ax')
@@ -117,8 +133,8 @@ end
 % Plot Roof Displacement
 figure
 hold on
-plot((1:length(eq.x))*ground_motion.eq_dt,node.disp_x(end,:),'DisplayName','X Direction')
-plot((1:length(eq.z))*ground_motion.eq_dt,node.disp_z(end,:),'DisplayName','Z Direction')
+plot((1:length(eq.x))*ground_motion.x.eq_dt,node.disp_x(end,:),'DisplayName','X Direction')
+plot((1:length(eq.z))*ground_motion.z.eq_dt,node.disp_z(end,:),'DisplayName','Z Direction')
 xlabel('time (s)')
 ylabel('Roof Displacemnet (in)')
 plot_name = 'Roof_Displacemnet.fig';
@@ -129,8 +145,8 @@ figure
 hold on
 xlabel('time (s)')
 ylabel('Roof Acceleration (g)')
-plot((1:length(eq.x))*ground_motion.eq_dt,node.accel_x_abs(end,:)/386,'DisplayName','Roof')
-plot((1:length(eq.x))*ground_motion.eq_dt,node.accel_x_abs(1,:)/386,'DisplayName','Ground')
+plot((1:length(eq.x))*ground_motion.x.eq_dt,node.accel_x_abs(end,:)/386,'DisplayName','Roof')
+plot((1:length(eq.x))*ground_motion.x.eq_dt,node.accel_x_abs(1,:)/386,'DisplayName','Ground')
 plot_name = 'Roof_Acceleration_x.fig';
 fn_format_and_save_plot( plot_dir, plot_name, 1 )
 
@@ -138,8 +154,8 @@ figure
 hold on
 xlabel('time (s)')
 ylabel('Roof Acceleration (g)')
-plot((1:length(eq.z))*ground_motion.eq_dt,node.accel_z_abs(end,:)/386,'DisplayName','Roof')
-plot((1:length(eq.z))*ground_motion.eq_dt,node.accel_z_abs(1,:)/386,'DisplayName','Ground')
+plot((1:length(eq.z))*ground_motion.z.eq_dt,node.accel_z_abs(end,:)/386,'DisplayName','Roof')
+plot((1:length(eq.z))*ground_motion.z.eq_dt,node.accel_z_abs(1,:)/386,'DisplayName','Ground')
 plot_name = 'Roof_Acceleration_z.fig';
 fn_format_and_save_plot( plot_dir, plot_name, 1 )
 
@@ -168,5 +184,10 @@ fn_format_and_save_plot( plot_dir, plot_name, 1 )
 clear analysis
 save([output_dir filesep 'analysis_data'])
 
-
+TAR_x
+TAR_z
+max_drift_profile_x
+max_drift_profile_z
+max_accel_profile_x
+max_accel_profile_z
 
