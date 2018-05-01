@@ -1,5 +1,4 @@
-id,eq_dir,eq_dt,eq_length,eq_name_x,eq_name_z,eq_name_y,x_ratio,z_ratio,y_ratio
-1,ground_motions/ICSB_1979,0.01,5688,eq_ew_ground.tcl,,,1,0,0
-2,ground_motions/ICSB_1979,0.01,5688,,eq_ns_ground.tcl,,0,1,0
-3,ground_motions/ICSB_1979,0.01,5688,eq_ew_ground.tcl,eq_ns_ground.tcl,,1,1,0
-4,ground_motions/ICSB_1979,0.01,5688,eq_ew_ground.tcl,eq_ns_ground.tcl,eq_vert_ground.tcl,1,1,1
+id,eq_dir,eq_dt,eq_length,eq_name_x
+1,ground_motions/ICSB_1979,0.01,5688,gm_ew.tcl
+2,ground_motions/ICSB_1979,0.01,5688,gm_ns.tcl
+3,ground_motions/ICSB_1979,0.01,5688,gm_vert.tcl
