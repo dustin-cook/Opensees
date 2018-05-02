@@ -7,7 +7,7 @@ clc
 % Primary Inputs
 analysis.model_id = 1;
 analysis.gm_seq_id = 3;
-analysis.name = 'modal_7';
+analysis.name = 'test';
 
 % Secondary Inputs
 analysis.type = 3;
@@ -17,7 +17,7 @@ analysis.nonlinear = 0;
 analysis.dead_load = 1;
 analysis.live_load = 0;
 analysis.accidental_torsion = 0;
-analysis.damping = 'modal';
+analysis.damping = 'rayleigh';
 analysis.dims = '3D';
 
 tic

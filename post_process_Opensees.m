@@ -6,7 +6,7 @@ clc
 %% Load Analysis and Model parameters
 analysis.model_id = 1;
 analysis.gm_id = 3;
-analysis.name = 'modal_7';
+analysis.name = 'test';
 
 %% Load Analysis Data
 gm_seq_table = readtable(['inputs' filesep 'ground_motion_sequence.csv'],'ReadVariableNames',true);
@@ -38,44 +38,52 @@ T_2 = periods(2);
 
 %% Load Spectra and Calculate Sa
 spectra_table_x = readtable([ground_motion.x.eq_dir{1} filesep 'spectra_' erase(erase(ground_motion.x.eq_name{1},'.tcl'),'gm_') '.csv'],'ReadVariableNames',true);
-Sa_1 = linterp(spectra_table_x.period,spectra_table_x.psa_5,T_1);
+Sa_1 = interp1(spectra_table_x.period,spectra_table_x.psa_5,T_1);
 if isfield(ground_motion,'z')
     spectra_table_z = readtable([ground_motion.z.eq_dir{1} filesep 'spectra_' erase(erase(ground_motion.z.eq_name{1},'.tcl'),'gm_') '.csv'],'ReadVariableNames',true);
-    Sa_2 = linterp(spectra_table_z.period,spectra_table_z.psa_5,T_2);
+    Sa_2 = interp1(spectra_table_z.period,spectra_table_z.psa_5,T_2);
 end
 
 %% Caclulate C1 and C2 Factors
-% site_class = 'D';
-% if strcmp(site_class,'A') || strcmp(site_class,'B')
-%     a = 130;
-% elseif strcmp(site_class,'C')
-%     a = 90;
-% else
-%     a = 60;
-% end
-% num_stories = length(story.id);
-% if num_stories >= 3 || T_1 >= 1
-%     c_m = 1;
-% else
-%     c_m = 0.9; % Need to update this to work in two directions and accept building types
-% end
-% c_s = .1; % Need to substitute with actual Cs value
-% u_strength = Sa_1*c_m/c_s;
-% c1 = 1 + (u_strength-1)/(a*T_1^2);
-% c2 = 1 + (1/800)*((u_strength-1)/T_1)^2;
-
-c1 = 1;
-c2 = 1;
+if analysis.nonlinear == 0
+    site_class = 'D';
+    if strcmp(site_class,'A') || strcmp(site_class,'B')
+        a = 130;
+    elseif strcmp(site_class,'C')
+        a = 90;
+    else
+        a = 60;
+    end
+    num_stories = length(story.id);
+    if num_stories >= 3 || T_1 >= 1
+        c_m = 1;
+    else
+        c_m = 0.9; % Need to update this to work in two directions and accept building types
+    end
+    vy_1 = .067; % Based SP3/HAZUS values, need to updated based on ASCE 41
+    vy_2 = .1; % Based SP3/HAZUS values, need to updated based on ASCE 41
+    u_strength_1 = Sa_1*c_m/vy_1;
+    u_strength_2 = Sa_1*c_m/vy_2;
+    c1.x = 1 + (u_strength_1-1)/(a*T_1^2);
+    c2.x = 1 + (1/800)*((u_strength_1-1)/T_1)^2;
+    c1.z = 1 + (u_strength_2-1)/(a*T_2^2);
+    c2.z = 1 + (1/800)*((u_strength_2-1)/T_2)^2;
+else
+    c1.x = 1;
+    c2.x = 1;
+    c1.z = 1;
+    c2.z = 1;
+end
 %% Load and Read Outputs
 for i = 1:length(dirs_ran)
 eq.(dirs_ran(i)) = load([ground_motion.(dirs_ran(i)).eq_dir{1} filesep ground_motion.(dirs_ran(i)).eq_name{1}]);
 
 % Nodal Displacement (in)
-node.(['disp_' dirs_ran(i)]) = c1*c2*dlmread([output_dir filesep ['nodal_disp_' dirs_ran(i) '.txt']],' ')';
+node.(['disp_' dirs_ran(i)]) = c1.(dirs_ran(i))*c2.(dirs_ran(i))*dlmread([output_dir filesep ['nodal_disp_' dirs_ran(i) '.txt']],' ')';
 
 % Nodal Acceleration (in/s2)
-node.(['accel_' dirs_ran(i) '_rel']) = c1*c2*dlmread([output_dir filesep ['nodal_accel_' dirs_ran(i) '.txt']],' ')';
-node.(['accel_' dirs_ran(i) '_abs']) = c1*c2*(node.(['accel_' dirs_ran(i) '_rel']) + ones(length(node.id),1)*eq.(dirs_ran(i))'*386);
+node.(['accel_' dirs_ran(i) '_rel']) = c1.(dirs_ran(i))*c2.(dirs_ran(i))*dlmread([output_dir filesep ['nodal_accel_' dirs_ran(i) '.txt']],' ')';
+node.(['accel_' dirs_ran(i) '_abs']) = c1.(dirs_ran(i))*c2.(dirs_ran(i))*(node.(['accel_' dirs_ran(i) '_rel']) + ones(length(node.id),1)*eq.(dirs_ran(i))'*386);
 
 end
 
@@ -183,11 +191,4 @@ fn_format_and_save_plot( plot_dir, plot_name, 1 )
 % Save Data
 clear analysis
 save([output_dir filesep 'analysis_data'])
-
-TAR_x
-TAR_z
-max_drift_profile_x
-max_drift_profile_z
-max_accel_profile_x
-max_accel_profile_z
 

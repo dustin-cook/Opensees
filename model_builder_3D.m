@@ -12,7 +12,7 @@ foundation = 'fix';
 import tools.*
 
 %% Create Input Directory
-input_dir = ['inputs/' model_name];
+input_dir = ['inputs' filesep 'models' filesep model_name];
 if ~exist(input_dir,'dir')
     mkdir(input_dir);
 end
