@@ -5,8 +5,8 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 1;
-analysis.gm_seq_id = 3;
+analysis.model_id = 3;
+analysis.gm_seq_id = 1;
 analysis.name = 'test';
 
 % Secondary Inputs
@@ -18,7 +18,7 @@ analysis.dead_load = 1;
 analysis.live_load = 0;
 analysis.accidental_torsion = 0;
 analysis.damping = 'rayleigh';
-analysis.dims = '3D';
+analysis.dims = '2D';
 
 tic
 %% Initial Setup

@@ -6,7 +6,7 @@ clc
 %% Load Analysis and Model parameters
 analysis.model_id = 1;
 analysis.gm_id = 3;
-analysis.name = 'test';
+analysis.name = 'rayleigh';
 
 %% Load Analysis Data
 gm_seq_table = readtable(['inputs' filesep 'ground_motion_sequence.csv'],'ReadVariableNames',true);
@@ -60,10 +60,10 @@ if analysis.nonlinear == 0
     else
         c_m = 0.9; % Need to update this to work in two directions and accept building types
     end
-    vy_1 = .067; % Based SP3/HAZUS values, need to updated based on ASCE 41
-    vy_2 = .1; % Based SP3/HAZUS values, need to updated based on ASCE 41
-    u_strength_1 = Sa_1*c_m/vy_1;
-    u_strength_2 = Sa_1*c_m/vy_2;
+    DCR_max_1 = 4; % Placeholder for now until we get actual values
+    DCR_max_2 = 4; % Placeholder for now until we get actual values
+    u_strength_1 = max([DCR_max_1*c_m/1.5,1]);
+    u_strength_2 = max([DCR_max_2*c_m/1.5,1]);
     c1.x = 1 + (u_strength_1-1)/(a*T_1^2);
     c2.x = 1 + (1/800)*((u_strength_1-1)/T_1)^2;
     c1.z = 1 + (u_strength_2-1)/(a*T_2^2);
