@@ -5,9 +5,9 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 3;
+analysis.model_id = 5;
 analysis.gm_seq_id = 1;
-analysis.name = 'test';
+analysis.name = 'modal_22';
 
 % Secondary Inputs
 analysis.type = 3;
@@ -17,8 +17,7 @@ analysis.nonlinear = 0;
 analysis.dead_load = 1;
 analysis.live_load = 0;
 analysis.accidental_torsion = 0;
-analysis.damping = 'rayleigh';
-analysis.dims = '2D';
+analysis.damping = 'modal';
 
 tic
 %% Initial Setup
@@ -40,15 +39,15 @@ end
 [ node, element, story, joint, wall, hinge ] = fn_model_table( model, analysis );
 
 %% Write TCL file
-if strcmp(analysis.dims,'2D')
+if strcmp(model.dimension,'2D')
     [ node ] = fn_build_model_2D( output_dir, node, element, story, joint, wall, hinge, analysis );
-elseif strcmp(analysis.dims,'3D')
+elseif strcmp(model.dimension,'3D')
     [ node ] = fn_build_model_3D( output_dir, node, element, story, joint, wall, hinge, analysis );
 else
     error('Number of Dimensions Not Recognized')
 end
-fn_define_recorders( output_dir, analysis, node.id )
-[ground_motion] = fn_define_loads( output_dir, analysis, model.damp_ratio, node);
+fn_define_recorders( output_dir, model.dimension, node.id )
+[ground_motion] = fn_define_loads( output_dir, analysis, model.damp_ratio, node, model.dimension);
 fn_eigen_analysis( output_dir, analysis.time_step, story.first_story_node )
 fn_define_analysis( output_dir, analysis, node.id, ground_motion )
 

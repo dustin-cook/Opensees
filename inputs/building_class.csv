@@ -1,0 +1,16 @@
+id,name,hazus_class,fema_type,asce_41_13_cm
+1,WLF Single Family Dwelling,W1,W1,1
+2,General Wood Light Frame,W2,"W1A,W2",1
+3,Steel Moment Frame,S1,S1,0.9
+4,Steel Concentrically Braced Frame,S2,S2,0.9
+5,Steel Eccentrically Braced Frame,S2,S2,0.9
+6,Steel Buckling Restrained Braced Frame,S2,S2,0.9
+7,Steel Light Frame,S3,S3,1
+8,RC Moment Frame,C1,C1,0.9
+9,RC Shear Wall,C2,C2,0.8
+10,RC Dual System,C2,"C2,C1",0.8
+11,Tilt-up,PC1,PC1,0.8
+12,Precast Moment Frame,PC2,PC2,0.9
+13,Reinforced Masonry with Flexible Diaphrams,RM1,RM1,1
+14,Reinforced Masonry with Rigid Diaphrams,RM2,RM2,1
+15,Steel and RC Dual System,S4,S4,0.8

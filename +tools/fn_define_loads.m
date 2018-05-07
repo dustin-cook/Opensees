@@ -1,4 +1,4 @@
-function [ ground_motion ] = fn_define_loads( output_dir, analysis, damp_ratio, node )
+function [ ground_motion ] = fn_define_loads( output_dir, analysis, damp_ratio, node, dimension )
 %UNTITLED8 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -13,11 +13,11 @@ ground_motion_table = readtable(['inputs' filesep 'ground_motion.csv'],'ReadVari
 
 %% Define Gravity Loads (node id, axial, shear, moment)
 fprintf(fileID,'pattern Plain 1 Linear {  \n');
-if strcmp(analysis.dims,'2D')
+if strcmp(dimension,'2D')
     for i = 1:length(node.id) 
         fprintf(fileID,'   load %d 0.0 -%f 0.0 \n', node.id(i), node.dead_load(i)*analysis.dead_load + node.live_load(i)*analysis.live_load);
     end
-elseif strcmp(analysis.dims,'3D')
+elseif strcmp(dimension,'3D')
     for i = 1:length(node.id) 
         fprintf(fileID,'   load %d 0.0 -%f 0.0 0.0 0.0 0.0 \n', node.id(i), node.dead_load(i)*analysis.dead_load + node.live_load(i)*analysis.live_load);
     end
@@ -66,7 +66,7 @@ if ground_motion_seq.eq_id_y ~= 0
 end
 
 % Define Damping based on eigen modes
-fprintf(fileID,'set lambda [eigen -fullGenLapack 6] \n');
+fprintf(fileID,'set lambda [eigen -fullGenLapack 3] \n');
 fprintf(fileID,'puts $lambda \n');
 fprintf(fileID,'set pi 3.141593\n');
 fprintf(fileID,'set i 0 \n');
@@ -76,12 +76,12 @@ fprintf(fileID,'	set omega($i) [expr sqrt($lam)]\n');
 fprintf(fileID,'	set period($i) [expr 2*$pi/sqrt($lam)]\n');
 fprintf(fileID,'}\n');
 fprintf(fileID,'puts $period(1) \n');
-fprintf(fileID,'set alpha [expr 2*%d*(1-$omega(1))/(1/$omega(1) - $omega(1)/($omega(3)*$omega(3)))]\n', damp_ratio);
-fprintf(fileID,'set beta [expr 2*%d - $alpha/($omega(3)*$omega(3))]\n', damp_ratio);
+fprintf(fileID,'set alpha [expr 2*%d*(1-$omega(1))/(1/$omega(1) - $omega(1)/($omega(3)*$omega(3)))]\n', .005);
+fprintf(fileID,'set beta [expr 2*%d - $alpha/($omega(3)*$omega(3))]\n', .005);
 if strcmp(analysis.damping,'rayleigh')
     fprintf(fileID,'rayleigh $alpha 0 $beta 0 \n'); 
 elseif strcmp(analysis.damping,'modal')
-    fprintf(fileID,'modalDamping %d \n',damp_ratio);
+    fprintf(fileID,'modalDamping %d \n',.03);
     fprintf(fileID,'rayleigh 0 $beta 0 0 \n');
 else
     error('Damping Type Not Recognized')

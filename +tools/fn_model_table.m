@@ -375,7 +375,7 @@ end
 
 % Remove any Z dimension Nodes for 2D Analysis
 clear new_node
-if strcmp(analysis.dims,'2D')
+if strcmp(model.dimension,'2D')
     non_z_nodes = (node.z == 0);
     new_node.id = node.id(non_z_nodes);
     new_node.x = node.x(non_z_nodes);
