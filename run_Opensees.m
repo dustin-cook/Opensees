@@ -7,7 +7,7 @@ clc
 % Primary Inputs
 analysis.model_id = 5;
 analysis.gm_seq_id = 1;
-analysis.name = 'modal_22';
+analysis.name = 'test';
 
 % Secondary Inputs
 analysis.type = 3;
@@ -37,6 +37,9 @@ end
 
 %% Create Model Databases
 [ node, element, story, joint, wall, hinge ] = fn_model_table( model, analysis );
+% Save element and node databases
+writetable(node,[output_dir filesep 'node.csv'])
+writetable(element,[output_dir filesep 'element.csv'])
 
 %% Write TCL file
 if strcmp(model.dimension,'2D')
@@ -46,7 +49,7 @@ elseif strcmp(model.dimension,'3D')
 else
     error('Number of Dimensions Not Recognized')
 end
-fn_define_recorders( output_dir, model.dimension, node.id )
+fn_define_recorders( output_dir, model.dimension, node.id', element.id' )
 [ground_motion] = fn_define_loads( output_dir, analysis, model.damp_ratio, node, model.dimension);
 fn_eigen_analysis( output_dir, analysis.time_step, story.first_story_node )
 fn_define_analysis( output_dir, analysis, node.id, ground_motion )

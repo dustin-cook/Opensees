@@ -83,13 +83,27 @@ for i = 1:length(element_table.id)
     end
     
     % Plot Hinges
-%     force_vector = [0,1,1.1,hinge.c_hinge];
-%     disp_vector = [0
+    theta_yeild = ele.Mn_aci*(ele.d/2)/(ele.E*ele.I);
+    force_vector = [0,1,1.1,hinge.c_hinge];
+    disp_vector = [0, theta_yeild, theta_yeild+hinge.a_hinge, theta_yeild+hinge.b_hinge]; % ASSUMING y = d/2 NEED TO UPDATE
+    plot(disp_vector,force_vector)
+    ylabel('Q/Qy')
+    xlabel('Total Rotation')
+    fn_format_and_save_plot( pwd, ele.name{1}, 2 )
     
     % save as element hinge table
-    ele_hinge(i,:) = hinge;
+    element_table.condition(i) = hinge.condition;
+    element_table.p_ratio(i) = hinge.p_ratio;
+    element_table.row(i) = hinge.v_ratio;
+    element_table.v_ratio(i) = hinge.v_ratio;
+    
+    element_table.a_hinge(i) = hinge.a_hinge;
+    element_table.b_hinge(i) = hinge.b_hinge;
+    element_table.c_hinge(i) = hinge.b_hinge;
+    element_table.io(i) = hinge.io;
+    element_table.ls(i) = hinge.ls;
+    element_table.cp(i) = hinge.cp;
 end
 
 %% Save capacities to element database
-element = [element_table ele_hinge];
-writetable(element,['element.csv'])
+writetable(element_table,['element.csv'])

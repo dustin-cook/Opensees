@@ -1,12 +1,15 @@
 %% INPUTS
 model_name = 'ICBS_model_3D';
 story_ht = [174 162 162 162 162 158];
-story_dead_load = [2200 2325 2325 2325 2325 1900];
-story_live_load = (0.25)*[550, 550, 550, 550, 550, 550];
+story_dead_load = [2200 2325 2325 2325 2325 1900]*1000;
+story_live_load = (0.25)*[550, 550, 550, 550, 550, 550]*1000;
 bay_length.x = [71 300 300 300 300 300 71];
 bay_length.z = [300 300 300];
 damp_ratio = 0.05;
 foundation = 'fix';
+dims = '3D';
+hazus_class_1 = 'C1';
+hazus_class_2 = 'C2';
 
 %% Import Packages
 import tools.*
@@ -26,6 +29,9 @@ if sum(checker) == 0
     model_table.name{model_id} = model_name;
     model_table.foundation{model_id} = foundation;
     model_table.damp_ratio(model_id) = damp_ratio;
+    model_table.dimension = dims;
+    model_table.hazus_class_1 = hazus_class_1;
+    model_table.hazus_class_2 = hazus_class_2;
     writetable(model_table,['inputs' filesep 'model.csv'],'WriteVariableNames',true);
 else
     model_id = model_table.id(checker);

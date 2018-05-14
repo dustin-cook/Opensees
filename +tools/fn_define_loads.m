@@ -66,7 +66,7 @@ if ground_motion_seq.eq_id_y ~= 0
 end
 
 % Define Damping based on eigen modes
-fprintf(fileID,'set lambda [eigen -fullGenLapack 3] \n');
+fprintf(fileID,'set lambda [eigen -fullGenLapack 6] \n');
 fprintf(fileID,'puts $lambda \n');
 fprintf(fileID,'set pi 3.141593\n');
 fprintf(fileID,'set i 0 \n');
@@ -76,13 +76,13 @@ fprintf(fileID,'	set omega($i) [expr sqrt($lam)]\n');
 fprintf(fileID,'	set period($i) [expr 2*$pi/sqrt($lam)]\n');
 fprintf(fileID,'}\n');
 fprintf(fileID,'puts $period(1) \n');
-fprintf(fileID,'set alpha [expr 2*%d*(1-$omega(1))/(1/$omega(1) - $omega(1)/($omega(3)*$omega(3)))]\n', .005);
-fprintf(fileID,'set beta [expr 2*%d - $alpha/($omega(3)*$omega(3))]\n', .005);
+fprintf(fileID,'set alpha [expr 2*%d*(1-$omega(1))/(1/$omega(1) - $omega(1)/($omega(3)*$omega(3)))]\n', damp_ratio);
+fprintf(fileID,'set beta [expr 2*%d - $alpha/($omega(3)*$omega(3))]\n', damp_ratio);
 if strcmp(analysis.damping,'rayleigh')
     fprintf(fileID,'rayleigh $alpha 0 $beta 0 \n'); 
 elseif strcmp(analysis.damping,'modal')
-    fprintf(fileID,'modalDamping %d \n',.03);
-    fprintf(fileID,'rayleigh 0 $beta 0 0 \n');
+    fprintf(fileID,'modalDamping %d \n',0.03);
+%     fprintf(fileID,'rayleigh 0 $beta 0 0 \n');
 else
     error('Damping Type Not Recognized')
 end

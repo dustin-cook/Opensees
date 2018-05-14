@@ -1,11 +1,12 @@
-function [ node, element, story, joint, wall, hinge ] = fn_model_table( model, analysis )
+function [ node_table, ele_table, story, joint, wall, hinge ] = fn_model_table( model, analysis )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
-
+%% INITIAL SETUP
+% Import Packages
 import tools.*
 
-%% Load data tables
+% Load data tables
 story_table = readtable(['inputs' filesep 'models' filesep model.name{1} filesep 'story.csv'],'ReadVariableNames',true);
 story_group_table = readtable(['inputs' filesep 'models' filesep model.name{1} filesep 'story_group.csv'],'ReadVariableNames',true);
 grid_line_table = readtable(['inputs' filesep 'models' filesep model.name{1} filesep 'grid_line.csv'],'ReadVariableNames',true);
@@ -16,7 +17,7 @@ node.x = 0;
 node.y = 0;
 node.z = 0;
 
-% Object Methods
+%% Assign Elements
 story = story_table(story_table.model_id == model.id,:);
 element = [];
 ele_id = 0;
@@ -339,24 +340,25 @@ if analysis.accidental_torsion == 1
 end
 
 %% Create Nonlinear Springs at the Base and defined nodal fixity
-node.fix = zeros(length(node.id),6);
+node.fix = cell(length(node.id),1);
+node.fix(1:end) = {[0 0 0 0 0 0]};
 foundation_nodes_id = node.id(node.y == 0);
 hinge = [];
 for i = 1:length(foundation_nodes_id)
     if analysis.nonlinear == 0
         % Define Fixity
-        node.fix(foundation_nodes_id(i),:) = 1;
+        node.fix(foundation_nodes_id(i),:) = {[1 1 1 1 1 1]};
     else
         % Define new nodes at the base to connect to springs
         new_node_id = node.id(end) + 1;
         node.id(new_node_id) = new_node_id;
 
         % Define Fixity    
-        node.fix(new_node_id,:) = 1;
+        node.fix(new_node_id,:) = {[1 1 1 1 1 1]};
         if analysis.nonlinear == 1
-            node.fix(foundation_nodes_id(i),:) = [0 1 1 1 1 1];
+            node.fix(foundation_nodes_id(i),:) = {[0 1 1 1 1 1]};
         elseif analysis.nonlinear == 2
-            node.fix(foundation_nodes_id(i),:) = [1 1 1 1 1 0];
+            node.fix(foundation_nodes_id(i),:) = {[1 1 1 1 1 0]};
         end
 
         node.x(new_node_id) = node.x(foundation_nodes_id(i));
@@ -387,5 +389,12 @@ if strcmp(model.dimension,'2D')
     node = new_node;
 end
 
+%% Reformat outputs to table Outputs Tables
+if isfield(node,'z')
+    node_table = table(node.id', node.x', node.y', node.z', node.dead_load', node.live_load', node.trib_area_ratio', node.mass', node.fix, 'VariableNames',{'id','x','y','z','dead_load','live_load','trib_area_ratio','mass','fix'});
+else
+    node_table = table(node.id', node.x', node.y', node.dead_load', node.live_load', node.mass', node.fix, 'VariableNames',{'id','x','y','dead_load','live_load','mass','fix'});
+end
+ele_table = table(element.id', element.a', element.e', element.g', element.j', element.iy', element.iz', element.orientation', element.story', element.depth', element.width', element.node_start', element.node_end', 'VariableNames',{'id', 'a', 'e', 'g', 'j', 'iy', 'iz', 'orientation', 'story', 'depth', 'width', 'node_start', 'node_end'});
 end
 

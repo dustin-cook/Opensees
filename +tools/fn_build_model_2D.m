@@ -15,7 +15,7 @@ end
 
 % set boundary conditions at each node (6dof) (fix = 1, free = 0)
 for i = 1:length(node.id)
-    fprintf(fileID,'fix %d %d %d %d \n',node.id(i),node.fix(i,1),node.fix(i,2),node.fix(i,6));
+    fprintf(fileID,'fix %d %d %d %d \n',node.id(i),node.fix{i}(1),node.fix{i}(2),node.fix{i}(6));
 end
 
 % define nodal masses (horizontal) (k-s2/in)
@@ -29,7 +29,7 @@ fprintf(fileID,'geomTransf PDelta 2 \n'); % Beams (x-direction)
 
 % Define Elements (columns and beam)
 % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-if isfield(element,'id')
+if sum(strcmp('id',element.Properties.VariableNames)) > 0
     for i = 1:length(element.id)
         fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_start(i),element.node_end(i),element.a(i),element.e(i),element.iz(i),element.orientation(i));
     end
@@ -51,10 +51,10 @@ end
 if isfield(joint,'id')
     for i = 1:length(joint.id)
         % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 200000. 2 \n',joint.id(i)*10+1,joint.x_neg(i),joint.center(i));
-        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 200000. 2 \n',joint.id(i)*10+2,joint.center(i),joint.x_pos(i));
-        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 200000. 1 \n',joint.id(i)*10+3,joint.y_neg(i),joint.center(i));
-        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999. 200000. 1 \n',joint.id(i)*10+4,joint.center(i),joint.y_pos(i));
+        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 2 \n',joint.id(i)*10+1,joint.x_neg(i),joint.center(i));
+        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 2 \n',joint.id(i)*10+2,joint.center(i),joint.x_pos(i));
+        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 1 \n',joint.id(i)*10+3,joint.y_neg(i),joint.center(i));
+        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 1 \n',joint.id(i)*10+4,joint.center(i),joint.y_pos(i));
     end
 end
 

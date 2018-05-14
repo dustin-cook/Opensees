@@ -5,8 +5,8 @@ clc
 %% INPUTS
 model_name = '2D_test';
 story_ht = [200 200 200];
-story_dead_load = [2000, 2000, 2000];
-story_live_load = 0.25*[550, 550 550];
+story_dead_load = [50, 50, 50]*1000;
+story_live_load = 0.25*[50, 50 50]*1000;
 bay_length.x = [300];
 bay_length.z = [0];
 damp_ratio = 0.05;
@@ -46,6 +46,7 @@ col_id = [6];
 beam_id = [6];
 wall_id = [0];
 grid_lines{1}.bays = 1;
+
 
 direction = {'x'};
 

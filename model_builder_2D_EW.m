@@ -5,12 +5,15 @@ clc
 %% INPUTS
 model_name = 'ICBS_model_5ew';
 story_ht = [174 162 162 162 162 158];
-story_dead_load = (1/2)*[2200 2325 2325 2325 2325 1900];
-story_live_load = (0.25/2)*[550, 550, 550, 550, 550, 550];
+story_dead_load = (1/2)*[2200 2325 2325 2325 2325 1900]*1000;
+story_live_load = (0.25/2)*[550, 550, 550, 550, 550, 550]*1000;
 bay_length.x = [300 300 300 300 300 100 300 300 300 300 300];
 bay_length.z = [0];
 damp_ratio = 0.05;
 foundation = 'fix';
+dims = '2D';
+hazus_class_1 = 'C1';
+hazus_class_2 = 'NA';
 
 %% Import Packages
 import tools.*
@@ -30,6 +33,9 @@ if sum(checker) == 0
     model_table.name{model_id} = model_name;
     model_table.foundation{model_id} = foundation;
     model_table.damp_ratio(model_id) = damp_ratio;
+    model_table.dimension = dims;
+    model_table.hazus_class_1 = hazus_class_1;
+    model_table.hazus_class_2 = hazus_class_2;
     writetable(model_table,['inputs' filesep 'model.csv'],'WriteVariableNames',true);
 else
     model_id = model_table.id(checker);

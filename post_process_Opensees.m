@@ -6,7 +6,7 @@ clc
 %% Load Analysis and Model parameters
 analysis.model_id = 5;
 analysis.gm_id = 1;
-analysis.name = 'rayleigh_4';
+analysis.name = 'modal_23';
 
 %% Import Packages
 import asce_41.*
@@ -17,9 +17,14 @@ gm_table = readtable(['inputs' filesep 'ground_motion.csv'],'ReadVariableNames',
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
 ground_motion_seq = gm_seq_table(gm_seq_table.id == analysis.gm_id,:);
 model = model_table(model_table.id == analysis.model_id,:);
+
 output_dir = ['outputs/' model.name{1} '/' analysis.name];
 plot_dir = [output_dir filesep 'plots'];
+
+element = readtable([output_dir filesep 'element.csv'],'ReadVariableNames',true);
+
 load([output_dir filesep 'analysis_data.mat'])
+
 dirs_ran = [];
 if ground_motion_seq.eq_id_x~=0
     dirs_ran = [dirs_ran, 'x'];
@@ -109,6 +114,11 @@ node.(['disp_' dirs_ran(i)]) = c1.(dirs_ran(i))*c2.(dirs_ran(i))*dlmread([output
 node.(['accel_' dirs_ran(i) '_rel']) = c1.(dirs_ran(i))*c2.(dirs_ran(i))*dlmread([output_dir filesep ['nodal_accel_' dirs_ran(i) '.txt']],' ')';
 node.(['accel_' dirs_ran(i) '_abs']) = c1.(dirs_ran(i))*c2.(dirs_ran(i))*(node.(['accel_' dirs_ran(i) '_rel']) + ones(length(node.id),1)*eq.(dirs_ran(i))'*386);
 
+end
+
+% Load element force data
+for i = 1:length(element.id)
+    ele_force(i,:) = max(dlmread([output_dir filesep ['element_force_' num2str(element.id(i)) '.txt']],' '));
 end
 
 %% EDP Profiles
