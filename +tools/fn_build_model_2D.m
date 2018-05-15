@@ -81,7 +81,7 @@ if isfield(hinge,'id')
     mat_id = mat_id + 1;
     if analysis.nonlinear == 1 % Shear Spring
         %uniaxialMaterial ElasticPP $matTag $E $epsyP
-        fprintf(fileID,'uniaxialMaterial ElasticPP %i 100 0.5 \n', mat_id); % Elastic Perfectly Plastic Material
+        fprintf(fileID,'uniaxialMaterial ElasticPP %i 100. 0.5 \n', mat_id); % Elastic Perfectly Plastic Material
         for i = 1:length(hinge.id)
             element.id(end + 1) = element.id(end) + 1;
             %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
@@ -89,7 +89,7 @@ if isfield(hinge,'id')
         end
     elseif analysis.nonlinear == 2 % Rotational Spring
         %uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
-        fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i 100 1 1 0 0 100 100 100 100 1 1 1 1 0.05 0.05 0.05 0.05 0 0 0.05 0.05 1 1 \n',mat_id);
+        fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i 100. 1. 1. 0. 0. 100. 100. 100. 100. 1. 1. 1. 1. 0.05. 0.05. 0.05. 0.05. 0. 0. 0.05 0.05 1. 1. \n',mat_id);
         for i = 1:length(hinge.id)
             element.id(end + 1) = element.id(end) + 1;
             %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2

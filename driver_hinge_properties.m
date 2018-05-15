@@ -84,8 +84,11 @@ for i = 1:length(element_table.id)
     
     % Plot Hinges
     theta_yeild = ele.Mn_aci*(ele.d/2)/(ele.E*ele.I);
-    force_vector = [0,1,1.1,hinge.c_hinge];
-    disp_vector = [0, theta_yeild, theta_yeild+hinge.a_hinge, theta_yeild+hinge.b_hinge]; % ASSUMING y = d/2 NEED TO UPDATE
+    Q_y = ele.Mn_aci;
+    Q_ult = ele.Mp;
+    post_yeild_strength = min(ele.Mp,1.1);
+    force_vector = [0,1,post_yeild_strength,hinge.c_hinge,hinge.c_hinge];
+    disp_vector = [0, theta_yeild, theta_yeild+hinge.a_hinge, theta_yeild+hinge.a_hinge+(hinge.b_hinge-hinge.a_hinge)/2, theta_yeild+hinge.b_hinge]; % ASSUMING y = d/2 NEED TO UPDATE
     plot(disp_vector,force_vector)
     ylabel('Q/Qy')
     xlabel('Total Rotation')

@@ -18,9 +18,9 @@ fprintf(fileID,'recorder Node -file %s/mode_shape_2.txt -dT %f -node %s -dof 1 3
 fprintf(fileID,'set numModes %d \n',6);
 fprintf(fileID,'set lambda [eigen -fullGenLapack $numModes] \n');
 fprintf(fileID,'set T {}\n');
-fprintf(fileID,'set pi 3.141593\n');
+fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
 fprintf(fileID,'foreach lam $lambda {\n');
-fprintf(fileID,'	lappend T [expr (2*$pi)/sqrt($lam)]\n');
+fprintf(fileID,'	lappend T [expr (2.0*$pi)/sqrt($lam)]\n');
 fprintf(fileID,'}\n');
 
 % Write Output File for periods

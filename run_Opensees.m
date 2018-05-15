@@ -17,7 +17,7 @@ analysis.nonlinear = 0;
 analysis.dead_load = 1;
 analysis.live_load = 0;
 analysis.accidental_torsion = 0;
-analysis.damping = 'modal';
+analysis.damping = 'rayleigh';
 
 tic
 %% Initial Setup

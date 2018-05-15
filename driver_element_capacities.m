@@ -19,7 +19,10 @@ for i = 1:length(element_table.id)
     [ element_table.Vu_aci(i), element_table.Vn_aci(i) ] = fn_aci_shear_capacity( ele.fc_e, ele.b, ele.d, ele.P, ele.Av, ele.fy_e, ele.S, ele.lambda, ele.Ag );
     
     % Moment Capcity per ACI
-    [ element_table.Mu_aci(i), element_table.Mn_aci(i) ] = fn_aci_moment_capacity( ele.fc_e, ele.b, ele.d, ele.P, ele.As, ele.As, ele.fy_e, ele.clear_cover );
+    [ element_table.Mu_aci(i), element_table.Mn_aci(i) ] = fn_aci_moment_capacity( ele.fc_e, ele.b, ele.d, ele.P, ele.As, ele.As_d, ele.fy_e, ele.clear_cover, ele.Es );
+    
+    % Probable Moment Capcity
+    [ ~, element_table.Mp(i) ] = fn_aci_moment_capacity( ele.fc_e*1.15, ele.b, ele.d, ele.P, ele.As, ele.As_d, ele.fy_e*1.15, ele.clear_cover, ele.Es );
     
     % Axial Capacity per ACI
     [ element_table.Pu(i), element_table.Pn(i) ] = fn_aci_axial_capacity( ele.fc_e, ele.Ag, ele.As, ele.fy_e );
