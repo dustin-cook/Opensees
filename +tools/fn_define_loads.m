@@ -66,7 +66,7 @@ if ground_motion_seq.eq_id_y ~= 0
 end
 
 % Define Damping based on eigen modes
-fprintf(fileID,'set lambda [eigen -fullGenLapack 6] \n');
+fprintf(fileID,'set lambda [eigen -genBandArpack 3] \n');
 fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
 fprintf(fileID,'set i 0 \n');
 fprintf(fileID,'foreach lam $lambda {\n');

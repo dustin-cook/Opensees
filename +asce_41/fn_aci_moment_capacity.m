@@ -11,10 +11,10 @@ d_c = d - clear_cover;
 
 %% Begin Method
 % Find Location of Neutral Axis
-balance_eq = 1000;
+balance_eq = 0.85*fc*b*0.85*d/2;
 y = 0;
-step = 0.0001;
-tolerance = 50;
+step = 0.01;
+tolerance = (0.85*fc*b*0.85*d/2)/1000;
 count = 1;
 while abs(balance_eq(count)) > tolerance
     count = count + 1;

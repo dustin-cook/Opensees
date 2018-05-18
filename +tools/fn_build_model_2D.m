@@ -68,11 +68,15 @@ mat_id = 0;
 if isfield(wall,'id')
     for i = 1:length(wall.id)
         element.id(end + 1) = element.id(end) + 1;
-        mat_id = mat_id + 1;
-        %uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg
-        fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',mat_id,wall.e(i)); %Elastic Wall Section
-        %element quad $eleTag $iNode $jNode $kNode $lNode $thick $type $matTag <$pressure $rho $b1 $b2>
-        fprintf(fileID,'element quad %i %i %i %i %i %f PlaneStress %i \n',element.id(end),wall.node_1(i),wall.node_2(i),wall.node_3(i),wall.node_4(i),wall.thickness(i),mat_id); % Model Wall as shell
+%         mat_id = mat_id + 1;
+        %section ElasticMembranePlateSection $secTag $E $nu $h $rho
+        fprintf(fileID,'section ElasticMembranePlateSection %i %f %f %f 0.0 \n',i,wall.e(i),wall.poisson_ratio(i),wall.thickness(i)); %Elastic Wall Section
+        %element ShellMITC4 $eleTag $iNode $jNode $kNode $lNode $secTag
+        fprintf(fileID,'element ShellMITC4 %i %i %i %i %i %i \n',element.id(end),wall.node_1(i),wall.node_2(i),wall.node_3(i),wall.node_4(i),i); % Model Wall as shell
+%         %uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg
+%         fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',mat_id,wall.e(i)); %Elastic Wall Section
+%         %element quad $eleTag $iNode $jNode $kNode $lNode $thick $type $matTag <$pressure $rho $b1 $b2>
+%         fprintf(fileID,'element quad %i %i %i %i %i %f PlaneStress %i \n',element.id(end),wall.node_1(i),wall.node_2(i),wall.node_3(i),wall.node_4(i),wall.thickness(i),mat_id); % Model Wall as shell
     end
 end
 

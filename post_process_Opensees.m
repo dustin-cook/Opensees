@@ -1,24 +1,26 @@
 % Run Truss Tcl file in opensees
 clear
-close
+close all
+rehash
 clc
 
 %% Load Analysis and Model parameters
-analysis.model_id = 5;
+analysis.model_id = 3;
 analysis.gm_id = 1;
-analysis.name = 'modal_23';
+analysis.name = 'test';
 
 %% Import Packages
 import asce_41.*
 
 %% Load Analysis Data
+model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
+model = model_table(model_table.id == analysis.model_id,:);
 gm_seq_table = readtable(['inputs' filesep 'ground_motion_sequence.csv'],'ReadVariableNames',true);
 gm_table = readtable(['inputs' filesep 'ground_motion.csv'],'ReadVariableNames',true);
-model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
 ground_motion_seq = gm_seq_table(gm_seq_table.id == analysis.gm_id,:);
-model = model_table(model_table.id == analysis.model_id,:);
+ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
 
-output_dir = ['outputs/' model.name{1} '/' analysis.name];
+output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
 plot_dir = [output_dir filesep 'plots'];
 
 element = readtable([output_dir filesep 'element.csv'],'ReadVariableNames',true);
@@ -39,90 +41,74 @@ if ground_motion_seq.eq_id_z~=0
     ground_motion.z = gm_table(gm_table.id == ground_motion_seq.eq_id_z,:);
 end
 
-%% Load Period data
-periods = dlmread([output_dir filesep 'period.txt']);
-T_1 = periods(1);
-T_2 = periods(2);
-
-%% Load Spectra and Calculate Sa
-spectra_table_x = readtable([ground_motion.x.eq_dir{1} filesep 'spectra_' erase(erase(ground_motion.x.eq_name{1},'.tcl'),'gm_') '.csv'],'ReadVariableNames',true);
-Sa_1 = interp1(spectra_table_x.period,spectra_table_x.psa_5,T_1);
-Sd_1 = Sa_1*386*(T_1/(2*pi))^2;
-if isfield(ground_motion,'z')
-    spectra_table_z = readtable([ground_motion.z.eq_dir{1} filesep 'spectra_' erase(erase(ground_motion.z.eq_name{1},'.tcl'),'gm_') '.csv'],'ReadVariableNames',true);
-    Sa_2 = interp1(spectra_table_z.period,spectra_table_z.psa_5,T_2);
-    Sd_2 = Sa_2*386*(T_2/(2*pi))^2;
-end
-
-% % Quick modal analysis check
-% phi_1 = [0.311658 0.724832 1];
-% phi_2 = [-1 -0.747208 0.853258]/0.853258;
-% gamma_1 = sum(phi_1)/sum(phi_1.^2);
-% gamma_2 = sum(phi_2)/sum(phi_2.^2);
-% Sa_2 = interp1(spectra_table_x.period,spectra_table_x.psa_5,T_2);
-% Sd_2 = Sa_2*386*(T_2/(2*pi))^2;
-% modal_disp_1 = gamma_1*phi_1*Sd_1;
-% modal_disp_2 = gamma_2*phi_2*Sd_2;
-% modal_disp = sqrt(modal_disp_1.^2 + modal_disp_2.^2);
-
-%% Caclulate C1 and C2 Factors
-if analysis.nonlinear == 0
-    site_class = 'D';
-    if strcmp(site_class,'A') || strcmp(site_class,'B')
-        a = 130;
-    elseif strcmp(site_class,'C')
-        a = 90;
-    else
-        a = 60;
-    end
-    num_stories = length(story.id);
-
-    % Calculate Cm
-    [ c_m_1 ] = fn_cm( num_stories, T_1, model.hazus_class_1 );
-    if ~strcmp(model.hazus_class_1,'NA')
-        [ c_m_2 ] = fn_cm( num_stories, T_2, model.hazus_class_2 );
-    end
-    
-    DCR_max_1 = 4; % Placeholder for now until we get actual values
-    DCR_max_2 = 4; % Placeholder for now until we get actual values
-    u_strength_1 = max([DCR_max_1*c_m_1/1.5,1]);
-    u_strength_2 = max([DCR_max_2*c_m_2/1.5,1]);
-    c1.x = 1 + (u_strength_1-1)/(a*T_1^2);
-    c2.x = 1 + (1/800)*((u_strength_1-1)/T_1)^2;
-    c1.z = 1 + (u_strength_2-1)/(a*T_2^2);
-    c2.z = 1 + (1/800)*((u_strength_2-1)/T_2)^2;
-else
-    c1.x = 1;
-    c2.x = 1;
-    c1.z = 1;
-    c2.z = 1;
-end
-
-%     c1.x = 1;
-%     c2.x = 1;
-%     c1.z = 1;
-%     c2.z = 1;
-
-%% Load and Read Outputs
-for i = 1:length(dirs_ran)
-eq.(dirs_ran(i)) = load([ground_motion.(dirs_ran(i)).eq_dir{1} filesep ground_motion.(dirs_ran(i)).eq_name{1}]);
-
-% Nodal Displacement (in)
-node.(['disp_' dirs_ran(i)]) = c1.(dirs_ran(i))*c2.(dirs_ran(i))*dlmread([output_dir filesep ['nodal_disp_' dirs_ran(i) '.txt']],' ')';
-
-% Nodal Acceleration (in/s2)
-node.(['accel_' dirs_ran(i) '_rel']) = c1.(dirs_ran(i))*c2.(dirs_ran(i))*dlmread([output_dir filesep ['nodal_accel_' dirs_ran(i) '.txt']],' ')';
-node.(['accel_' dirs_ran(i) '_abs']) = c1.(dirs_ran(i))*c2.(dirs_ran(i))*(node.(['accel_' dirs_ran(i) '_rel']) + ones(length(node.id),1)*eq.(dirs_ran(i))'*386);
-
-end
-
-% Load element force data
+%% Load element force data
 for i = 1:length(element.id)
     ele_force(i,:) = max(dlmread([output_dir filesep ['element_force_' num2str(element.id(i)) '.txt']],' '));
 end
 
-%% EDP Profiles
-% Acceleration
+% Add element forces to element table
+element.Pmax = max([ele_force(:,1),ele_force(:,4)],[],2);
+element.Vmax = max([ele_force(:,2),ele_force(:,5)],[],2);
+element.Mmax = max([ele_force(:,3),ele_force(:,6)],[],2);
+writetable(element,[output_dir filesep 'element.csv'])
+
+% Omit elements that are rigid
+filter = (element.ele_id == 1) | (element.ele_id == 2);
+element(filter,:) = [];
+
+%% Caclulate Element Capacity
+for i = 1:length(element.id)
+    ele = element(i,:);
+    ele_id = ele.ele_id;
+    ele_prop = ele_prop_table(ele_id,:);
+    [ ele_temp(i,:) ] = fn_element_capacity( ele, ele_prop );
+end
+element = ele_temp;
+
+%% Calculate the DCR
+element.DCR_P = element.Pmax ./ element.Pn;
+element.DCR_V = element.Vmax ./ element.Vn_aci;
+element.DCR_M = element.Mmax ./ element.Mn_aci;
+DCR_max = max([element.DCR_P; element.DCR_V; element.DCR_M]);
+
+%% Load Period data
+periods = dlmread([output_dir filesep 'period.txt']);
+T.x = periods(1);
+T.z = periods(2);
+
+for i = 1:length(dirs_ran)
+    %% Load Spectra and Calculate Sa
+    spectra_table.(dirs_ran(i)) = readtable([ground_motion.(dirs_ran(i)).eq_dir{1} filesep 'spectra_' erase(erase(ground_motion.(dirs_ran(i)).eq_name{1},'.tcl'),'gm_') '.csv'],'ReadVariableNames',true);
+    Sa.(dirs_ran(i)) = interp1(spectra_table.(dirs_ran(i)).period,spectra_table.(dirs_ran(i)).psa_5,T.(dirs_ran(i)));
+    Sd.(dirs_ran(i)) = Sa.(dirs_ran(i))*386*(T.(dirs_ran(i))/(2*pi))^2;
+
+    %% Caclulate C1 and C2 Factors
+    if analysis.nonlinear == 0
+        site_class = model.site_class{1};
+        num_stories = length(story.id);
+        if i == 1
+            haz_class = model.hazus_class_1;
+        elseif i == 2
+            haz_class = model.hazus_class_2;
+        end
+        [ c1.(dirs_ran(i)), c2.(dirs_ran(i)) ] = fn_c_factors( site_class, num_stories, T.(dirs_ran(i)), haz_class, DCR_max );
+    else
+        c1.(dirs_ran(i)) = 1;
+        c2.(dirs_ran(i)) = 1;
+    end
+
+    %% Load and Read Outputs
+    eq.(dirs_ran(i)) = load([ground_motion.(dirs_ran(i)).eq_dir{1} filesep ground_motion.(dirs_ran(i)).eq_name{1}]);
+
+    % Nodal Displacement (in)
+    node.(['disp_' dirs_ran(i)]) = c1.(dirs_ran(i))*c2.(dirs_ran(i))*dlmread([output_dir filesep ['nodal_disp_' dirs_ran(i) '.txt']],' ')';
+
+    % Nodal Acceleration (in/s2)
+    node.(['accel_' dirs_ran(i) '_rel']) = c1.(dirs_ran(i))*c2.(dirs_ran(i))*dlmread([output_dir filesep ['nodal_accel_' dirs_ran(i) '.txt']],' ')';
+    node.(['accel_' dirs_ran(i) '_abs']) = c1.(dirs_ran(i))*c2.(dirs_ran(i))*(node.(['accel_' dirs_ran(i) '_rel']) + ones(length(node.id),1)*eq.(dirs_ran(i))'*386);
+end
+
+%% Calculate Acceleration Profile
 % x Direction
 max_accel_all_nodes_x = max(abs(node.accel_x_abs),[],2)/386;
 max_accel_profile_x = [max_accel_all_nodes_x(1), zeros(1,length(story.id))];
@@ -139,7 +125,7 @@ if strcmp(model.dimension,'3D')
     end
 end
 
-% Displacement
+%% Calculate Displacement Profile
 % x direction
 max_disp_all_nodes_x = max(abs(node.disp_x),[],2);
 max_disp_profile_x = [max_disp_all_nodes_x(1), zeros(1,length(story.id))];
@@ -160,7 +146,27 @@ if strcmp(model.dimension,'3D')
     end
 end
 
-% Drift
+%% Torsional Amplification Check
+TAR_x = max_disp_profile_x(2:end) ./ ave_disp_profile_x(2:end);
+if sum(TAR_x > 1.2) > 0 && analysis.nonlinear == 0
+    warning('Torsional Amplification Exceeds Limit. Forces and displacements caused by accidental torsion shall be amplified by a factor Ax')
+end
+
+if strcmp(model.dimension,'3D')
+    TAR_z = max_disp_profile_z(2:end) ./ ave_disp_profile_z(2:end);
+    if sum(TAR_z > 1.2) > 0 && analysis.nonlinear == 0
+        warning('Torsional Amplification Exceeds Limit. Forces and displacements caused by accidental torsion shall be amplified by a factor Ax')
+    end
+end
+
+% Amplify Displacements and Forces by Max TAR
+if strcmp(model.dimension,'2D') && analysis.nonlinear == 0
+    TAR_max = max(TAR_x);
+    max_accel_profile_x = max_accel_profile_x*TAR_max;
+    max_disp_profile_x = max_disp_profile_x*TAR_max;
+end
+
+%% Calculate Drift Profile
 % X direction
 max_drift_profile_x = zeros(length(story.id),1);
 for i = 1:length(story.id)
@@ -184,19 +190,6 @@ if strcmp(model.dimension,'3D')
         end
         max_drifts_all_slab_z = max(abs(nodal_drifts_z),[],2);
         max_drift_profile_z(i) = max(max_drifts_all_slab_z);
-    end
-end
-
-%% Torsional Amplification Check
-TAR_x = max_disp_profile_x(2:end) ./ ave_disp_profile_x(2:end);
-if sum(TAR_x > 1.2) > 0
-    warning('Torsional Amplification Exceeds Limit. Forces and displacements caused by accidental torsion shall be amplified by a factor Ax')
-end
-
-if strcmp(model.dimension,'3D')
-    TAR_z = max_disp_profile_z(2:end) ./ ave_disp_profile_z(2:end);
-    if sum(TAR_z > 1.2) > 0 
-        warning('Torsional Amplification Exceeds Limit. Forces and displacements caused by accidental torsion shall be amplified by a factor Ax')
     end
 end
 
@@ -234,7 +227,6 @@ if strcmp(model.dimension,'3D')
     fn_format_and_save_plot( plot_dir, plot_name, 1 )
 end
 
-
 % Plot Acceleration Profile
 figure
 hold on
@@ -245,6 +237,21 @@ end
 xlabel('PFA (g)')
 ylabel('Story')
 plot_name = 'Accel_Profile.fig';
+fn_format_and_save_plot( plot_dir, plot_name, 1 )
+
+% Plot Displacement Profile
+figure
+hold on
+plot(max_disp_profile_x,[0;story.id],'DisplayName','X Direction')
+c0 = 1.3;
+targ_disp = Sd.x*c1.x*c2.x*c0;
+plot([0,targ_disp],[0,num_stories],'--r','DisplayName','Target Displacement')
+if strcmp(model.dimension,'3D')
+    plot(max_disp_profile_z,[0;story.id],'DisplayName','Z Direction')
+end
+xlabel('Displacement (in)')
+ylabel('Story')
+plot_name = 'Disp_Profile.fig';
 fn_format_and_save_plot( plot_dir, plot_name, 1 )
 
 % Plot Drift Profile
@@ -259,15 +266,6 @@ ylabel('Story')
 plot_name = 'Drift_Profile.fig';
 fn_format_and_save_plot( plot_dir, plot_name, 1 )
 
-
 % Save Data
-save([output_dir filesep 'analysis_data'])
-
-TAR_x
-max_drift_profile_x
-max_accel_profile_x
-
-Sd_1
-max_disp_profile_x
-
+save([output_dir filesep 'post_process_data'])
 

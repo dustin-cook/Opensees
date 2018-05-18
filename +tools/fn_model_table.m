@@ -31,6 +31,7 @@ for s = 1:length(story.id)
             ele_id = ele_id + 1;
             ele = element_table(element_table.id == frame_line.element_id(e),:);
             element.id(ele_id) = ele_id;
+            element.ele_id(ele_id) = ele.id;
             element.a(ele_id) = ele.a;
             element.e(ele_id) = ele.e;
             element.g(ele_id) = ele.g;
@@ -395,6 +396,6 @@ if isfield(node,'z')
 else
     node_table = table(node.id', node.x', node.y', node.dead_load', node.live_load', node.mass', node.fix, 'VariableNames',{'id','x','y','dead_load','live_load','mass','fix'});
 end
-ele_table = table(element.id', element.a', element.e', element.g', element.j', element.iy', element.iz', element.orientation', element.story', element.depth', element.width', element.node_start', element.node_end', 'VariableNames',{'id', 'a', 'e', 'g', 'j', 'iy', 'iz', 'orientation', 'story', 'depth', 'width', 'node_start', 'node_end'});
+ele_table = table(element.id', element.ele_id', element.a', element.e', element.g', element.j', element.iy', element.iz', element.orientation', element.story', element.depth', element.width', element.node_start', element.node_end', 'VariableNames',{'id', 'ele_id', 'a', 'e', 'g', 'j', 'iy', 'iz', 'orientation', 'story', 'depth', 'width', 'node_start', 'node_end'});
 end
 
