@@ -5,7 +5,7 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 2;
+analysis.model_id = 3;
 analysis.gm_seq_id = 1;
 analysis.name = 'test';
 
@@ -36,20 +36,20 @@ if ~exist(output_dir,'dir')
 end
 
 %% Create Model Databases
-[ node, element, story, joint, wall, hinge ] = fn_model_table( model, analysis );
+[ node, element, story, joint, hinge ] = fn_model_table( model, analysis );
 % Save element and node databases
 writetable(node,[output_dir filesep 'node.csv'])
 writetable(element,[output_dir filesep 'element.csv'])
 
 %% Write TCL file
 if strcmp(model.dimension,'2D')
-    [ node ] = fn_build_model_2D( output_dir, node, element, story, joint, wall, hinge, analysis );
+    [ node ] = fn_build_model_2D( output_dir, node, element, story, joint, hinge, analysis );
 elseif strcmp(model.dimension,'3D')
-    [ node ] = fn_build_model_3D( output_dir, node, element, story, joint, wall, hinge, analysis );
+    [ node ] = fn_build_model_3D( output_dir, node, element, story, joint, hinge, analysis );
 else
     error('Number of Dimensions Not Recognized')
 end
-fn_define_recorders( output_dir, model.dimension, node.id', element.id' )
+fn_define_recorders( output_dir, model.dimension, node.id', element )
 [ground_motion] = fn_define_loads( output_dir, analysis, model.damp_ratio, node, model.dimension);
 fn_eigen_analysis( output_dir, analysis.time_step, story.first_story_node )
 fn_define_analysis( output_dir, analysis, node.id, ground_motion )

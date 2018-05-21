@@ -1,5 +1,8 @@
-function [ node ] = fn_build_model_3D( output_dir, node, element, story, joint, wall, hinge, analysis )
+function [ node ] = fn_build_model_3D( output_dir, node, element, story, joint, hinge, analysis )
 %UNTITLED6 Summary of this function goes here
+
+%% Load element properties table
+ele_props_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
 
 %% Write TCL file
 file_name = [output_dir filesep 'model.tcl'];
@@ -29,14 +32,20 @@ fprintf(fileID,'geomTransf PDelta 2 0 0 1 \n'); % Beams (x-direction)
 fprintf(fileID,'geomTransf PDelta 3 -1 0 0 \n'); % Girders (y-direction)
 fprintf(fileID,'geomTransf PDelta 4 1 0 0 \n'); % Columns (y-direction)
 
-% Define Elements (columns and beam)
-% element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
-if sum(strcmp('id',element.Properties.VariableNames)) > 0
-    for i = 1:length(element.id)
-        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_start(i),element.node_end(i),element.a(i),element.e(i),element.g(i),element.j(i),element.iy(i),element.iz(i),element.orientation(i));
+% Define Elements
+for i = 1:length(element.id)
+    ele_props = ele_props_table(ele_props_table.id == element.ele_id(i),:);
+    % Beams, Columns and Rigid Links
+    if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column') || strcmp(ele_props.type,'rigid link') 
+        % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
+        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,element.orientation(i));
+    % Walls
+    elseif strcmp(ele_props.type,'wall')
+        %section ElasticMembranePlateSection $secTag $E $nu $h $rho
+        fprintf(fileID,'section ElasticMembranePlateSection %i %f %f %f 0.0 \n',i,ele_props.e,ele_props.poisson_ratio,ele_props.w); %Elastic Wall Section
+        %element ShellMITC4 $eleTag $iNode $jNode $kNode $lNode $secTag
+        fprintf(fileID,'element ShellMITC4 %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),element.node_3(i),element.node_4(i),i); % Model Wall as shell
     end
-else
-    element.id = 0;
 end
 
 % % Define Materials
@@ -62,20 +71,9 @@ if isfield(joint,'id')
     end
 end
 
-% % Define Rigid Slabs
-% for i = 1:length(story.id)
-%     fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(story.nodes_on_slab{i}));
-% end
-
-% Define Walls Sections
-if isfield(wall,'id')
-    for i = 1:length(wall.id)
-        element.id(end + 1) = element.id(end) + 1;
-        %section ElasticMembranePlateSection $secTag $E $nu $h $rho
-        fprintf(fileID,'section ElasticMembranePlateSection %i %f %f %f 0.0 \n',i,wall.e(i),wall.poisson_ratio(i),wall.thickness(i)); %Elastic Wall Section
-        %element ShellMITC4 $eleTag $iNode $jNode $kNode $lNode $secTag
-        fprintf(fileID,'element ShellMITC4 %i %i %i %i %i %i \n',element.id(end),wall.node_1(i),wall.node_2(i),wall.node_3(i),wall.node_4(i),i); % Model Wall as shell
-    end
+% Define Rigid Slabs
+for i = 1:length(story.id)
+    fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(story.nodes_on_slab{i}));
 end
 
 % Define Plastic Hinges

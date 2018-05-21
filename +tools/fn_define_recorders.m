@@ -1,4 +1,4 @@
-function [ ] = fn_define_recorders( output_dir, dimension, nodes, ele )
+function [ ] = fn_define_recorders( output_dir, dimension, nodes, element )
 %UNTITLED7 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -21,8 +21,8 @@ if strcmp(dimension,'3D')
     fprintf(fileID,'recorder Node -file %s/nodal_accel_z.txt -node %s -dof 3 accel \n', output_dir, num2str(nodes));
 end
 
-for i=1:length(ele)
-    fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d localForce \n', output_dir, ele(i), ele(i));
+for i=1:length(element.id)
+    fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d localForce \n', output_dir, element.id(i), element.id(i));
 end
 
 % Movie Recorders

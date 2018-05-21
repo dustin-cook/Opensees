@@ -1,5 +1,8 @@
-function [ node ] = fn_build_model_2D( output_dir, node, element, story, joint, wall, hinge, analysis )
+function [ node ] = fn_build_model_2D( output_dir, node, element, story, joint, hinge, analysis )
 %UNTITLED6 Summary of this function goes here
+
+%% Load element properties table
+ele_props_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
 
 %% Write TCL file
 file_name = [output_dir filesep 'model.tcl'];
@@ -28,14 +31,15 @@ fprintf(fileID,'geomTransf PDelta 1 \n'); % Columns
 fprintf(fileID,'geomTransf PDelta 2 \n'); % Beams (x-direction)
 
 % Define Elements (columns and beam)
-% element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-if sum(strcmp('id',element.Properties.VariableNames)) > 0
-    for i = 1:length(element.id)
-        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_start(i),element.node_end(i),element.a(i),element.e(i),element.iz(i),element.orientation(i));
+for i = 1:length(element.id)
+    ele_props = ele_props_table(ele_props_table.id == element.ele_id(i),:);
+    % Beams, Columns and Rigid Links
+    if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column') || strcmp(ele_props.type,'rigid link') 
+        % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
+        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,element.orientation(i));
     end
-else
-    element.id = 0;
 end
+
 
 % % Define Materials
 % %uniaxialMaterial Elastic $matTag $E
@@ -55,28 +59,6 @@ if isfield(joint,'id')
         fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 2 \n',joint.id(i)*10+2,joint.center(i),joint.x_pos(i));
         fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 1 \n',joint.id(i)*10+3,joint.y_neg(i),joint.center(i));
         fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 1 \n',joint.id(i)*10+4,joint.center(i),joint.y_pos(i));
-    end
-end
-
-% % Define Rigid Slabs
-% for i = 1:length(story.id)
-%     fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(story.nodes_on_slab{i}));
-% end
-
-% Define Walls Sections
-mat_id = 0;
-if isfield(wall,'id')
-    for i = 1:length(wall.id)
-        element.id(end + 1) = element.id(end) + 1;
-%         mat_id = mat_id + 1;
-        %section ElasticMembranePlateSection $secTag $E $nu $h $rho
-        fprintf(fileID,'section ElasticMembranePlateSection %i %f %f %f 0.0 \n',i,wall.e(i),wall.poisson_ratio(i),wall.thickness(i)); %Elastic Wall Section
-        %element ShellMITC4 $eleTag $iNode $jNode $kNode $lNode $secTag
-        fprintf(fileID,'element ShellMITC4 %i %i %i %i %i %i \n',element.id(end),wall.node_1(i),wall.node_2(i),wall.node_3(i),wall.node_4(i),i); % Model Wall as shell
-%         %uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg
-%         fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',mat_id,wall.e(i)); %Elastic Wall Section
-%         %element quad $eleTag $iNode $jNode $kNode $lNode $thick $type $matTag <$pressure $rho $b1 $b2>
-%         fprintf(fileID,'element quad %i %i %i %i %i %f PlaneStress %i \n',element.id(end),wall.node_1(i),wall.node_2(i),wall.node_3(i),wall.node_4(i),wall.thickness(i),mat_id); % Model Wall as shell
     end
 end
 

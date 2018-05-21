@@ -1,4 +1,4 @@
-function [ node_table, ele_table, story, joint, wall, hinge ] = fn_model_table( model, analysis )
+function [ node_table, ele_table, story, joint, hinge ] = fn_model_table( model, analysis )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -10,7 +10,7 @@ import tools.*
 story_table = readtable(['inputs' filesep 'models' filesep model.name{1} filesep 'story.csv'],'ReadVariableNames',true);
 story_group_table = readtable(['inputs' filesep 'models' filesep model.name{1} filesep 'story_group.csv'],'ReadVariableNames',true);
 grid_line_table = readtable(['inputs' filesep 'models' filesep model.name{1} filesep 'grid_line.csv'],'ReadVariableNames',true);
-element_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
+ele_props = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
 
 node.id = 1;
 node.x = 0;
@@ -24,24 +24,16 @@ ele_id = 0;
 for s = 1:length(story.id)
     story_group = story_group_table(story_group_table.story_group_id == story.story_group_id(s),:);
     for g = 1:length(story_group.id)
-        frame_line = grid_line_table((grid_line_table.grid_line_id == story_group.grid_line_id(g)) & ~strcmp(element_table.type(grid_line_table.element_id),'wall'),:);
+        frame_line = grid_line_table((grid_line_table.grid_line_id == story_group.grid_line_id(g)) & ~strcmp(ele_props.type(grid_line_table.element_id),'wall'),:);
         for e = 1:length(frame_line.id)
             
             % Element Properties
             ele_id = ele_id + 1;
-            ele = element_table(element_table.id == frame_line.element_id(e),:);
-            element.id(ele_id) = ele_id;
-            element.ele_id(ele_id) = ele.id;
-            element.a(ele_id) = ele.a;
-            element.e(ele_id) = ele.e;
-            element.g(ele_id) = ele.g;
-            element.j(ele_id) = ele.j;
-            element.iy(ele_id) = ele.iy;
-            element.iz(ele_id) = ele.iz;
-            element.orientation(ele_id) = frame_line.orientation(e);
-            element.story(ele_id) = s;
-            element.depth(ele_id) = ele.d;
-            element.width(ele_id) = ele.w;
+            ele = ele_props(ele_props.id == frame_line.element_id(e),:);
+            element.id(ele_id,1) = ele_id;
+            element.ele_id(ele_id,1) = ele.id;
+            element.orientation(ele_id,1) = frame_line.orientation(e);
+            element.story(ele_id,1) = s;
             
             % Element Global Position
             ele_y_start = frame_line.y_start(e)*story.story_ht(s) + story.y_offset(s);
@@ -63,9 +55,11 @@ for s = 1:length(story.id)
 
             % Check to see if the element nodes exists and assign
             [ node, id ] = node_exist( node, ele_x_start, ele_y_start, ele_z_start );
-            element.node_start(ele_id) = node.id(id);
+            element.node_1(ele_id,1) = node.id(id);
             [ node, id ] = node_exist( node, ele_x_end, ele_y_end, ele_z_end );
-            element.node_end(ele_id) = node.id(id);
+            element.node_2(ele_id,1) = node.id(id);
+            element.node_3(ele_id,1) = 0;
+            element.node_4(ele_id,1) = 0;
         end
     end
 end
@@ -77,7 +71,7 @@ for s = 1:length(story.id)
     story_node = node.id(node.y == (story.y_offset(s)+story.story_ht(s)));
     for n = 1:length(story_node)
         n_id = story_node(n);
-        elements_at_node = element.id(((element.node_start == n_id) | (element.node_end == n_id)) & (element.story == s));
+        elements_at_node = element.id(((element.node_1 == n_id) | (element.node_2 == n_id)) & (element.story == s));
         if length(elements_at_node) > 1
             
             bm_d_x = 0;
@@ -86,29 +80,31 @@ for s = 1:length(story.id)
             col_d_z = 0;
             for e = 1:length(elements_at_node)
                 e_id = elements_at_node(e);
+                ele = ele_props(ele_props.id == element.ele_id(e_id),:);
+                
                 % Find Joint properties based on elements that frame in
                 if element.orientation(e_id) == 1 
                     new_ele.col_y = e_id;
-                    col_d_x(e) = element.depth(e_id);
-                    col_d_z(e) = element.width(e_id);
-                elseif element.orientation(e_id) == 2
-                    bm_d_x(e) = element.depth(e_id);
-                    if element.node_start(e_id) == n_id
+                    col_d_x(e) = ele.d;
+                    col_d_z(e) = ele.w;
+                elseif element.orientation(e_id,1) == 2
+                    bm_d_x(e) = ele.d;
+                    if element.node_1(e_id) == n_id
                         new_ele.bm_x_pos = e_id;
                     else
                         new_ele.bm_x_neg = e_id;
                     end
                 elseif element.orientation(e_id) == 3
-                    bm_d_z(e) = element.depth(e_id);
-                    if element.node_start(e_id) == n_id
+                    bm_d_z(e) = ele.d;
+                    if element.node_1(e_id) == n_id
                         new_ele.bm_z_pos = e_id;
                     else
                         new_ele.bm_z_neg = e_id;
                     end
                 elseif element.orientation(e_id) == 4
                     new_ele.col_y = e_id;
-                    col_d_x(e) = element.width(e_id);
-                    col_d_z(e) = element.depth(e_id);
+                    col_d_x(e) = ele.w;
+                    col_d_z(e) = ele.d;
                 end
             end
             joint_dim_y = max([bm_d_x,bm_d_z]);
@@ -123,18 +119,18 @@ for s = 1:length(story.id)
             
             % Change elements to connect to new nodes
             if isfield(new_ele,'bm_x_neg')
-                element.node_end(new_ele.bm_x_neg) = new_node.id(1);
+                element.node_2(new_ele.bm_x_neg,1) = new_node.id(1);
             end
             if isfield(new_ele,'bm_x_pos')
-                element.node_start(new_ele.bm_x_pos) = new_node.id(2);
+                element.node_1(new_ele.bm_x_pos,1) = new_node.id(2);
             end
             if isfield(new_ele,'bm_z_neg')
-                element.node_end(new_ele.bm_z_neg) = new_node.id(3);
+                element.node_2(new_ele.bm_z_neg,1) = new_node.id(3);
             end
             if isfield(new_ele,'bm_z_pos')
-                element.node_start(new_ele.bm_z_pos) = new_node.id(4);
+                element.node_1(new_ele.bm_z_pos,1) = new_node.id(4);
             end
-            element.node_end(new_ele.col_y) = new_node.id(5);
+            element.node_2(new_ele.col_y,1) = new_node.id(5);
             
             clear new_ele
            
@@ -160,22 +156,19 @@ for s = 1:length(story.id)
 end
 
 %% Assign Walls
-wall = [];
-wall_id = 0;
 for s = 1:length(story.id)
     story_group = story_group_table(story_group_table.story_group_id == story.story_group_id(s),:);
     for g = 1:length(story_group.id)
-        wall_line = grid_line_table((grid_line_table.grid_line_id == story_group.grid_line_id(g)) & strcmp(element_table.type(grid_line_table.element_id),'wall'),:);
+        wall_line = grid_line_table((grid_line_table.grid_line_id == story_group.grid_line_id(g)) & strcmp(ele_props.type(grid_line_table.element_id),'wall'),:);
         for w = 1:length(wall_line.id)
             
             % Element Properties
-            wall_id = wall_id + 1;
-            ele = element_table(element_table.id == wall_line.element_id(w),:);
-            wall.id(wall_id) = wall_id;
-            wall.ele_id(wall_id) = ele.id;
-            wall.e(wall_id) = ele.e;
-            wall.poisson_ratio(wall_id) = ele.poisson_ratio;
-            wall.thickness(wall_id) = ele.w;
+            ele_id = ele_id + 1;
+            ele = ele_props(ele_props.id == wall_line.element_id(w),:);
+            element.id(ele_id,1) = ele_id;
+            element.ele_id(ele_id,1) = ele.id;
+            element.orientation(ele_id,1) = 0;
+            element.story(ele_id,1) = s;
             
             % Element Global Position
             wall_y_start = wall_line.y_start(w)*story.story_ht(s) + story.y_offset(s);
@@ -197,14 +190,13 @@ for s = 1:length(story.id)
 
             % Check to see if the wall nodes exist and assign nodes
             [ node, id ] = node_exist( node, wall_x_start, wall_y_start, wall_z_start );
-            wall.node_1(wall_id) = node.id(id); 
+            element.node_1(ele_id,1) = node.id(id); 
             [ node, id ] = node_exist( node, wall_x_end, wall_y_start, wall_z_end );
-            wall.node_2(wall_id) = node.id(id); 
+            element.node_2(ele_id,1) = node.id(id); 
             [ node, id ] = node_exist( node, wall_x_end, wall_y_end, wall_z_end );
-            wall.node_3(wall_id) = node.id(id); 
+            element.node_3(ele_id,1) = node.id(id); 
             [ node, id ] = node_exist( node, wall_x_start, wall_y_end, wall_z_start );
-            wall.node_4(wall_id) = node.id(id); 
-            
+            element.node_4(ele_id,1) = node.id(id); 
         end
     end
 end
@@ -396,6 +388,6 @@ if isfield(node,'z')
 else
     node_table = table(node.id', node.x', node.y', node.dead_load', node.live_load', node.mass', node.fix, 'VariableNames',{'id','x','y','dead_load','live_load','mass','fix'});
 end
-ele_table = table(element.id', element.ele_id', element.a', element.e', element.g', element.j', element.iy', element.iz', element.orientation', element.story', element.depth', element.width', element.node_start', element.node_end', 'VariableNames',{'id', 'ele_id', 'a', 'e', 'g', 'j', 'iy', 'iz', 'orientation', 'story', 'depth', 'width', 'node_start', 'node_end'});
+ele_table = struct2table(element);
 end
 
