@@ -4,7 +4,7 @@ close all
 rehash
 clc
 
-%% Load Analysis and Model parameters
+%% Define Analysis and Model parameters
 analysis.model_id = 3;
 analysis.gm_id = 1;
 analysis.name = 'test';
@@ -24,6 +24,7 @@ output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
 plot_dir = [output_dir filesep 'plots'];
 
 element = readtable([output_dir filesep 'element.csv'],'ReadVariableNames',true);
+node = readtable([output_dir filesep 'node.csv'],'ReadVariableNames',true);
 
 load([output_dir filesep 'analysis_data.mat'])
 
@@ -50,11 +51,10 @@ end
 element.Pmax = max([ele_force(:,1),ele_force(:,4)],[],2);
 element.Vmax = max([ele_force(:,2),ele_force(:,5)],[],2);
 element.Mmax = max([ele_force(:,3),ele_force(:,6)],[],2);
-writetable(element,[output_dir filesep 'element.csv'])
 
-% Omit elements that are rigid
-filter = (element.ele_id == 1) | (element.ele_id == 2);
-element(filter,:) = [];
+% % Omit elements that are rigid
+% filter = (element.ele_id == 1) | (element.ele_id == 2);
+% element(filter,:) = [];
 
 %% Caclulate Element Capacity
 for i = 1:length(element.id)
@@ -70,6 +70,52 @@ element.DCR_P = element.Pmax ./ element.Pn;
 element.DCR_V = element.Vmax ./ element.Vn_aci;
 element.DCR_M = element.Mmax ./ element.Mn_aci;
 DCR_max = max([element.DCR_P; element.DCR_V; element.DCR_M]);
+
+% Save element table
+writetable(element,[output_dir filesep 'element.csv'])
+
+% Plot DCR view
+s = element.node_1;
+t = element.node_2;
+G = graph(s,t);
+for i = 1:max([element.node_1;element.node_2])
+    if sum(node.id == i) == 0
+        x(i) = 0;
+        y(i) = 0;
+    else
+        x(i) = node.x(node.id == i);
+        y(i) = node.y(node.id == i);
+    end
+end
+% moment
+s_break = element.node_1(element.DCR_M >= 1);
+t_break = element.node_2(element.DCR_M >= 1);
+H = plot(G,'XData',x,'YData',y);
+highlight(H,s_break,t_break,'EdgeColor','red')
+xlabel('Base (ft)')
+xlabel('Height (ft)')
+plot_name = 'DCR_view_moment';
+fn_format_and_save_plot( plot_dir, plot_name, 4 )
+
+% Shear
+s_break = element.node_1(element.DCR_V >= 1);
+t_break = element.node_2(element.DCR_V >= 1);
+H = plot(G,'XData',x,'YData',y);
+highlight(H,s_break,t_break,'EdgeColor','red')
+xlabel('Base (ft)')
+xlabel('Height (ft)')
+plot_name = 'DCR_view_shear';
+fn_format_and_save_plot( plot_dir, plot_name, 4 )
+
+% Axial
+s_break = element.node_1(element.DCR_P >= 1);
+t_break = element.node_2(element.DCR_P >= 1);
+H = plot(G,'XData',x,'YData',y);
+highlight(H,s_break,t_break,'EdgeColor','red')
+xlabel('Base (ft)')
+xlabel('Height (ft)')
+plot_name = 'DCR_view_axial';
+fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 %% Load Period data
 periods = dlmread([output_dir filesep 'period.txt']);
@@ -203,7 +249,7 @@ if strcmp(model.dimension,'3D')
 end
 xlabel('time (s)')
 ylabel('Roof Displacemnet (in)')
-plot_name = 'Roof_Displacemnet.fig';
+plot_name = 'Roof_Displacemnet';
 fn_format_and_save_plot( plot_dir, plot_name, 1)
 
 % Plot Roof Acceleration
@@ -213,7 +259,7 @@ xlabel('time (s)')
 ylabel('Roof Acceleration (g)')
 plot((1:length(eq.x))*ground_motion.x.eq_dt,node.accel_x_abs(end,:)/386,'DisplayName','Roof')
 plot((1:length(eq.x))*ground_motion.x.eq_dt,node.accel_x_abs(1,:)/386,'DisplayName','Ground')
-plot_name = 'Roof_Acceleration_x.fig';
+plot_name = 'Roof_Acceleration_x';
 fn_format_and_save_plot( plot_dir, plot_name, 1 )
 
 if strcmp(model.dimension,'3D')
@@ -223,7 +269,7 @@ if strcmp(model.dimension,'3D')
     ylabel('Roof Acceleration (g)')
     plot((1:length(eq.z))*ground_motion.z.eq_dt,node.accel_z_abs(end,:)/386,'DisplayName','Roof')
     plot((1:length(eq.z))*ground_motion.z.eq_dt,node.accel_z_abs(1,:)/386,'DisplayName','Ground')
-    plot_name = 'Roof_Acceleration_z.fig';
+    plot_name = 'Roof_Acceleration_z';
     fn_format_and_save_plot( plot_dir, plot_name, 1 )
 end
 
@@ -236,7 +282,7 @@ if strcmp(model.dimension,'3D')
 end
 xlabel('PFA (g)')
 ylabel('Story')
-plot_name = 'Accel_Profile.fig';
+plot_name = 'Accel_Profile';
 fn_format_and_save_plot( plot_dir, plot_name, 1 )
 
 % Plot Displacement Profile
@@ -251,7 +297,7 @@ if strcmp(model.dimension,'3D')
 end
 xlabel('Displacement (in)')
 ylabel('Story')
-plot_name = 'Disp_Profile.fig';
+plot_name = 'Disp_Profile';
 fn_format_and_save_plot( plot_dir, plot_name, 1 )
 
 % Plot Drift Profile
@@ -263,9 +309,8 @@ if strcmp(model.dimension,'3D')
 end
 xlabel('Story Drift')
 ylabel('Story')
-plot_name = 'Drift_Profile.fig';
+plot_name = 'Drift_Profile';
 fn_format_and_save_plot( plot_dir, plot_name, 1 )
 
 % Save Data
 save([output_dir filesep 'post_process_data'])
-
