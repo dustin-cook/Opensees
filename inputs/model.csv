@@ -1,6 +1,6 @@
-id,name,dimension,foundation,damp_ratio,hazus_class_1,hazus_class_2,vs30,site_class
-1,3D_test,3D,fix,0.05,C1,C1,217.3,D
-2,ICBS_model_1ns,3D,fix,0.05,C2,NA,217.3,D
-3,ICBS_model_5ew,2D,fix,0.05,C1,NA,217.3,D
-4,ICBS_model_3D,3D,fix,0.05,C1,C2,217.3,D
-5,2D_test,2D,fix,0.05,C1,NA,217.3,D
+id,name,dimension,foundation,damp_ratio,hazus_class_1,hazus_class_2,vs30,site_class,tar
+1,3D_test,3D,fix,0.05,C1,C1,217.3,D,1
+2,ICBS_model_1ns,3D,fix,0.05,C2,NA,217.3,D,1
+3,ICBS_model_5ew,2D,fix,0.05,C1,NA,217.3,D,1
+4,ICBS_model_3D,3D,fix,0.05,C1,C2,217.3,D,1
+5,2D_test,2D,fix,0.05,C1,NA,217.3,D,1

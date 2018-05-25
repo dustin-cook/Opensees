@@ -7,7 +7,7 @@ clc
 %% Define Analysis and Model parameters
 analysis.model_id = 3;
 analysis.gm_id = 1;
-analysis.name = 'test';
+analysis.name = '09DL';
 
 %% Import Packages
 import asce_41.*
@@ -71,52 +71,6 @@ element.DCR_V = element.Vmax ./ element.Vn_aci;
 element.DCR_M = element.Mmax ./ element.Mn_aci;
 DCR_max = max([element.DCR_P; element.DCR_V; element.DCR_M]);
 
-% Save element table
-writetable(element,[output_dir filesep 'element.csv'])
-
-% Plot DCR view
-s = element.node_1;
-t = element.node_2;
-G = graph(s,t);
-for i = 1:max([element.node_1;element.node_2])
-    if sum(node.id == i) == 0
-        x(i) = 0;
-        y(i) = 0;
-    else
-        x(i) = node.x(node.id == i);
-        y(i) = node.y(node.id == i);
-    end
-end
-% moment
-s_break = element.node_1(element.DCR_M >= 1);
-t_break = element.node_2(element.DCR_M >= 1);
-H = plot(G,'XData',x,'YData',y);
-highlight(H,s_break,t_break,'EdgeColor','red')
-xlabel('Base (ft)')
-xlabel('Height (ft)')
-plot_name = 'DCR_view_moment';
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
-
-% Shear
-s_break = element.node_1(element.DCR_V >= 1);
-t_break = element.node_2(element.DCR_V >= 1);
-H = plot(G,'XData',x,'YData',y);
-highlight(H,s_break,t_break,'EdgeColor','red')
-xlabel('Base (ft)')
-xlabel('Height (ft)')
-plot_name = 'DCR_view_shear';
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
-
-% Axial
-s_break = element.node_1(element.DCR_P >= 1);
-t_break = element.node_2(element.DCR_P >= 1);
-H = plot(G,'XData',x,'YData',y);
-highlight(H,s_break,t_break,'EdgeColor','red')
-xlabel('Base (ft)')
-xlabel('Height (ft)')
-plot_name = 'DCR_view_axial';
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
-
 %% Load Period data
 periods = dlmread([output_dir filesep 'period.txt']);
 T.x = periods(1);
@@ -137,10 +91,20 @@ for i = 1:length(dirs_ran)
         elseif i == 2
             haz_class = model.hazus_class_2;
         end
+        DCR_max = 1;
         [ c1.(dirs_ran(i)), c2.(dirs_ran(i)) ] = fn_c_factors( site_class, num_stories, T.(dirs_ran(i)), haz_class, DCR_max );
     else
         c1.(dirs_ran(i)) = 1;
         c2.(dirs_ran(i)) = 1;
+    end
+    
+    %% Amplify Element Forces
+    if strcmp(model.dimension,'2D')
+        element.Pmax_mod = element.Pmax*c1.x*c2.x;
+        element.Vmax_mod = element.Vmax*c1.x*c2.x;
+        element.Mmax_mod = element.Mmax*c1.x*c2.x;
+    else
+        warning('ADD LOGIC TO AMPLIFY ELEMENT FORCES BY C FACTORS FOR 3D')
     end
 
     %% Load and Read Outputs
@@ -163,7 +127,7 @@ for i = 1:length(story.id)
 end
 
 % Z direction
-if strcmp(model.dimension,'3D')
+if strcmp(model.dimension,'3D') && strcmp(dirs_ran,'z')
     max_accel_all_nodes_z = max(abs(node.accel_z_abs),[],2)/386;
     max_accel_profile_z = [max_accel_all_nodes_z(1), zeros(1,length(story.id))];
     for i = 1:length(story.id)
@@ -182,7 +146,7 @@ for i = 1:length(story.id)
 end
 
 % Z direction
-if strcmp(model.dimension,'3D')
+if strcmp(model.dimension,'3D') && strcmp(dirs_ran,'z')
     max_disp_all_nodes_z = max(abs(node.disp_z),[],2);
     max_disp_profile_z = [max_disp_all_nodes_z(1), zeros(1,length(story.id))];
     ave_disp_profile_z = [max_disp_all_nodes_z(1), zeros(1,length(story.id))];
@@ -193,23 +157,31 @@ if strcmp(model.dimension,'3D')
 end
 
 %% Torsional Amplification Check
-TAR_x = max_disp_profile_x(2:end) ./ ave_disp_profile_x(2:end);
-if sum(TAR_x > 1.2) > 0 && analysis.nonlinear == 0
-    warning('Torsional Amplification Exceeds Limit. Forces and displacements caused by accidental torsion shall be amplified by a factor Ax')
-end
-
 if strcmp(model.dimension,'3D')
-    TAR_z = max_disp_profile_z(2:end) ./ ave_disp_profile_z(2:end);
-    if sum(TAR_z > 1.2) > 0 && analysis.nonlinear == 0
+    TAR_x = max_disp_profile_x(2:end) ./ ave_disp_profile_x(2:end);
+    if sum(TAR_x > 1.2) > 0 && analysis.nonlinear == 0
         warning('Torsional Amplification Exceeds Limit. Forces and displacements caused by accidental torsion shall be amplified by a factor Ax')
     end
-end
 
-% Amplify Displacements and Forces by Max TAR
-if strcmp(model.dimension,'2D') && analysis.nonlinear == 0
-    TAR_max = max(TAR_x);
-    max_accel_profile_x = max_accel_profile_x*TAR_max;
-    max_disp_profile_x = max_disp_profile_x*TAR_max;
+    if strcmp(dirs_ran,'z')
+        TAR_z = max_disp_profile_z(2:end) ./ ave_disp_profile_z(2:end);
+        if sum(TAR_z > 1.2) > 0 && analysis.nonlinear == 0
+            warning('Torsional Amplification Exceeds Limit. Forces and displacements caused by accidental torsion shall be amplified by a factor Ax')
+        end
+    end
+else
+    % Amplify Displacements and Forces by Max TAR
+    if analysis.nonlinear == 0
+        TAR_max = model.tar;
+        max_accel_profile_x = max_accel_profile_x*TAR_max;
+        max_disp_profile_x = max_disp_profile_x*TAR_max;
+        node.accel_x_rel = node.accel_x_rel*TAR_max;
+        node.accel_x_abs = node.accel_x_abs*TAR_max;
+        node.disp_x = node.disp_x*TAR_max;
+        element.Pmax_mod = element.Pmax_mod*TAR_max;
+        element.Vmax_mod = element.Vmax_mod*TAR_max;
+        element.Mmax_mod = element.Mmax_mod*TAR_max;
+    end
 end
 
 %% Calculate Drift Profile
@@ -312,5 +284,22 @@ ylabel('Story')
 plot_name = 'Drift_Profile';
 fn_format_and_save_plot( plot_dir, plot_name, 1 )
 
-% Save Data
+%% Calculate the DCR
+element.DCR_P = element.Pmax_mod ./ element.Pn;
+element.DCR_V = element.Vmax_mod ./ element.Vn_aci;
+element.DCR_M = element.Mmax_mod ./ element.Mn_aci;
+
+% Save element table
+writetable(element,[output_dir filesep 'element.csv'])
+
+% moment
+fn_plot_building( element.DCR_M, element, node, 'DCR_view_moment', plot_dir )
+
+% shear
+fn_plot_building( element.DCR_V, element, node, 'DCR_view_shear', plot_dir )
+
+% axial
+fn_plot_building( element.DCR_P, element, node, 'DCR_view_axial', plot_dir )
+
+%% Save Data
 save([output_dir filesep 'post_process_data'])
