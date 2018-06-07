@@ -1,4 +1,4 @@
-% Run Truss Tcl file in opensees
+% Post Process Opensees Results
 clear
 close all
 rehash
@@ -28,6 +28,7 @@ node = readtable([output_dir filesep 'node.csv'],'ReadVariableNames',true);
 
 load([output_dir filesep 'analysis_data.mat'])
 
+% Load ground motion data
 dirs_ran = [];
 if ground_motion_seq.eq_id_x~=0
     dirs_ran = [dirs_ran, 'x'];
@@ -42,7 +43,7 @@ if ground_motion_seq.eq_id_z~=0
     ground_motion.z = gm_table(gm_table.id == ground_motion_seq.eq_id_z,:);
 end
 
-%% Load element force data
+% Load element force data
 for i = 1:length(element.id)
     ele_force(i,:) = max(dlmread([output_dir filesep ['element_force_' num2str(element.id(i)) '.txt']],' '));
 end
@@ -52,9 +53,10 @@ element.Pmax = max([ele_force(:,1),ele_force(:,4)],[],2);
 element.Vmax = max([ele_force(:,2),ele_force(:,5)],[],2);
 element.Mmax = max([ele_force(:,3),ele_force(:,6)],[],2);
 
-% % Omit elements that are rigid
-% filter = (element.ele_id == 1) | (element.ele_id == 2);
-% element(filter,:) = [];
+% Load Period data
+periods = dlmread([output_dir filesep 'period.txt']);
+T.x = periods(1);
+T.z = periods(2);
 
 %% Caclulate Element Capacity
 for i = 1:length(element.id)
@@ -66,16 +68,9 @@ end
 element = ele_temp;
 
 %% Calculate the DCR
-element.DCR_P = element.Pmax ./ element.Pn;
-element.DCR_V = element.Vmax ./ element.Vn_aci;
-element.DCR_M = element.Mmax ./ element.Mn_aci;
-DCR_max = max([element.DCR_P; element.DCR_V; element.DCR_M]);
+[ element, DCR_max ] = fn_calc_dcr( element );
 
-%% Load Period data
-periods = dlmread([output_dir filesep 'period.txt']);
-T.x = periods(1);
-T.z = periods(2);
-
+% Perform calcs For each direction
 for i = 1:length(dirs_ran)
     %% Load Spectra and Calculate Sa
     spectra_table.(dirs_ran(i)) = readtable([ground_motion.(dirs_ran(i)).eq_dir{1} filesep 'spectra_' erase(erase(ground_motion.(dirs_ran(i)).eq_name{1},'.tcl'),'gm_') '.csv'],'ReadVariableNames',true);
@@ -120,58 +115,30 @@ end
 
 %% Calculate Acceleration Profile
 % x Direction
-max_accel_all_nodes_x = max(abs(node.accel_x_abs),[],2)/386;
-max_accel_profile_x = [max_accel_all_nodes_x(1), zeros(1,length(story.id))];
-for i = 1:length(story.id)
-    max_accel_profile_x(i+1) = max(max_accel_all_nodes_x(story.nodes_on_slab{i}));
-end
+[ max_accel_profile_x ] = fn_calc_max_repsonse_profile( node.accel_x_abs, story, 0, 386 );
 
 % Z direction
 if strcmp(model.dimension,'3D') && strcmp(dirs_ran,'z')
-    max_accel_all_nodes_z = max(abs(node.accel_z_abs),[],2)/386;
-    max_accel_profile_z = [max_accel_all_nodes_z(1), zeros(1,length(story.id))];
-    for i = 1:length(story.id)
-        max_accel_profile_z(i+1) = max(max_accel_all_nodes_z(story.nodes_on_slab{i}));
-    end
+    [ max_accel_profile_z ] = fn_calc_max_repsonse_profile( node.accel_z_abs, story, 0, 386 );
 end
 
 %% Calculate Displacement Profile
 % x direction
-max_disp_all_nodes_x = max(abs(node.disp_x),[],2);
-max_disp_profile_x = [max_disp_all_nodes_x(1), zeros(1,length(story.id))];
-ave_disp_profile_x = [max_disp_all_nodes_x(1), zeros(1,length(story.id))];
-for i = 1:length(story.id)
-    max_disp_profile_x(i+1) = max(max_disp_all_nodes_x(story.nodes_on_slab{i}));
-    ave_disp_profile_x(i+1) = mean(max_disp_all_nodes_x(story.nodes_on_slab{i}));
-end
+[ max_disp_profile_x ] = fn_calc_max_repsonse_profile( node.disp_x, story, 0, 1 );
+[ ave_disp_profile_x ] = fn_calc_max_repsonse_profile( node.disp_x, story, 1, 1 );
 
 % Z direction
 if strcmp(model.dimension,'3D') && strcmp(dirs_ran,'z')
-    max_disp_all_nodes_z = max(abs(node.disp_z),[],2);
-    max_disp_profile_z = [max_disp_all_nodes_z(1), zeros(1,length(story.id))];
-    ave_disp_profile_z = [max_disp_all_nodes_z(1), zeros(1,length(story.id))];
-    for i = 1:length(story.id)
-        max_disp_profile_z(i+1) = max(max_disp_all_nodes_z(story.nodes_on_slab{i}));
-        ave_disp_profile_z(i+1) = mean(max_disp_all_nodes_z(story.nodes_on_slab{i}));
-    end
+    [ max_disp_profile_z ] = fn_calc_max_repsonse_profile( node.disp_z, story, 0, 1 );
+    [ ave_disp_profile_z ] = fn_calc_max_repsonse_profile( node.disp_z, story, 1, 1 );
 end
 
 %% Torsional Amplification Check
-if strcmp(model.dimension,'3D')
-    TAR_x = max_disp_profile_x(2:end) ./ ave_disp_profile_x(2:end);
-    if sum(TAR_x > 1.2) > 0 && analysis.nonlinear == 0
-        warning('Torsional Amplification Exceeds Limit. Forces and displacements caused by accidental torsion shall be amplified by a factor Ax')
-    end
-
-    if strcmp(dirs_ran,'z')
-        TAR_z = max_disp_profile_z(2:end) ./ ave_disp_profile_z(2:end);
-        if sum(TAR_z > 1.2) > 0 && analysis.nonlinear == 0
-            warning('Torsional Amplification Exceeds Limit. Forces and displacements caused by accidental torsion shall be amplified by a factor Ax')
-        end
-    end
-else
+if strcmp(model.dimension,'3D') && analysis.nonlinear == 0 % for 3D linear analysis
+    [ TAR_x ] = fn_tar_check( max_disp_profile_x, ave_disp_profile_x );
+    [ TAR_z ] = fn_tar_check( max_disp_profile_z, ave_disp_profile_z );
+elseif analysis.nonlinear == 0 % For 2D linear analysis
     % Amplify Displacements and Forces by Max TAR
-    if analysis.nonlinear == 0
         TAR_max = model.tar;
         max_accel_profile_x = max_accel_profile_x*TAR_max;
         max_disp_profile_x = max_disp_profile_x*TAR_max;
@@ -181,108 +148,42 @@ else
         element.Pmax_mod = element.Pmax_mod*TAR_max;
         element.Vmax_mod = element.Vmax_mod*TAR_max;
         element.Mmax_mod = element.Mmax_mod*TAR_max;
-    end
 end
 
 %% Calculate Drift Profile
 % X direction
-max_drift_profile_x = zeros(length(story.id),1);
-for i = 1:length(story.id)
-    if i == 1
-        nodal_drifts_x = node.disp_x(story.nodes_on_slab{i},:)/story.story_ht(i);
-    else
-        nodal_drifts_x = (node.disp_x(story.nodes_on_slab{i},:) - node.disp_x(story.nodes_on_slab{i-1},:))/story.story_ht(i);
-    end
-    max_drifts_all_slab_x = max(abs(nodal_drifts_x),[],2);
-    max_drift_profile_x(i) = max(max_drifts_all_slab_x);
-end
+[ max_drift_profile_x ] = fn_drift_profile( node.disp_x, story );
 
 % Z direction
 if strcmp(model.dimension,'3D')
-    max_drift_profile_z = zeros(length(story.id),1);
-    for i = 1:length(story.id)
-        if i == 1
-            nodal_drifts_z = node.disp_z(story.nodes_on_slab{i},:)/story.story_ht(i);
-        else
-            nodal_drifts_z = (node.disp_z(story.nodes_on_slab{i},:) - node.disp_z(story.nodes_on_slab{i-1},:))/story.story_ht(i);
-        end
-        max_drifts_all_slab_z = max(abs(nodal_drifts_z),[],2);
-        max_drift_profile_z(i) = max(max_drifts_all_slab_z);
-    end
+    [ max_drift_profile_z ] = fn_drift_profile( node.disp_z, story );
 end
 
 %% Display Results
 % Plot Roof Displacement
-figure
-hold on
-plot((1:length(eq.x))*ground_motion.x.eq_dt,node.disp_x(end,:),'DisplayName','X Direction')
+fn_plot_response_history( node.disp_x, eq.x, ground_motion.x.eq_dt, plot_dir, 'Roof Displacemnet X (in)' )
+
 if strcmp(model.dimension,'3D')
-    plot((1:length(eq.z))*ground_motion.z.eq_dt,node.disp_z(end,:),'DisplayName','Z Direction')
+    fn_plot_response_history( node.disp_z, eq.z, ground_motion.z.eq_dt, plot_dir, 'Roof Displacemnet Z (in)' )
 end
-xlabel('time (s)')
-ylabel('Roof Displacemnet (in)')
-plot_name = 'Roof_Displacemnet';
-fn_format_and_save_plot( plot_dir, plot_name, 1)
 
 % Plot Roof Acceleration
-figure
-hold on
-xlabel('time (s)')
-ylabel('Roof Acceleration (g)')
-plot((1:length(eq.x))*ground_motion.x.eq_dt,node.accel_x_abs(end,:)/386,'DisplayName','Roof')
-plot((1:length(eq.x))*ground_motion.x.eq_dt,node.accel_x_abs(1,:)/386,'DisplayName','Ground')
-plot_name = 'Roof_Acceleration_x';
-fn_format_and_save_plot( plot_dir, plot_name, 1 )
+fn_plot_response_history( node.accel_x_abs/386, eq.x, ground_motion.x.eq_dt, plot_dir, 'Roof Acceleration X (g)' )
 
 if strcmp(model.dimension,'3D')
-    figure
-    hold on
-    xlabel('time (s)')
-    ylabel('Roof Acceleration (g)')
-    plot((1:length(eq.z))*ground_motion.z.eq_dt,node.accel_z_abs(end,:)/386,'DisplayName','Roof')
-    plot((1:length(eq.z))*ground_motion.z.eq_dt,node.accel_z_abs(1,:)/386,'DisplayName','Ground')
-    plot_name = 'Roof_Acceleration_z';
-    fn_format_and_save_plot( plot_dir, plot_name, 1 )
+    fn_plot_response_history( node.accel_z_abs/386, eq.z, ground_motion.z.eq_dt, plot_dir, 'Roof Acceleration Z (g)' )
 end
 
 % Plot Acceleration Profile
-figure
-hold on
-plot(max_accel_profile_x,[0;story.id],'DisplayName','X Direction')
 if strcmp(model.dimension,'3D')
-    plot(max_accel_profile_z,[0;story.id],'DisplayName','Z Direction')
+    fn_plot_profile( max_accel_profile_x, [0;story.id], plot_dir, 'Acceleration Profile', 'PFA (g)', max_accel_profile_z )
+    fn_plot_profile( max_disp_profile_x, [0;story.id], plot_dir, 'Displacement Profile', 'Displacement (in)', max_disp_profile_z )
+    fn_plot_profile( max_drift_profile_x, story.id, plot_dir, 'Drift Profile', 'IDR', max_drift_profile_z )
+else
+    fn_plot_profile( max_accel_profile_x, [0;story.id], plot_dir, 'Acceleration Profile', 'PFA (g)' )
+    fn_plot_profile( max_disp_profile_x, [0;story.id], plot_dir, 'Displacement Profile', 'Displacement (in)' )
+    fn_plot_profile( max_drift_profile_x, story.id, plot_dir, 'Drift Profile', 'IDR' )
 end
-xlabel('PFA (g)')
-ylabel('Story')
-plot_name = 'Accel_Profile';
-fn_format_and_save_plot( plot_dir, plot_name, 1 )
-
-% Plot Displacement Profile
-figure
-hold on
-plot(max_disp_profile_x,[0;story.id],'DisplayName','X Direction')
-c0 = 1.3;
-targ_disp = Sd.x*c1.x*c2.x*c0;
-plot([0,targ_disp],[0,num_stories],'--r','DisplayName','Target Displacement')
-if strcmp(model.dimension,'3D')
-    plot(max_disp_profile_z,[0;story.id],'DisplayName','Z Direction')
-end
-xlabel('Displacement (in)')
-ylabel('Story')
-plot_name = 'Disp_Profile';
-fn_format_and_save_plot( plot_dir, plot_name, 1 )
-
-% Plot Drift Profile
-figure
-hold on
-plot(max_drift_profile_x,story.id,'DisplayName','X Direction')
-if strcmp(model.dimension,'3D')
-    plot(max_drift_profile_z,story.id,'DisplayName','Z Direction')
-end
-xlabel('Story Drift')
-ylabel('Story')
-plot_name = 'Drift_Profile';
-fn_format_and_save_plot( plot_dir, plot_name, 1 )
 
 %% Calculate the DCR
 element.DCR_P = element.Pmax_mod ./ element.Pn;
@@ -291,15 +192,6 @@ element.DCR_M = element.Mmax_mod ./ element.Mn_aci;
 
 % Save element table
 writetable(element,[output_dir filesep 'element.csv'])
-
-% moment
-fn_plot_building( element.DCR_M, element, node, 'DCR_view_moment', plot_dir )
-
-% shear
-fn_plot_building( element.DCR_V, element, node, 'DCR_view_shear', plot_dir )
-
-% axial
-fn_plot_building( element.DCR_P, element, node, 'DCR_view_axial', plot_dir )
 
 %% Save Data
 save([output_dir filesep 'post_process_data'])
