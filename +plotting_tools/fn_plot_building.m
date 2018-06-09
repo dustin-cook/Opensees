@@ -2,6 +2,10 @@ function [ ] = fn_plot_building( DCR, element, node, plot_name, plot_dir )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
+%% Import Packages
+import plotting_tools.fn_format_and_save_plot
+
+%% Plot DCR on elevation of building
 % Graph structure
 s = element.node_1;
 t = element.node_2;
