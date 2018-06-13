@@ -38,6 +38,9 @@ for i = 1:length(additional_load_cases)
     end
 end
 
+% Total Envelope DCR
+element.DCR_total = max([element.DCR_M,element.DCR_V,element.DCR_P],[],2);
+
 %% Save Data
 combo_dir = ['outputs' filesep model.name{1} filesep 'load_combo'];
 

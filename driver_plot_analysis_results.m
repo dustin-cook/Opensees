@@ -20,6 +20,8 @@ plot_dir = [output_dir filesep 'plots'];
 load([output_dir filesep 'combo_data']);
 
 %% Plot DCR
+% envelope
+fn_plot_building( element.DCR_total, element, node, 'DCR_view_envelope', plot_dir )
 % moment
 fn_plot_building( element.DCR_M, element, node, 'DCR_view_moment', plot_dir )
 % shear
