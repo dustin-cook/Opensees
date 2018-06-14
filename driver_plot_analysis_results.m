@@ -18,6 +18,8 @@ model = model_table(model_table.id == analysis.model_id,:);
 output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
 plot_dir = [output_dir filesep 'plots'];
 load([output_dir filesep 'combo_data']);
+% Max channel recordings
+load([pwd filesep 'ground_motions' filesep 'ICSB_recordings' filesep 'recorded_edp_profile.mat'])
 
 %% Plot DCR
 % envelope
@@ -31,9 +33,9 @@ fn_plot_building( element.DCR_P, element, node, 'DCR_view_axial', plot_dir )
 
 for i = 1:length(dirs_ran)
     %% Plot EDP Profiles
-    fn_plot_profile( [max(eq.(dirs_ran(i))); story.(['max_accel_' dirs_ran(i)])], [0;story.id], plot_dir, ['Acceleration Profile' dirs_ran(i)], 'PFA (g)' )
-    fn_plot_profile( [0; story.(['max_disp_' dirs_ran(i)])], [0;story.id], plot_dir, ['Displacement Profile' dirs_ran(i)], 'Displacement (in)' )
-    fn_plot_profile( story.(['max_accel_' dirs_ran(i)]), story.id, plot_dir, ['Drift Profile' dirs_ran(i)], 'IDR' )
+    fn_plot_profile( [max(eq.(dirs_ran(i))); story.(['max_accel_' dirs_ran(i)])], [0;story.id], plot_dir, ['Acceleration Profile ' dirs_ran(i)], 'PFA (g)', record_edp.max_accel.(dirs_ran(i)))
+    fn_plot_profile( [0; story.(['max_disp_' dirs_ran(i)])], [0;story.id], plot_dir, ['Displacement Profile ' dirs_ran(i)], 'Displacement (in)', record_edp.max_disp.(dirs_ran(i)) )
+    fn_plot_profile( story.(['max_accel_' dirs_ran(i)]), story.id, plot_dir, ['Drift Profile ' dirs_ran(i)], 'IDR' )
 
     % Plot Roof Response History
     fn_plot_response_history( node.(['disp_' dirs_ran(i) '_TH']), eq.(dirs_ran(i)), ground_motion.(dirs_ran(i)).eq_dt, plot_dir, ['Roof Displacemnet ' dirs_ran(i) ' (in)'] )

@@ -7,7 +7,7 @@ clc
 %% Define Analysis and Model parameters
 analysis.model_id = 3;
 analysis.gm_id = 1;
-analysis.name = '11DL11LL';
+analysis.name = '09DL';
 
 %% Import Packages
 import asce_41.*
