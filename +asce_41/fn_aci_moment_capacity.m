@@ -1,4 +1,4 @@
-function [ Mu, Mn ] = fn_aci_moment_capacity( fc, b, d, As, As_d, fy, clear_cover, Es )
+function [ Mu, Mn ] = fn_aci_moment_capacity( fc, b, d, As, As_d, fy, clear_cover, Es, P )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -25,7 +25,7 @@ while abs(balance_eq(count)) > tolerance
     c = d_c/2-y(count);
     e_s = abs(0.003*(As_d-c)/c);
     fs = min(e_s,fy/Es)*Es;
-    balance_eq(count) = sum(As.*fs.*((As_d-c)./abs(As_d-c))) - 0.85*fc*b*0.85*c;
+    balance_eq(count) = sum(As.*fs.*((As_d-c)./abs(As_d-c))) - 0.85*fc*b*0.85*c - P;
 end
 
 % plot(y,balance_eq)

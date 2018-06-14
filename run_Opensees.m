@@ -7,15 +7,15 @@ clc
 % Primary Inputs
 analysis.model_id = 4;
 analysis.gm_seq_id = 3;
-analysis.name = '11DL11LL';
+analysis.name = '09DL';
 
 % Secondary Inputs
 analysis.type = 3;
 analysis.max_disp = 1;
 analysis.time_step = 0.01;
 analysis.nonlinear = 0;
-analysis.dead_load = 1.1;
-analysis.live_load = 1.1;
+analysis.dead_load = 0.9;
+analysis.live_load = 0;
 analysis.accidental_torsion = 1;
 analysis.damping = 'rayleigh';
 
