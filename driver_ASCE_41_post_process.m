@@ -7,7 +7,7 @@ clc
 %% Define Analysis and Model parameters
 analysis.model_id = 3;
 analysis.gm_id = 1;
-analysis.name = '09DL';
+analysis.name = '11DL11LL';
 
 %% Import Packages
 import asce_41.*
@@ -16,19 +16,22 @@ import asce_41.*
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
 model = model_table(model_table.id == analysis.model_id,:);
 output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
+m_table = readtable(['+asce_41' filesep 'linear_col_m.csv'],'ReadVariableNames',true);
 load([output_dir filesep 'post_process_data.mat'])
 
-%% Caclulate Element Capacity
+%% Caclulate Element Capacity and M factors
 for i = 1:length(element.id)
     ele = element(i,:);
     ele_id = ele.ele_id;
     ele_prop = ele_prop_table(ele_id,:);
-    [ ele_temp(i,:) ] = fn_element_capacity( ele, ele_prop );
+    [ ele ] = fn_element_capacity( ele, ele_prop );
+    [ ele_temp(i,:) ] = fn_m_factors( m_table, ele, ele_prop );
 end
 element = ele_temp;
 
+
 %% Calculate the DCR for the C1 calc
-[ ~, DCR_max ] = fn_calc_dcr( element );
+[ ~, DCR_max ] = fn_calc_dcr( element, 'cp' );
 
 % Perform calcs For each direction
 for i = 1:length(dirs_ran)
@@ -65,9 +68,7 @@ elseif analysis.nonlinear == 0 % For 2D linear analysis
 end
 
 %% Calculate the DCR
-element.DCR_P = element.Pmax_ASCE ./ element.Pn;
-element.DCR_V = element.Vmax_ASCE ./ element.Vn_aci;
-element.DCR_M = element.Mmax_ASCE ./ element.Mn_aci;
+[ element, ~ ] = fn_calc_dcr( element, 'cp' );
 
 %% Save Data
 % remove extra data
