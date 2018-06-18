@@ -7,36 +7,32 @@ import asce_41.*
 
 %% Find M factors 
 % Omit ID on m-factors table
-m_table.id = [];
+m_table.col.id = [];
+m_table.beam.id = [];
+
+% Preallocate table
+ele.m_io = 1;
+ele.m_ls = 1;
+ele.m_cp = 1;
 
 % Primary or secondary component
-m_factor = m_table(strcmp(m_table.comp_type, 'primary'),:); % ASSUME ONLY PRIMARY FOR NOW
+m_table.col = m_table.col(strcmp(m_table.col.comp_type, 'primary'),:); % ASSUME ONLY PRIMARY FOR NOW
+m_table.beam = m_table.beam(strcmp(m_table.beam.comp_type, 'primary'),:); % ASSUME ONLY PRIMARY FOR NOW
 
 % Calculate condition
 condition = 1; % UPDATE THIS TO BE DYNAMIC
-m_factor = m_factor(m_factor.condition == condition,:);
+m_table.col = m_table.col(m_table.col.condition == condition,:);
+m_table.beam = m_table.beam(m_table.beam.condition == condition,:);
 
-% Fitler Table based on P/Asfc
-p_ratio = ele.Pmax/(ele_props.a*ele_props.fc_e);
-[ m_factor ] = fn_filter_asce41_table( m_factor, p_ratio, 'p_ratio', {'m_io','m_ls','m_cp'} );
-
-% Filter table based on row
-row = ele_props.Av/(ele_props.w*ele_props.S);
-[ m_factor ] = fn_filter_asce41_table( m_factor, row, 'row', {'m_io','m_ls','m_cp'} );
-
-% Filter table based on Vye/VcolOE
-v_ratio = ele.Vmax/ele.V0; % NEED TO FIGURE OUT WHAT VcolOE is and UPDATE THIS
-[ m_factor ] = fn_filter_asce41_table( m_factor, v_ratio, 'v_ratio', {'m_io','m_ls','m_cp'} );
-
-% Double Check only 1 row of the table remains
-if length(m_factor.row) ~= 1
-    error('Table filtering failed to find unique result')
+if strcmp(ele_props.type,'column')
+% M factors for Columns
+[ ele ] = fn_m_factors_col( m_table.col, ele, ele_props );
+elseif strcmp(ele_props.type,'beam')
+% M factors for Beams
+[ ele ] = fn_m_factors_beams( m_table.beam, ele, ele_props );
 end
 
-% save to elements table
-ele.m_io = m_factor.m_io;
-ele.m_ls = m_factor.m_ls;
-ele.m_cp = m_factor.m_cp;
+
 
 end
 

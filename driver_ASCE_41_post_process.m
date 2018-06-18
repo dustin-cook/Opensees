@@ -16,7 +16,8 @@ import asce_41.*
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
 model = model_table(model_table.id == analysis.model_id,:);
 output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
-m_table = readtable(['+asce_41' filesep 'linear_col_m.csv'],'ReadVariableNames',true);
+m_table.col = readtable(['+asce_41' filesep 'linear_col_m.csv'],'ReadVariableNames',true);
+m_table.beam = readtable(['+asce_41' filesep 'linear_beam_m.csv'],'ReadVariableNames',true);
 load([output_dir filesep 'post_process_data.mat'])
 
 %% Caclulate Element Capacity and M factors
@@ -31,7 +32,7 @@ element = ele_temp;
 
 
 %% Calculate the DCR for the C1 calc
-[ ~, DCR_max ] = fn_calc_dcr( element, 'cp' );
+[ ~, DCR_max ] = fn_calc_dcr( element, 'cp', 1, 1, 'high' );
 
 % Perform calcs For each direction
 for i = 1:length(dirs_ran)
@@ -39,6 +40,7 @@ for i = 1:length(dirs_ran)
     spectra_table.(dirs_ran(i)) = readtable([ground_motion.(dirs_ran(i)).eq_dir{1} filesep 'spectra_' erase(erase(ground_motion.(dirs_ran(i)).eq_name{1},'.tcl'),'gm_') '.csv'],'ReadVariableNames',true);
     Sa.(dirs_ran(i)) = interp1(spectra_table.(dirs_ran(i)).period,spectra_table.(dirs_ran(i)).psa_5,model.(['T1_' dirs_ran(i)]));
     Sd.(dirs_ran(i)) = Sa.(dirs_ran(i))*386*(model.(['T1_' dirs_ran(i)])/(2*pi))^2;
+    [ seismicity.(dirs_ran(i)) ] = fn_level_of_seismicity( spectra_table.(dirs_ran(i)) );
 
     %% Caclulate C1 and C2 Factors
     if analysis.nonlinear == 0
@@ -68,7 +70,7 @@ elseif analysis.nonlinear == 0 % For 2D linear analysis
 end
 
 %% Calculate the DCR
-[ element, ~ ] = fn_calc_dcr( element, 'cp' );
+[ element, ~ ] = fn_calc_dcr( element, 'cp', c1.x, c2.x, seismicity.x ); % UPDATE FOR SEISMICITY AND 2 directions
 
 %% Save Data
 % remove extra data
