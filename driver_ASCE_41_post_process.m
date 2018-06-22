@@ -7,7 +7,7 @@ clc
 %% Define Analysis and Model parameters
 analysis.model_id = 3;
 analysis.gm_id = 1;
-analysis.name = '11DL11LL';
+analysis.name = '09DL';
 
 %% Import Packages
 import asce_41.*
@@ -29,7 +29,6 @@ for i = 1:length(element.id)
     [ ele_temp(i,:) ] = fn_m_factors( m_table, ele, ele_prop );
 end
 element = ele_temp;
-
 
 %% Calculate the DCR for the C1 calc
 [ ~, DCR_max ] = fn_calc_dcr( element, 'cp', 1, 1, 'high' );

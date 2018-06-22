@@ -34,6 +34,7 @@ for s = 1:length(story.id)
             element.ele_id(ele_id,1) = ele.id;
             element.orientation(ele_id,1) = frame_line.orientation(e);
             element.story(ele_id,1) = s;
+            element.type(ele_id,1) = ele.type;
             
             % Element Global Position
             ele_y_start = frame_line.y_start(e)*story.story_ht(s) + story.y_offset(s);
@@ -60,6 +61,7 @@ for s = 1:length(story.id)
             element.node_2(ele_id,1) = node.id(id);
             element.node_3(ele_id,1) = 0;
             element.node_4(ele_id,1) = 0;
+            element.length(ele_id,1) = sqrt( (ele_x_end-ele_x_start)^2 + (ele_y_end-ele_y_start)^2 + (ele_z_end-ele_z_start)^2 );
         end
     end
 end
@@ -169,6 +171,7 @@ for s = 1:length(story.id)
             element.ele_id(ele_id,1) = ele.id;
             element.orientation(ele_id,1) = 0;
             element.story(ele_id,1) = s;
+            element.type(ele_id,1) = 'wall';
             
             % Element Global Position
             wall_y_start = wall_line.y_start(w)*story.story_ht(s) + story.y_offset(s);
@@ -332,43 +335,31 @@ if analysis.accidental_torsion == 1
     end
 end
 
-%% Create Nonlinear Springs at the Base and defined nodal fixity
+%% Define Nodal Fixity
 node.fix = cell(length(node.id),1);
-node.fix(1:end) = {[0 0 0 0 0 0]};
+node.fix(1:end) = {[0 0 0 0 0 0]}; % All nodes
 foundation_nodes_id = node.id(node.y == 0);
+node.fix(foundation_nodes_id,:) = {[1 1 1 1 1 1]}; % foundation nodes
+
+%% Create Nonlinear Rotational Springs at ends of all beams and columns
 hinge = [];
-for i = 1:length(foundation_nodes_id)
-    if analysis.nonlinear == 0
-        % Define Fixity
-        node.fix(foundation_nodes_id(i),:) = {[1 1 1 1 1 1]};
-    else
-        % Define new nodes at the base to connect to springs
-        new_node_id = node.id(end) + 1;
-        node.id(new_node_id) = new_node_id;
-
-        % Define Fixity    
-        node.fix(new_node_id,:) = {[1 1 1 1 1 1]};
-        if analysis.nonlinear == 1
-            node.fix(foundation_nodes_id(i),:) = {[0 1 1 1 1 1]};
-        elseif analysis.nonlinear == 2
-            node.fix(foundation_nodes_id(i),:) = {[1 1 1 1 1 0]};
+hinge_id = 0;
+if analysis.nonlinear ~= 0
+    % Define Hinges
+    for i = 1:length(element.id)
+        if strcmp(element.type{i},'column') || strcmp(element.type{i},'beam') % For all columns and beams
+            hinge_id = hinge_id+1;
+            % Define hinge at start of element
+            [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id ); 
+            hinge_id = hinge_id+1;
+            % Define hinge at end of element
+            [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_2', i, hinge_id, foundation_nodes_id );
         end
-
-        node.x(new_node_id) = node.x(foundation_nodes_id(i));
-        node.y(new_node_id) = node.y(foundation_nodes_id(i));
-        node.z(new_node_id) = node.z(foundation_nodes_id(i));
-        node.dead_load(new_node_id) = 0;
-        node.live_load(new_node_id) = 0;
-        node.mass(new_node_id) = 0;
-        node.trib_area_ration(new_node_id) = 0;
-
-        hinge.id(i) = i;
-        hinge.node_1(i) = new_node_id;
-        hinge.node_2(i) = foundation_nodes_id(i);
     end
 end
 
-% Remove any Z dimension Nodes for 2D Analysis
+
+%% Remove any Z dimension Nodes for 2D Analysis
 clear new_node
 if strcmp(model.dimension,'2D')
     non_z_nodes = (node.z == 0);

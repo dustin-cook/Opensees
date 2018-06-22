@@ -7,7 +7,7 @@ clc
 %% Define Analysis and Model parameters
 analysis.model_id = 3;
 analysis.gm_id = 1;
-analysis.name = '11DL11LL';
+analysis.name = '10DL10LL';
 
 %% Import Packages
 import tools.*
@@ -74,7 +74,7 @@ for i = 1:length(dirs_ran)
 end
 
 %% Save element table
-% writetable(element,[output_dir filesep 'element.csv'])
+writetable(element,[output_dir filesep 'element.csv'])
 
 %% Save Data
 save([output_dir filesep 'post_process_data'])

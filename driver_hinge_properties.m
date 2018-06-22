@@ -4,18 +4,19 @@ clc
 
 %% Import Packages
 import asce_41.*
+import plotting_tools.*
 
 %% Define Analysis and Model parameters
 analysis.model_id = 3;
 analysis.gm_id = 1;
-analysis.name = 'test';
+analysis.name = 'NL_10DL10LL';
 
 %% Read in element and hinge data tables
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
 model = model_table(model_table.id == analysis.model_id,:);
 output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
 ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
-element = readtable([output_dir filesep 'element.csv'],'ReadVariableNames',true);
+element = readtable([output_dir filesep 'element_linear.csv'],'ReadVariableNames',true);
 hinge_table = readtable(['+asce_41' filesep 'col_hinge.csv'],'ReadVariableNames',true);
 hinge_table.id = []; % Omit id 
 
@@ -92,18 +93,18 @@ for i = 1:length(element.id)
         error('Hinge table filtering failed to find unique result')
     end
     
-    % Plot Hinges
-    theta_yeild = ele.Mn_aci*(ele_props.d/2)/(ele_props.e*ele_props.iz);
-    Q_y = ele.Mn_aci;
-    Q_ult = ele.Mp;
-    post_yeild_strength = min(ele.Mp,1.1);
-    force_vector = [0,1,post_yeild_strength,hinge.c_hinge,hinge.c_hinge];
-    disp_vector = [0, theta_yeild, theta_yeild+hinge.a_hinge, theta_yeild+hinge.a_hinge+(hinge.b_hinge-hinge.a_hinge)/2, theta_yeild+hinge.b_hinge]; % ASSUMING y = d/2 NEED TO UPDATE
-    plot(disp_vector,force_vector)
-    ylabel('Q/Qy')
-    xlabel('Total Rotation')
-    fn_format_and_save_plot( [output_dir filesep 'hinge_plots' filesep] , ['element_' num2str(ele.id)], 2 )
-    
+%     % Plot Hinges
+%     theta_yeild = ele.Mn_aci*(ele_props.d/2)/(ele_props.e*ele_props.iz);
+%     Q_y = ele.Mn_aci;
+%     Q_ult = ele.Mp;
+%     post_yeild_strength = min(ele.Mp,1.1);
+%     force_vector = [0,1,post_yeild_strength,hinge.c_hinge,hinge.c_hinge];
+%     disp_vector = [0, theta_yeild, theta_yeild+hinge.a_hinge, theta_yeild+hinge.a_hinge+(hinge.b_hinge-hinge.a_hinge)/2, theta_yeild+hinge.b_hinge]; % ASSUMING y = d/2 NEED TO UPDATE
+%     plot(disp_vector,force_vector)
+%     ylabel('Q/Qy')
+%     xlabel('Total Rotation')
+%     fn_format_and_save_plot( [output_dir filesep 'hinge_plots' filesep] , ['element_' num2str(ele.id)], 2 )
+
     % save as element hinge table
     element.condition(i) = hinge.condition;
     element.p_ratio(i) = hinge.p_ratio;
@@ -119,4 +120,4 @@ for i = 1:length(element.id)
 end
 
 %% Save capacities to element database
-writetable(element,[output_dir filesep 'element.csv'])
+writetable(element,[output_dir filesep 'element_linear.csv'])

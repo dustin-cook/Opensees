@@ -5,18 +5,18 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 4;
-analysis.gm_seq_id = 3;
-analysis.name = '09DL';
+analysis.model_id = 3;
+analysis.gm_seq_id = 1;
+analysis.name = 'NL_10DL10LL';
 
 % Secondary Inputs
 analysis.type = 3;
 analysis.max_disp = 1;
 analysis.time_step = 0.01;
-analysis.nonlinear = 0;
-analysis.dead_load = 0.9;
-analysis.live_load = 0;
-analysis.accidental_torsion = 1;
+analysis.nonlinear = 1;
+analysis.dead_load = 1.0;
+analysis.live_load = 1.0;
+analysis.accidental_torsion = 0;
 analysis.damping = 'rayleigh';
 
 tic

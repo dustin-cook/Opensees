@@ -30,7 +30,7 @@ fprintf(fileID,'} \n');
 fprintf(fileID,'constraints Transformation \n');
 fprintf(fileID,'numberer RCM \n'); % renumber dof's to minimize band-width (optimization)
 fprintf(fileID,'system BandGeneral \n'); % how to store and solve the system of equations in the analysis
-fprintf(fileID,'test EnergyIncr 0.00000001 6 \n'); % determine if convergence has been achieved at the end of an iteration step
+fprintf(fileID,'test EnergyIncr 0.00000001 10 \n'); % determine if convergence has been achieved at the end of an iteration step
 fprintf(fileID,'algorithm Newton \n');
 fprintf(fileID,'integrator LoadControl 0.1 \n');
 fprintf(fileID,'analysis Static	 \n');
@@ -66,15 +66,24 @@ if ground_motion_seq.eq_id_y ~= 0
 end
 
 % Define Damping based on eigen modes
-fprintf(fileID,'set lambda [eigen -genBandArpack 3] \n');
-fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
-fprintf(fileID,'set i 0 \n');
-fprintf(fileID,'foreach lam $lambda {\n');
-fprintf(fileID,'    set i [expr $i+1] \n');
-fprintf(fileID,'	set omega($i) [expr sqrt($lam)]\n');
-fprintf(fileID,'	set period($i) [expr 2*$pi/sqrt($lam)]\n');
-fprintf(fileID,'}\n');
-fprintf(fileID,'puts $period(1) \n');
+if analysis.nonlinear == 0
+    fprintf(fileID,'set lambda [eigen -genBandArpack 3] \n');
+    fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
+    fprintf(fileID,'set i 0 \n');
+    fprintf(fileID,'foreach lam $lambda {\n');
+    fprintf(fileID,'    set i [expr $i+1] \n');
+    fprintf(fileID,'	set omega($i) [expr sqrt($lam)]\n');
+    fprintf(fileID,'	set period($i) [expr 2*$pi/sqrt($lam)]\n');
+    fprintf(fileID,'}\n');
+    fprintf(fileID,'puts $period(1) \n');
+else
+    periods = dlmread([output_dir filesep 'period.txt']);
+    omega = 2*pi()./periods;
+    fprintf(fileID,'set omega(1) %f \n',omega(1));
+    fprintf(fileID,'set omega(2) %f \n',omega(2));
+    fprintf(fileID,'set omega(3) %f \n',omega(3));
+    damp_ratio = 0.03; % Set to 0.03 for now based on ATC 134 project (UPDATE LATER TO BE DYNAMIC BASED ON ANALYSIS)
+end
 fprintf(fileID,'set alpha [expr 2.0*%d*(1.0-$omega(1))/(1.0/$omega(1) - $omega(1)/($omega(3)*$omega(3)))]\n', damp_ratio);
 fprintf(fileID,'set beta [expr 2.0*%d - $alpha/($omega(3)*$omega(3))]\n', damp_ratio);
 if strcmp(analysis.damping,'rayleigh')

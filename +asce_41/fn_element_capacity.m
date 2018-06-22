@@ -5,6 +5,9 @@ function [ ele ] = fn_element_capacity( ele, ele_prop )
 %% Import Packages
 import asce_41.*
 
+% Assign type to element table
+ele.type = ele_prop.type;
+
 % Rigid Elements
 if ele.ele_id == 1 || ele.ele_id == 2
     ele.Vn = inf;
@@ -16,10 +19,10 @@ if ele.ele_id == 1 || ele.ele_id == 2
     
 % Flexible Elements
 else
-    % Shear capacity per ASCE 41
-    [ ele.Vn, ele.V0 ] = fn_shear_capacity( ele_prop.Av, ele_prop.fy_e, ele_prop.d, ele_prop.S, ele_prop.lambda, ele_prop.fc_e, ele_prop.a, ele.Mmax, ele.Vmax, ele.Pmax );
+    % Shear capacity per ASCE 41 (use lower bound strength since assuming shear is force controlled)
+    [ ele.Vn, ele.V0 ] = fn_shear_capacity( ele_prop.Av, ele_prop.fy_n, ele_prop.d, ele_prop.S, ele_prop.lambda, ele_prop.fc_n, ele_prop.a, ele.Mmax, ele.Vmax, ele.Pmax );
 
-    % Shear Capacity per ACI
+    % Shear Capacity per ACI (use lower bound strength since assuming shear is force controlled)
     [ ~, ele.Vn_aci ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele.Pmax, ele_prop.Av, ele_prop.fy_e, ele_prop.S, ele_prop.lambda, ele_prop.a );
 
     % Moment Capcity per ACI
@@ -28,8 +31,8 @@ else
     % Probable Moment Capcity
     [ ~, ele.Mp ] = fn_aci_moment_capacity( ele_prop.fc_e*1.15, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.clear_cover, ele_prop.Es, ele.Pmax );
 
-    % Axial Capacity per ACI
-    [ ~, ele.Pn ] = fn_aci_axial_capacity( ele_prop.fc_e, ele_prop.a, ele_prop.As, ele_prop.fy_e );
+    % Axial Capacity per ACI (use lower bound strength since assuming axial is force controlled)
+    [ ~, ele.Pn ] = fn_aci_axial_capacity( ele_prop.fc_n, ele_prop.a, ele_prop.As, ele_prop.fy_n );
 end
 end
 
