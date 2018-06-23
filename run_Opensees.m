@@ -49,7 +49,7 @@ elseif strcmp(model.dimension,'3D')
 else
     error('Number of Dimensions Not Recognized')
 end
-fn_define_recorders( output_dir, model.dimension, node.id', element )
+fn_define_recorders( output_dir, model.dimension, node.id', element, hinge )
 [ground_motion] = fn_define_loads( output_dir, analysis, model.damp_ratio, node, model.dimension);
 fn_eigen_analysis( output_dir, analysis.time_step, story.first_story_node )
 fn_define_analysis( output_dir, analysis, node.id, ground_motion )

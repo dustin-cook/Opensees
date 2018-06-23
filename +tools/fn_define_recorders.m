@@ -1,4 +1,4 @@
-function [ ] = fn_define_recorders( output_dir, dimension, nodes, element )
+function [ ] = fn_define_recorders( output_dir, dimension, nodes, element, hinge )
 %UNTITLED7 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -8,7 +8,7 @@ function [ ] = fn_define_recorders( output_dir, dimension, nodes, element )
 file_name = [output_dir, filesep 'recorders.tcl'];
 fileID = fopen(file_name,'w');
 
-% Define recorders
+%% Define Node recorders
 fprintf(fileID,'recorder Node -file %s/nodal_disp_x.txt -node %s -dof 1 disp \n', output_dir, num2str(nodes));
 fprintf(fileID,'recorder Node -file %s/nodal_disp_y.txt -node %s -dof 2 disp \n', output_dir, num2str(nodes));
 fprintf(fileID,'recorder Node -file %s/nodal_reaction_x.txt -node %s -dof 1 reaction \n', output_dir, num2str(nodes));
@@ -21,16 +21,21 @@ if strcmp(dimension,'3D')
     fprintf(fileID,'recorder Node -file %s/nodal_accel_z.txt -node %s -dof 3 accel \n', output_dir, num2str(nodes));
 end
 
+%% Define Element Recorders
+% Beams, Columns and Walls
 for i=1:length(element.id)
-    if element.id(i) >= 4
-        % try -xml or record at integration point
-        fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d force \n', output_dir, element.id(i), element.id(i));
-    else
+    % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
     fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d localForce \n', output_dir, element.id(i), element.id(i));
-    end
 end
 
-% Movie Recorders
+% Hinges
+if isfield(hinge,'id')
+    % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
+    fprintf(fileID,'recorder Element -file %s/hinge_moment_all.txt -eleRange %d %d force \n', output_dir, element.id(end)+1, element.id(end)+hinge.id(end));
+    fprintf(fileID,'recorder Element -file %s/hinge_rotation_all.txt -eleRange %d %d deformation \n', output_dir, element.id(end)+1, element.id(end)+hinge.id(end));
+end
+
+%% Movie Recorders
 fprintf(fileID,'recorder display "Displaced shape" 10 10 500 500 -wipe \n');
 fprintf(fileID,'prp 200.0 50.0 50.0; \n');
 fprintf(fileID,'vup 0.0 1.0 0.0; \n');

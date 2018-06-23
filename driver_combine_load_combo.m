@@ -54,4 +54,4 @@ if ~exist(combo_dir,'dir')
 end
 
 % save data
-save([combo_dir filesep 'combo_data'])
+save([combo_dir filesep 'ASCE_data'])
