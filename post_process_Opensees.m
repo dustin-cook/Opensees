@@ -32,14 +32,18 @@ load([output_dir filesep 'analysis_data.mat']);
 
 % Load element force data
 for i = 1:length(element.id)
-    i
-    ele_force(i,:) = max(dlmread([output_dir filesep ['element_force_' num2str(element.id(i)) '.txt']],' '));
+    ele_force(i,:) = max(abs(dlmread([output_dir filesep ['element_force_' num2str(element.id(i)) '.txt']],' ')));
 end
 
 % Add element forces to element table
-element.Pmax = max([ele_force(:,1),ele_force(:,4)],[],2);
-element.Vmax = max([ele_force(:,2),ele_force(:,5)],[],2);
-element.Mmax = max([ele_force(:,3),ele_force(:,6)],[],2);
+element.Pmax = max(abs([ele_force(:,1),ele_force(:,4)]),[],2);
+element.Vmax = max(abs([ele_force(:,2),ele_force(:,5)]),[],2);
+element.Mmax = max(abs([ele_force(:,3),ele_force(:,6)]),[],2);
+
+% Load hinge moment and rotation
+if analysis.nonlinear ~= 0
+    hinge.rotation = max(abs(dlmread([output_dir filesep 'hinge_rotation_all.txt'],' ')));
+end
 
 % Load Period data
 periods = dlmread([output_dir filesep 'period.txt']);
@@ -49,15 +53,15 @@ for i = 1:length(dirs_ran)
     %% Load and Read Outputs
     eq.(dirs_ran(i)) = load([ground_motion.(dirs_ran(i)).eq_dir{1} filesep ground_motion.(dirs_ran(i)).eq_name{1}]);
 
-   % EDP response histroy at each node
+   % EDP response history at each node
     node.(['disp_' dirs_ran(i) '_TH']) = dlmread([output_dir filesep ['nodal_disp_' dirs_ran(i) '.txt']],' ')';
     node.(['accel_' dirs_ran(i) '_rel_TH']) = dlmread([output_dir filesep ['nodal_accel_' dirs_ran(i) '.txt']],' ')'/386; % Convert to G
     node.(['accel_' dirs_ran(i) '_abs_TH']) = node.(['accel_' dirs_ran(i) '_rel_TH'])/386 + ones(length(node.id),1)*eq.(dirs_ran(i))';
     
     % Max edp's at each node
-    node.(['max_disp_' dirs_ran(i)]) = max(node.(['disp_' dirs_ran(i) '_TH']),[],2);
-    node.(['max_accel_' dirs_ran(i) '_rel']) = max(node.(['accel_' dirs_ran(i) '_rel_TH']),[],2);
-    node.(['max_accel_' dirs_ran(i) '_abs']) = max(node.(['accel_' dirs_ran(i) '_abs_TH']),[],2);
+    node.(['max_disp_' dirs_ran(i)]) = max(abs(node.(['disp_' dirs_ran(i) '_TH'])),[],2);
+    node.(['max_accel_' dirs_ran(i) '_rel']) = max(abs(node.(['accel_' dirs_ran(i) '_rel_TH'])),[],2);
+    node.(['max_accel_' dirs_ran(i) '_abs']) = max(abs(node.(['accel_' dirs_ran(i) '_abs_TH'])),[],2);
     
     % EDP Profiles
     [ story.(['max_disp_' dirs_ran(i)]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' dirs_ran(i)]), story, 0 );

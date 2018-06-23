@@ -1,4 +1,4 @@
-function [ ] = fn_plot_profile( profile_x, story_ids, plot_dir, plot_name, name, additional_data )
+function [ ] = fn_plot_profile( profile_x, story_ids, plot_dir, plot_name, name, plot_max, additional_data  )
 %UNTITLED9 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -18,6 +18,7 @@ if exist('additional_data','var')
    scatter(additional_data,[0:(length(additional_data)-1)],'r','filled','DisplayName','Recorded')
 end
 
+xlim([0,plot_max])
 fn_format_and_save_plot( plot_dir, plot_name, 1 )
 
 
