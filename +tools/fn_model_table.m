@@ -111,13 +111,14 @@ for s = 1:length(story.id)
             end
             joint_dim_y = max([bm_d_x,bm_d_z]);
             joint_dim_x = max(col_d_x);
-            joint_dim_z = max(col_d_z);
+%             joint_dim_z = max(col_d_z);
             
             % Define New Nodes
-            new_node.x = [node.x(n_id)-joint_dim_x/2,node.x(n_id)+joint_dim_x/2,node.x(n_id),node.x(n_id),node.x(n_id),node.x(n_id)];
-            new_node.y = [node.y(n_id)-joint_dim_y/2,node.y(n_id)-joint_dim_y/2,node.y(n_id)-joint_dim_y/2,node.y(n_id)-joint_dim_y/2,node.y(n_id)-joint_dim_y,node.y(n_id)-joint_dim_y/2];
-            new_node.z = [node.z(n_id),node.z(n_id),node.z(n_id)-joint_dim_z/2,node.z(n_id)+joint_dim_z/2,node.z(n_id),node.z(n_id)];
-            new_node.id = (1:6) + node.id(end);
+            new_node.x = [node.x(n_id)-joint_dim_x/2,node.x(n_id)+joint_dim_x/2,node.x(n_id),node.x(n_id)];
+            new_node.y = [node.y(n_id)-joint_dim_y/2,node.y(n_id)-joint_dim_y/2,node.y(n_id)-joint_dim_y,node.y(n_id)-joint_dim_y/2];
+%             new_node.z = [node.z(n_id),node.z(n_id),node.z(n_id)-joint_dim_z/2,node.z(n_id)+joint_dim_z/2,node.z(n_id),node.z(n_id)];
+            new_node.z = [node.z(n_id),node.z(n_id),node.z(n_id),node.z(n_id)];
+            new_node.id = (1:4) + node.id(end);
             
             % Change elements to connect to new nodes
             if isfield(new_ele,'bm_x_neg')
@@ -126,26 +127,26 @@ for s = 1:length(story.id)
             if isfield(new_ele,'bm_x_pos')
                 element.node_1(new_ele.bm_x_pos,1) = new_node.id(2);
             end
-            if isfield(new_ele,'bm_z_neg')
-                element.node_2(new_ele.bm_z_neg,1) = new_node.id(3);
-            end
-            if isfield(new_ele,'bm_z_pos')
-                element.node_1(new_ele.bm_z_pos,1) = new_node.id(4);
-            end
-            element.node_2(new_ele.col_y,1) = new_node.id(5);
+%             if isfield(new_ele,'bm_z_neg')
+%                 element.node_2(new_ele.bm_z_neg,1) = new_node.id(3);
+%             end
+%             if isfield(new_ele,'bm_z_pos')
+%                 element.node_1(new_ele.bm_z_pos,1) = new_node.id(4);
+%             end
+            element.node_2(new_ele.col_y,1) = new_node.id(3);
             
             clear new_ele
            
             % Define Joint
             joint_id = joint_id + 1;
-            joint.id(joint_id) = joint_id + element.id(end);
+            joint.id(joint_id) = joint_id + 1000;
             joint.x_neg(joint_id) = new_node.id(1);
             joint.x_pos(joint_id) = new_node.id(2);
-            joint.y_neg(joint_id) = new_node.id(5);
+            joint.y_neg(joint_id) = new_node.id(3);
             joint.y_pos(joint_id) = n_id;
-            joint.z_neg(joint_id) = new_node.id(3);
-            joint.z_pos(joint_id) = new_node.id(4);
-            joint.center(joint_id) = new_node.id(6);
+%             joint.z_neg(joint_id) = new_node.id(3);
+%             joint.z_pos(joint_id) = new_node.id(4);
+            joint.center(joint_id) = new_node.id(4);
             
             % Add new nodes to nodes list
             node.id = [node.id new_node.id];
@@ -171,7 +172,7 @@ for s = 1:length(story.id)
             element.ele_id(ele_id,1) = ele.id;
             element.orientation(ele_id,1) = 0;
             element.story(ele_id,1) = s;
-            element.type(ele_id,1) = 'wall';
+            element.type{ele_id,1} = 'wall';
             
             % Element Global Position
             wall_y_start = wall_line.y_start(w)*story.story_ht(s) + story.y_offset(s);
@@ -200,6 +201,7 @@ for s = 1:length(story.id)
             element.node_3(ele_id,1) = node.id(id); 
             [ node, id ] = node_exist( node, wall_x_start, wall_y_end, wall_z_start );
             element.node_4(ele_id,1) = node.id(id); 
+            element.length(ele_id,1) = sqrt( (wall_x_end-wall_x_start)^2 + (wall_y_end-wall_y_start)^2 + (wall_z_start-wall_z_start)^2 );
         end
     end
 end
@@ -380,5 +382,6 @@ else
     node_table = table(node.id', node.x', node.y', node.dead_load', node.live_load', node.mass', node.fix, 'VariableNames',{'id','x','y','dead_load','live_load','mass','fix'});
 end
 ele_table = struct2table(element);
+
 end
 

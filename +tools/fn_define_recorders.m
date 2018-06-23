@@ -22,12 +22,12 @@ if strcmp(dimension,'3D')
 end
 
 for i=1:length(element.id)
-    if element.id(i) >= 4
-        % try -xml or record at integration point
-        fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d force \n', output_dir, element.id(i), element.id(i));
-    else
+%     if element.id(i) >= 4
+%         % try -xml or record at integration point
+%         fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d force \n', output_dir, element.id(i), element.id(i));
+%     else
     fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d localForce \n', output_dir, element.id(i), element.id(i));
-    end
+%     end
 end
 
 % Movie Recorders

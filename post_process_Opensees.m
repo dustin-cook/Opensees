@@ -5,9 +5,9 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 3;
-analysis.gm_id = 1;
-analysis.name = '10DL10LL';
+analysis.model_id = 4;
+analysis.gm_id = 3;
+analysis.name = '11DL11LL';
 
 %% Import Packages
 import tools.*
@@ -32,6 +32,7 @@ load([output_dir filesep 'analysis_data.mat']);
 
 % Load element force data
 for i = 1:length(element.id)
+    i
     ele_force(i,:) = max(dlmread([output_dir filesep ['element_force_' num2str(element.id(i)) '.txt']],' '));
 end
 
