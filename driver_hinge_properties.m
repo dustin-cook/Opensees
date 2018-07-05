@@ -113,7 +113,7 @@ for i = 1:length(element.id)
     
     element.a_hinge(i) = hinge.a_hinge;
     element.b_hinge(i) = hinge.b_hinge;
-    element.c_hinge(i) = hinge.b_hinge;
+    element.c_hinge(i) = hinge.c_hinge;
     element.io(i) = hinge.io;
     element.ls(i) = hinge.ls;
     element.cp(i) = hinge.cp;

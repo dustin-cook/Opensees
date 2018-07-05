@@ -5,9 +5,9 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 4;
-analysis.gm_id = 3;
-analysis.name = '11DL11LL';
+analysis.model_id = 3;
+analysis.gm_id = 1;
+analysis.name = '10DL10LL';
 
 %% Import Packages
 import tools.*
@@ -32,14 +32,22 @@ load([output_dir filesep 'analysis_data.mat']);
 
 % Load element force data
 for i = 1:length(element.id)
-    ele_force(i,:) = max(abs(dlmread([output_dir filesep ['element_force_' num2str(element.id(i)) '.txt']],' ')));
+    if ~strcmp(element.type{i},'wall')
+        ele_force = max(abs(dlmread([output_dir filesep ['element_force_' num2str(element.id(i)) '.txt']],' ')));
+        if length(dirs_ran) == 1 % 2D
+            element.Pmax(i) = max(abs([ele_force(1),ele_force(4)]),[],2);
+            element.Vmax(i) = max(abs([ele_force(2),ele_force(5)]),[],2);
+            element.Mmax(i) = max(abs([ele_force(3),ele_force(6)]),[],2);
+        elseif length(dirs_ran) == 2 % 3D
+            element.Pmax(i) = max(abs([ele_force(1),ele_force(7)]),[],2);
+            element.Vmax(i) = max(abs([ele_force(2),ele_force(8),ele_force(3),ele_force(9)]),[],2);
+            element.Mmax(i) = max(abs([ele_force(4),ele_force(10),ele_force(5),ele_force(11),ele_force(6),ele_force(12)]),[],2);
+        end
+    else
+        test = 5;
+    end
 end
-
-% Add element forces to element table
-element.Pmax = max(abs([ele_force(:,1),ele_force(:,4)]),[],2);
-element.Vmax = max(abs([ele_force(:,2),ele_force(:,5)]),[],2);
-element.Mmax = max(abs([ele_force(:,3),ele_force(:,6)]),[],2);
-
+    
 % Load hinge moment and rotation
 if analysis.nonlinear ~= 0
     hinge.rotation = max(abs(dlmread([output_dir filesep 'hinge_rotation_all.txt'],' ')));

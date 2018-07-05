@@ -5,8 +5,8 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 3;
-analysis.gm_id = 1;
+analysis.model_id = 4;
+analysis.gm_id = 6;
 analysis.name = '09DL';
 additional_load_cases = {'11DL11LL'};
 
@@ -29,17 +29,22 @@ for i = 1:length(additional_load_cases)
     element.DCR_M = max([element.DCR_M,load_cases{i}.element.DCR_M],[],2);
     element.DCR_V = max([element.DCR_V,load_cases{i}.element.DCR_V],[],2);
     element.DCR_P = max([element.DCR_P,load_cases{i}.element.DCR_P],[],2);
+    element.DCR_M_raw = max([element.DCR_M_raw,load_cases{i}.element.DCR_M_raw],[],2);
+    element.DCR_V_raw = max([element.DCR_V_raw,load_cases{i}.element.DCR_V_raw],[],2);
+    element.DCR_P_raw = max([element.DCR_P_raw,load_cases{i}.element.DCR_P_raw],[],2);
     
     % EDP Profiles
     for j = 1:length(dirs_ran)
         story.(['max_accel_' dirs_ran(j)]) = max([story.(['max_accel_' dirs_ran(j)]),load_cases{i}.story.(['max_accel_' dirs_ran(j)])],[],2);
         story.(['max_disp_' dirs_ran(j)]) = max([story.(['max_disp_' dirs_ran(j)]),load_cases{i}.story.(['max_disp_' dirs_ran(j)])],[],2);
         story.(['max_drift_' dirs_ran(j)]) = max([story.(['max_drift_' dirs_ran(j)]),load_cases{i}.story.(['max_drift_' dirs_ran(j)])],[],2);
+        story.(['max_disp_' dirs_ran(j) '_ASCE']) = max([story.(['max_disp_' dirs_ran(j) '_ASCE']),load_cases{i}.story.(['max_disp_' dirs_ran(j) '_ASCE'])],[],2);
     end
 end
 
 % Total Envelope DCR
 element.DCR_total = max([element.DCR_M,element.DCR_V,element.DCR_P],[],2);
+element.DCR_total_raw = max([element.DCR_M_raw,element.DCR_V_raw,element.DCR_P_raw],[],2);
 
 %% Save Data
 combo_dir = ['outputs' filesep model.name{1} filesep 'load_combo'];

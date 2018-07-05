@@ -16,11 +16,15 @@ if ele.ele_id == 1 || ele.ele_id == 2
     ele.Mn_aci = inf;
     ele.Mp = inf;
     ele.Pn = inf;
+    ele.DCR_total_raw = 4.0;
     
 % Flexible Elements
 else
+    if ~isfield(ele, 'DCR_total_raw')
+        ele.DCR_total_raw = 4.0; % Set to middle of interp if not already defined (ie create a k factor of 0.85)
+    end
     % Shear capacity per ASCE 41 (use lower bound strength since assuming shear is force controlled)
-    [ ele.Vn, ele.V0 ] = fn_shear_capacity( ele_prop.Av, ele_prop.fy_n, ele_prop.d, ele_prop.S, ele_prop.lambda, ele_prop.fc_n, ele_prop.a, ele.Mmax, ele.Vmax, ele.Pmax );
+    [ ele.Vn, ele.V0 ] = fn_shear_capacity( ele_prop.Av, ele_prop.fy_n, ele_prop.d, ele_prop.S, ele_prop.lambda, ele_prop.fc_n, ele_prop.a, ele.Mmax, ele.Vmax, ele.Pmax, ele.DCR_total_raw );
 
     % Shear Capacity per ACI (use lower bound strength since assuming shear is force controlled)
     [ ~, ele.Vn_aci ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele.Pmax, ele_prop.Av, ele_prop.fy_e, ele_prop.S, ele_prop.lambda, ele_prop.a );

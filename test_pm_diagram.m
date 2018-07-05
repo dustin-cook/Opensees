@@ -7,7 +7,7 @@ clc
 import asce_41.*
 
 %% Read in element table
-analysis.model_id = 3;
+analysis.model_id = 4;
 analysis.name = '11DL11LL';
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
 model = model_table(model_table.id == analysis.model_id,:);

@@ -6,7 +6,7 @@ clc
 %% DEFINE INPTUTS
 % Primary Inputs
 analysis.model_id = 4;
-analysis.gm_seq_id = 6;
+analysis.gm_seq_id = 7;
 analysis.name = '11DL11LL';
 
 % Secondary Inputs

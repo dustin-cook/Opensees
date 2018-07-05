@@ -24,8 +24,13 @@ end
 %% Define Element Recorders
 % Beams, Columns and Walls
 for i=1:length(element.id)
-    % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
-    fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d localForce \n', output_dir, element.id(i), element.id(i));
+    if strcmp(element.type{i},'wall')
+        % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
+        fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d Force \n', output_dir, element.id(i), element.id(i));
+    else
+        % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
+        fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d localForce \n', output_dir, element.id(i), element.id(i));
+    end
 end
 
 % Hinges

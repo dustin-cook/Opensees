@@ -7,7 +7,7 @@ clc
 %% Define Analysis and Model parameters
 analysis.model_id = 3;
 analysis.gm_id = 1;
-analysis.name = 'NL_10DL10LL';
+analysis.name = '11DL11LL';
 
 %% Import Packages
 import asce_41.*
@@ -20,20 +20,26 @@ m_table.col = readtable(['+asce_41' filesep 'linear_col_m.csv'],'ReadVariableNam
 m_table.beam = readtable(['+asce_41' filesep 'linear_beam_m.csv'],'ReadVariableNames',true);
 load([output_dir filesep 'post_process_data.mat'])
 
+
 % Linear Procedures
 if analysis.nonlinear == 0
+    %% Calculate the DCR for the shear calc
+    [ element, DCR_max ] = fn_calc_dcr( element, 'cp', 1, 1, 'high' );
+
     %% Caclulate Element Capacity and M factors
     for i = 1:length(element.id)
-        ele = element(i,:);
-        ele_id = ele.ele_id;
-        ele_prop = ele_prop_table(ele_id,:);
-        [ ele ] = fn_element_capacity( ele, ele_prop );
-        [ ele_temp(i,:) ] = fn_m_factors( m_table, ele, ele_prop );
+        if ~strcmp(element.type{i},'wall')
+            ele = element(i,:);
+            ele_id = ele.ele_id;
+            ele_prop = ele_prop_table(ele_id,:);
+            [ ele ] = fn_element_capacity( ele, ele_prop, DCR_max );
+            [ ele_temp(i,:) ] = fn_m_factors( m_table, ele, ele_prop );
+        end
     end
     element = ele_temp;
 
     %% Calculate the DCR for the C1 calc
-    [ ~, DCR_max ] = fn_calc_dcr( element, 'cp', 1, 1, 'high' );
+    [ element, DCR_max ] = fn_calc_dcr( element, 'cp', 1, 1, 'high' );
 
     % Perform calcs For each direction
     for i = 1:length(dirs_ran)
@@ -46,16 +52,20 @@ if analysis.nonlinear == 0
         %% Caclulate C1 and C2 Factors
         [ c1.(dirs_ran(i)), c2.(dirs_ran(i)) ] = fn_c_factors( model.site_class{1}, length(story.id), model.(['T1_' dirs_ran(i)]), model.(['hazus_class_' num2str(i)]), DCR_max );
 
-        %% Amplify Element Forces ????HOW DO I DO THIS FOR 2 DIRECTIONS????
-        element.Pmax_ASCE = element.Pmax*c1.(dirs_ran(i))*c2.(dirs_ran(i));
-        element.Vmax_ASCE = element.Vmax*c1.(dirs_ran(i))*c2.(dirs_ran(i));
-        element.Mmax_ASCE = element.Mmax*c1.(dirs_ran(i))*c2.(dirs_ran(i));
     end
+    
+    %% Amplify Element Forces ????HOW DO I DO THIS FOR 2 DIRECTIONS????
+    element.Pmax_ASCE = element.Pmax*c1.x*c2.x;
+    element.Vmax_ASCE = element.Vmax*c1.x*c2.x;
+    element.Mmax_ASCE = element.Mmax*c1.x*c2.x;
     
     %% Torsional Amplification Check
     if strcmp(model.dimension,'3D')% for 3D linear analysis
-        [ TAR_x ] = fn_tar_check( max_disp_profile_x, ave_disp_profile_x );
-        [ TAR_z ] = fn_tar_check( max_disp_profile_z, ave_disp_profile_z );
+        [ TAR_x, A_s_x ] = fn_tar_check( story.max_disp_x, story.ave_disp_x );
+        [ TAR_z, A_s_z ] = fn_tar_check( story.max_disp_z, story.ave_disp_z );
+        element.Pmax_ASCE = element.Pmax_ASCE*max(A_s_x); % UPDATE TO WORK FOR WALL DIRECTIONS, AND WORK PER FLOOR
+        element.Vmax_ASCE = element.Vmax_ASCE*max(A_s_x);
+        element.Mmax_ASCE = element.Mmax_ASCE*max(A_s_x);
     else % For 2D linear analysis
         % Amplify Displacements and Forces by Max TAR
         story.max_accel_x = story.max_accel_x*model.tar;
@@ -67,6 +77,12 @@ if analysis.nonlinear == 0
     
     %% Calculate the DCR
     [ element, ~ ] = fn_calc_dcr( element, 'cp', c1.x, c2.x, seismicity.x ); % UPDATE 2 directions
+    
+    %% Amplify displacements
+    story.max_disp_x_ASCE = story.max_disp_x*c1.x*c2.x .* A_s_x';
+    story.max_disp_z_ASCE = story.max_disp_z*c1.z*c2.z .* A_s_z';
+    story.max_drift_x_ASCE = story.max_drift_x*c1.x*c2.x .* A_s_x';
+    story.max_drift_z_ASCE = story.max_drift_z*c1.z*c2.z .* A_s_z';
 
 % Nonlinear Procedures
 else 

@@ -6,7 +6,7 @@ clc
 model_name = 'ICBS_model_5ew';
 story_ht = [174 162 162 162 162 158];
 story_dead_load = (1/2)*[2200 2325 2325 2325 2325 1900]*1000;
-story_live_load = (0.25/2)*[550, 550, 550, 550, 550, 550]*1000;
+story_live_load = (1/2)*[128, 128, 128, 128, 128, 51]*1000;
 bay_length.x = [300 300 300 300 300 100 300 300 300 300 300];
 bay_length.z = [0];
 damp_ratio = 0.05;

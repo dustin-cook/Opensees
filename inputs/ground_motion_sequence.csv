@@ -5,3 +5,4 @@ id,eq_id_x,eq_id_z,eq_id_y,x_ratio,z_ratio,y_ratio
 4,1,2,3,1,1,1
 5,1,1,0,1,1,0
 6,4,5,0,1,1,0
+7,4,5,6,1,1,1
