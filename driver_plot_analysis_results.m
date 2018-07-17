@@ -5,8 +5,8 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 4;
-analysis.gm_id = 6;
+analysis.model_id = 3;
+analysis.gm_id = 1;
 analysis.name = '11DL11LL';
 analysis.nonlinear = 0;
 

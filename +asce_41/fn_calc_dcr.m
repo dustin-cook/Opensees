@@ -17,8 +17,9 @@ DCR_max_raw = max([element.DCR_P_raw; element.DCR_V_raw; element.DCR_M_raw]);
 
 % Modify DCR by m factor for deformation controlled (ASSUME ALL MOMENTS ARE DEFORMATION CONTROLLED)
 element.DCR_M = element.DCR_M_raw ./ element.(['m_' perform_level]);
+element.DCR_V = element.DCR_V_raw ./ element.(['m_' perform_level]);
 
-% Calculate Quf for force controlled actions (ASSUME ALL AXIAL AND SHEAR ARE FORCE CONTROLLED)
+% Calculate Quf for force controlled actions (ASSUME ALL AXIAL IS FORCE CONTROLLED)
 if strcmp(perform_level,'cp')
     x = 1;
 else
@@ -32,10 +33,7 @@ else
     j = 1;
 end
 P_quf_factors = x/(c1*c2*j); % ONLY SUPPOSED TO APPLY TO EQ DEMANDS, NOT GRAVITY (UPDATE)
-v_quf_factors = x/(c1*c2*j);
-
 element.DCR_P = P_quf_factors*element.DCR_P_raw;
-element.DCR_V = v_quf_factors*element.DCR_V_raw;
 
 % Total DCR
 element.DCR_total = max([element.DCR_M,element.DCR_V,element.DCR_P],[],2);

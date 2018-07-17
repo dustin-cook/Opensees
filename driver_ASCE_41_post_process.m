@@ -24,7 +24,8 @@ load([output_dir filesep 'post_process_data.mat'])
 % Linear Procedures
 if analysis.nonlinear == 0
     %% Calculate the DCR for the shear calc
-    [ element, DCR_max ] = fn_calc_dcr( element, 'cp', 1, 1, 'high' );
+    element = readtable([output_dir filesep 'element_linear.csv'],'ReadVariableNames',true);
+    [ element, ~ ] = fn_calc_dcr( element, 'cp', 1, 1, 'high' );
 
     %% Caclulate Element Capacity and M factors
     for i = 1:length(element.id)
@@ -32,7 +33,7 @@ if analysis.nonlinear == 0
             ele = element(i,:);
             ele_id = ele.ele_id;
             ele_prop = ele_prop_table(ele_id,:);
-            [ ele ] = fn_element_capacity( ele, ele_prop, DCR_max );
+            [ ele ] = fn_element_capacity( ele, ele_prop );
             [ ele_temp(i,:) ] = fn_m_factors( m_table, ele, ele_prop );
         end
     end
@@ -66,6 +67,10 @@ if analysis.nonlinear == 0
         element.Pmax_ASCE = element.Pmax_ASCE*max(A_s_x); % UPDATE TO WORK FOR WALL DIRECTIONS, AND WORK PER FLOOR
         element.Vmax_ASCE = element.Vmax_ASCE*max(A_s_x);
         element.Mmax_ASCE = element.Mmax_ASCE*max(A_s_x);
+        story.max_disp_x_ASCE = story.max_disp_x*c1.x*c2.x .* A_s_x';
+        story.max_disp_z_ASCE = story.max_disp_z*c1.z*c2.z .* A_s_z';
+        story.max_drift_x_ASCE = story.max_drift_x*c1.x*c2.x .* A_s_x';
+        story.max_drift_z_ASCE = story.max_drift_z*c1.z*c2.z .* A_s_z';
     else % For 2D linear analysis
         % Amplify Displacements and Forces by Max TAR
         story.max_accel_x = story.max_accel_x*model.tar;
@@ -73,16 +78,12 @@ if analysis.nonlinear == 0
         element.Pmax_ASCE = element.Pmax_ASCE*model.tar;
         element.Vmax_ASCE = element.Vmax_ASCE*model.tar;
         element.Mmax_ASCE = element.Mmax_ASCE*model.tar;
+        story.max_disp_x_ASCE = story.max_disp_x*c1.x*c2.x*model.tar;
+        story.max_drift_x_ASCE = story.max_drift_x*c1.x*c2.x*model.tar;
     end
     
     %% Calculate the DCR
     [ element, ~ ] = fn_calc_dcr( element, 'cp', c1.x, c2.x, seismicity.x ); % UPDATE 2 directions
-    
-    %% Amplify displacements
-    story.max_disp_x_ASCE = story.max_disp_x*c1.x*c2.x .* A_s_x';
-    story.max_disp_z_ASCE = story.max_disp_z*c1.z*c2.z .* A_s_z';
-    story.max_drift_x_ASCE = story.max_drift_x*c1.x*c2.x .* A_s_x';
-    story.max_drift_z_ASCE = story.max_drift_z*c1.z*c2.z .* A_s_z';
 
 % Nonlinear Procedures
 else 

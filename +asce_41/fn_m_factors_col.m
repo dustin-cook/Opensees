@@ -15,7 +15,7 @@ row = ele_props.Av/(ele_props.w*ele_props.S);
 [ m_factor ] = fn_filter_asce41_table( m_factor, row, 'row', {'m_io','m_ls','m_cp'} );
 
 % Filter table based on Vye/VcolOE
-v_ratio = ele.Vmax/ele.V0; % NEED TO FIGURE OUT WHAT VcolOE is and UPDATE THIS
+v_ratio = ele.Vmax/ele.V0; % NEED TO FIGURE OUT WHAT Vye is and UPDATE THIS
 [ m_factor ] = fn_filter_asce41_table( m_factor, v_ratio, 'v_ratio', {'m_io','m_ls','m_cp'} );
 
 % Double Check only 1 row of the table remains

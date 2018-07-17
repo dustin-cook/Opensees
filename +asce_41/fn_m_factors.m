@@ -25,11 +25,11 @@ m_table.col = m_table.col(m_table.col.condition == condition,:);
 m_table.beam = m_table.beam(m_table.beam.condition == condition,:);
 
 if strcmp(ele_props.type,'column')
-% M factors for Columns
-[ ele ] = fn_m_factors_col( m_table.col, ele, ele_props );
+    % M factors for Columns
+    [ ele ] = fn_m_factors_col( m_table.col, ele, ele_props );
 elseif strcmp(ele_props.type,'beam')
-% M factors for Beams
-[ ele ] = fn_m_factors_beams( m_table.beam, ele, ele_props );
+    % M factors for Beams
+    [ ele ] = fn_m_factors_beams( m_table.beam, ele, ele_props );
 end
 
 
