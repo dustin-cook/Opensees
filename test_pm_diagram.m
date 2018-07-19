@@ -21,22 +21,43 @@ ele = element(element_id,:);
 ele_id = ele.ele_id;
 ele_prop = ele_prop_table(ele_id,:);
 
+% Or Manually Set Element Proprs
+% ele_prop.w = 14;
+% ele_prop.d = 24;
+% ele_prop.a = ele_prop.w*ele_prop.d;
+% ele_prop.As = {'[3,3]'};
+% ele_prop.As_d = {'[2.5,21.5]'};
+% ele_prop.fc_n = 4000;
+% ele_prop.fc_e = 4000;
+% ele_prop.fy_n = 60000;
+% ele_prop.fy_e = 60000;
+% ele_prop.Es = 29000000;
+
 % Axial Capacity per ACI
 [ ~, Pn_max ] = fn_aci_axial_capacity( ele_prop.fc_n, ele_prop.a, ele_prop.As, ele_prop.fy_n );
 As = str2double(strsplit(strrep(strrep(ele_prop.As{1},'[',''),']',''),','));
 tension_cap = -sum(As)*ele_prop.fy_n;
+tension_cap_exp = -sum(As)*ele_prop.fy_e;
+compression_cap_exp = ele_prop.fc_e*(ele_prop.a-sum(As))+ele_prop.fy_e*sum(As);
 
 % Percent Pmax
-p_vals = linspace(0.7*tension_cap,0.99*Pn_max,20);
+p_vals_1 = linspace(tension_cap,Pn_max,100);
+p_vals_2 = linspace(0.7*tension_cap_exp,0.7*compression_cap_exp,100);
+% p_vals = [0,504400,623700,1000000];
 
 % Go through range of P values and calc moment capacity
-for i = 1:length(p_vals)
-    p_vals(i)
-    [ ~, Mn_aci(i) ] = fn_aci_moment_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.clear_cover, ele_prop.Es, p_vals(i) );
+for i = 1:length(p_vals_1)
+    [ ~, Mn_aci_1(i) ] = fn_aci_moment_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, p_vals_1(i) );
 end
 
-plot([0,Mn_aci,0]/1000,[tension_cap, p_vals,Pn_max]/1000)
+for i = 1:length(p_vals_2)
+    [ ~, Mn_aci_2(i) ] = fn_aci_moment_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, p_vals_2(i) );
+end
+
+hold on
+plot([0,Mn_aci_2/12,0]/1000,[tension_cap_exp, p_vals_2,compression_cap_exp]/1000,'--r')
+plot([0,Mn_aci_1/12,0]/1000,[tension_cap, p_vals_1,Pn_max]/1000)
 grid on
 box on
-xlabel('Moment, M (kip-in)')
+xlabel('Moment, M (kip-ft)')
 ylabel('Axial Load, P (kips)')
