@@ -6,6 +6,10 @@ function [ ele ] = fn_m_factors_col( m_factor, ele, ele_props )
 import asce_41.*
 
 %% Find M factors 
+% Calculate condition
+condition = 1; % UPDATE THIS TO BE DYNAMIC
+m_factor = m_factor(m_factor.condition == condition,:);
+
 % Fitler Table based on P/Asfc
 p_ratio = ele.Pmax/(ele_props.a*ele_props.fc_e);
 [ m_factor ] = fn_filter_asce41_table( m_factor, p_ratio, 'p_ratio', {'m_io','m_ls','m_cp'} );
