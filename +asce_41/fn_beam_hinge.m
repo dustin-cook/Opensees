@@ -11,7 +11,11 @@ hinge_table = readtable(['+asce_41' filesep 'beam_hinge.csv'],'ReadVariableNames
 hinge_table.id = []; % Omit id 
 
 %% Calculate condition
-condition = 1; % UPDATE THIS TO READ FROM TABLE 10-11
+if strcmp(ele.critical_mode,'flexure')
+    condition = 1; 
+elseif strcmp(ele.critical_mode,'shear')
+    condition = 2; 
+end % UPDATE THIS TO CONSIDER 3 and 4
 hinge = hinge_table(hinge_table.condition == condition,:);
 
 %% Fitler Table based on Transverse Rienforcement 

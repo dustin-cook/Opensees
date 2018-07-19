@@ -6,6 +6,14 @@ function [ ele ] = fn_m_factors_beams( m_factor, ele, ele_props )
 import asce_41.*
 
 %% Find M factors 
+% Calculate condition
+if strcmp(ele.critical_mode,'flexure')
+    condition = 1; 
+elseif strcmp(ele.critical_mode,'shear')
+    condition = 2; 
+end % UPDATE THIS TO CONSIDER 3 and 4
+m_factor = m_factor(m_factor.condition == condition,:);
+
 % Filter table for transverse reinforcement
 tranv_rein = 'C'; % ASSUME CONFORMING FOR NOW (update later)
 m_factor = m_factor(strcmp(m_factor.tranv_rein, tranv_rein),:);
