@@ -77,21 +77,22 @@ ele_lin_table = readtable([output_dir filesep 'element_linear.csv'],'ReadVariabl
             ele_props = ele_props_table(ele_props_table.id == ele_lin.ele_id,:);
             k = 48*(ele_props.e*ele_props.iz)/ele.length;
             theta_pc = (ele_lin.b_hinge - ele_lin.a_hinge)/2;
-            theta_u = ele_lin.Mn_aci/k + ele_lin.b_hinge;
-            strain_hard_ratio = ele_lin.Mp/ele_lin.Mn_aci - 1;
+            theta_u = ele_lin.Mn_aci_c/k + ele_lin.b_hinge;
+            strain_hard_ratio = 0.0; %ele_lin.Mp_c/ele_lin.Mn_aci_c;
             %uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
-            fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 1000. 1000. 1000. 1000. 1. 1. 1. 1. %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(end), k, strain_hard_ratio, strain_hard_ratio, ele_lin.Mn_aci, ele_lin.Mn_aci, ele_lin.a_hinge, ele_lin.a_hinge, theta_pc, theta_pc, ele_lin.c_hinge, ele_lin.c_hinge, theta_u, theta_u);
+            fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 1000. 1000. 1000. 1000. 1. 1. 1. 1. %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(end), k, strain_hard_ratio, strain_hard_ratio, ele_lin.Mn_aci_c, ele_lin.Mn_aci_c, ele_lin.a_hinge, ele_lin.a_hinge, theta_pc, theta_pc, ele_lin.c_hinge, ele_lin.c_hinge, theta_u, theta_u);
             %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
-            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 3 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
+            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
             fprintf(fileID,'equalDOF %i %i 1 2 \n',hinge.node_1(i),hinge.node_2(i));
         end
-    elseif analysis.nonlinear == 2 % Shear Spring
+    elseif analysis.nonlinear == 2 % Elastic Perfectly Plastic Rotational Hinges
         for i = 1:length(hinge.id)
             element.id(end + 1) = element.id(end) + 1;
             %uniaxialMaterial ElasticPP $matTag $E $epsyP
-            fprintf(fileID,'uniaxialMaterial ElasticPP %i 100. 0.5 \n', element.id(end)); % Elastic Perfectly Plastic Material
+            fprintf(fileID,'uniaxialMaterial ElasticPP %i 29000000000. 0.001 \n', element.id(end)); % Elastic Perfectly Plastic Material
             %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
-            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 1 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
+            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
+            fprintf(fileID,'equalDOF %i %i 1 2 \n',hinge.node_1(i),hinge.node_2(i));
         end
     end
 end

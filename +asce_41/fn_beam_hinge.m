@@ -12,44 +12,73 @@ hinge_table.id = []; % Omit id
 
 %% Calculate condition
 if strcmp(ele.critical_mode,'flexure')
-    condition = 1; 
+    condition(1) = 1; 
 elseif strcmp(ele.critical_mode,'shear')
-    condition = 2; 
-end % UPDATE THIS TO CONSIDER 3 and 4
-hinge = hinge_table(hinge_table.condition == condition,:);
+    condition(1) = 2; 
+end
+if ele.pass_aci_dev_length == 0 % Controlled by inadequate development (assuming no embedment issues)
+    condition(2) = 3; 
+end
 
-%% Fitler Table based on Transverse Rienforcement 
-if ele_props.S <= ele_props.d/3
-    if ele.DCR_total_raw < 2
-        % Conforming Transverse Reinforcement
-        trans_rien = 'C';
-    elseif ele.Vs_aci > 0.75*ele.Vmax
-        % Conforming Transverse Reinforcement
-        trans_rien = 'C'; 
-    else
-        % Non-conforming Transverse Reinforcement
-        trans_rien = 'NC';
+for i = 1:length(condition)
+    %% Filter Based on Condition
+    hinge_filt = hinge_table(hinge_table.condition == condition(i),:);
+    
+    if condition(i) == 1 
+        %% Fitler Table based on Transverse Rienforcement 
+        if ele_props.S <= ele_props.d/3
+            if ele.DCR_total_raw < 2
+                % Conforming Transverse Reinforcement
+                trans_rien = 'C';
+            elseif ele.Vs_aci > 0.75*ele.Vmax
+                % Conforming Transverse Reinforcement
+                trans_rien = 'C'; 
+            else
+                % Non-conforming Transverse Reinforcement
+                trans_rien = 'NC';
+            end
+        else
+            % Non-conforming Transverse Reinforcement
+            trans_rien = 'NC';
+        end
+        hinge_filt = hinge_filt(strcmp(hinge_filt.trans_rien,trans_rien),:);
+
+        %% Filter table based on row ratio
+        row_ratio = (ele_props.row - ele_props.row_prime) / ele.row_bal;
+        [ hinge_filt ] = fn_filter_asce41_table( hinge_filt, row_ratio, 'row_ratio', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
+
+        %% Filter table based on V/bd*sqrt(fc)
+        if sum(isnan(hinge_filt.v_ratio)) == 0
+            v_ratio = ele.Vmax/(ele_props.w*ele_props.d*sqrt(ele_props.fc_e));
+            [ hinge_filt ] = fn_filter_asce41_table( hinge_filt, v_ratio, 'v_ratio', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
+        end
+    elseif condition(i) == 2 || condition(i) == 3
+        %% Filter table based on S
+        [ hinge_filt ] = fn_filter_asce41_table( hinge_filt, ele_props.S, 's', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
     end
+
+    %% Double Check only 1 row of the hinge table remains
+    if length(hinge_filt.a_hinge) ~= 1
+        error('Hinge table filtering failed to find unique result')
+    end
+    
+    %% Save filtered hinge to final table structure
+    hinge_temp(i,:) = hinge_filt;
+end
+
+%% If multiple conditions existed pick the smallest values
+if length(condition) > 1
+    hinge.a_hinge = min(hinge_temp.a_hinge);
+    hinge.b_hinge = min(hinge_temp.b_hinge);
+    hinge.c_hinge = min(hinge_temp.c_hinge);
+    hinge.io = min(hinge_temp.io);
+    hinge.ls = min(hinge_temp.ls);
+    hinge.cp = min(hinge_temp.cp);
+    hinge = struct2table(hinge);
 else
-    % Non-conforming Transverse Reinforcement
-    trans_rien = 'NC';
+    hinge = hinge_temp(:,6:11);
 end
-hinge = hinge(strcmp(hinge.trans_rien,trans_rien),:);
-
-%% Filter table based on row ratio
-row_ratio = 0.5; % Assumptions for now, NEED TO UPDATE
-[ hinge ] = fn_filter_asce41_table( hinge, row_ratio, 'row_ratio', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
-
-%% Filter table based on V/bd*sqrt(fc)
-if sum(isnan(hinge.v_ratio)) == 0
-    v_ratio = ele.Vmax/(ele_props.w*ele_props.d*sqrt(ele_props.fc_e));
-    [ hinge ] = fn_filter_asce41_table( hinge, v_ratio, 'v_ratio', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
-end
-
-%% Double Check only 1 row of the hinge table remains
-if length(hinge.a_hinge) ~= 1
-    error('Hinge table filtering failed to find unique result')
-end
+    
 
 end
 

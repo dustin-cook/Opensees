@@ -1,43 +1,43 @@
-function [ element, DCR_max_raw ] = fn_calc_dcr( element, perform_level, c1, c2, seismicity )
+function [ element, DCR_max_raw ] = fn_calc_dcr( element, element_TH, perform_level )
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
-element.DCR_P_raw = element.Pmax ./ element.Pn;
-element.DCR_M_raw = element.Mmax ./ element.Mn_aci;
+%% Assumuptions
+% 1. M and V are deformation Controlled
+% 2. Axial compression is force controlled while axial tension is
+% deformation controlled
+
 for i = 1:length(element.id)
-    if strcmp(element.type{i},'column')
-        element.DCR_V_raw(i,1) = element.Vmax(i) / element.Vn(i);
-    elseif strcmp(element.type{i},'beam')
-        element.DCR_V_raw(i,1) = element.Vmax(i) / element.Vn_aci(i);
-    else
-        element.DCR_V_raw(i,1) = 1;
-    end
-end
-DCR_max_raw = max([element.DCR_P_raw; element.DCR_V_raw; element.DCR_M_raw]);
+    ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
 
-% Modify DCR by m factor for deformation controlled (ASSUME ALL MOMENTS ARE DEFORMATION CONTROLLED)
-element.DCR_M = element.DCR_M_raw ./ element.(['m_' perform_level]);
-element.DCR_V = element.DCR_V_raw ./ element.(['m_' perform_level]);
+    %% Calculate raw DCRs
+    DCR_P_raw_TH(i,:) = ele_TH.P_TH_1 ./ ele_TH.Pn;
+    DCR_V_raw_TH(i,:) = ele_TH.V_TH_1 ./ ele_TH.Vn(i);
+    DCR_M_raw_TH_1(i,:) = abs(ele_TH.M_TH_1) ./ ele_TH.Mn;
+    DCR_M_raw_TH_2(i,:) = abs(ele_TH.M_TH_2) ./ ele_TH.Mn;
 
-% Calculate Quf for force controlled actions (ASSUME ALL AXIAL IS FORCE CONTROLLED)
-if strcmp(perform_level,'cp')
-    x = 1;
-else
-    x = 1.3;
+    %% Modify DCR by m factor for deformation controlled actions
+    DCR_M_TH_1(i,:) = DCR_M_raw_TH_1(i,:) / element.(['m_' perform_level])(i);
+    DCR_M_TH_2(i,:) = DCR_M_raw_TH_2(i,:) / element.(['m_' perform_level])(i);
+    DCR_V_TH(i,:) = DCR_V_raw_TH(i,:) / element.(['m_' perform_level])(i);
+
+    %% Calculate Quf for force controlled actions
+    DCR_P_TH(i,:) = ele_TH.P_force_controlled ./ ele_TH.Pn;
+
+    %% Calc Max DCR for Each Element
+    element.DCR_raw_max_M(i) = max([DCR_M_raw_TH_1(i,:),DCR_M_raw_TH_2(i,:)]);
+    element.DCR_raw_max_V(i) = max(DCR_V_raw_TH(i,:));
+    element.DCR_raw_max_P(i) = max(DCR_P_raw_TH(i,:));
+    element.DCR_raw_max_all(i) = max([element.DCR_raw_max_M(i),element.DCR_raw_max_V(i),element.DCR_raw_max_P(i)]);
+    element.DCR_max_M(i) = max([DCR_M_TH_1(i,:),DCR_M_TH_2(i,:)]);
+    element.DCR_max_V(i) = max(DCR_V_TH(i,:));
+    element.DCR_max_P(i) = max(DCR_P_TH(i,:));
+    element.DCR_max_all(i) = max([element.DCR_max_M(i),element.DCR_max_V(i),element.DCR_max_P(i)]);
 end
-if strcmp(seismicity,'high')
-    j = 2;
-elseif strcmp(seismicity,'high')
-    j = 1.5;
-else
-    j = 1;
-end
-P_quf_factors = x/(c1*c2*j); % ONLY SUPPOSED TO APPLY TO EQ DEMANDS, NOT GRAVITY (UPDATE)
-element.DCR_P = P_quf_factors*element.DCR_P_raw;
 
 % Total DCR
-element.DCR_total = max([element.DCR_M,element.DCR_V,element.DCR_P],[],2);
-element.DCR_total_raw = max([element.DCR_M_raw,element.DCR_V_raw,element.DCR_P_raw],[],2);
+DCR_max_raw = max(element.DCR_raw_max_all);
+
 
 
 end

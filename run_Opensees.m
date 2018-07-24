@@ -6,16 +6,16 @@ clc
 %% DEFINE INPTUTS
 % Primary Inputs
 analysis.model_id = 3;
-analysis.gm_seq_id = 1;
-analysis.name = '11DL11LL';
+analysis.gm_seq_id = 6;
+analysis.name = 'NL_10DL10LL';
 
 % Secondary Inputs
 analysis.type = 3;
 analysis.max_disp = 1;
 analysis.time_step = 0.01;
-analysis.nonlinear = 0;
-analysis.dead_load = 1.1;
-analysis.live_load = 1.1;
+analysis.nonlinear = 1;
+analysis.dead_load = 1.0;
+analysis.live_load = 1.0;
 analysis.accidental_torsion = 0;
 analysis.damping = 'rayleigh';
 
@@ -51,7 +51,7 @@ else
 end
 fn_define_recorders( output_dir, model.dimension, node.id', element, hinge )
 [ground_motion] = fn_define_loads( output_dir, analysis, model.damp_ratio, node, model.dimension);
-fn_eigen_analysis( output_dir, analysis.time_step, story.first_story_node )
+% fn_eigen_analysis( output_dir, analysis.time_step, story.first_story_node )
 fn_define_analysis( output_dir, analysis, node.id, ground_motion )
 
 %% Run Opensees

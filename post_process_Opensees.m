@@ -6,7 +6,7 @@ clc
 
 %% Define Analysis and Model parameters
 analysis.model_id = 3;
-analysis.gm_id = 1;
+analysis.gm_id = 6;
 analysis.name = '11DL11LL';
 
 %% Import Packages
@@ -22,29 +22,46 @@ ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',
 
 output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
 
-element = readtable([output_dir filesep 'element.csv'],'ReadVariableNames',true);
+element_table = readtable([output_dir filesep 'element.csv'],'ReadVariableNames',true);
 node = readtable([output_dir filesep 'node.csv'],'ReadVariableNames',true);
 
-load([output_dir filesep 'analysis_data.mat']);
+load([output_dir filesep 'analysis_data.mat']); % Get rid of this system in favor of loading specific data
+clear element
+
+% Filter table to remove rigid elements
+element = element_table(ismember(element_table.type,{'beam','column'}) & element_table.ele_id ~= 16 & element_table.ele_id ~= 17,:); % Also removes slab beams (change ele type later)
 
 % Load ground motion data
 [ dirs_ran, ground_motion ] = fn_load_gm_data( ground_motion_seq, gm_table );
 
 % Load element force data
 for i = 1:length(element.id)
-    if ~strcmp(element.type{i},'wall')
-        ele_force = max(abs(dlmread([output_dir filesep ['element_force_' num2str(element.id(i)) '.txt']],' ')));
-        if length(dirs_ran) == 1 % 2D
-            element.Pmax(i) = max(abs([ele_force(1),ele_force(4)]),[],2);
-            element.Vmax(i) = max(abs([ele_force(2),ele_force(5)]),[],2);
-            element.Mmax(i) = max(abs([ele_force(3),ele_force(6)]),[],2);
-        elseif length(dirs_ran) == 2 % 3D
-            element.Pmax(i) = max(abs([ele_force(1),ele_force(7)]),[],2);
-            element.Vmax(i) = max(abs([ele_force(2),ele_force(8),ele_force(3),ele_force(9)]),[],2);
-            element.Mmax(i) = max(abs([ele_force(4),ele_force(10),ele_force(5),ele_force(11),ele_force(6),ele_force(12)]),[],2);
-        end
-    else
-        test = 5;
+    ele_force_TH = dlmread([output_dir filesep ['element_force_' num2str(element.id(i)) '.txt']],' ');
+    ele_force_max_abs = max(abs(ele_force_TH));
+    ele_force_max = max(ele_force_TH);
+    ele_force_min = min(ele_force_TH);
+    if length(dirs_ran) == 1 % 2D
+        element_TH.(['ele_' num2str(element.id(i))]).P_TH_1 = ele_force_TH(:,1)';
+        element_TH.(['ele_' num2str(element.id(i))]).P_TH_2 = ele_force_TH(:,4)';
+        element_TH.(['ele_' num2str(element.id(i))]).V_TH_1 = ele_force_TH(:,2)';
+        element_TH.(['ele_' num2str(element.id(i))]).V_TH_2 = ele_force_TH(:,5)';
+        element_TH.(['ele_' num2str(element.id(i))]).M_TH_1 = ele_force_TH(:,3)';
+        element_TH.(['ele_' num2str(element.id(i))]).M_TH_2 = ele_force_TH(:,6)';
+        element.Pmax(i) = max([ele_force_max(1),-ele_force_max(4)],[],2);
+        element.Pmin(i) = min([ele_force_min(1),-ele_force_min(4)],[],2);
+        element.P_grav(i) = ele_force_TH(1,1);
+        element.Vmax(i) = max(abs([ele_force_max_abs(2),ele_force_max_abs(5)]),[],2);
+        element.Mmax(i) = max(abs([ele_force_max_abs(3),ele_force_max_abs(6)]),[],2);
+    elseif length(dirs_ran) == 3 % 3D
+        element_TH.(['ele_' num2str(element.id(i))]).P_TH_1 = ele_force_TH(:,1)';
+        element_TH.(['ele_' num2str(element.id(i))]).V_TH_1 = ele_force_TH(:,2)';
+        element_TH.(['ele_' num2str(element.id(i))]).M_TH_1 = ele_force_TH(:,6)';
+        element_TH.(['ele_' num2str(element.id(i))]).M_TH_2 = ele_force_TH(:,12)';
+        element.Pmax(i) = max([ele_force_max(1),-ele_force_max(7)],[],2);
+        element.Pmin(i) = min([ele_force_min(1),-ele_force_min(7)],[],2);
+        element.P_grav(i) = ele_force_TH(1,1);
+        element.Vmax(i) = max(abs([ele_force_max_abs(2),ele_force_max_abs(8),ele_force_max_abs(3),ele_force_max_abs(9)]),[],2);
+        element.Mmax(i) = max(abs([ele_force_max_abs(4),ele_force_max_abs(10),ele_force_max_abs(5),ele_force_max_abs(11),ele_force_max_abs(6),ele_force_max_abs(12)]),[],2);
     end
 end
     
@@ -77,17 +94,27 @@ for i = 1:length(dirs_ran)
     [ story.(['max_accel_' dirs_ran(i)]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' dirs_ran(i) '_abs']), story, 0 );
     [ story.(['max_drift_' dirs_ran(i)]) ] = fn_drift_profile( node.(['disp_' dirs_ran(i) '_TH']), story );
     
-    % Save periods
-    model.(['T1_' dirs_ran(i)]) = periods(i);
-    
     % Load Mode shape data
-    mode_shape_raw = dlmread([output_dir filesep ['mode_shape_' num2str(i) '.txt']]);
-    mode_shape_norm = mode_shape_raw(1:2:end)/mode_shape_raw(end-1); % Extract odd rows and normalize by roof
-    story.(['mode_shape_' dirs_ran(i)]) = mode_shape_norm';
+    if strcmp(dirs_ran(i),'x')
+        % Save periods
+        model.(['T1_' dirs_ran(i)]) = periods(1);
+        % Save mode shapes
+        mode_shape_raw = dlmread([output_dir filesep ['mode_shape_1.txt']]);
+        mode_shape_norm = mode_shape_raw(1:2:end)/mode_shape_raw(end-1); % Extract odd rows and normalize by roof
+        story.(['mode_shape_x']) = mode_shape_norm';
+    elseif strcmp(dirs_ran(i),'z')
+        % Save periods
+        model.(['T1_' dirs_ran(i)]) = periods(2);
+        % Save mode shapes
+        mode_shape_raw = dlmread([output_dir filesep ['mode_shape_2.txt']]);
+        mode_shape_norm = mode_shape_raw(1:2:end)/mode_shape_raw(end-1); % Extract odd rows and normalize by roof
+        story.(['mode_shape_z']) = mode_shape_norm';
+    end
 end
 
-%% Save element table
-writetable(element,[output_dir filesep 'element.csv'])
+%% Save element Data
+save([output_dir filesep 'element_TH.mat'],'element_TH')
+save([output_dir filesep 'element_analysis.mat'],'element')
 
 %% Save Data
 save([output_dir filesep 'post_process_data'])

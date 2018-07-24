@@ -10,7 +10,7 @@ As_d = str2double(strsplit(strrep(strrep(As_d{1},'[',''),']',''),','));
 % Find Location of Neutral Axis
 y_prev = -d/2;
 step = 0.1;
-tolerance = 10; % lbs %(0.85*fc*b*0.85*d/2+abs(P))/5000;
+tolerance = 50; % lbs %(0.85*fc*b*0.85*d/2+abs(P))/5000;
 balance_found = 0;
 count = 0;
 while balance_found == 0

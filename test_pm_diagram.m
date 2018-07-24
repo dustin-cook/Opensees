@@ -4,7 +4,7 @@ close all
 clc
 
 %% Import Packages
-import asce_41.*
+import aci_318.*
 
 %% Read in element table
 analysis.model_id = 4;
@@ -34,15 +34,14 @@ ele_prop = ele_prop_table(ele_id,:);
 % ele_prop.Es = 29000000;
 
 % Axial Capacity per ACI
-[ ~, Pn_max ] = fn_aci_axial_capacity( ele_prop.fc_n, ele_prop.a, ele_prop.As, ele_prop.fy_n );
+[ ~, Pn_aci_c, ~, ~ ] = fn_aci_axial_capacity( ele_prop.fc_n, ele_prop.a, ele_prop.As, ele_prop.fy_n );
+[ ~, ~, ~, Pn_aci_t ] = fn_aci_axial_capacity( ele_prop.fc_e, ele_prop.a, ele_prop.As, ele_prop.fy_e );
 As = str2double(strsplit(strrep(strrep(ele_prop.As{1},'[',''),']',''),','));
-tension_cap = -sum(As)*ele_prop.fy_n;
-tension_cap_exp = -sum(As)*ele_prop.fy_e;
 compression_cap_exp = ele_prop.fc_e*(ele_prop.a-sum(As))+ele_prop.fy_e*sum(As);
 
 % Percent Pmax
-p_vals_1 = linspace(tension_cap,Pn_max,100);
-p_vals_2 = linspace(0.7*tension_cap_exp,0.7*compression_cap_exp,100);
+p_vals_1 = linspace(-0.95*Pn_aci_t,Pn_aci_c,100);
+p_vals_2 = linspace(-0.7*Pn_aci_t,0.7*compression_cap_exp,100);
 % p_vals = [0,504400,623700,1000000];
 
 % Go through range of P values and calc moment capacity
@@ -55,8 +54,8 @@ for i = 1:length(p_vals_2)
 end
 
 hold on
-plot([0,Mn_aci_2/12,0]/1000,[tension_cap_exp, p_vals_2,compression_cap_exp]/1000,'--r')
-plot([0,Mn_aci_1/12,0]/1000,[tension_cap, p_vals_1,Pn_max]/1000)
+plot([0,Mn_aci_2/12,0]/1000,[-Pn_aci_t, p_vals_2,compression_cap_exp]/1000,'--r')
+plot([0,Mn_aci_1/12,0]/1000,[-Pn_aci_t, p_vals_1,Pn_aci_c]/1000)
 grid on
 box on
 xlabel('Moment, M (kip-ft)')

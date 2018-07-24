@@ -23,6 +23,7 @@ elseif  plot_ops == 4
 end
 
 % Save and close plot
+set(gca,'FontSize',15)
 savefig([plot_dir, filesep, plot_name '.fig'])
 saveas(gcf, [plot_dir, filesep, plot_name '.png'])
 hold off

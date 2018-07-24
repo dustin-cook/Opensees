@@ -15,7 +15,7 @@ model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true)
 model = model_table(model_table.id == analysis.model_id,:);
 output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
 ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
-element = readtable([output_dir filesep 'element_linear.csv'],'ReadVariableNames',true);
+load([output_dir filesep 'element_analysis.mat'])
 m_table.col = readtable(['+asce_41' filesep 'linear_col_m.csv'],'ReadVariableNames',true);
 m_table.beam = readtable(['+asce_41' filesep 'linear_beam_m.csv'],'ReadVariableNames',true);
 
@@ -29,4 +29,4 @@ end
 element = element_temp;
 
 %% Save capacities to element database
-writetable(element,[output_dir filesep 'element_linear.csv'])
+save([output_dir filesep 'element_analysis.mat'],'element')

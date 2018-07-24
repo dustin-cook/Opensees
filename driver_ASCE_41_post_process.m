@@ -5,8 +5,8 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 3;
-analysis.gm_id = 1;
+analysis.model_id = 4;
+analysis.gm_id = 8;
 analysis.name = '11DL11LL';
 
 %% Import Packages
@@ -19,31 +19,57 @@ output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
 m_table.col = readtable(['+asce_41' filesep 'linear_col_m.csv'],'ReadVariableNames',true);
 m_table.beam = readtable(['+asce_41' filesep 'linear_beam_m.csv'],'ReadVariableNames',true);
 load([output_dir filesep 'post_process_data.mat'])
-
+load([output_dir filesep 'element_TH.mat'])
+load([output_dir filesep 'element_analysis.mat'])
 
 % Linear Procedures
 if analysis.nonlinear == 0
-    %% Calculate the DCR for the shear calc
-    element = readtable([output_dir filesep 'element_linear.csv'],'ReadVariableNames',true);
-    [ element, ~ ] = fn_calc_dcr( element, 'cp', 1, 1, 'high' );
-
     %% Caclulate Element Capacity and M factors
     for i = 1:length(element.id)
-        if ~strcmp(element.type{i},'wall')
-            ele = element(i,:);
-            ele_id = ele.ele_id;
-            ele_prop = ele_prop_table(ele_id,:);
-            [ ele ] = fn_element_capacity( ele, ele_prop );
-            [ ele_temp(i,:) ] = fn_m_factors( m_table, ele, ele_prop );
-        end
+        disp(['element ' num2str(i), ' out of ', num2str(length(element.id))])
+        ele = element(i,:);
+        ele_id = ele.ele_id;
+        ele_prop = ele_prop_table(ele_id,:);
+        ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
+        
+        % Calculate Element Capacity
+        [ ele, element_TH.(['ele_' num2str(element.id(i))]) ] = fn_element_capacity( ele, ele_prop, ele_TH );
+        
+        % Caculate required development length and make sure there is enough
+        [ ele.pass_aci_dev_length ] = fn_development_check( ele, ele_prop );
+        
+        % Calculate M Factors
+        [ ele_temp(i,:) ] = fn_m_factors( m_table, ele, ele_prop );
     end
     element = ele_temp;
 
+    %% Calculate the DCR for the shear calc
+    [ element, DCR_raw_max ] = fn_calc_dcr( element, element_TH, 'cp' );
+
+    %% Caclulate Element Capacity and M factors
+    for i = 1:length(element.id)
+        ele = element(i,:);
+        ele_id = ele.ele_id;
+        ele_prop = ele_prop_table(ele_id,:);
+        ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
+        
+        % Calculate Element Capacity
+        [ ele, element_TH.(['ele_' num2str(element.id(i))]) ] = fn_element_capacity( ele, ele_prop, ele_TH );
+        
+        % Caculate required development length and make sure there is enough
+        [ ele.pass_aci_dev_length ] = fn_development_check( ele, ele_prop );
+        
+        % Calculate M Factors
+        [ ele_temp2(i,:) ] = fn_m_factors( m_table, ele, ele_prop );
+    end
+    element = ele_temp2;
+
     %% Calculate the DCR for the C1 calc
-    [ element, DCR_max ] = fn_calc_dcr( element, 'cp', 1, 1, 'high' );
+    [ element, DCR_raw_max ] = fn_calc_dcr( element, element_TH, 'cp' );
 
     % Perform calcs For each direction
     for i = 1:length(dirs_ran)
+        if ~strcmp(dirs_ran(i),'y') % Update way I am doing this directional thing
         %% Load Spectra and Calculate Sa
         spectra_table.(dirs_ran(i)) = readtable([ground_motion.(dirs_ran(i)).eq_dir{1} filesep 'spectra_' erase(erase(ground_motion.(dirs_ran(i)).eq_name{1},'.tcl'),'gm_') '.csv'],'ReadVariableNames',true);
         Sa.(dirs_ran(i)) = interp1(spectra_table.(dirs_ran(i)).period,spectra_table.(dirs_ran(i)).psa_5,model.(['T1_' dirs_ran(i)]));
@@ -51,8 +77,8 @@ if analysis.nonlinear == 0
         [ seismicity.(dirs_ran(i)) ] = fn_level_of_seismicity( spectra_table.(dirs_ran(i)) );
 
         %% Caclulate C1 and C2 Factors
-        [ c1.(dirs_ran(i)), c2.(dirs_ran(i)) ] = fn_c_factors( model.site_class{1}, length(story.id), model.(['T1_' dirs_ran(i)]), model.(['hazus_class_' num2str(i)]), DCR_max );
-
+        [ c1.(dirs_ran(i)), c2.(dirs_ran(i)) ] = fn_c_factors( model.site_class{1}, length(story.id), model.(['T1_' dirs_ran(i)]), model.(['hazus_class_' dirs_ran(i)]), DCR_raw_max );
+        end
     end
     
     %% Amplify Element Forces ????HOW DO I DO THIS FOR 2 DIRECTIONS????
@@ -83,7 +109,7 @@ if analysis.nonlinear == 0
     end
     
     %% Calculate the DCR
-    [ element, ~ ] = fn_calc_dcr( element, 'cp', c1.x, c2.x, seismicity.x ); % UPDATE 2 directions
+    [ element, DCR_raw_max ] = fn_calc_dcr( element, element_TH, 'cp' ); % UPDATE 2 directions
 
 % Nonlinear Procedures
 else 
