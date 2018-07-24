@@ -54,6 +54,10 @@ fprintf(fileID,'numberer RCM \n');
 % Construct Linear Solver and linear SOE Objects
 fprintf(fileID,'system BandGeneral \n');
 
+% Test for Convergence
+fprintf(fileID,'test NormDispIncr 1.0e-5 1000 \n');
+% fprintf(fileID,'test EnergyIncr 1.0e-6 50 \n');
+
 % Define Solution Algorithm
 fprintf(fileID,'algorithm Linear \n');
 
