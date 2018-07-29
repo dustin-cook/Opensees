@@ -12,7 +12,7 @@ elseif analysis.type == 2 % pushover analysis
     control_node = nodes(end);
     control_dof = 1;
     num_steps = 10;
-    step_size = analysis.max_displ / num_steps;
+    step_size = analysis.max_disp / num_steps;
     int_controller = ['DisplacementControl ' num2str(control_node) ' ' num2str(control_dof) ' ' num2str(step_size)]; 
     analysis_str_id = 'Static';
     time_step = 0;
@@ -36,9 +36,7 @@ fprintf(fileID,'wipe \n');
 
 % Build Model and Analysis Parameters
 fprintf(fileID,'source %s/model.tcl \n', output_dir);
-if analysis.nonlinear == 0
-    fprintf(fileID,'source %s/eigen.tcl \n', output_dir);
-end
+fprintf(fileID,'source %s/eigen.tcl \n', output_dir);
 fprintf(fileID,'source %s/loads.tcl \n', output_dir);
 fprintf(fileID,'source %s/recorders.tcl \n', output_dir);
 

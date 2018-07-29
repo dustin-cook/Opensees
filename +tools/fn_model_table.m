@@ -61,7 +61,6 @@ for s = 1:length(story.id)
             element.node_2(ele_id,1) = node.id(id);
             element.node_3(ele_id,1) = 0;
             element.node_4(ele_id,1) = 0;
-            element.length(ele_id,1) = sqrt( (ele_x_end-ele_x_start)^2 + (ele_y_end-ele_y_start)^2 + (ele_z_end-ele_z_start)^2 );
         end
     end
 end
@@ -121,10 +120,10 @@ for s = 1:length(story.id)
             new_node.id = (1:4) + node.id(end);
             
             % Change elements to connect to new nodes
-            if isfield(new_ele,'bm_x_neg')
+            if isfield(new_ele,'bm_x_neg') %&& element.ele_id(new_ele.bm_x_neg,1) ~= 16 && element.ele_id(new_ele.bm_x_neg,1) ~= 17
                 element.node_2(new_ele.bm_x_neg,1) = new_node.id(1);
             end
-            if isfield(new_ele,'bm_x_pos')
+            if isfield(new_ele,'bm_x_pos') %&& element.ele_id(new_ele.bm_x_pos,1) ~= 16 && element.ele_id(new_ele.bm_x_pos,1) ~= 17
                 element.node_1(new_ele.bm_x_pos,1) = new_node.id(2);
             end
 %             if isfield(new_ele,'bm_z_neg')
@@ -134,7 +133,6 @@ for s = 1:length(story.id)
 %                 element.node_1(new_ele.bm_z_pos,1) = new_node.id(4);
 %             end
             element.node_2(new_ele.col_y,1) = new_node.id(3);
-            
             clear new_ele
            
             % Define Joint
@@ -156,6 +154,17 @@ for s = 1:length(story.id)
 
         end
     end
+end
+
+%% Find Element Lengths 
+for e = 1:length(element.id)
+    ele_x_end = node.x(node.id == element.node_2(e));
+    ele_x_start = node.x(node.id == element.node_1(e));
+    ele_y_end = node.y(node.id == element.node_2(e));
+    ele_y_start = node.y(node.id == element.node_1(e));
+    ele_z_end = node.z(node.id == element.node_2(e));
+    ele_z_start = node.z(node.id == element.node_1(e));
+    element.length(e,1) = sqrt( (ele_x_end-ele_x_start)^2 + (ele_y_end-ele_y_start)^2 + (ele_z_end-ele_z_start)^2 );
 end
 
 %% Assign Walls
@@ -186,8 +195,13 @@ for s = 1:length(story.id)
             elseif story_group.orientation(g) == 3
                 wall_x_start = story_group.x_start(g);
                 wall_x_end = story_group.x_start(g);
+                if s == 1
                 wall_z_start = wall_line.x_start(w) + story_group.z_start(g);
                 wall_z_end = wall_line.x_end(w) + story_group.z_start(g);
+                else
+                wall_z_start = wall_line.x_start(w) + story_group.z_start(g);
+                wall_z_end = wall_line.x_end(w) + story_group.z_start(g);
+                end
             else
                 error('Grid Line Oreintation Not Valid')
             end

@@ -20,10 +20,10 @@ node.fix(new_node_id) = node.fix(old_node_id);
 % connect element to new node
 element.(node_end)(ele_id) = new_node_id;
 
-% % Define fixity of foundation nodes
-% if sum(old_node_id == foundation_nodes_id) > 0
-%     node.fix(new_node_id,:) = {[1 1 1 1 1 0]};
-% end
+% Define fixity of foundation nodes
+if sum(old_node_id == foundation_nodes_id) > 0
+    node.fix(new_node_id,:) = {[1 1 1 0 0 0]};
+end
 
 
 % Assign hinge properties

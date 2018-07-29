@@ -41,6 +41,8 @@ end
 col_id =  [6  7  8  9  10 11 11 0  0  0  0  0  0];
 beam_id = [12 12 12 12 13 14 15 16 17 0  0  0  0];
 wall_id = [0  0  0  0  0  0  0  0  0  18 19 20 21];
+x_offset_start = [0  0  0  0  0  0  0  0  0  12 60 0 0];
+x_offset_end = [0  0  0  0  0  0  0  0  0  12 12 0 0];
 grid_lines{1}.bays = 2:6;
 grid_lines{2}.bays = 2:6;
 grid_lines{3}.bays = 2:6;
@@ -57,7 +59,7 @@ grid_lines{13}.bays = 1:3;
 
 direction = {'x' 'x' 'x' 'x' 'x' 'x' 'x' 'x' 'x' 'z' 'z' 'z' 'z'};
 
-fn_build_frame_line(input_dir, col_id, beam_id, wall_id, bay_length, direction, grid_lines)
+fn_build_frame_line(input_dir, col_id, beam_id, wall_id, bay_length, direction, grid_lines, x_offset_start, x_offset_end)
 
 %% Asseble Stories
 story_group_id{1}.grid_id = [1 1 5 5 8 8 8 8 8 8 8 8 10 10 10 11];

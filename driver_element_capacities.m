@@ -9,7 +9,7 @@ import asce_41.*
 
 %% Read in element table
 analysis.model_id = 3;
-analysis.name = '11DL11LL';
+analysis.name = 'NL_10DL10LL';
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
 model = model_table(model_table.id == analysis.model_id,:);
 output_dir = ['outputs' filesep model.name{1} filesep analysis.name];

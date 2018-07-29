@@ -5,10 +5,10 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 4;
-analysis.gm_id = 8;
-analysis.name = '11DL11LL';
-analysis.nonlinear = 0;
+analysis.model_id = 3;
+analysis.gm_id = 6;
+analysis.name = 'NL_10DL10LL';
+analysis.nonlinear = 1;
 
 %% Import Packages
 import plotting_tools.*

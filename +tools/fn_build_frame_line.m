@@ -1,4 +1,4 @@
-function [ ] = fn_build_frame_line(input_dir, col_id, beam_id, wall_id, bay_length, direction, grid_lines)
+function [ ] = fn_build_frame_line(input_dir, col_id, beam_id, wall_id, bay_length, direction, grid_lines, x_offset_start, x_offset_end)
 %UNTITLED4 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -72,11 +72,11 @@ for i = 1:length(direction)
                 error('Grid Frame Direction Not Recognized')
             end
             if j == 1
-                grid_line.x_start(id) = 0;
+                grid_line.x_start(id) = 0 + x_offset_start(i);
             else
-                grid_line.x_start(id) = sum(num_bays(1:(j-1)));
+                grid_line.x_start(id) = sum(num_bays(1:(j-1))) + x_offset_start(i);
             end
-            grid_line.x_end(id) = grid_line.x_start(id) + num_bays(j);
+            grid_line.x_end(id) = grid_line.x_start(id) - x_offset_start(i) + num_bays(j) - x_offset_end(i);
             grid_line.y_start(id) = 0;
             grid_line.y_end(id) = 1;
         end

@@ -41,10 +41,16 @@ for i = 1:length(element.id)
         fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,element.orientation(i));
     % Walls
     elseif strcmp(ele_props.type,'wall')
+        %uniaxialMaterial Elastic $matTag $E
+%         fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',i,ele_props.e);
         %section ElasticMembranePlateSection $secTag $E $nu $h $rho
         fprintf(fileID,'section ElasticMembranePlateSection %i %f %f %f 0.0 \n',i,ele_props.e,ele_props.poisson_ratio,ele_props.w); %Elastic Wall Section
+        %section Elastic $secTag $E $A $Iz $Iy $G $J <$alphaY $alphaZ>
+%         fprintf(fileID,'section Elastic %i %f %f %f %f %f %f \n',i,ele_props.e,ele_props.a,ele_props.iz,ele_props.iy,ele_props.g,ele_props.j);
         %element ShellMITC4 $eleTag $iNode $jNode $kNode $lNode $secTag
         fprintf(fileID,'element ShellMITC4 %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),element.node_3(i),element.node_4(i),i); % Model Wall as shell
+        %element quad $eleTag $iNode $jNode $kNode $lNode $thick $type $matTag <$pressure $rho $b1 $b2>
+%         fprintf(fileID,'element quad %i %i %i %i %i %f PlaneStress %i \n',element.id(i),element.node_1(i),element.node_2(i),element.node_3(i),element.node_4(i),ele_props.w,i);
     end
 end
 

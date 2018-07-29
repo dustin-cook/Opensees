@@ -9,7 +9,7 @@ import plotting_tools.*
 %% Define Analysis and Model parameters
 analysis.model_id = 3;
 analysis.gm_id = 6;
-analysis.name = '11DL11LL';
+analysis.name = 'NL_10DL10LL';
 
 %% Read in element and hinge data tables
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
@@ -29,11 +29,11 @@ for i = 1:length(element.id)
         [ hinge ] = fn_col_hinge( ele, ele_props );
     end
     
-    % Plot Hinges
-%     theta_yeild = ele.Mn_aci_c*(ele_props.d/2)/(ele_props.e*ele_props.iz);
+%     % Plot Hinges
+%     theta_yeild = ele.Mn_aci_c*(ele.length)/(4*ele_props.e*ele_props.iz);
 %     Q_y = ele.Mn_aci_c;
 %     Q_ult = ele.Mp_c;
-%     post_yeild_slope = min((Q_ult/Q_y)/hinge.a_hinge,0.1*(Q_y/theta_yeild));
+%     post_yeild_slope = min([((Q_ult-Q_y)/Q_y)/hinge.a_hinge,0.1*(1/theta_yeild)]);
 %     force_vector = [0,1,post_yeild_slope*hinge.a_hinge+1,hinge.c_hinge,hinge.c_hinge];
 %     disp_vector = [0, theta_yeild, theta_yeild+hinge.a_hinge, theta_yeild+hinge.a_hinge+(hinge.b_hinge-hinge.a_hinge)/2, theta_yeild+hinge.b_hinge]; % ASSUMING y = d/2 NEED TO UPDATE
 %     plot(disp_vector,force_vector)

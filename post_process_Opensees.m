@@ -7,7 +7,7 @@ clc
 %% Define Analysis and Model parameters
 analysis.model_id = 3;
 analysis.gm_id = 6;
-analysis.name = '11DL11LL';
+analysis.name = 'NL_10DL10LL';
 
 %% Import Packages
 import tools.*
@@ -27,6 +27,8 @@ node = readtable([output_dir filesep 'node.csv'],'ReadVariableNames',true);
 
 load([output_dir filesep 'analysis_data.mat']); % Get rid of this system in favor of loading specific data
 clear element
+
+% story.nodes_on_slab{1} = story.nodes_on_slab{1}(1:32);
 
 % Filter table to remove rigid elements
 element = element_table(ismember(element_table.type,{'beam','column'}) & element_table.ele_id ~= 16 & element_table.ele_id ~= 17,:); % Also removes slab beams (change ele type later)

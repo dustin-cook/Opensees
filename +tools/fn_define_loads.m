@@ -11,6 +11,17 @@ gm_seq_table = readtable(['inputs' filesep 'ground_motion_sequence.csv'],'ReadVa
 ground_motion_seq = gm_seq_table(gm_seq_table.id == analysis.gm_seq_id,:);
 ground_motion_table = readtable(['inputs' filesep 'ground_motion.csv'],'ReadVariableNames',true);
 
+% Quick eigen test
+% fprintf(fileID,'set lambda [eigen -genBandArpack 1] \n');
+% fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
+% fprintf(fileID,'set i 0 \n');
+% fprintf(fileID,'foreach lam $lambda {\n');
+% fprintf(fileID,'    set i [expr $i+1] \n');
+% fprintf(fileID,'	set omega($i) [expr sqrt($lam)]\n');
+% fprintf(fileID,'	set period($i) [expr 2*$pi/sqrt($lam)]\n');
+% fprintf(fileID,'}\n');
+% fprintf(fileID,'puts $period(1) \n');
+
 %% Define Gravity Loads (node id, axial, shear, moment)
 fprintf(fileID,'pattern Plain 1 Linear {  \n');
 if strcmp(dimension,'2D')
@@ -67,31 +78,33 @@ if ground_motion_seq.eq_id_y ~= 0
 end
 
 % Define Damping based on eigen modes
-if analysis.nonlinear == 0
-    fprintf(fileID,'set lambda [eigen -genBandArpack 3] \n');
-    fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
-    fprintf(fileID,'set i 0 \n');
-    fprintf(fileID,'foreach lam $lambda {\n');
-    fprintf(fileID,'    set i [expr $i+1] \n');
-    fprintf(fileID,'	set omega($i) [expr sqrt($lam)]\n');
-    fprintf(fileID,'	set period($i) [expr 2*$pi/sqrt($lam)]\n');
-    fprintf(fileID,'}\n');
-    fprintf(fileID,'puts $period(1) \n');
-else
-    periods = dlmread([output_dir filesep 'period.txt']);
-    omega = 2*pi()./periods;
-    fprintf(fileID,'set omega(1) %f \n',omega(1));
-    fprintf(fileID,'set omega(2) %f \n',omega(2));
-    fprintf(fileID,'set omega(3) %f \n',omega(3));
-    damp_ratio = 0.03; % Set to 0.03 for now based on ATC 134 project (UPDATE LATER TO BE DYNAMIC BASED ON ANALYSIS)
-end
+fprintf(fileID,'set lambda [eigen -genBandArpack 3] \n');
+fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
+fprintf(fileID,'set i 0 \n');
+fprintf(fileID,'foreach lam $lambda {\n');
+fprintf(fileID,'    set i [expr $i+1] \n');
+fprintf(fileID,'	set omega($i) [expr sqrt($lam)]\n');
+fprintf(fileID,'	set period($i) [expr 2*$pi/sqrt($lam)]\n');
+fprintf(fileID,'}\n');
+fprintf(fileID,'puts $period(1) \n');
+fprintf(fileID,'puts $period(2) \n');
+fprintf(fileID,'puts $period(3) \n');
 fprintf(fileID,'set alpha [expr 2.0*%d*(1.0-$omega(1))/(1.0/$omega(1) - $omega(1)/($omega(3)*$omega(3)))]\n', damp_ratio);
 fprintf(fileID,'set beta [expr 2.0*%d - $alpha/($omega(3)*$omega(3))]\n', damp_ratio);
+
+% fprintf(fileID,'set lambda [eigen -fullGenLapack 1] \n');
+% fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
+% fprintf(fileID,'set omega [expr sqrt($lambda)] \n');
+% fprintf(fileID,'set period [expr 2*$pi/sqrt($lambda)] \n');
+% fprintf(fileID,'puts $period \n');
+% fprintf(fileID,'set alpha [expr %d*$omega] \n', damp_ratio);
+% fprintf(fileID,'set beta [expr %d/$omega] \n', damp_ratio);
+
 if strcmp(analysis.damping,'rayleigh')
     fprintf(fileID,'rayleigh $alpha 0.0 $beta 0.0 \n'); 
 elseif strcmp(analysis.damping,'modal')
     fprintf(fileID,'modalDamping %d \n',damp_ratio);
-    fprintf(fileID,'rayleigh 0.0 $beta 0.0 0.0 \n');
+%     fprintf(fileID,'rayleigh 0.0 $beta 0.0 0.0 \n');
 else
     error('Damping Type Not Recognized')
 end

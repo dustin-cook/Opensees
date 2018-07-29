@@ -5,9 +5,9 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 4;
-analysis.gm_id = 8;
-analysis.name = '11DL11LL';
+analysis.model_id = 3;
+analysis.gm_id = 6;
+analysis.name = 'NL_10DL10LL';
 
 %% Import Packages
 import asce_41.*
@@ -24,48 +24,48 @@ load([output_dir filesep 'element_analysis.mat'])
 
 % Linear Procedures
 if analysis.nonlinear == 0
-    %% Caclulate Element Capacity and M factors
-    for i = 1:length(element.id)
-        disp(['element ' num2str(i), ' out of ', num2str(length(element.id))])
-        ele = element(i,:);
-        ele_id = ele.ele_id;
-        ele_prop = ele_prop_table(ele_id,:);
-        ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
-        
-        % Calculate Element Capacity
-        [ ele, element_TH.(['ele_' num2str(element.id(i))]) ] = fn_element_capacity( ele, ele_prop, ele_TH );
-        
-        % Caculate required development length and make sure there is enough
-        [ ele.pass_aci_dev_length ] = fn_development_check( ele, ele_prop );
-        
-        % Calculate M Factors
-        [ ele_temp(i,:) ] = fn_m_factors( m_table, ele, ele_prop );
-    end
-    element = ele_temp;
+%     %% Caclulate Element Capacity and M factors
+%     for i = 1:length(element.id)
+%         disp(['element ' num2str(i), ' out of ', num2str(length(element.id))])
+%         ele = element(i,:);
+%         ele_id = ele.ele_id;
+%         ele_prop = ele_prop_table(ele_id,:);
+%         ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
+%         
+%         % Calculate Element Capacity
+%         [ ele, element_TH.(['ele_' num2str(element.id(i))]) ] = fn_element_capacity( ele, ele_prop, ele_TH );
+%         
+%         % Caculate required development length and make sure there is enough
+%         [ ele.pass_aci_dev_length ] = fn_development_check( ele, ele_prop );
+%         
+%         % Calculate M Factors
+%         [ ele_temp(i,:) ] = fn_m_factors( m_table, ele, ele_prop );
+%     end
+%     element = ele_temp;
 
     %% Calculate the DCR for the shear calc
     [ element, DCR_raw_max ] = fn_calc_dcr( element, element_TH, 'cp' );
 
-    %% Caclulate Element Capacity and M factors
-    for i = 1:length(element.id)
-        ele = element(i,:);
-        ele_id = ele.ele_id;
-        ele_prop = ele_prop_table(ele_id,:);
-        ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
-        
-        % Calculate Element Capacity
-        [ ele, element_TH.(['ele_' num2str(element.id(i))]) ] = fn_element_capacity( ele, ele_prop, ele_TH );
-        
-        % Caculate required development length and make sure there is enough
-        [ ele.pass_aci_dev_length ] = fn_development_check( ele, ele_prop );
-        
-        % Calculate M Factors
-        [ ele_temp2(i,:) ] = fn_m_factors( m_table, ele, ele_prop );
-    end
-    element = ele_temp2;
-
-    %% Calculate the DCR for the C1 calc
-    [ element, DCR_raw_max ] = fn_calc_dcr( element, element_TH, 'cp' );
+%     %% Caclulate Element Capacity and M factors
+%     for i = 1:length(element.id)
+%         ele = element(i,:);
+%         ele_id = ele.ele_id;
+%         ele_prop = ele_prop_table(ele_id,:);
+%         ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
+%         
+%         % Calculate Element Capacity
+%         [ ele, element_TH.(['ele_' num2str(element.id(i))]) ] = fn_element_capacity( ele, ele_prop, ele_TH );
+%         
+%         % Caculate required development length and make sure there is enough
+%         [ ele.pass_aci_dev_length ] = fn_development_check( ele, ele_prop );
+%         
+%         % Calculate M Factors
+%         [ ele_temp2(i,:) ] = fn_m_factors( m_table, ele, ele_prop );
+%     end
+%     element = ele_temp2;
+% 
+%     %% Calculate the DCR for the C1 calc
+%     [ element, DCR_raw_max ] = fn_calc_dcr( element, element_TH, 'cp' );
 
     % Perform calcs For each direction
     for i = 1:length(dirs_ran)
@@ -77,8 +77,12 @@ if analysis.nonlinear == 0
         [ seismicity.(dirs_ran(i)) ] = fn_level_of_seismicity( spectra_table.(dirs_ran(i)) );
 
         %% Caclulate C1 and C2 Factors
-        [ c1.(dirs_ran(i)), c2.(dirs_ran(i)) ] = fn_c_factors( model.site_class{1}, length(story.id), model.(['T1_' dirs_ran(i)]), model.(['hazus_class_' dirs_ran(i)]), DCR_raw_max );
+        [ c1.(dirs_ran(i)), c2.(dirs_ran(i)) ] = fn_c_factors( model.site_class{1}, length(story.id), model.(['T1_' dirs_ran(i)]), model.(['hazus_class_1']), DCR_raw_max );
         end
+        
+        %% Calculate target displacement
+        strength_ratio = Sa.x/0.5;
+        [ target_disp_in ] = fn_target_disp( strength_ratio, 'D', story.mode_shape_x, 6, model.T1_x, Sa.(dirs_ran(i)), 1 );
     end
     
     %% Amplify Element Forces ????HOW DO I DO THIS FOR 2 DIRECTIONS????
@@ -114,6 +118,8 @@ if analysis.nonlinear == 0
 % Nonlinear Procedures
 else 
     [ hinge ] = fn_accept_hinge( hinge, output_dir );
+    story.max_disp_x_ASCE = story.max_disp_x;
+    story.max_drift_x_ASCE = story.max_drift_x;
 end
 
 %% Save Data

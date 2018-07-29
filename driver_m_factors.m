@@ -7,7 +7,7 @@ import asce_41.*
 
 %% Define Analysis and Model parameters
 analysis.model_id = 3;
-analysis.gm_id = 1;
+analysis.gm_id = 6;
 analysis.name = '11DL11LL';
 
 %% Read in element and m factor tables
