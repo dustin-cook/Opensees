@@ -1,11 +1,14 @@
-function [ Mu, Mn ] = fn_aci_moment_capacity( fc, b, d, As, As_d, fy, Es, P )
+function [ Mu, Mn ] = fn_aci_moment_capacity( orientation, fc, b, d, As, As_d, fy, Es, P )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
 %% Inital Setup
 As = str2double(strsplit(strrep(strrep(As{1},'[',''),']',''),','));
 As_d = str2double(strsplit(strrep(strrep(As_d{1},'[',''),']',''),','));
-
+if strcmp(orientation,'neg')
+    As = fliplr(As);
+    As_d = d - fliplr(As_d);
+end
 %% Begin Method
 % Find Location of Neutral Axis
 y_prev = -d/2;

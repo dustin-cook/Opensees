@@ -1,4 +1,4 @@
-function [ ground_motion ] = fn_define_loads( output_dir, analysis, damp_ratio, node, dimension )
+function [ ground_motion ] = fn_define_loads( output_dir, analysis, damp_ratio, node, dimension, num_stories )
 %UNTITLED8 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -10,17 +10,6 @@ fileID = fopen(file_name,'w');
 gm_seq_table = readtable(['inputs' filesep 'ground_motion_sequence.csv'],'ReadVariableNames',true);
 ground_motion_seq = gm_seq_table(gm_seq_table.id == analysis.gm_seq_id,:);
 ground_motion_table = readtable(['inputs' filesep 'ground_motion.csv'],'ReadVariableNames',true);
-
-% Quick eigen test
-% fprintf(fileID,'set lambda [eigen -genBandArpack 1] \n');
-% fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
-% fprintf(fileID,'set i 0 \n');
-% fprintf(fileID,'foreach lam $lambda {\n');
-% fprintf(fileID,'    set i [expr $i+1] \n');
-% fprintf(fileID,'	set omega($i) [expr sqrt($lam)]\n');
-% fprintf(fileID,'	set period($i) [expr 2*$pi/sqrt($lam)]\n');
-% fprintf(fileID,'}\n');
-% fprintf(fileID,'puts $period(1) \n');
 
 %% Define Gravity Loads (node id, axial, shear, moment)
 fprintf(fileID,'pattern Plain 1 Linear {  \n');
@@ -43,9 +32,10 @@ fprintf(fileID,'numberer RCM \n'); % renumber dof's to minimize band-width (opti
 fprintf(fileID,'system BandGeneral \n'); % how to store and solve the system of equations in the analysis
 fprintf(fileID,'test NormDispIncr 1.0e-5 1000 \n');
 % fprintf(fileID,'test EnergyIncr 1.0e-6 50 \n'); % determine if convergence has been achieved at the end of an iteration step
-fprintf(fileID,'algorithm Newton \n');
+fprintf(fileID,'algorithm Linear \n');
+% fprintf(fileID,'algorithm KrylovNewton \n');
 fprintf(fileID,'integrator LoadControl 0.1 \n');
-fprintf(fileID,'analysis Static	 \n');
+fprintf(fileID,'analysis Static \n');
 fprintf(fileID,'analyze 10 \n');
 fprintf(fileID,'loadConst -time 0.0 \n');
 
@@ -78,7 +68,7 @@ if ground_motion_seq.eq_id_y ~= 0
 end
 
 % Define Damping based on eigen modes
-fprintf(fileID,'set lambda [eigen -genBandArpack 3] \n');
+fprintf(fileID,'set lambda [eigen -genBandArpack %i] \n', min([3,num_stories]));
 fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
 fprintf(fileID,'set i 0 \n');
 fprintf(fileID,'foreach lam $lambda {\n');

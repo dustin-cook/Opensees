@@ -1,4 +1,4 @@
-function [ ] = fn_eigen_analysis( output_dir, time_step, prim_story_nodes )
+function [ ] = fn_eigen_analysis( output_dir, time_step, prim_story_nodes, num_stories )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -15,7 +15,7 @@ fprintf(fileID,'recorder Node -file %s/mode_shape_1.txt -dT %f -node %s -dof 1 3
 fprintf(fileID,'recorder Node -file %s/mode_shape_2.txt -dT %f -node %s -dof 1 3 "eigen 2" \n',output_dir, 2*time_step, num2str(prim_story_nodes'));
 
 % Perform Eigen Analysis
-fprintf(fileID,'set numModes %d \n',6);
+fprintf(fileID,'set numModes %i \n',min([6,num_stories]));
 fprintf(fileID,'set lambda [eigen -genBandArpack $numModes] \n');
 fprintf(fileID,'set T {}\n');
 fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');

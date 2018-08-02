@@ -12,7 +12,7 @@ function [ ele ] = fn_element_critical_mode( ele )
 % end
 
 %% Method 2 - Based on Stiffness Matrix
-shear_at_flexure_yeild = 2*max([ele.Mn_aci_c,ele.Mn_aci_t])/ele.length;
+shear_at_flexure_yeild = (ele.Mn_aci_pos + ele.Mn_aci_neg)/ele.length + ele.gravity_load/2;
 if ele.Vn_aci > shear_at_flexure_yeild
     ele.critical_mode = {'flexure'};
 else

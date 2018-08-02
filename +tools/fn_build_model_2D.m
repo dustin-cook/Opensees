@@ -34,7 +34,7 @@ fprintf(fileID,'geomTransf PDelta 2 \n'); % Beams (x-direction)
 for i = 1:length(element.id)
     ele_props = ele_props_table(ele_props_table.id == element.ele_id(i),:);
     % Beams, Columns and Rigid Links
-    if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column') || strcmp(ele_props.type,'rigid link') 
+    if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column') 
         if analysis.nonlinear ~= 0 % Nonlinear Analysis
             n = 10;
             Iz_ele = ele_props.iz*((n+1)/n); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
@@ -44,6 +44,11 @@ for i = 1:length(element.id)
             % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
             fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,element.orientation(i));
         end
+    elseif strcmp(ele_props.type,'rigid link') 
+        % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
+        fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(i),ele_props.e);
+        % element truss $eleTag $iNode $jNode $A $matTag <-rho $rho> <-cMass $cFlag> <-doRayleigh $rFlag>
+        fprintf(fileID,'element truss %i %i %i %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,element.id(i));
     end
 end
 
@@ -84,20 +89,24 @@ if isfield(hinge,'id')
         k_spring = n*k_ele;
         if analysis.nonlinear == 1 % IMK Rotational Hinge
             theta_pc = (ele_lin.b_hinge - ele_lin.a_hinge)/2;
-            theta_u = ele_lin.Mn_aci_c/k_spring + ele_lin.b_hinge;
+            theta_u_pos = ele_lin.Mn_aci_pos/k_spring + ele_lin.b_hinge;
+            theta_u_neg = ele_lin.Mn_aci_neg/k_spring + ele_lin.b_hinge;
             if ele_lin.a_hinge > 0
-                as_mem = min(((ele_lin.Mp_c-ele_lin.Mn_aci_c)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
-                as_sping = ((n+1)*as_mem)/(n+1-n*as_mem);
+                as_mem_pos = min(((ele_lin.Mp_pos-ele_lin.Mn_aci_pos)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
+                as_sping_pos = ((n+1)*as_mem_pos)/(n+1-n*as_mem_pos);
+                as_mem_neg = min(((ele_lin.Mp_neg-ele_lin.Mn_aci_neg)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
+                as_sping_neg = ((n+1)*as_mem_neg)/(n+1-n*as_mem_neg);
             else
-                as_sping = 0.0;
+                as_sping_pos = 0.0;
+                as_sping_neg = 0.0;
             end
             %uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
-            fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(end), k_spring, as_sping, as_sping, ele_lin.Mn_aci_c, -ele_lin.Mn_aci_c, ele_lin.a_hinge, ele_lin.a_hinge, theta_pc, theta_pc, ele_lin.c_hinge, ele_lin.c_hinge, theta_u, theta_u);
+            fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(end), k_spring, as_sping_pos, as_sping_neg, ele_lin.Mn_aci_pos, -ele_lin.Mn_aci_neg, ele_lin.a_hinge, ele_lin.a_hinge, theta_pc, theta_pc, ele_lin.c_hinge, ele_lin.c_hinge, theta_u_pos, theta_u_neg);
             %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
             fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 3 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
             fprintf(fileID,'equalDOF %i %i 1 2 \n',hinge.node_1(i),hinge.node_2(i));
         elseif analysis.nonlinear == 2 % Elastic Perfectly Plastic Rotational Hinges
-            epsy = ele_lin.Mn_aci_c/k_spring;
+            epsy = min([ele_lin.Mn_aci_pos,ele_lin.Mn_aci_neg])/k_spring;
             %uniaxialMaterial ElasticPP $matTag $E $epsyP
             fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end), k_spring, epsy); % Elastic Perfectly Plastic Material
             %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2

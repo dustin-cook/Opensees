@@ -9,7 +9,7 @@ import plotting_tools.*
 %% Define Analysis and Model parameters
 analysis.model_id = 3;
 analysis.gm_id = 6;
-analysis.name = 'NL_10DL10LL';
+analysis.name = '11DL11LL';
 
 %% Read in element and hinge data tables
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);

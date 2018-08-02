@@ -13,7 +13,7 @@ end
 % Axial Compression Capacity per ACI (use lower bound strength since assuming axial is force controlled)
 [ ~, ele.Pn_aci_c, ~, ~ ] = fn_aci_axial_capacity( ele_prop.fc_n, ele_prop.a, ele_prop.As, ele_prop.fy_n );
 
-% Axial Compression Capacity per ACI (use lower bound strength since assuming axial is force controlled)
+% Axial Tension Capacity per ACI (use lower bound strength since assuming axial is force controlled)
 [ ~, ~, ~, ele.Pn_aci_t ] = fn_aci_axial_capacity( ele_prop.fc_e, ele_prop.a, ele_prop.As, ele_prop.fy_e );
 
 % Shear capacity per ASCE 41
@@ -27,29 +27,33 @@ end
 
 if strcmp(ele.type,'beam')
     % Moment Capcity per ACI
-    [ ~, ele.Mn_aci_c ] = fn_aci_moment_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0 );
-    ele.Mn_aci_t = ele.Mn_aci_c;
+    [ ~, ele.Mn_aci_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0 );
+    [ ~, ele.Mn_aci_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0 );
+%     ele.Mn_aci_t = ele.Mn_aci_c;
     % Probable Moment Capcity
-    [ ~, ele.Mp_c ] = fn_aci_moment_capacity( ele_prop.fc_e*1.15, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0 );
-    ele.Mp_t = ele.Mp_c;
+    [ ~, ele.Mp_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0 );
+    [ ~, ele.Mp_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0 );
+%     ele.Mp_t = ele.Mp_c;
 else
     % Moment Capcity per ACI
-    [ ~, ele.Mn_aci_c ] = fn_aci_moment_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, Pmax_force_cotrolled );
-
+    [ ~, ele.Mn_aci_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, ele.P_grav );
+    [ ~, ele.Mn_aci_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, ele.P_grav );
+    
     % Moment Capcity per ACI
-    [ ~, ele.Mn_aci_t ] = fn_aci_moment_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, ele.Pmin );
+%     [ ~, ele.Mn_aci_t ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, ele.Pmin );
 
     % Probable Moment Capcity
-    [ ~, ele.Mp_c ] = fn_aci_moment_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, ele.Pmax );
-
+    [ ~, ele.Mp_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, ele.P_grav );
+    [ ~, ele.Mp_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, ele.P_grav );
+    
     % Probable Moment Capcity
-    [ ~, ele.Mp_t ] = fn_aci_moment_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, ele.Pmin );
+%     [ ~, ele.Mp_t ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, ele.Pmin );
 
     % Calculate PM Diagram Vectors
     % Percent Pmax
     vector_P = linspace(-0.9*ele.Pn_aci_t,ele.Pn_aci_c,25);
-    for i = 1:length(vector_P)
-        [ ~, vector_M(i) ] = fn_aci_moment_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, vector_P(i) );
+    for i = 1:length(vector_P) % Currently Assumes Column has uniform strength in each directions (ie symmetric layout)
+        [ ~, vector_M(i) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, vector_P(i) );
     end
 end
 
@@ -71,23 +75,26 @@ for i = 1:length(ele_TH.P_TH_1) %% ASSUMING P is uniform throughout member
     end
     % Shear Capacity
     if strcmp(ele.type,'column')
-        [ ele_TH.Vn(i), ~ ] = fn_shear_capacity( ele_prop.Av, ele_prop.fy_e, ele_prop.d, ele_prop.S, ele_prop.lambda, ele_prop.fc_e, ele_prop.a, ele.Mmax, ele.Vmax, ele_TH.P_force_controlled(i), ele.DCR_total_raw );
+        [ ele_TH.Vn(i), ~ ] = fn_shear_capacity( ele_prop.Av, ele_prop.fy_e, ele_prop.d, ele_prop.S, ele_prop.lambda, ele_prop.fc_e, ele_prop.a, max(abs([ele_TH.M_TH_1(i),ele_TH.M_TH_2(i)])), abs(ele_TH.V_TH_1(i)), ele_TH.P_force_controlled(i), ele.DCR_total_raw );
     else
         [ ~, ele_TH.Vn(i), ~ ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_TH.P_force_controlled(i), ele_prop.Av, ele_prop.fy_e, ele_prop.S, ele_prop.lambda, ele_prop.a );
     end  
 end
-    
+
 if strcmp(ele.type,'beam')
     % Moment Capacity 
-    ele_TH.Mn = ones(1,length(ele_TH.P_force_controlled))*ele.Mn_aci_c;
+    ele_TH.Mn_pos = ones(1,length(ele_TH.P_force_controlled))*ele.Mn_aci_pos;
+    ele_TH.Mn_neg = ones(1,length(ele_TH.P_force_controlled))*ele.Mn_aci_neg;
     ele_PM = [];
 else
     % Moment Capacity 
-    ele_TH.Mn = interp1(vector_P,vector_M,ele_TH.P_force_controlled);
+    ele_TH.Mn_pos = interp1(vector_P,vector_M,ele_TH.P_force_controlled);
+    ele_TH.Mn_neg = ele_TH.Mn_pos; %assumes columns are the same in both directions
     % Save PM Structure
     ele_PM.vector_P = [-ele.Pn_aci_t, vector_P, ele.Pn_aci_c];
     ele_PM.vector_M = [0, vector_M, 0];
 end
+
 
 % End Function
 end

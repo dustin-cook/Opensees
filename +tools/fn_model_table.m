@@ -35,6 +35,7 @@ for s = 1:length(story.id)
             element.orientation(ele_id,1) = frame_line.orientation(e);
             element.story(ele_id,1) = s;
             element.type(ele_id,1) = ele.type;
+            element.trib_wt(ele_id,1) = frame_line.trib_wt(e);
             
             % Element Global Position
             ele_y_start = frame_line.y_start(e)*story.story_ht(s) + story.y_offset(s);
@@ -63,7 +64,28 @@ for s = 1:length(story.id)
             element.node_4(ele_id,1) = 0;
         end
     end
+    
+    % Assign Gravity Load to Elements
+    sum_trib_wt = sum(element.trib_wt(element.story == story.id(s)));
+    element.dead_load(element.story == story.id(s),1) = element.trib_wt(element.story == story.id(s))*story.story_dead_load(s)/sum_trib_wt;
+    element.live_load(element.story == story.id(s),1) = element.trib_wt(element.story == story.id(s))*story.story_live_load(s)/sum_trib_wt;
 end
+
+%% Calculate Total Element Gravity Load
+element.gravity_load = element.dead_load*analysis.dead_load + element.live_load*analysis.live_load;
+
+%% Assign Gravity Loads to Nodes
+node.dead_load = zeros(1,length(node.id));
+node.live_load = zeros(1,length(node.id));
+for e = 1:length(element.id)
+    node.dead_load(element.node_1(e)) = node.dead_load(element.node_1(e)) + element.dead_load(e)/2;
+    node.dead_load(element.node_2(e)) = node.dead_load(element.node_2(e)) + element.dead_load(e)/2;
+    node.live_load(element.node_1(e)) = node.live_load(element.node_1(e)) + element.live_load(e)/2;
+    node.live_load(element.node_2(e)) = node.live_load(element.node_2(e)) + element.live_load(e)/2;
+end
+
+%% Define Mass
+node.mass = node.dead_load/386;
 
 %% Assign Joints
 joint = [];
@@ -151,6 +173,9 @@ for s = 1:length(story.id)
             node.x = [node.x new_node.x];
             node.y = [node.y new_node.y];
             node.z = [node.z new_node.z];
+            node.dead_load = [node.dead_load 0 0 0 0];
+            node.live_load = [node.live_load 0 0 0 0];
+            node.mass = [node.mass 0 0 0 0];
 
         end
     end
@@ -220,48 +245,12 @@ for s = 1:length(story.id)
     end
 end
 
-%% Find first nodes in each story
+%% Find first nodes in each story and Nodes on Slab
 for s = 1:length(story.id)
-    filter = (node.x == 0 & node.y == (story.y_offset(s)+story.story_ht(s)) & node.z == 0);
-    story.first_story_node(s) = node.id(filter);
+    slab_ht = story.y_offset(s) + story.story_ht(s);
+    story.first_story_node(s) = node.id(node.x == 0 & node.y == slab_ht & node.z == 0);
+    story.nodes_on_slab{s} = node.id(node.y == slab_ht);
 end
-
-%% Assign weight to floor levels
-node.dead_load = zeros(1,length(node.id));
-node.live_load = zeros(1,length(node.id));
-node.trib_area_ratio = zeros(1,length(node.id));
-
-for i = 1:length(story.id)
-    slab_ht = story.y_offset(i) + story.story_ht(i);
-    node_filter = (node.y == slab_ht);% & (node.z ~= 450) & (node.x == 0);
-    story.nodes_on_slab{i} = node.id(node_filter);
-    
-    % Find slab extreme values
-    max_x = max(node.x(node_filter));
-    min_x = min(node.x(node_filter));
-    max_z = max(node.z(node_filter));
-    min_z = min(node.z(node_filter));
-    
-    % assign each node trib area ratio
-    for j = 1:length(story.nodes_on_slab{i})
-        n_id = story.nodes_on_slab{i}(j);
-        if (node.x(n_id) == max_x || node.x(n_id) == min_x) && (node.z(n_id) == max_z || node.z(n_id) == min_z) % Corner Slab Node
-            node.trib_area_ratio(n_id) = 0.25;
-        elseif (node.x(n_id) == max_x || node.x(n_id) == min_x) || (node.z(n_id) == max_z || node.z(n_id) == min_z) % Side Slab Node
-            node.trib_area_ratio(n_id) = 0.5;
-        else % Center Slab Node
-            node.trib_area_ratio(n_id) = 1;
-        end
-    end
-    
-    % total trib ratio
-    node.dead_load(node_filter) = node.trib_area_ratio(node_filter) * story.story_dead_load(i) / sum(node.trib_area_ratio(node_filter));
-    node.live_load(node_filter) = node.trib_area_ratio(node_filter) * story.story_live_load(i) / sum(node.trib_area_ratio(node_filter));
-
-end
-
-%% Define Mass
-node.mass = node.dead_load/386;
 
 %% Offset Mass for Accidental Torsion
 % For X direction %%%% SHOULD CHANGE INTO FUNCTION AND RUN EACH DIR
