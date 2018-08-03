@@ -36,14 +36,14 @@ if ~exist(output_dir,'dir')
 end
 
 %% Create Model Databases
-[ node, element, story, joint, hinge ] = fn_model_table( model, analysis );
+[ node, element, story, joint, hinge, truss ] = fn_model_table( model, analysis );
 % Save element and node databases
 writetable(node,[output_dir filesep 'node.csv'])
 writetable(element,[output_dir filesep 'element.csv'])
 
 %% Write TCL file
 if strcmp(model.dimension,'2D')
-    [ node ] = fn_build_model_2D( output_dir, node, element, story, joint, hinge, analysis );
+    [ node ] = fn_build_model_2D( output_dir, node, element, story, joint, hinge, analysis, truss );
 elseif strcmp(model.dimension,'3D')
     [ node ] = fn_build_model_3D( output_dir, node, element, story, joint, hinge, analysis );
 else

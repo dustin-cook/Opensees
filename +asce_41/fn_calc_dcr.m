@@ -7,14 +7,22 @@ function [ element, DCR_max_raw ] = fn_calc_dcr( element, element_TH, perform_le
 % 2. Axial compression is force controlled while axial tension is
 % deformation controlled
 
+% Initialize Variable
+DCR_M_raw_TH_1 = ones(length(element.id),length(element_TH.ele_1.M_TH_1));
+DCR_M_raw_TH_2 = ones(length(element.id),length(element_TH.ele_1.M_TH_2));
+
 for i = 1:length(element.id)
     ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
 
     %% Calculate raw DCRs
     DCR_P_raw_TH(i,:) = ele_TH.P_TH_1 ./ ele_TH.Pn;
     DCR_V_raw_TH(i,:) = ele_TH.V_TH_1 ./ ele_TH.Vn(i);
-    DCR_M_raw_TH_1(i,:) = abs(ele_TH.M_TH_1) ./ ele_TH.Mn;
-    DCR_M_raw_TH_2(i,:) = abs(ele_TH.M_TH_2) ./ ele_TH.Mn;
+    filter = (ele_TH.M_TH_1 >= 0);
+    DCR_M_raw_TH_1(i,filter) = abs(ele_TH.M_TH_1(filter)) ./ ele_TH.Mn_pos(filter);
+    DCR_M_raw_TH_1(i,~filter) = abs(ele_TH.M_TH_1(~filter)) ./ ele_TH.Mn_neg(~filter);
+    filter = (ele_TH.M_TH_2 >= 0);
+    DCR_M_raw_TH_2(i,filter) = abs(ele_TH.M_TH_2(filter)) ./ ele_TH.Mn_pos(filter);
+    DCR_M_raw_TH_2(i,~filter) = abs(ele_TH.M_TH_2(~filter)) ./ ele_TH.Mn_neg(~filter);
 
     %% Modify DCR by m factor for deformation controlled actions
     DCR_M_TH_1(i,:) = DCR_M_raw_TH_1(i,:) / element.(['m_' perform_level])(i);

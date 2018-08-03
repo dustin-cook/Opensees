@@ -1,4 +1,4 @@
-function [ node_table, ele_table, story, joint, hinge ] = fn_model_table( model, analysis )
+function [ node_table, ele_table, story, joint, hinge, truss ] = fn_model_table( model, analysis )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -24,7 +24,7 @@ ele_id = 0;
 for s = 1:length(story.id)
     story_group = story_group_table(story_group_table.story_group_id == story.story_group_id(s),:);
     for g = 1:length(story_group.id)
-        frame_line = grid_line_table((grid_line_table.grid_line_id == story_group.grid_line_id(g)) & ~strcmp(ele_props.type(grid_line_table.element_id),'wall'),:);
+        frame_line = grid_line_table((grid_line_table.grid_line_id == story_group.grid_line_id(g)) & ~strcmp(ele_props.type(grid_line_table.element_id),'wall') & ~strcmp(ele_props.type(grid_line_table.element_id),'rigid link'),:);
         for e = 1:length(frame_line.id)
             
             % Element Properties
@@ -241,6 +241,53 @@ for s = 1:length(story.id)
             [ node, id ] = node_exist( node, wall_x_start, wall_y_end, wall_z_start );
             element.node_4(ele_id,1) = node.id(id); 
             element.length(ele_id,1) = sqrt( (wall_x_end-wall_x_start)^2 + (wall_y_end-wall_y_start)^2 + (wall_z_start-wall_z_start)^2 );
+        end
+    end
+end
+
+%% Assign Truss elements
+truss_id = 0;
+for s = 1:length(story.id)
+    story_group = story_group_table(story_group_table.story_group_id == story.story_group_id(s),:);
+    for g = 1:length(story_group.id)
+        truss_line = grid_line_table((grid_line_table.grid_line_id == story_group.grid_line_id(g)) & strcmp(ele_props.type(grid_line_table.element_id),'rigid link'),:);
+        for e = 1:length(truss_line.id)
+            
+            % Element Properties
+            truss_id = truss_id + 1;
+            ele_id = ele_id + 1;
+            ele = ele_props(ele_props.id == truss_line.element_id(e),:);
+            truss.id(truss_id,1) = truss_id;
+            truss.ele_id(truss_id,1) = ele_id;
+            truss.a(truss_id,1) = ele.a;
+            truss.e(truss_id,1) = ele.e;
+            truss.story(truss_id,1) = s;
+            truss.orientation(truss_id,1) = truss_line.orientation(e);
+            truss.type{truss_id,1} = 'rigid link';
+            
+            % Element Global Position
+            ele_y_start = truss_line.y_start(e)*story.story_ht(s) + story.y_offset(s);
+            ele_y_end = truss_line.y_end(e)*story.story_ht(s) + story.y_offset(s);
+            
+            if story_group.orientation(g) == 1
+                ele_x_start = truss_line.x_start(e) + story_group.x_start(g);
+                ele_x_end = truss_line.x_end(e) + story_group.x_start(g);
+                ele_z_start = story_group.z_start(g);
+                ele_z_end = story_group.z_start(g);
+            elseif story_group.orientation(g) == 3
+                ele_x_start = story_group.x_start(g);
+                ele_x_end = story_group.x_start(g);
+                ele_z_start = truss_line.x_start(e) + story_group.z_start(g);
+                ele_z_end = truss_line.x_end(e) + story_group.z_start(g);
+            else
+                error('Grid Line Oreintation Not Valid')
+            end
+
+            % Check to see if the element nodes exists and assign
+            [ node, id ] = node_exist( node, ele_x_start, ele_y_start, ele_z_start );
+            truss.node_1(truss_id,1) = node.id(id);
+            [ node, id ] = node_exist( node, ele_x_end, ele_y_end, ele_z_end );
+            truss.node_2(truss_id,1) = node.id(id);
         end
     end
 end

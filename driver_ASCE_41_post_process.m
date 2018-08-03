@@ -7,7 +7,7 @@ clc
 %% Define Analysis and Model parameters
 analysis.model_id = 3;
 analysis.gm_id = 6;
-analysis.name = 'NL_10DL10LL';
+analysis.name = '11DL11LL';
 
 %% Import Packages
 import asce_41.*
@@ -121,6 +121,18 @@ else
     story.max_disp_x_ASCE = story.max_disp_x;
     story.max_drift_x_ASCE = story.max_drift_x;
 end
+
+%% Calculate Beam Column Strength Ratios
+for i =1:length(joint.id)
+   beam1 = max([element.Mn_aci_pos(element.node_2 == joint.x_neg(i)),element.Mn_aci_neg(element.node_2 == joint.x_neg(i))]); % Maximum of beam pos and neg nominal bending strength
+   beam2 = max([element.Mn_aci_pos(element.node_1 == joint.x_pos(i)),element.Mn_aci_neg(element.node_1 == joint.x_pos(i))]); 
+   column1 = min([element.Mn_aci_pos(element.node_2 == joint.y_neg(i)),element.Mn_aci_neg(element.node_2 == joint.y_neg(i))]); % Minimum of column pos and negative nominal moment strength
+   column2 = min([element.Mn_aci_pos(element.node_1 == joint.y_pos(i)),element.Mn_aci_neg(element.node_1 == joint.y_pos(i))]); 
+   joint.beam_strength(i) = sum([beam1,beam2]);
+   joint.column_strength(i) = sum([column1,column2]);
+   joint.col_bm_ratio(i) = joint.column_strength(i)/joint.beam_strength(i);
+end
+
 
 %% Save Data
 % remove extra data

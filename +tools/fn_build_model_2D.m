@@ -1,4 +1,4 @@
-function [ node ] = fn_build_model_2D( output_dir, node, element, story, joint, hinge, analysis )
+function [ node ] = fn_build_model_2D( output_dir, node, element, story, joint, hinge, analysis, truss )
 %UNTITLED6 Summary of this function goes here
 
 %% Load element properties table
@@ -33,7 +33,7 @@ fprintf(fileID,'geomTransf PDelta 2 \n'); % Beams (x-direction)
 % Define Elements (columns and beam)
 for i = 1:length(element.id)
     ele_props = ele_props_table(ele_props_table.id == element.ele_id(i),:);
-    % Beams, Columns and Rigid Links
+    % Beams and Columns only
     if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column') 
         if analysis.nonlinear ~= 0 % Nonlinear Analysis
             n = 10;
@@ -44,14 +44,16 @@ for i = 1:length(element.id)
             % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
             fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,element.orientation(i));
         end
-    elseif strcmp(ele_props.type,'rigid link') 
-        % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
-        fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(i),ele_props.e);
-        % element truss $eleTag $iNode $jNode $A $matTag <-rho $rho> <-cMass $cFlag> <-doRayleigh $rFlag>
-        fprintf(fileID,'element truss %i %i %i %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,element.id(i));
     end
 end
 
+% Define Truss Elements
+for i = 1:length(truss.id)
+    % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
+    fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',truss.ele_id(i),truss.e(i));
+    % element truss $eleTag $iNode $jNode $A $matTag <-rho $rho> <-cMass $cFlag> <-doRayleigh $rFlag>
+    fprintf(fileID,'element truss %i %i %i %f %i \n',truss.ele_id(i),truss.node_1(i),truss.node_2(i),truss.a(i),truss.ele_id(i));
+end
 
 % % Define Materials
 % %uniaxialMaterial Elastic $matTag $E
