@@ -1,4 +1,4 @@
-function [ ground_motion ] = fn_define_loads( output_dir, analysis, damp_ratio, node, dimension, num_stories )
+function [ ground_motion ] = fn_define_loads( output_dir, analysis, node, dimension, num_stories, element_ids )
 %UNTITLED8 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -79,9 +79,16 @@ fprintf(fileID,'}\n');
 fprintf(fileID,'puts $period(1) \n');
 fprintf(fileID,'puts $period(2) \n');
 fprintf(fileID,'puts $period(3) \n');
-fprintf(fileID,'set alpha [expr 2.0*%d*(1.0-$omega(1))/(1.0/$omega(1) - $omega(1)/($omega(3)*$omega(3)))]\n', damp_ratio);
-fprintf(fileID,'set beta [expr 2.0*%d - $alpha/($omega(3)*$omega(3))]\n', damp_ratio);
+fprintf(fileID,'set alpha [expr 2.0*%d*(1.0-$omega(1))/(1.0/$omega(1) - $omega(1)/($omega(3)*$omega(3)))]\n', analysis.damp_ratio);
+if analysis.nonlinear == 0
+    fprintf(fileID,'set beta [expr 2.0*%d - $alpha/($omega(3)*$omega(3))]\n', analysis.damp_ratio);
+else
+    % Modify Stiffness Proportional Coefficient for Nonlinear hinge model according to Ibbara 2005
+    stiffness_mod = (analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod;
+    fprintf(fileID,'set beta [expr (2.0*%d - $alpha/($omega(3)*$omega(3)))*%d] \n', analysis.damp_ratio, stiffness_mod);
+end
 
+% SDOF Damping
 % fprintf(fileID,'set lambda [eigen -fullGenLapack 1] \n');
 % fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
 % fprintf(fileID,'set omega [expr sqrt($lambda)] \n');
@@ -91,9 +98,13 @@ fprintf(fileID,'set beta [expr 2.0*%d - $alpha/($omega(3)*$omega(3))]\n', damp_r
 % fprintf(fileID,'set beta [expr %d/$omega] \n', damp_ratio);
 
 if strcmp(analysis.damping,'rayleigh')
-    fprintf(fileID,'rayleigh $alpha 0.0 $beta 0.0 \n'); 
+    % region $regTag <-ele ($ele1 $ele2 ...)> <-eleOnly ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-eleOnlyRange $startEle $endEle> <-node ($node1 $node2 ...)> <-nodeOnly ($node1 $node2 ...)> <-nodeRange $startNode $endNode> <-nodeOnlyRange $startNode $endNode> <-node all> <-rayleigh $alphaM $betaK $betaKinit $betaKcomm>
+    % rayleigh $alphaM $betaK $betaKinit $betaKcomm
+    fprintf(fileID,'region 1 -ele %s -rayleigh 0.0 0.0 $beta 0.0 \n', num2str(element_ids)); % Assign Stiffnes Proportional Damping to the elastic elements
+    fprintf(fileID,'region 2 -node %s -rayleigh $alpha 0.0 0.0 0.0 \n', num2str(node.id(node.mass > 0)')); % Assign Mass Proportional Damping to the whole model (only triggers where there is mass)
+%     fprintf(fileID,'rayleigh $alpha 0.0 $beta 0.0 \n'); 
 elseif strcmp(analysis.damping,'modal')
-    fprintf(fileID,'modalDamping %d \n',damp_ratio);
+    fprintf(fileID,'modalDamping %d \n',analysis.damp_ratio);
 %     fprintf(fileID,'rayleigh 0.0 $beta 0.0 0.0 \n');
 else
     error('Damping Type Not Recognized')

@@ -22,16 +22,17 @@ if strcmp(dimension,'3D')
 end
 
 %% Define Element Recorders
-% Beams, Columns and Walls
-for i=1:length(element.id)
-    if strcmp(element.type{i},'wall')
-        % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
-        fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d Force \n', output_dir, element.id(i), element.id(i));
-    else
-        % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
-        fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d localForce \n', output_dir, element.id(i), element.id(i));
-    end
+% Walls
+wall_elements = element.id(strcmp(element.type,'wall'))';
+if ~isempty(wall_elements)
+    % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
+    fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d Force \n', output_dir, 'walls', num2str(wall_elements));
 end
+
+% Beams and Columns
+not_wall_elements =  element.id(~strcmp(element.type,'wall'))';
+% recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
+fprintf(fileID,'recorder Element -file %s/element_force_%s.txt -ele %s localForce \n', output_dir, 'beams_and_columns', num2str(not_wall_elements));
 
 % Hinges
 if isfield(hinge,'id')

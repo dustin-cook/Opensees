@@ -37,12 +37,17 @@ element = element_table(ismember(element_table.type,{'beam','column'}) & element
 [ dirs_ran, ground_motion ] = fn_load_gm_data( ground_motion_seq, gm_table );
 
 % Load element force data
+beam_column_force_TH = dlmread([output_dir filesep 'element_force_beams_and_columns.txt'],' ');
+if exist([output_dir filesep 'element_force_walls.txt'],'file')
+    wall_force_TH = dlmread([output_dir filesep 'element_force_walls.txt'],' ');
+end
+
 for i = 1:length(element.id)
-    ele_force_TH = dlmread([output_dir filesep ['element_force_' num2str(element.id(i)) '.txt']],' ');
-    ele_force_max_abs = max(abs(ele_force_TH));
-    ele_force_max = max(ele_force_TH);
-    ele_force_min = min(ele_force_TH);
     if length(dirs_ran) == 1 % 2D
+        ele_force_TH = beam_column_force_TH(:,((i-1)*6+1):(i*6));
+        ele_force_max_abs = max(abs(ele_force_TH));
+        ele_force_max = max(ele_force_TH);
+        ele_force_min = min(ele_force_TH);
         element_TH.(['ele_' num2str(element.id(i))]).P_TH_1 = ele_force_TH(:,1)';
         element_TH.(['ele_' num2str(element.id(i))]).P_TH_2 = ele_force_TH(:,4)';
         element_TH.(['ele_' num2str(element.id(i))]).V_TH_1 = ele_force_TH(:,2)';
@@ -55,6 +60,10 @@ for i = 1:length(element.id)
         element.Vmax(i) = max(abs([ele_force_max_abs(2),ele_force_max_abs(5)]),[],2);
         element.Mmax(i) = max(abs([ele_force_max_abs(3),ele_force_max_abs(6)]),[],2);
     elseif length(dirs_ran) == 3 % 3D
+        ele_force_TH = beam_column_force_TH(:,((i-1)*12+1):(i*12));
+        ele_force_max_abs = max(abs(ele_force_TH));
+        ele_force_max = max(ele_force_TH);
+        ele_force_min = min(ele_force_TH);
         element_TH.(['ele_' num2str(element.id(i))]).P_TH_1 = ele_force_TH(:,1)';
         element_TH.(['ele_' num2str(element.id(i))]).V_TH_1 = ele_force_TH(:,2)';
         element_TH.(['ele_' num2str(element.id(i))]).M_TH_1 = ele_force_TH(:,6)';
@@ -67,6 +76,9 @@ for i = 1:length(element.id)
     end
 end
     
+% clear raw opesees data
+clear beam_column_force_TH
+
 % Load hinge moment and rotation
 if analysis.nonlinear ~= 0
     hinge.rotation = max(abs(dlmread([output_dir filesep 'hinge_rotation_all.txt'],' ')));

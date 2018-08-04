@@ -9,7 +9,6 @@ story_dead_load = [2200 2325 2325 2325 2325 1900]*1000;
 story_live_load = [128, 128, 128, 128, 128, 51]*1000;
 bay_length.x = [300 300 300 300 300];
 bay_length.z = [0];
-damp_ratio = 0.05;
 foundation = 'fix';
 dims = '2D';
 hazus_class_1 = 'C2';

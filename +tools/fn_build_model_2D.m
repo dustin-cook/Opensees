@@ -36,8 +36,7 @@ for i = 1:length(element.id)
     % Beams and Columns only
     if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column') 
         if analysis.nonlinear ~= 0 % Nonlinear Analysis
-            n = 10;
-            Iz_ele = ele_props.iz*((n+1)/n); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
+            Iz_ele = ele_props.iz*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
             % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
             fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,Iz_ele,element.orientation(i));
         else
@@ -87,8 +86,8 @@ if isfield(hinge,'id')
         ele_props = ele_props_table(ele_props_table.id == ele_lin.ele_id,:);
         % Hinge Stiffnes Calc from appendix B of Ibarra and Krawinkler 2005
         k_mem = 6*(ele_props.e*ele_props.iz)/ele.length; 
-        k_ele = ((n+1)/n)*k_mem; 
-        k_spring = n*k_ele;
+        k_ele = ((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod)*k_mem; 
+        k_spring = analysis.hinge_stiff_mod*k_ele;
         if analysis.nonlinear == 1 % IMK Rotational Hinge
             theta_pc = (ele_lin.b_hinge - ele_lin.a_hinge)/2;
             theta_u_pos = ele_lin.Mn_aci_pos/k_spring + ele_lin.b_hinge;

@@ -18,6 +18,8 @@ analysis.dead_load = 1.1;
 analysis.live_load = 1.1;
 analysis.accidental_torsion = 0;
 analysis.damping = 'rayleigh';
+analysis.damp_ratio = 0.05;
+analysis.hinge_stiff_mod = 10;
 
 tic
 %% Initial Setup
@@ -50,7 +52,7 @@ else
     error('Number of Dimensions Not Recognized')
 end
 fn_define_recorders( output_dir, model.dimension, node.id', element, hinge )
-[ground_motion] = fn_define_loads( output_dir, analysis, model.damp_ratio, node, model.dimension, length(story.id));
+[ground_motion] = fn_define_loads( output_dir, analysis, node, model.dimension, length(story.id), element.id');
 fn_eigen_analysis( output_dir, analysis.time_step, story.first_story_node, length(story.id))
 fn_define_analysis( output_dir, analysis, node.id, ground_motion )
 
