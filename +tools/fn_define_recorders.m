@@ -1,4 +1,4 @@
-function [ ] = fn_define_recorders( output_dir, dimension, nodes, element, hinge )
+function [ ] = fn_define_recorders( analysis, output_dir, dimension, nodes, element, hinge )
 %UNTITLED7 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -42,17 +42,18 @@ if isfield(hinge,'id')
 end
 
 %% Movie Recorders
-fprintf(fileID,'recorder display "Displaced shape" 10 10 500 500 -wipe \n');
-fprintf(fileID,'prp 200.0 50.0 50.0; \n');
-fprintf(fileID,'vup 0.0 1.0 0.0; \n');
-if strcmp(dimension,'2D')
-    fprintf(fileID,'vpn 0.0 0.0 1.0; \n');
-else
-    fprintf(fileID,'vpn 0.4 0.25 1; \n');
+if analysis.display_movie
+    fprintf(fileID,'recorder display "Displaced shape" 10 10 500 500 -wipe \n');
+    fprintf(fileID,'prp 200.0 50.0 50.0; \n');
+    fprintf(fileID,'vup 0.0 1.0 0.0; \n');
+    if strcmp(dimension,'2D')
+        fprintf(fileID,'vpn 0.0 0.0 1.0; \n');
+    else
+        fprintf(fileID,'vpn 0.4 0.25 1; \n');
+    end
+    %     fprintf(fileID,'viewWindow -1000 1000 -1000 1000 \n');
+    fprintf(fileID,'display 1 5 40 \n');
 end
-%     fprintf(fileID,'viewWindow -1000 1000 -1000 1000 \n');
-fprintf(fileID,'display 1 5 40 \n');
-
 % Close File
 fclose(fileID);
 

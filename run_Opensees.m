@@ -5,21 +5,22 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 6;
-analysis.gm_seq_id = 10;
-analysis.name = 'scale_4';
+analysis.model_id = 3;
+analysis.gm_seq_id = 6;
+analysis.name = 'test';
 
 % Secondary Inputs
 analysis.type = 3;
 analysis.max_disp = 7;
 analysis.time_step = 0.005;
-analysis.nonlinear = 2;
+analysis.nonlinear = 0;
 analysis.dead_load = 1.0;
 analysis.live_load = 0;
 analysis.accidental_torsion = 0;
 analysis.damping = 'rayleigh';
-analysis.damp_ratio = 0.01;
+analysis.damp_ratio = 0.05;
 analysis.hinge_stiff_mod = 10;
+analysis.display_movie = 0;
 
 tic
 %% Initial Setup
@@ -51,7 +52,7 @@ elseif strcmp(model.dimension,'3D')
 else
     error('Number of Dimensions Not Recognized')
 end
-fn_define_recorders( output_dir, model.dimension, node.id', element, hinge )
+fn_define_recorders( analysis, output_dir, model.dimension, node.id', element, hinge )
 [ground_motion] = fn_define_loads( output_dir, analysis, node, model.dimension, length(story.id), element.id');
 % fn_eigen_analysis( output_dir, analysis.time_step, story.first_story_node, length(story.id))
 fn_define_analysis( output_dir, analysis, node.id, ground_motion )
