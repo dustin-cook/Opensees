@@ -47,11 +47,13 @@ for i = 1:length(element.id)
 end
 
 % Define Truss Elements
-for i = 1:length(truss.id)
-    % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
-    fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',truss.ele_id(i),truss.e(i));
-    % element truss $eleTag $iNode $jNode $A $matTag <-rho $rho> <-cMass $cFlag> <-doRayleigh $rFlag>
-    fprintf(fileID,'element truss %i %i %i %f %i \n',truss.ele_id(i),truss.node_1(i),truss.node_2(i),truss.a(i),truss.ele_id(i));
+if isfield(truss,'id')
+    for i = 1:length(truss.id)
+        % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
+        fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',truss.ele_id(i),truss.e(i));
+        % element truss $eleTag $iNode $jNode $A $matTag <-rho $rho> <-cMass $cFlag> <-doRayleigh $rFlag>
+        fprintf(fileID,'element truss %i %i %i %f %i \n',truss.ele_id(i),truss.node_1(i),truss.node_2(i),truss.a(i),truss.ele_id(i));
+    end
 end
 
 % % Define Materials

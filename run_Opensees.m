@@ -5,20 +5,20 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 3;
-analysis.gm_seq_id = 6;
-analysis.name = '11DL11LL';
+analysis.model_id = 6;
+analysis.gm_seq_id = 10;
+analysis.name = 'scale_4';
 
 % Secondary Inputs
 analysis.type = 3;
 analysis.max_disp = 7;
-analysis.time_step = 0.01;
-analysis.nonlinear = 0;
-analysis.dead_load = 1.1;
-analysis.live_load = 1.1;
+analysis.time_step = 0.005;
+analysis.nonlinear = 2;
+analysis.dead_load = 1.0;
+analysis.live_load = 0;
 analysis.accidental_torsion = 0;
 analysis.damping = 'rayleigh';
-analysis.damp_ratio = 0.05;
+analysis.damp_ratio = 0.01;
 analysis.hinge_stiff_mod = 10;
 
 tic
@@ -53,7 +53,7 @@ else
 end
 fn_define_recorders( output_dir, model.dimension, node.id', element, hinge )
 [ground_motion] = fn_define_loads( output_dir, analysis, node, model.dimension, length(story.id), element.id');
-fn_eigen_analysis( output_dir, analysis.time_step, story.first_story_node, length(story.id))
+% fn_eigen_analysis( output_dir, analysis.time_step, story.first_story_node, length(story.id))
 fn_define_analysis( output_dir, analysis, node.id, ground_motion )
 
 %% Run Opensees

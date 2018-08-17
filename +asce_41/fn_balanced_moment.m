@@ -1,26 +1,13 @@
-function [ M_bal, row_bal ] = fn_balanced_moment( fc, fy, b, d, As_d )
+function [ row_bal ] = fn_balanced_moment( fc, fy )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
 %% Assumptions
-% 1. Does not consider axial loads (ie only for beams)
-% 2. Assumes only 1 row of tension steel
-% 3. Concrete yeild at 0.003 and steel yeild at 0.00207 strain
+% 1. Based on EQ B-1 of ACI 318-11
+% 3. Assumes Concrete at 0.002 strain and Steel at ey
 
-%% Maniluptae String Vector Properties to Arrays
-As_d = str2double(strsplit(strrep(strrep(As_d{1},'[',''),']',''),','));
-
-%% Calculate depth of nuetral axis
-d_prime = max(As_d);
-c = d_prime*(0.003)/(0.003 + 0.00207);
-a = 0.85*c;
-
-%% Calculate total tenstion steel for balanced moment
-As_bal = (0.85)*a*b*(fc/fy);
-row_bal = As_bal/(b*d);
-
-%% Calculate Balanced Moment capacity
-M_bal = As_bal*fy*(d_prime - a/2);
+%% Calculate total balanced reinforcemnt ratio accoding to EQ B-1 of ACI 318-11
+row_bal = (0.85*0.85*fc/fy)*(87000/(87000+fy));
 
 end
 

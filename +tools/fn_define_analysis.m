@@ -36,7 +36,7 @@ fprintf(fileID,'wipe \n');
 
 % Build Model and Analysis Parameters
 fprintf(fileID,'source %s/model.tcl \n', output_dir);
-fprintf(fileID,'source %s/eigen.tcl \n', output_dir);
+% fprintf(fileID,'source %s/eigen.tcl \n', output_dir);
 fprintf(fileID,'source %s/loads.tcl \n', output_dir);
 fprintf(fileID,'source %s/recorders.tcl \n', output_dir);
 
@@ -53,10 +53,10 @@ fprintf(fileID,'numberer RCM \n');
 fprintf(fileID,'system BandGeneral \n');
 
 % Test for Convergence
-fprintf(fileID,'test NormDispIncr 1.0e-5 1000 \n');
+fprintf(fileID,'test NormDispIncr 1.0e-4 10000 \n');
 
 % Define Solution Algorithm
-fprintf(fileID,'algorithm Linear \n');
+fprintf(fileID,'algorithm Newton \n');
 % fprintf(fileID,'algorithm KrylovNewton \n');
 
 % Define Each Load Step

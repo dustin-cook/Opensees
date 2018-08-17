@@ -5,9 +5,9 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 3;
-analysis.gm_id = 6;
-analysis.name = '11DL11LL';
+analysis.model_id = 6;
+analysis.gm_id = 9;
+analysis.name = 'scale_1';
 
 %% Import Packages
 import tools.*
@@ -84,8 +84,8 @@ if analysis.nonlinear ~= 0
     hinge.rotation = max(abs(dlmread([output_dir filesep 'hinge_rotation_all.txt'],' ')));
 end
 
-% Load Period data
-periods = dlmread([output_dir filesep 'period.txt']);
+% % Load Period data
+% periods = dlmread([output_dir filesep 'period.txt']);
 
 % Perform calcs For each direction
 for i = 1:length(dirs_ran)
@@ -108,22 +108,22 @@ for i = 1:length(dirs_ran)
     [ story.(['max_accel_' dirs_ran(i)]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' dirs_ran(i) '_abs']), story, 0 );
     [ story.(['max_drift_' dirs_ran(i)]) ] = fn_drift_profile( node.(['disp_' dirs_ran(i) '_TH']), story );
     
-    % Load Mode shape data
-    if strcmp(dirs_ran(i),'x')
-        % Save periods
-        model.(['T1_' dirs_ran(i)]) = periods(1);
-        % Save mode shapes
-        mode_shape_raw = dlmread([output_dir filesep ['mode_shape_1.txt']]);
-        mode_shape_norm = mode_shape_raw(1:2:end)/mode_shape_raw(end-1); % Extract odd rows and normalize by roof
-        story.(['mode_shape_x']) = mode_shape_norm';
-    elseif strcmp(dirs_ran(i),'z')
-        % Save periods
-        model.(['T1_' dirs_ran(i)]) = periods(2);
-        % Save mode shapes
-        mode_shape_raw = dlmread([output_dir filesep ['mode_shape_2.txt']]);
-        mode_shape_norm = mode_shape_raw(1:2:end)/mode_shape_raw(end-1); % Extract odd rows and normalize by roof
-        story.(['mode_shape_z']) = mode_shape_norm';
-    end
+%     % Load Mode shape data
+%     if strcmp(dirs_ran(i),'x')
+%         % Save periods
+%         model.(['T1_' dirs_ran(i)]) = periods(1);
+%         % Save mode shapes
+%         mode_shape_raw = dlmread([output_dir filesep ['mode_shape_1.txt']]);
+%         mode_shape_norm = mode_shape_raw(1:2:end)/mode_shape_raw(end-1); % Extract odd rows and normalize by roof
+%         story.(['mode_shape_x']) = mode_shape_norm';
+%     elseif strcmp(dirs_ran(i),'z')
+%         % Save periods
+%         model.(['T1_' dirs_ran(i)]) = periods(2);
+%         % Save mode shapes
+%         mode_shape_raw = dlmread([output_dir filesep ['mode_shape_2.txt']]);
+%         mode_shape_norm = mode_shape_raw(1:2:end)/mode_shape_raw(end-1); % Extract odd rows and normalize by roof
+%         story.(['mode_shape_z']) = mode_shape_norm';
+%     end
 end
 
 %% Save element Data

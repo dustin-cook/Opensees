@@ -75,14 +75,14 @@ end
 element.gravity_load = element.dead_load*analysis.dead_load + element.live_load*analysis.live_load;
 
 %% Assign Gravity Loads to Nodes
-node.dead_load = zeros(1,length(node.id));
-node.live_load = zeros(1,length(node.id));
-for e = 1:length(element.id)
-    node.dead_load(element.node_1(e)) = node.dead_load(element.node_1(e)) + element.dead_load(e)/2;
-    node.dead_load(element.node_2(e)) = node.dead_load(element.node_2(e)) + element.dead_load(e)/2;
-    node.live_load(element.node_1(e)) = node.live_load(element.node_1(e)) + element.live_load(e)/2;
-    node.live_load(element.node_2(e)) = node.live_load(element.node_2(e)) + element.live_load(e)/2;
-end
+node.dead_load = [0 element.gravity_load];%zeros(1,length(node.id));
+node.live_load = [0 0];%zeros(1,length(node.id));
+% for e = 1:length(element.id)
+%     node.dead_load(element.node_1(e)) = node.dead_load(element.node_1(e)) + element.dead_load(e)/2;
+%     node.dead_load(element.node_2(e)) = node.dead_load(element.node_2(e)) + element.dead_load(e)/2;
+%     node.live_load(element.node_1(e)) = node.live_load(element.node_1(e)) + element.live_load(e)/2;
+%     node.live_load(element.node_2(e)) = node.live_load(element.node_2(e)) + element.live_load(e)/2;
+% end
 
 %% Define Mass
 node.mass = node.dead_load/386;
@@ -246,6 +246,7 @@ for s = 1:length(story.id)
 end
 
 %% Assign Truss elements
+truss = [];
 truss_id = 0;
 for s = 1:length(story.id)
     story_group = story_group_table(story_group_table.story_group_id == story.story_group_id(s),:);

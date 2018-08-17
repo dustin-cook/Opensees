@@ -4,8 +4,8 @@ clc
 
 %% INPUTS
 model_name = 'rob_sdof';
-story_ht = [240];
-story_dead_load = [48]*1000;
+story_ht = [120];
+story_dead_load = [67.2]*1000;
 story_live_load = [0]*1000;
 bay_length.x = [0];
 bay_length.z = [0];

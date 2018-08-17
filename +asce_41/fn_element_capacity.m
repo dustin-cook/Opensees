@@ -58,7 +58,7 @@ else
 end
 
 % Balanced Moment Capcity and Reinforcement Ratio
-[ ~, ele.row_bal ] = fn_balanced_moment( ele_prop.fc_e, ele_prop.fy_e, ele_prop.w, ele_prop.d, ele_prop.As_d );
+[ ele.row_bal ] = fn_balanced_moment( ele_prop.fc_e, ele_prop.fy_e );
 
 % Determin Flexure v Shear Critical
 [ ele ] = fn_element_critical_mode( ele );
