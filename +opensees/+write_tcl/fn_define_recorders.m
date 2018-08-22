@@ -1,4 +1,5 @@
 function [ ] = fn_define_recorders( output_dir, dimension, nodes, element, hinge, analysis )
+
 %UNTITLED7 Summary of this function goes here
 %   Detailed explanation goes here
 
