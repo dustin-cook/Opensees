@@ -1,0 +1,7 @@
+id,description,ele_id,x_start,x_end,z_start,z_end,y_start,y_end
+1,rigid link beam - story 1,1,1500,1600,0,0,174,174
+2,rigid link beam - story 2,1,1500,1600,0,0,336,336
+3,rigid link beam - story 3,1,1500,1600,0,0,498,498
+4,rigid link beam - story 4,1,1500,1600,0,0,660,660
+5,rigid link beam - story 4,1,1500,1600,0,0,822,822
+6,rigid link beam - story 6,1,1500,1600,0,0,980,980
