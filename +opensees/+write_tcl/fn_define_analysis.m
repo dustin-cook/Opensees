@@ -36,7 +36,9 @@ fprintf(fileID,'wipe \n');
 
 % Build Model and Analysis Parameters
 fprintf(fileID,'source %s/model.tcl \n', output_dir);
-% fprintf(fileID,'source %s/eigen.tcl \n', output_dir);
+if analysis.run_eigen
+    fprintf(fileID,'source %s/eigen.tcl \n', output_dir);
+end
 fprintf(fileID,'source %s/loads.tcl \n', output_dir);
 fprintf(fileID,'source %s/recorders.tcl \n', output_dir);
 
@@ -56,6 +58,7 @@ fprintf(fileID,'system BandGeneral \n');
 fprintf(fileID,'test NormDispIncr 1.0e-4 10000 \n');
 
 % Define Solution Algorithm
+% fprintf(fileID,'algorithm Linear \n');
 fprintf(fileID,'algorithm Newton \n');
 % fprintf(fileID,'algorithm KrylovNewton \n');
 

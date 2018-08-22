@@ -1,4 +1,4 @@
-function [ ] = fn_define_recorders( output_dir, dimension, nodes, element, hinge )
+function [ ] = fn_define_recorders( output_dir, dimension, nodes, element, hinge, analysis )
 %UNTITLED7 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -35,23 +35,25 @@ not_wall_elements =  element.id(~strcmp(element.type,'wall'))';
 fprintf(fileID,'recorder Element -file %s/element_force_%s.txt -ele %s localForce \n', output_dir, 'beams_and_columns', num2str(not_wall_elements));
 
 % Hinges
-if isfield(hinge,'id')
+if exist('hinge','var')
     % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
     fprintf(fileID,'recorder Element -file %s/hinge_moment_all.txt -eleRange %d %d force \n', output_dir, element.id(end)+1, element.id(end)+hinge.id(end));
     fprintf(fileID,'recorder Element -file %s/hinge_rotation_all.txt -eleRange %d %d deformation \n', output_dir, element.id(end)+1, element.id(end)+hinge.id(end));
 end
 
 %% Movie Recorders
-fprintf(fileID,'recorder display "Displaced shape" 10 10 500 500 -wipe \n');
-fprintf(fileID,'prp 200.0 50.0 50.0; \n');
-fprintf(fileID,'vup 0.0 1.0 0.0; \n');
-if strcmp(dimension,'2D')
-    fprintf(fileID,'vpn 0.0 0.0 1.0; \n');
-else
-    fprintf(fileID,'vpn 0.4 0.25 1; \n');
+if analysis.play_movie
+    fprintf(fileID,'recorder display "Displaced shape" 10 10 500 500 -wipe \n');
+    fprintf(fileID,'prp 200.0 50.0 50.0; \n');
+    fprintf(fileID,'vup 0.0 1.0 0.0; \n');
+    if strcmp(dimension,'2D')
+        fprintf(fileID,'vpn 0.0 0.0 1.0; \n');
+    else
+        fprintf(fileID,'vpn 0.4 0.25 1; \n');
+    end
+    %     fprintf(fileID,'viewWindow -1000 1000 -1000 1000 \n');
+    fprintf(fileID,'display 1 5 40 \n');
 end
-%     fprintf(fileID,'viewWindow -1000 1000 -1000 1000 \n');
-fprintf(fileID,'display 1 5 40 \n');
 
 % Close File
 fclose(fileID);

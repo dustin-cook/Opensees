@@ -1,4 +1,4 @@
-function [ node ] = fn_build_model_2D( output_dir, node, element, story, joint, hinge, analysis, truss )
+function [ node ] = fn_build_model_2D( output_dir, node, element, joint, hinge, analysis, truss )
 %UNTITLED6 Summary of this function goes here
 
 %% Load element properties table
@@ -18,7 +18,7 @@ end
 
 % set boundary conditions at each node (6dof) (fix = 1, free = 0)
 for i = 1:length(node.id)
-    fprintf(fileID,'fix %d %d %d %d \n',node.id(i),node.fix{i}(1),node.fix{i}(2),node.fix{i}(6));
+    fprintf(fileID,'fix %d %s %s %s \n',node.id(i),node.fix{i}(2),node.fix{i}(3),node.fix{i}(7));
 end
 
 % define nodal masses (horizontal) (k-s2/in)
@@ -31,24 +31,29 @@ fprintf(fileID,'geomTransf PDelta 1 \n'); % Columns
 fprintf(fileID,'geomTransf PDelta 2 \n'); % Beams (x-direction)
 
 % Define Elements (columns and beam)
-for i = 1:length(element.id)
+for i = 1:height(element)
     ele_props = ele_props_table(ele_props_table.id == element.ele_id(i),:);
     % Beams and Columns only
     if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column') 
+        if strcmp(ele_props.type,'column')
+            geotransf = 1;
+        elseif strcmp(ele_props.type,'beam')
+            geotransf = 2;
+        end
         if analysis.nonlinear ~= 0 % Nonlinear Analysis
             Iz_ele = ele_props.iz*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
             % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-            fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,Iz_ele,element.orientation(i));
+            fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,Iz_ele,geotransf);
         else
             % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-            fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,element.orientation(i));
+            fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
         end
     end
 end
 
 % Define Truss Elements
-if isfield(truss,'id')
-    for i = 1:length(truss.id)
+if exist('truss','var')
+    for i = 1:height(truss)
         % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
         fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',truss.ele_id(i),truss.e(i));
         % element truss $eleTag $iNode $jNode $A $matTag <-rho $rho> <-cMass $cFlag> <-doRayleigh $rFlag>
@@ -67,8 +72,8 @@ end
 % end
 
 % Define Joints as rigid beam-column elements
-if isfield(joint,'id')
-    for i = 1:length(joint.id)
+if exist('joint','var')
+    for i = 1:height(joint)
         % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
         fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 2 \n',joint.id(i)*10+1,joint.x_neg(i),joint.center(i));
         fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 2 \n',joint.id(i)*10+2,joint.center(i),joint.x_pos(i));
@@ -78,19 +83,19 @@ if isfield(joint,'id')
 end
 
 % Define Plastic Hinges
-if isfield(hinge,'id')
-    % Load linear element table
-    ele_lin_table = readtable([output_dir filesep 'element_linear.csv'],'ReadVariableNames',true);
+if exist('hinge','var')
     for i = 1:length(hinge.id)
         element.id(end + 1) = element.id(end) + 1;
         ele = element(element.id == hinge.element_id(i),:);
-        ele_lin = ele_lin_table(ele_lin_table.id == hinge.element_id(i),:);
-        ele_props = ele_props_table(ele_props_table.id == ele_lin.ele_id,:);
+        ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
         % Hinge Stiffnes Calc from appendix B of Ibarra and Krawinkler 2005
         k_mem = 6*(ele_props.e*ele_props.iz)/ele.length; 
         k_ele = ((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod)*k_mem; 
         k_spring = analysis.hinge_stiff_mod*k_ele;
         if analysis.nonlinear == 1 % IMK Rotational Hinge
+            % Load linear element table
+            ele_lin_table = readtable([output_dir filesep 'element_linear.csv'],'ReadVariableNames',true);
+            ele_lin = ele_lin_table(ele_lin_table.id == hinge.element_id(i),:);
             theta_pc = (ele_lin.b_hinge - ele_lin.a_hinge)/2;
             theta_u_pos = ele_lin.Mn_aci_pos/k_spring + ele_lin.b_hinge;
             theta_u_neg = ele_lin.Mn_aci_neg/k_spring + ele_lin.b_hinge;
@@ -109,7 +114,7 @@ if isfield(hinge,'id')
             fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 3 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
             fprintf(fileID,'equalDOF %i %i 1 2 \n',hinge.node_1(i),hinge.node_2(i));
         elseif analysis.nonlinear == 2 % Elastic Perfectly Plastic Rotational Hinges
-            epsy = min([ele_lin.Mn_aci_pos,ele_lin.Mn_aci_neg])/k_spring;
+            epsy = 6.33*min([ele.Mn_aci_pos,ele.Mn_aci_neg])/k_spring;
             %uniaxialMaterial ElasticPP $matTag $E $epsyP
             fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end), k_spring, epsy); % Elastic Perfectly Plastic Material
             %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
