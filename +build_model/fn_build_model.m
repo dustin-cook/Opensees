@@ -80,17 +80,29 @@ element.gravity_load = element.dead_load*analysis.dead_load + element.live_load*
 node.dead_load = zeros(length(node.id),1);
 node.live_load = zeros(length(node.id),1);
 for e = 1:length(element.id)
-    node.dead_load(element.node_1(e)) = node.dead_load(element.node_1(e)) + element.dead_load(e)/2;
-    node.dead_load(element.node_2(e)) = node.dead_load(element.node_2(e)) + element.dead_load(e)/2;
-    node.live_load(element.node_1(e)) = node.live_load(element.node_1(e)) + element.live_load(e)/2;
-    node.live_load(element.node_2(e)) = node.live_load(element.node_2(e)) + element.live_load(e)/2;
+    if strcmp(element.type{e},'wall')
+        node.dead_load(element.node_3(e)) = node.dead_load(element.node_3(e)) + element.dead_load(e)/2;
+        node.dead_load(element.node_4(e)) = node.dead_load(element.node_4(e)) + element.dead_load(e)/2;
+        node.live_load(element.node_3(e)) = node.live_load(element.node_3(e)) + element.live_load(e)/2;
+        node.live_load(element.node_4(e)) = node.live_load(element.node_4(e)) + element.live_load(e)/2;
+    else
+        node.dead_load(element.node_1(e)) = node.dead_load(element.node_1(e)) + element.dead_load(e)/2;
+        node.dead_load(element.node_2(e)) = node.dead_load(element.node_2(e)) + element.dead_load(e)/2;
+        node.live_load(element.node_1(e)) = node.live_load(element.node_1(e)) + element.live_load(e)/2;
+        node.live_load(element.node_2(e)) = node.live_load(element.node_2(e)) + element.live_load(e)/2;
+    end
 end
 
 %% Define Mass
 node.mass = node.dead_load/386;
 
 %% Assign Joints
-joint = [];
+joint.id = [];
+joint.x_neg = [];
+joint.x_pos = [];
+joint.y_neg = [];
+joint.y_pos = [];
+joint.center = [];
 joint_id = 0;
 for s = 1:height(story)
     story_node = node.id(node.y == (story.y_start(s)+story.story_ht(s)));
@@ -200,59 +212,6 @@ for e = 1:length(element.id)
     ele_z_start = node.z(node.id == element.node_1(e));
     element.length(e,1) = sqrt( (ele_x_end-ele_x_start)^2 + (ele_y_end-ele_y_start)^2 + (ele_z_end-ele_z_start)^2 );
 end
-
-% %% Assign Walls
-% for s = 1:height(story)
-%     story_group = story_group_table(story_group_table.story_group_id == story.story_group_id(s),:);
-%     for g = 1:length(story_group.id)
-%         wall_line = element_group_table((element_group_table.grid_line_id == story_group.grid_line_id(g)) & strcmp(ele_props.type(element_group_table.element_id),'wall'),:);
-%         for w = 1:length(wall_line.id)
-%             
-%             % Element Properties
-%             ele_id = ele_id + 1;
-%             ele = ele_props(ele_props.id == wall_line.element_id(w),:);
-%             element.id(ele_id,1) = ele_id;
-%             element.ele_id(ele_id,1) = ele.id;
-%             element.orientation(ele_id,1) = 0;
-%             element.story(ele_id,1) = s;
-%             element.type{ele_id,1} = 'wall';
-%             
-%             % Element Global Position
-%             wall_y_start = wall_line.y_start(w)*story.story_ht(s) + story.y_start(s);
-%             wall_y_end = wall_line.y_end(w)*story.story_ht(s) + story.y_start(s);
-%             
-%             if story_group.orientation(g) == 1
-%                 wall_x_start = wall_line.x_start(w) + story_group.x_start(g);
-%                 wall_x_end = wall_line.x_end(w) + story_group.x_start(g);
-%                 wall_z_start = story_group.z_start(g);
-%                 wall_z_end = story_group.z_start(g);
-%             elseif story_group.orientation(g) == 3
-%                 wall_x_start = story_group.x_start(g);
-%                 wall_x_end = story_group.x_start(g);
-%                 if s == 1
-%                 wall_z_start = wall_line.x_start(w) + story_group.z_start(g);
-%                 wall_z_end = wall_line.x_end(w) + story_group.z_start(g);
-%                 else
-%                 wall_z_start = wall_line.x_start(w) + story_group.z_start(g);
-%                 wall_z_end = wall_line.x_end(w) + story_group.z_start(g);
-%                 end
-%             else
-%                 error('Grid Line Oreintation Not Valid')
-%             end
-% 
-%             % Check to see if the wall nodes exist and assign nodes
-%             [ node, id ] = node_exist( node, wall_x_start, wall_y_start, wall_z_start );
-%             element.node_1(ele_id,1) = node.id(id); 
-%             [ node, id ] = node_exist( node, wall_x_end, wall_y_start, wall_z_end );
-%             element.node_2(ele_id,1) = node.id(id); 
-%             [ node, id ] = node_exist( node, wall_x_end, wall_y_end, wall_z_end );
-%             element.node_3(ele_id,1) = node.id(id); 
-%             [ node, id ] = node_exist( node, wall_x_start, wall_y_end, wall_z_start );
-%             element.node_4(ele_id,1) = node.id(id); 
-%             element.length(ele_id,1) = sqrt( (wall_x_end-wall_x_start)^2 + (wall_y_end-wall_y_start)^2 + (wall_z_start-wall_z_start)^2 );
-%         end
-%     end
-% end
 
 %% Assign Additional Elements
 truss.id = [];
@@ -386,7 +345,10 @@ foundation_nodes_id = node.id(node.y == 0);
 node.fix(foundation_nodes_id,:) = {'[111111]'}; % foundation nodes
 
 %% Create Nonlinear Rotational Springs at ends of all beams and columns
-hinge = [];
+hinge.id = [];
+hinge.element_id = [];
+hinge.node_1 = [];
+hinge.node_2 = [];
 hinge_id = 0;
 if analysis.nonlinear ~= 0
     % Define Hinges
@@ -400,8 +362,6 @@ if analysis.nonlinear ~= 0
             [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_2', i, hinge_id, foundation_nodes_id );
         end
     end
-    hinge_table = struct2table(hinge);
-    writetable(hinge_table,[output_dir filesep 'hinge.csv'])
     
     %% Calculate the intial (zero axial load) Moment Capacity of Each element in the model
     for e = 1:length(element.id)
@@ -439,6 +399,8 @@ joint_table = struct2table(joint);
 writetable(joint_table,[output_dir filesep 'joint.csv'])
 truss_table = struct2table(truss);
 writetable(truss_table,[output_dir filesep 'truss.csv'])
+hinge_table = struct2table(hinge);
+writetable(hinge_table,[output_dir filesep 'hinge.csv'])
 
 end
 

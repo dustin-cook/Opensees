@@ -86,7 +86,7 @@ fprintf(fileID,'set singularity_check 1 \n');
 fprintf(fileID,'} \n');
 fprintf(fileID,'puts "Singularity = $singularity_check" \n');
 % Check for Collapse
-fprintf(fileID,'if {$floor_drift_1 > %f} { \n', 0.1);
+fprintf(fileID,'if {$floor_drift_1 > %f} { \n', 0.2);
 fprintf(fileID,'set collapse_check 1 \n');
 fprintf(fileID,'} \n');
 fprintf(fileID,'puts "Collapse = $collapse_check" \n');

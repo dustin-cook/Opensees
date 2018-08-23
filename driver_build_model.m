@@ -5,11 +5,11 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 7;
+analysis.model_id = 8;
 analysis.name = 'test';
 
 % Secondary Inputs
-analysis.nonlinear = 2;
+analysis.nonlinear = 0;
 analysis.dead_load = 1.0;
 analysis.live_load = 0;
 analysis.accidental_torsion = 0;

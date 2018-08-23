@@ -22,11 +22,7 @@ element = readtable([output_dir filesep 'element.csv'],'ReadVariableNames',true)
 story = readtable([output_dir filesep 'story.csv'],'ReadVariableNames',true);
 joint = readtable([output_dir filesep 'joint.csv'],'ReadVariableNames',true);
 truss = readtable([output_dir filesep 'truss.csv'],'ReadVariableNames',true);
-if analysis.nonlinear == 0
-    hinge = [];
-else
-    hinge = readtable([output_dir filesep 'hinge.csv'],'ReadVariableNames',true);
-end
+hinge = readtable([output_dir filesep 'hinge.csv'],'ReadVariableNames',true);
 
 %% Write TCL file
 [ node, ground_motion ] = main_write_tcl( model, output_dir, node, element, story, joint, hinge, analysis, truss );

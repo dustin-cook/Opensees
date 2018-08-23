@@ -30,10 +30,10 @@ end
 fprintf(fileID,'geomTransf PDelta 1 \n'); % Columns
 fprintf(fileID,'geomTransf PDelta 2 \n'); % Beams (x-direction)
 
-% Define Elements (columns and beam)
+% Define Elements
 for i = 1:height(element)
     ele_props = ele_props_table(ele_props_table.id == element.ele_id(i),:);
-    % Beams and Columns only
+    % Beams and Columns
     if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column') 
         if strcmp(ele_props.type,'column')
             geotransf = 1;
@@ -48,6 +48,11 @@ for i = 1:height(element)
             % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
             fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
         end
+    % Assign walls (assign as beam columns for now
+    elseif strcmp(ele_props.type,'wall')
+        % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
+        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_4(i),ele_props.a,ele_props.e,ele_props.iz,1);
+        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i)+1000,element.node_2(i),element.node_3(i),ele_props.a,ele_props.e,ele_props.iz,1);
     end
 end
 
@@ -84,7 +89,7 @@ end
 
 % Define Plastic Hinges
 if exist('hinge','var')
-    for i = 1:length(hinge.id)
+    for i = 1:height(hinge)
         element.id(end + 1) = element.id(end) + 1;
         ele = element(element.id == hinge.element_id(i),:);
         ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
@@ -114,7 +119,7 @@ if exist('hinge','var')
             fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 3 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
             fprintf(fileID,'equalDOF %i %i 1 2 \n',hinge.node_1(i),hinge.node_2(i));
         elseif analysis.nonlinear == 2 % Elastic Perfectly Plastic Rotational Hinges
-            epsy = 6.33*min([ele.Mn_aci_pos,ele.Mn_aci_neg])/k_spring;
+            epsy = 6.5*min([ele.Mn_aci_pos,ele.Mn_aci_neg])/k_spring;
             %uniaxialMaterial ElasticPP $matTag $E $epsyP
             fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end), k_spring, epsy); % Elastic Perfectly Plastic Material
             %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2

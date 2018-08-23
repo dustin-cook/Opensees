@@ -34,7 +34,7 @@ element.direction{ele_id,1} = direction;
 element.story(ele_id,1) = story_props.id;
 element.type(ele_id,1) = ele.type;
 
-% Check to see if the element nodes exists and assign
+% Define element locations
 if strcmp(direction,'x')
     ele_x_start = ele_prim_start;
     ele_x_end = ele_prim_end;
@@ -49,12 +49,24 @@ else
     error('Invalid Element Group Direction')
 end
     
-[ node, id ] = node_exist( node, ele_x_start, ele_y_start, ele_z_start );
-element.node_1(ele_id,1) = node.id(id);
-[ node, id ] = node_exist( node, ele_x_end, ele_y_end, ele_z_end );
-element.node_2(ele_id,1) = node.id(id);
-element.node_3(ele_id,1) = 0;
-element.node_4(ele_id,1) = 0;
+% Assign nodes to elements (create nodes if they do not already exist)
+if strcmp(ele_type,'wall')
+    [ node, id ] = node_exist( node, ele_x_start, ele_y_start, ele_z_start );
+    element.node_1(ele_id,1) = node.id(id);
+    [ node, id ] = node_exist( node, ele_x_end, ele_y_start, ele_z_end );
+    element.node_2(ele_id,1) = node.id(id);
+    [ node, id ] = node_exist( node, ele_x_end, ele_y_end, ele_z_end );
+    element.node_3(ele_id,1) = node.id(id);
+    [ node, id ] = node_exist( node, ele_x_start, ele_y_end, ele_z_start );
+    element.node_4(ele_id,1) = node.id(id);
+else
+    [ node, id ] = node_exist( node, ele_x_start, ele_y_start, ele_z_start );
+    element.node_1(ele_id,1) = node.id(id);
+    [ node, id ] = node_exist( node, ele_x_end, ele_y_end, ele_z_end );
+    element.node_2(ele_id,1) = node.id(id);
+    element.node_3(ele_id,1) = 0;
+    element.node_4(ele_id,1) = 0;
+end
 
 end
 
