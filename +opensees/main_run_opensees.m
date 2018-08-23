@@ -3,7 +3,12 @@ function [ ] = main_run_opensees( output_dir )
 
 %% Run Opensees
 command = ['opensees ' output_dir filesep 'run_analysis.tcl'];
-system(command);
+[status,cmdout] = system(command,'-echo');
+
+% test for analysis failure and terminate Matlab
+if contains(cmdout,'Analysis Failure:')
+    error('Opensees Failed to Converge')
+end
 
 end
 

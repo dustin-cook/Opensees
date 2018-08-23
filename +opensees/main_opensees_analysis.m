@@ -32,9 +32,11 @@ end
 [ node, ground_motion ] = main_write_tcl( model, output_dir, node, element, story, joint, hinge, analysis, truss );
 
 %% Run Opensees
-tic
-main_run_opensees( output_dir )
-toc
+if analysis.run_opensees
+    tic
+    main_run_opensees( output_dir )
+    toc
+end
 
 %% Postprocess OS data
 main_post_process_opensees( analysis, model, story, node, element, ground_motion, output_dir )

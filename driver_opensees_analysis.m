@@ -22,6 +22,7 @@ analysis.damp_ratio = 0.05;
 analysis.hinge_stiff_mod = 10;
 analysis.play_movie = 1;
 analysis.run_eigen = 1;
+analysis.run_opensees = 1;
 
 %% Initial Setup
 import opensees.main_opensees_analysis
