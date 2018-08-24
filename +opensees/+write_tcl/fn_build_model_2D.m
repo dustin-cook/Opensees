@@ -53,6 +53,7 @@ for i = 1:height(element)
         % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
         fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_4(i),ele_props.a,ele_props.e,ele_props.iz,1);
         fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i)+1000,element.node_2(i),element.node_3(i),ele_props.a,ele_props.e,ele_props.iz,1);
+        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i)+2000,element.node_3(i),element.node_4(i),ele_props.a,ele_props.e,ele_props.iz,2);
     end
 end
 
@@ -130,7 +131,7 @@ if exist('hinge','var')
 end
 
 % Print model to file 
-fprintf(fileID,'print -file %s/model.txt \n',output_dir);
+% fprintf(fileID,'print -file %s/model.txt \n',output_dir);
 
 % Close File
 fclose(fileID);

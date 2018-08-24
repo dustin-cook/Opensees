@@ -23,6 +23,8 @@ analysis.hinge_stiff_mod = 10;
 analysis.play_movie = 1;
 analysis.run_eigen = 0;
 analysis.run_opensees = 1;
+analysis.initial_timestep_factor = 1;
+analysis.solution_algorithm = 0;
 
 %% Initial Setup
 import opensees.main_opensees_analysis

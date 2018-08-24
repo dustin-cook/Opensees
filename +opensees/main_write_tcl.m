@@ -17,6 +17,6 @@ fn_define_recorders( output_dir, model.dimension, node.id', element, hinge, anal
 first_story_node = node.id(node.primary_story == 1);
 fn_eigen_analysis( output_dir, analysis.time_step, first_story_node', length(story.id))
 fn_setup_dynamic_analysis( output_dir, analysis )
-fn_define_analysis( output_dir, ground_motion, first_story_node, story.story_ht )
+fn_define_analysis( output_dir, ground_motion, first_story_node, story.story_ht, analysis )
 end
 

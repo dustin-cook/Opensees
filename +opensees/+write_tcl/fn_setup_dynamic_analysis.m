@@ -29,15 +29,15 @@ fprintf(fileID,'numberer RCM \n');
 % Construct Linear Solver and linear SOE Objects
 fprintf(fileID,'system BandGeneral \n');
 
-% Test for Convergence
+% Define Each Load Step
+fprintf(fileID,'integrator Newmark 0.5 0.25 \n');
+
+% Convergence test
 tolerance = 1e-6;
 fprintf(fileID,'test NormDispIncr %f 1000 \n',tolerance);
 
-% Define Solution Algorithm
-fprintf(fileID,'algorithm NewtonLineSearch \n');
-
-% Define Each Load Step
-fprintf(fileID,'integrator Newmark 0.5 0.25 \n');
+% Define analysis type
+fprintf(fileID,'algorithm Newton \n');
 
 % Define analysis type
 fprintf(fileID,'analysis Transient \n');

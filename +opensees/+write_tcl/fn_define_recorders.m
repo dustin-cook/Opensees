@@ -26,8 +26,10 @@ end
 % Walls
 wall_elements = element.id(strcmp(element.type,'wall'))';
 if ~isempty(wall_elements)
+%     wall_elements = [1 1001 2 1002 3 1003];
     % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
-    fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d Force \n', output_dir, 'walls', num2str(wall_elements));
+%     fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d Force \n', output_dir, 'walls', num2str(wall_elements));
+    fprintf(fileID,'recorder Element -file %s/element_force_%s.txt -ele %s localForce \n', output_dir, 'walls', num2str(wall_elements));
 end
 
 % Beams and Columns
