@@ -25,7 +25,8 @@ elseif strcmp(ele_type,'beam')
 elseif strcmp(ele_type,'wall')
     ele = ele_props(ele_props.id == element_group.wall_id,:);
     element.trib_wt(ele_id,1) = story_group.trib_wt;
-    ele_prim_end = story_group.([direction '_start']) + story_props.(['bay_coor_' direction]){1}(start_bay + 1);
+    ele_prim_end = ele_prim_start;
+%     ele_prim_end = story_group.([direction '_start']) + story_props.(['bay_coor_' direction]){1}(start_bay + 1);
 end
 
 % General Element Properties
@@ -50,23 +51,23 @@ else
 end
     
 % Assign nodes to elements (create nodes if they do not already exist)
-if strcmp(ele_type,'wall')
-    [ node, id ] = node_exist( node, ele_x_start, ele_y_start, ele_z_start );
-    element.node_1(ele_id,1) = node.id(id);
-    [ node, id ] = node_exist( node, ele_x_end, ele_y_start, ele_z_end );
-    element.node_2(ele_id,1) = node.id(id);
-    [ node, id ] = node_exist( node, ele_x_end, ele_y_end, ele_z_end );
-    element.node_3(ele_id,1) = node.id(id);
-    [ node, id ] = node_exist( node, ele_x_start, ele_y_end, ele_z_start );
-    element.node_4(ele_id,1) = node.id(id);
-else
+% if strcmp(ele_type,'wall')
+%     [ node, id ] = node_exist( node, ele_x_start, ele_y_start, ele_z_start );
+%     element.node_1(ele_id,1) = node.id(id);
+%     [ node, id ] = node_exist( node, ele_x_end, ele_y_start, ele_z_end );
+%     element.node_2(ele_id,1) = node.id(id);
+%     [ node, id ] = node_exist( node, ele_x_end, ele_y_end, ele_z_end );
+%     element.node_3(ele_id,1) = node.id(id);
+%     [ node, id ] = node_exist( node, ele_x_start, ele_y_end, ele_z_start );
+%     element.node_4(ele_id,1) = node.id(id);
+% else
     [ node, id ] = node_exist( node, ele_x_start, ele_y_start, ele_z_start );
     element.node_1(ele_id,1) = node.id(id);
     [ node, id ] = node_exist( node, ele_x_end, ele_y_end, ele_z_end );
     element.node_2(ele_id,1) = node.id(id);
     element.node_3(ele_id,1) = 0;
     element.node_4(ele_id,1) = 0;
-end
+% end
 
 end
 

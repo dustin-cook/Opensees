@@ -51,9 +51,26 @@ for i = 1:height(element)
     % Assign walls (assign as beam columns for now
     elseif strcmp(ele_props.type,'wall')
         % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_4(i),ele_props.a,ele_props.e,ele_props.iz,1);
-        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i)+1000,element.node_2(i),element.node_3(i),ele_props.a,ele_props.e,ele_props.iz,1);
-        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i)+2000,element.node_3(i),element.node_4(i),ele_props.a,ele_props.e,ele_props.iz,2);
+        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,1);
+
+%         % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
+%         fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(i),ele_props.e*0.4);
+%         % section Fiber $secTag <-GJ $GJ> {
+%         fprintf(fileID,'section Fiber %i { \n',element.id(i));
+%             % patch rect $matTag $numSubdivY $numSubdivZ $yI $zI $yJ $zJ
+%             fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n',element.id(i),10,10,-150,-ele_props.w/2,150,ele_props.w/2);
+%         fprintf(fileID,'} \n');
+%         
+%         % element forceBeamColumn $eleTag $iNode $jNode $numIntgrPts $secTag $transfTag <-mass $massDens> <-iter $maxIters $tol> <-integration $intType>
+%         fprintf(fileID,'element forceBeamColumn %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),5,element.id(i),1);  
+
+%         % nDMaterial ElasticIsotropic $matTag $E $v <$rho>
+%         fprintf(fileID,'nDMaterial ElasticIsotropic %i %f %f \n',element.id(i),ele_props.e,ele_props.poisson_ratio);
+%         % section PlateFiber $secTag $matTag $h
+%         fprintf(fileID,'section PlateFiber %i %i %f \n',element.id(i),element.id(i),12);
+%         % element ShellMITC4 $eleTag $iNode $jNode $kNode $lNode $secTag
+%         fprintf(fileID,'element ShellMITC4 %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),element.node_3(i),element.node_4(i),element.id(i));
+%     
     end
 end
 

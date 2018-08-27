@@ -81,10 +81,12 @@ node.dead_load = zeros(length(node.id),1);
 node.live_load = zeros(length(node.id),1);
 for e = 1:length(element.id)
     if strcmp(element.type{e},'wall')
-        node.dead_load(element.node_3(e)) = node.dead_load(element.node_3(e)) + element.dead_load(e)/2;
-        node.dead_load(element.node_4(e)) = node.dead_load(element.node_4(e)) + element.dead_load(e)/2;
-        node.live_load(element.node_3(e)) = node.live_load(element.node_3(e)) + element.live_load(e)/2;
-        node.live_load(element.node_4(e)) = node.live_load(element.node_4(e)) + element.live_load(e)/2;
+        node.dead_load(element.node_2(e)) = node.dead_load(element.node_2(e)) + element.dead_load(e);
+        node.live_load(element.node_2(e)) = node.live_load(element.node_2(e)) + element.live_load(e);
+%         node.dead_load(element.node_3(e)) = node.dead_load(element.node_3(e)) + element.dead_load(e)/2;
+%         node.dead_load(element.node_4(e)) = node.dead_load(element.node_4(e)) + element.dead_load(e)/2;
+%         node.live_load(element.node_3(e)) = node.live_load(element.node_3(e)) + element.live_load(e)/2;
+%         node.live_load(element.node_4(e)) = node.live_load(element.node_4(e)) + element.live_load(e)/2;
     else
         node.dead_load(element.node_1(e)) = node.dead_load(element.node_1(e)) + element.dead_load(e)/2;
         node.dead_load(element.node_2(e)) = node.dead_load(element.node_2(e)) + element.dead_load(e)/2;

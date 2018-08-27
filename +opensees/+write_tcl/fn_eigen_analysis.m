@@ -16,7 +16,7 @@ fprintf(fileID,'recorder Node -file %s/mode_shape_2.txt -dT %f -node %s -dof 1 3
 
 % Perform Eigen Analysis
 fprintf(fileID,'set numModes %i \n',min([6,num_stories]));
-fprintf(fileID,'set lambda [eigen -genBandArpack $numModes] \n');
+fprintf(fileID,'set lambda [eigen -fullGenLapack $numModes] \n');
 fprintf(fileID,'set T {}\n');
 fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
 fprintf(fileID,'foreach lam $lambda {\n');

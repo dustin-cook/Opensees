@@ -10,10 +10,13 @@ time_step_reduce = dlmread([output_dir filesep 'final_time_step_reduction.txt'])
 % Load Period data
 periods = dlmread([output_dir filesep 'period.txt']);
 % Load element force data
-beam_column_force_TH = dlmread([output_dir filesep 'element_force_beams_and_columns.txt'],' ');
-if exist([output_dir filesep 'element_force_walls.txt'],'file')
-    wall_force_TH = dlmread([output_dir filesep 'element_force_walls.txt'],' ');
-end
+element_force_recorders = dlmread([output_dir filesep 'element_force.txt'],' ');
+% if exist([output_dir filesep 'element_force_beams_and_columns.txt'],'file')
+%     beam_column_force_TH = dlmread([output_dir filesep 'element_force_beams_and_columns.txt'],' ');
+% end
+% if exist([output_dir filesep 'element_force_walls.txt'],'file')
+%     wall_force_TH = dlmread([output_dir filesep 'element_force_walls.txt'],' ');
+% end
 
 % Ground mottion data
 dirs_ran = fieldnames(ground_motion);
@@ -21,7 +24,7 @@ dirs_ran = fieldnames(ground_motion);
 % Element Forces
 for i = 1:length(element.id)
     if length(dirs_ran) == 1 % 2D
-        ele_force_TH = beam_column_force_TH(:,((i-1)*6+1):(i*6));
+        ele_force_TH = element_force_recorders(:,((i-1)*6+1):(i*6));
         ele_force_max_abs = max(abs(ele_force_TH));
         ele_force_max = max(ele_force_TH);
         ele_force_min = min(ele_force_TH);
@@ -54,7 +57,7 @@ for i = 1:length(element.id)
 end
     
 % clear raw opesees data
-clear beam_column_force_TH
+clear element_force_recorders
 
 % Load hinge moment and rotation
 if analysis.nonlinear ~= 0

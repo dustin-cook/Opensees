@@ -23,19 +23,23 @@ if strcmp(dimension,'3D')
 end
 
 %% Define Element Recorders
-% Walls
-wall_elements = element.id(strcmp(element.type,'wall'))';
-if ~isempty(wall_elements)
-%     wall_elements = [1 1001 2 1002 3 1003];
-    % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
-%     fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d Force \n', output_dir, 'walls', num2str(wall_elements));
-    fprintf(fileID,'recorder Element -file %s/element_force_%s.txt -ele %s localForce \n', output_dir, 'walls', num2str(wall_elements));
-end
-
-% Beams and Columns
-not_wall_elements =  element.id(~strcmp(element.type,'wall'))';
 % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
-fprintf(fileID,'recorder Element -file %s/element_force_%s.txt -ele %s localForce \n', output_dir, 'beams_and_columns', num2str(not_wall_elements));
+fprintf(fileID,'recorder Element -file %s/element_force.txt -ele %s localForce \n', output_dir, num2str(element.id'));
+    
+% % Walls
+% wall_elements = element.id(strcmp(element.type,'wall'))';
+% if ~isempty(wall_elements)
+%     % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
+% %     fprintf(fileID,'recorder Element -file %s/element_force_%d.txt -ele %d Force \n', output_dir, 'walls', num2str(wall_elements));
+%     fprintf(fileID,'recorder Element -file %s/element_force_%s.txt -ele %s localForce \n', output_dir, 'walls', num2str(wall_elements));
+% end
+% 
+% % Beams and Columns
+% not_wall_elements =  element.id(~strcmp(element.type,'wall'))';
+% if ~isempty(not_wall_elements)
+%     % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
+%     fprintf(fileID,'recorder Element -file %s/element_force_%s.txt -ele %s localForce \n', output_dir, 'beams_and_columns', num2str(not_wall_elements));
+% end
 
 % Hinges
 if analysis.nonlinear ~= 0
