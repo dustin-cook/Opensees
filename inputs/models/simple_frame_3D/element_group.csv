@@ -1,0 +1,3 @@
+id,description,col_id,beam_id,wall_id,num_bays
+1,simple frame,6,12,0,1
+2,simple frame,0,0,19,1

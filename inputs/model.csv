@@ -7,3 +7,4 @@ id,name,dimension,foundation,hazus_class_x,hazus_class_z,vs30,site_class,tar
 6,rob_sdof,2D,fix,NA,NA,0,D,0
 7,simple_frame_2D,2D,fix,NA,NA,0,D,0
 8,simple_wall_2D,2D,fix,NA,NA,0,D,0
+9,simple_frame_3D,3D,fix,NA,NA,0,D,0
