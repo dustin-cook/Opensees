@@ -18,7 +18,7 @@ end
 
 % set boundary conditions at each node (6dof) (fix = 1, free = 0)
 for i = 1:length(node.id)
-    fprintf(fileID,'fix %d %d %d %d %d %d %d \n',node.id(i),node.fix{i}(1),node.fix{i}(2),node.fix{i}(3),node.fix{i}(4),node.fix{i}(5),node.fix{i}(6));
+    fprintf(fileID,'fix %d %s %s %s %s %s %s \n',node.id(i),node.fix{i}(2),node.fix{i}(3),node.fix{i}(4),node.fix{i}(5),node.fix{i}(6),node.fix{i}(7));
 end
 
 % define nodal masses (horizontal) (k-s2/in)
@@ -29,28 +29,65 @@ end
 % Linear Transformation
 fprintf(fileID,'geomTransf PDelta 1 0 0 1 \n'); % Columns
 fprintf(fileID,'geomTransf PDelta 2 0 0 1 \n'); % Beams (x-direction)
-fprintf(fileID,'geomTransf PDelta 3 -1 0 0 \n'); % Girders (y-direction)
-fprintf(fileID,'geomTransf PDelta 4 1 0 0 \n'); % Columns (y-direction)
+fprintf(fileID,'geomTransf PDelta 3 -1 0 0 \n'); % Girders (z-direction)
+fprintf(fileID,'geomTransf PDelta 4 1 0 0 \n'); % Columns (z-direction)
 
 % Define Elements
-for i = 1:length(element.id)
+for i = 1:height(element)
     ele_props = ele_props_table(ele_props_table.id == element.ele_id(i),:);
-    % Beams, Columns and Rigid Links
-    if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column') || strcmp(ele_props.type,'rigid link') 
-        % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
-        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,element.orientation(i));
-    % Walls
+    try
+    test = strcmp(ele_props.type,'column') || strcmp(ele_props.type,'wall');
+    catch
+        test2 = 5;
+    end
+    if strcmp(ele_props.type,'column') || strcmp(ele_props.type,'wall')
+        if strcmp(element.direction{i},'x')
+            geotransf = 1;
+        elseif strcmp(element.direction{i},'z')
+            geotransf = 4;
+        end
+    elseif strcmp(ele_props.type,'beam')
+        if strcmp(element.direction{i},'x')
+            geotransf = 2;
+        elseif strcmp(element.direction{i},'z')
+            geotransf = 3;
+        end
+    end
+    
+    % Beams and Columns
+    if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column') 
+        if analysis.nonlinear ~= 0 % Nonlinear Analysis
+            Iz_ele = ele_props.iz*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
+            Iy_ele = ele_props.iy*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod);
+            % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
+            fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,Iy_ele,Iz_ele,geotransf);
+        else
+            % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
+            fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,geotransf);
+        end
+    % Assign walls (assign as beam columns for now
     elseif strcmp(ele_props.type,'wall')
-        %uniaxialMaterial Elastic $matTag $E
-%         fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',i,ele_props.e);
-        %section ElasticMembranePlateSection $secTag $E $nu $h $rho
-        fprintf(fileID,'section ElasticMembranePlateSection %i %f %f %f 0.0 \n',i,ele_props.e,ele_props.poisson_ratio,ele_props.w); %Elastic Wall Section
-        %section Elastic $secTag $E $A $Iz $Iy $G $J <$alphaY $alphaZ>
-%         fprintf(fileID,'section Elastic %i %f %f %f %f %f %f \n',i,ele_props.e,ele_props.a,ele_props.iz,ele_props.iy,ele_props.g,ele_props.j);
-        %element ShellMITC4 $eleTag $iNode $jNode $kNode $lNode $secTag
-        fprintf(fileID,'element ShellMITC4 %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),element.node_3(i),element.node_4(i),i); % Model Wall as shell
-        %element quad $eleTag $iNode $jNode $kNode $lNode $thick $type $matTag <$pressure $rho $b1 $b2>
-%         fprintf(fileID,'element quad %i %i %i %i %i %f PlaneStress %i \n',element.id(i),element.node_1(i),element.node_2(i),element.node_3(i),element.node_4(i),ele_props.w,i);
+        % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
+%         fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,1);
+
+        % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
+        fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(i),ele_props.e*0.5);
+        % section Fiber $secTag <-GJ $GJ> {
+        fprintf(fileID,'section Fiber %i { \n',element.id(i));
+            % patch rect $matTag $numSubdivY $numSubdivZ $yI $zI $yJ $zJ
+            fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n',element.id(i),10,10,-ele_props.d/2,-ele_props.w/2,ele_props.d/2,ele_props.w/2);
+        fprintf(fileID,'} \n');
+        
+        % element forceBeamColumn $eleTag $iNode $jNode $numIntgrPts $secTag $transfTag <-mass $massDens> <-iter $maxIters $tol> <-integration $intType>
+        fprintf(fileID,'element forceBeamColumn %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),5,element.id(i),geotransf);  
+
+%         % nDMaterial ElasticIsotropic $matTag $E $v <$rho>
+%         fprintf(fileID,'nDMaterial ElasticIsotropic %i %f %f \n',element.id(i),ele_props.e,ele_props.poisson_ratio);
+%         % section PlateFiber $secTag $matTag $h
+%         fprintf(fileID,'section PlateFiber %i %i %f \n',element.id(i),element.id(i),12);
+%         % element ShellMITC4 $eleTag $iNode $jNode $kNode $lNode $secTag
+%         fprintf(fileID,'element ShellMITC4 %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),element.node_3(i),element.node_4(i),element.id(i));
+%     
     end
 end
 
@@ -65,8 +102,8 @@ end
 % end
 
 % Define Joints as rigid beam-column elements
-if isfield(joint,'id')
-    for i = 1:length(joint.id)
+if exist('joint','var')
+    for i = 1:height(joint)
         % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
         fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*10+1,joint.x_neg(i),joint.center(i));
         fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*10+2,joint.center(i),joint.x_pos(i));
@@ -78,8 +115,9 @@ if isfield(joint,'id')
 end
 
 % Define Rigid Slabs
-for i = 1:length(story.id)
-    fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(story.nodes_on_slab{i}));
+for i = 1:height(story)
+    nodes_at_story = node.id(node.story == story.id(i))';
+    fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(nodes_at_story));
 end
 
 % Define Plastic Hinges
@@ -99,9 +137,9 @@ if isfield(hinge,'id')
         end
     end
 end
-
-% Print model to file 
-fprintf(fileID,'print -file %s/model.txt \n',output_dir);
+% 
+% % Print model to file 
+% fprintf(fileID,'print -file %s/model.txt \n',output_dir);
 
 % Close File
 fclose(fileID);

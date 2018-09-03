@@ -29,13 +29,8 @@ for s = 1:height(story)
     story.bay_coor_z{s} = bay_coor_z;
 end
 
-% Define first node
-node.id = 1;
-node.x = 0;
-node.y = 0;
-node.z = 0;
-
 %% Assign Elements
+node = [];
 element = [];
 ele_id = 0;
 for s = 1:height(story)
@@ -204,6 +199,30 @@ for s = 1:height(story)
     end
 end
 
+%% Assign Additional Elements
+for ae = 1:height(additional_elements)
+    % Element Properties
+    ele_id = ele_id + 1;
+    ele = ele_props(ele_props.id == additional_elements.ele_id(ae),:);
+    element.id(ele_id,1) = ele_id;
+    element.trib_wt(ele_id,1) = 0;
+    element.ele_id(ele_id,1) = ele.id;
+    element.direction{ele_id,1} = additional_elements.direction{ae};
+    element.story(ele_id,1) = 0;
+    element.type{ele_id,1} = ele.type;
+    element.dead_load(ele_id,1) = 0;
+    element.live_load(ele_id,1) = 0;
+    element.gravity_load(ele_id,1) = 0;
+    
+    % Check to see if the element nodes exists and assign
+    [ node, id ] = node_exist( node, additional_elements.x_start(ae), additional_elements.y_start(ae), additional_elements.z_start(ae) );
+    element.node_1(ele_id,1) = node.id(id);
+    [ node, id ] = node_exist( node, additional_elements.x_end(ae), additional_elements.y_end(ae), additional_elements.z_end(ae) );
+    element.node_2(ele_id,1) = node.id(id);
+    element.node_3(ele_id,1) = 0;
+    element.node_4(ele_id,1) = 0;
+end
+
 %% Find Element Lengths 
 for e = 1:length(element.id)
     ele_x_end = node.x(node.id == element.node_2(e));
@@ -213,33 +232,6 @@ for e = 1:length(element.id)
     ele_z_end = node.z(node.id == element.node_2(e));
     ele_z_start = node.z(node.id == element.node_1(e));
     element.length(e,1) = sqrt( (ele_x_end-ele_x_start)^2 + (ele_y_end-ele_y_start)^2 + (ele_z_end-ele_z_start)^2 );
-end
-
-%% Assign Additional Elements
-truss.id = [];
-truss.ele_id = [];
-truss.a = [];
-truss.e = [];
-truss.type = [];
-truss.node_1 = [];
-truss.node_2 = [];
-truss_id = 0;
-for ae = 1:height(additional_elements)
-    % Element Properties
-    truss_id = truss_id + 1;
-    ele_id = ele_id + 1;
-    ele = ele_props(ele_props.id == additional_elements.ele_id(ae),:);
-    truss.id(truss_id,1) = truss_id;
-    truss.ele_id(truss_id,1) = ele_id;
-    truss.a(truss_id,1) = ele.a;
-    truss.e(truss_id,1) = ele.e;
-    truss.type{truss_id,1} = 'rigid link';
-    
-    % Check to see if the element nodes exists and assign
-    [ node, id ] = node_exist( node, additional_elements.x_start(ae), additional_elements.y_start(ae), additional_elements.z_start(ae) );
-    truss.node_1(truss_id,1) = node.id(id);
-    [ node, id ] = node_exist( node, additional_elements.x_end(ae), additional_elements.y_end(ae), additional_elements.z_end(ae) );
-    truss.node_2(truss_id,1) = node.id(id);     
 end
 
 %% Find first nodes in each story and Nodes on Slab
@@ -399,8 +391,6 @@ ele_table = struct2table(element);
 writetable(ele_table,[output_dir filesep 'element.csv'])
 joint_table = struct2table(joint);
 writetable(joint_table,[output_dir filesep 'joint.csv'])
-truss_table = struct2table(truss);
-writetable(truss_table,[output_dir filesep 'truss.csv'])
 hinge_table = struct2table(hinge);
 writetable(hinge_table,[output_dir filesep 'hinge.csv'])
 

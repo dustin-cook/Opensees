@@ -5,7 +5,7 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 8;
+analysis.model_id = 4;
 analysis.name = 'test';
 
 % Secondary Inputs

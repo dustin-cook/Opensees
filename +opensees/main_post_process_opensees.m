@@ -40,7 +40,7 @@ for i = 1:length(element.id)
         element.Vmax(i) = max(abs([ele_force_max_abs(2),ele_force_max_abs(5)]),[],2);
         element.Mmax(i) = max(abs([ele_force_max_abs(3),ele_force_max_abs(6)]),[],2);
     elseif length(dirs_ran) == 3 % 3D
-        ele_force_TH = beam_column_force_TH(:,((i-1)*12+1):(i*12));
+        ele_force_TH = element_force_recorders(:,((i-1)*12+1):(i*12));
         ele_force_max_abs = max(abs(ele_force_TH));
         ele_force_max = max(ele_force_TH);
         ele_force_min = min(ele_force_TH);
