@@ -10,7 +10,7 @@ function [ hinge ] = fn_col_hinge( ele, ele_props )
 %% Calculate terms
 p_ratio = ele.Pmax/(ele_props.a*ele_props.fc_e);
 
-v_ratio = max([ele.Vn_aci/ele.V0 , 0.2]);
+v_ratio = max([ele.vye/ele.V0 , 0.2]);
 
 row_t = ele_props.Av/(ele_props.w*ele_props.S);
 As_tot = sum(str2num(strrep(strrep(ele_props.As{1},']',''),'[','')));

@@ -17,7 +17,7 @@ end
 [ ~, ~, ~, ele.Pn_aci_t ] = fn_aci_axial_capacity( ele_prop.fc_e, ele_prop.a, ele_prop.As, ele_prop.fy_e );
 
 % Shear capacity per ASCE 41
-[ ele.Vn, ele.V0 ] = fn_shear_capacity( ele_prop.Av, ele_prop.fy_e, ele_prop.d, ele_prop.S, ele_prop.lambda, ele_prop.fc_e, ele_prop.a, ele.Mmax, ele.Vmax, ele.Pmax, ele.DCR_total_raw );
+[ ele.Vn, ele.V0 ] = fn_shear_capacity( ele_prop.Av, ele_prop.fy_e, ele_prop.As_d, ele_prop.S, ele_prop.lambda, ele_prop.fc_e, ele_prop.a, ele.Mmax, ele.Vmax, ele.Pmax, ele.DCR_total_raw );
 
 % Shear Capacity per ACI
 [ ~, ele.Vn_aci, ele.Vs_aci ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele.Pmax, ele_prop.Av, ele_prop.fy_e, ele_prop.S, ele_prop.lambda, ele_prop.a );
@@ -75,7 +75,7 @@ for i = 1:length(ele_TH.P_TH_1) %% ASSUMING P is uniform throughout member
     end
     % Shear Capacity
     if strcmp(ele.type,'column')
-        [ ele_TH.Vn(i), ~ ] = fn_shear_capacity( ele_prop.Av, ele_prop.fy_e, ele_prop.d, ele_prop.S, ele_prop.lambda, ele_prop.fc_e, ele_prop.a, max(abs([ele_TH.M_TH_1(i),ele_TH.M_TH_2(i)])), abs(ele_TH.V_TH_1(i)), ele_TH.P_force_controlled(i), ele.DCR_total_raw );
+        [ ele_TH.Vn(i), ~ ] = fn_shear_capacity( ele_prop.Av, ele_prop.fy_e, ele_prop.As_d, ele_prop.S, ele_prop.lambda, ele_prop.fc_e, ele_prop.a, max(abs([ele_TH.M_TH_1(i),ele_TH.M_TH_2(i)])), abs(ele_TH.V_TH_1(i)), ele_TH.P_force_controlled(i), ele.DCR_total_raw );
     else
         [ ~, ele_TH.Vn(i), ~ ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_TH.P_force_controlled(i), ele_prop.Av, ele_prop.fy_e, ele_prop.S, ele_prop.lambda, ele_prop.a );
     end  

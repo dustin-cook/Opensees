@@ -1,9 +1,10 @@
-function [ Vn, V0 ] = fn_shear_capacity( Av, fy, d, s, lambda, fc, Ag, M, V, Nu, DCR_max )
+function [ Vn, V0 ] = fn_shear_capacity( Av, fy, As_d, s, lambda, fc, Ag, M, V, Nu, DCR_max )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
-d_eff = 0.8*d;
-mv_ratio = min([max([M/V*d_eff,2]),4]);
+As_d = str2double(strsplit(strrep(strrep(As_d{1},']',''),'[',''),','));
+d_eff = max(As_d);
+mv_ratio = min([max([M/(V*d_eff),2]),4]);
 
 % Set alpha factor
 if s/d_eff <= 0.75

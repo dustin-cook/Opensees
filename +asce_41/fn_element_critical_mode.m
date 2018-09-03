@@ -19,5 +19,8 @@ else
     ele.critical_mode = {'shear'};
 end
 
+% Save shear at moment yeild as Vye
+ele.vye = shear_at_flexure_yeild;
+
 end
 
