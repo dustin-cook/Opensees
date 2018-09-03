@@ -95,7 +95,6 @@ else
     ele_PM.vector_M = [0, vector_M, 0];
 end
 
-
 % End Function
 end
 
