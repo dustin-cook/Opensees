@@ -1,4 +1,4 @@
-function [ node ] = fn_build_model_2D( output_dir, node, element, joint, hinge, analysis, dimension )
+function [ node ] = fn_define_model( output_dir, node, element, joint, hinge, analysis, dimension, story )
 %UNTITLED6 Summary of this function goes here
 
 %% Load element properties table
@@ -87,24 +87,32 @@ for i = 1:height(element)
     if strcmp(element.type{i},'beam') || strcmp(element.type{i},'column') 
         if analysis.nonlinear ~= 0 % Nonlinear Analysis
             Iz_ele = ele_props.iz*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
-            % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-            fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,Iz_ele,geotransf);
-            
-            Iz_ele = ele_props.iz*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
             Iy_ele = ele_props.iy*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod);
-            % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
-            fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,Iy_ele,Iz_ele,geotransf);
+            if strcmp(dimension,'2D')
+                % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
+                fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,Iz_ele,geotransf);
+            elseif strcmp(dimension,'3D')
+                % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
+                fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,Iy_ele,Iz_ele,geotransf);
+            end
         else
             if analysis.model_type == 1 % SDOF
                 % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
                 fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),element.a,element.e,element.i,geotransf);
             elseif analysis.model_type == 2 %MDOF
-                % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-                fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
+                if strcmp(dimension,'2D')
+                    % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
+                    fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
+                elseif strcmp(dimension,'3D')
+                    % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
+                    fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,geotransf);
+                end
             end
         end
+        
     % Wall Assignment
     elseif strcmp(element.type{i},'wall')
+        % Material
         if analysis.nonlinear ~= 0 % EPP Nonlinear Analysis
             %uniaxialMaterial ElasticPP $matTag $E $epsyP
             epsy = ele_props.fc_e/ele_props.e;
@@ -113,6 +121,7 @@ for i = 1:height(element)
             % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
             fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(i),ele_props.e*0.5);
         end
+        
         % section Fiber $secTag <-GJ $GJ> {
         fprintf(fileID,'section Fiber %i { \n',element.id(i));
             % patch rect $matTag $numSubdivY $numSubdivZ $yI $zI $yJ $zJ
@@ -120,7 +129,7 @@ for i = 1:height(element)
         fprintf(fileID,'} \n');
         
         % element forceBeamColumn $eleTag $iNode $jNode $numIntgrPts $secTag $transfTag <-mass $massDens> <-iter $maxIters $tol> <-integration $intType>
-        fprintf(fileID,'element forceBeamColumn %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),5,element.id(i),1);  
+        fprintf(fileID,'element forceBeamColumn %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),5,element.id(i),geotransf);  
 
 %         % nDMaterial ElasticIsotropic $matTag $E $v <$rho>
 %         fprintf(fileID,'nDMaterial ElasticIsotropic %i %f %f \n',element.id(i),ele_props.e,ele_props.poisson_ratio);
@@ -149,18 +158,35 @@ end
 %     fprintf(fileID,'element Joint3D %i %i %i %i %i %i %i %i 1 1 1 0 \n',joint.id(i),joint.x_neg(i),joint.x_pos(i),joint.y_neg(i),joint.y_pos(i),joint.z_neg(i),joint.z_pos(i),joint.center(i));
 % end
 
-% Define Joints as rigid beam-column elements
+%% Define Joints as rigid beam-column elements
 if exist('joint','var')
     for i = 1:height(joint)
-        % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 2 \n',joint.id(i)*10+1,joint.x_neg(i),joint.center(i));
-        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 2 \n',joint.id(i)*10+2,joint.center(i),joint.x_pos(i));
-        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 1 \n',joint.id(i)*10+3,joint.y_neg(i),joint.center(i));
-        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 1 \n',joint.id(i)*10+4,joint.center(i),joint.y_pos(i));
+        if strcmp(dimension,'2D')
+            % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
+            fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 2 \n',joint.id(i)*10+1,joint.x_neg(i),joint.center(i));
+            fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 2 \n',joint.id(i)*10+2,joint.center(i),joint.x_pos(i));
+            fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 1 \n',joint.id(i)*10+3,joint.y_neg(i),joint.center(i));
+            fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 1 \n',joint.id(i)*10+4,joint.center(i),joint.y_pos(i));
+        elseif strcmp(dimension,'3D')
+            fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*10+1,joint.x_neg(i),joint.center(i));
+            fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*10+2,joint.center(i),joint.x_pos(i));
+            fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*10+3,joint.y_neg(i),joint.center(i));
+            fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*10+4,joint.center(i),joint.y_pos(i));
+%             fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*10+5,joint.z_neg(i),joint.center(i));
+%             fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*10+6,joint.center(i),joint.z_pos(i));
+        end
     end
 end
 
-% Define Plastic Hinges
+%% Define Rigid Slabs
+if strcmp(dimension,'3D')
+    for i = 1:height(story)
+        nodes_at_story = node.id(node.story == story.id(i))';
+        fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(nodes_at_story));
+    end
+end
+
+%% Define Plastic Hinges
 if exist('hinge','var')
     for i = 1:height(hinge)
         element.id(end + 1) = element.id(end) + 1;
@@ -192,7 +218,7 @@ if exist('hinge','var')
             fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 3 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
             fprintf(fileID,'equalDOF %i %i 1 2 \n',hinge.node_1(i),hinge.node_2(i));
         elseif analysis.nonlinear == 2 % Elastic Perfectly Plastic Rotational Hinges
-            epsy = 6.5*min([ele.Mn_aci_pos,ele.Mn_aci_neg])/k_spring;
+            epsy = min([ele.Mn_aci_pos,ele.Mn_aci_neg])/k_spring;
             %uniaxialMaterial ElasticPP $matTag $E $epsyP
             fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end), k_spring, epsy); % Elastic Perfectly Plastic Material
             %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2

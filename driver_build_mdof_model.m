@@ -5,7 +5,7 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 9;
+analysis.model_id = 7;
 
 % Secondary Inputs
 analysis.nonlinear = 0;
