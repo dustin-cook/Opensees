@@ -5,15 +5,16 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 4;
-analysis.gm_seq_id = 8;
-analysis.name = 'test_nl';
+analysis.model_id = 1;
+analysis.gm_seq_id = 6;
+analysis.name = 'test_analysis_1';
 
 % Secondary Inputs
 analysis.type = 3;
+analysis.model_type = 1;
 analysis.max_disp = 7;
 analysis.time_step = 0.01;
-analysis.nonlinear = 2;
+analysis.nonlinear = 0;
 analysis.dead_load = 1.0;
 analysis.live_load = 1.0;
 analysis.accidental_torsion = 0;

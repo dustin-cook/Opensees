@@ -1,0 +1,10 @@
+id,name,dimension,height,weight,period,damping_ratio,nonlinear,moment_capacity
+1,test_sdof1,2D,100,1000,0.1,0.05,0,0
+2,test_sdof2,2D,100,1000,0.2,0.05,0,0
+3,test_sdof3,2D,100,1000,0.3,0.05,0,0
+4,test_sdof4,2D,100,1000,0.5,0.05,0,0
+5,test_sdof5,2D,100,1000,0.75,0.05,0,0
+6,test_sdof6,2D,100,1000,1,0.05,0,0
+7,test_sdof7,2D,100,1000,1.5,0.05,0,0
+8,test_sdof8,2D,100,1000,2,0.05,0,0
+9,test_sdof9,2D,100,1000,3,0.05,0,0

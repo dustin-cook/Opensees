@@ -1,4 +1,4 @@
-function [ ] = fn_define_recorders( output_dir, dimension, nodes, element, hinge, analysis )
+function [ ] = fn_define_recorders( output_dir, dimension, nodes, elements, hinge, analysis )
 
 %UNTITLED7 Summary of this function goes here
 %   Detailed explanation goes here
@@ -24,7 +24,7 @@ end
 
 %% Define Element Recorders
 % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
-fprintf(fileID,'recorder Element -file %s/element_force.txt -ele %s localForce \n', output_dir, num2str(element.id'));
+fprintf(fileID,'recorder Element -file %s/element_force.txt -ele %s localForce \n', output_dir, num2str(elements'));
     
 % % Walls
 % wall_elements = element.id(strcmp(element.type,'wall'))';
@@ -44,8 +44,8 @@ fprintf(fileID,'recorder Element -file %s/element_force.txt -ele %s localForce \
 % Hinges
 if analysis.nonlinear ~= 0 && ~isempty(hinge)
     % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
-    fprintf(fileID,'recorder Element -file %s/hinge_moment_all.txt -eleRange %d %d force \n', output_dir, element.id(end)+1, element.id(end)+hinge.id(end));
-    fprintf(fileID,'recorder Element -file %s/hinge_rotation_all.txt -eleRange %d %d deformation \n', output_dir, element.id(end)+1, element.id(end)+hinge.id(end));
+    fprintf(fileID,'recorder Element -file %s/hinge_moment_all.txt -eleRange %d %d force \n', output_dir, elements(end)+1, elements(end)+hinge.id(end));
+    fprintf(fileID,'recorder Element -file %s/hinge_rotation_all.txt -eleRange %d %d deformation \n', output_dir, elements(end)+1, elements(end)+hinge.id(end));
 end
 
 %% Movie Recorders

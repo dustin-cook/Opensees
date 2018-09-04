@@ -12,10 +12,12 @@ elseif strcmp(model.dimension,'3D')
 else
     error('Number of Dimensions Not Recognized')
 end
-fn_define_recorders( output_dir, model.dimension, node.id', element, hinge, analysis )
+fn_define_recorders( output_dir, model.dimension, node.id', element.id, hinge, analysis )
 [ground_motion] = fn_define_loads( output_dir, analysis, node, model.dimension, length(story.id), element.id');
 first_story_node = node.id(node.primary_story == 1);
-fn_eigen_analysis( output_dir, analysis.time_step, first_story_node', length(story.id), analysis)
+if analysis.run_eigen
+    fn_eigen_analysis( output_dir, analysis.time_step, first_story_node', length(story.id), analysis)
+end
 fn_setup_dynamic_analysis( output_dir, analysis )
 fn_define_analysis( output_dir, ground_motion, first_story_node, story.story_ht, analysis )
 end

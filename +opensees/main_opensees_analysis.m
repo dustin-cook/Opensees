@@ -5,25 +5,30 @@ function [ ] = main_opensees_analysis( analysis )
 %% Initial Setup
 import opensees.*
 
+%% Load data
 % Load inital Model info
-model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
-model = model_table(model_table.id == analysis.model_id,:);
+if analysis.model_type == 1
+    model_table = readtable(['inputs' filesep 'sdof_models.csv'],'ReadVariableNames',true);
+    model = model_table(model_table.id == analysis.model_id,:); 
+elseif analysis.model_type == 2
+    model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
+    model = model_table(model_table.id == analysis.model_id,:);
+end
 
-%% Start Analysis
-% Create Outputs Directory
+% Load Model
+node = readtable(['outputs/' model.name{1} filesep 'model data' filesep 'node.csv'],'ReadVariableNames',true);
+element = readtable(['outputs/' model.name{1} filesep 'model data' filesep 'element.csv'],'ReadVariableNames',true);
+story = readtable(['outputs/' model.name{1} filesep 'model data' filesep 'story.csv'],'ReadVariableNames',true);
+joint = readtable(['outputs/' model.name{1} filesep 'model data' filesep 'joint.csv'],'ReadVariableNames',true);
+hinge = readtable(['outputs/' model.name{1} filesep 'model data' filesep 'hinge.csv'],'ReadVariableNames',true);
+
+%% Create Outputs Directory
 output_dir = ['outputs/' model.name{1} '/' analysis.name];
 if ~exist(output_dir,'dir')
     mkdir(output_dir);
 end 
 
-%% Load Model
-node = readtable([output_dir filesep 'node.csv'],'ReadVariableNames',true);
-element = readtable([output_dir filesep 'element.csv'],'ReadVariableNames',true);
-story = readtable([output_dir filesep 'story.csv'],'ReadVariableNames',true);
-joint = readtable([output_dir filesep 'joint.csv'],'ReadVariableNames',true);
-hinge = readtable([output_dir filesep 'hinge.csv'],'ReadVariableNames',true);
-
-%% Write TCL file
+%% Write TCL files
 [ node, ground_motion ] = main_write_tcl( model, output_dir, node, element, story, joint, hinge, analysis );
 
 %% Run Opensees

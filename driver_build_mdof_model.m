@@ -1,4 +1,4 @@
-% Run Tcl file in opensees
+% Build MDOF Model Databases
 clear
 close
 clc
