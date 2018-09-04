@@ -5,11 +5,10 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 4;
-analysis.name = 'test_nl';
+analysis.model_id = 9;
 
 % Secondary Inputs
-analysis.nonlinear = 2;
+analysis.nonlinear = 0;
 analysis.dead_load = 1.0;
 analysis.live_load = 1.0;
 analysis.accidental_torsion = 0;
@@ -23,7 +22,7 @@ model = model_table(model_table.id == analysis.model_id,:);
 
 %% Start Analysis
 % Create Outputs Directory
-output_dir = ['outputs/' model.name{1} '/' analysis.name];
+output_dir = ['outputs/' model.name{1} filesep 'model data'];
 if ~exist(output_dir,'dir')
     mkdir(output_dir);
 end

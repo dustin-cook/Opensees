@@ -6,7 +6,7 @@ import opensees.write_tcl.*
 
 %% Build Scripts
 if strcmp(model.dimension,'2D')
-    [ node ] = fn_build_model_2D( output_dir, node, element, joint, hinge, analysis );
+    [ node ] = fn_build_model_2D( output_dir, node, element, joint, hinge, analysis, model.dimension );
 elseif strcmp(model.dimension,'3D')
     [ node ] = fn_build_model_3D( output_dir, node, element, story, joint, hinge, analysis );
 else
