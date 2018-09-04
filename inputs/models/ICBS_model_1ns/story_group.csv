@@ -1,9 +1,4 @@
 id,story_group_id,element_group_id,description,direction,x_start,z_start,offset_start,offset_end,trib_wt
-1,1,1,1st story wall line B,z,0,300,0,0,1
-2,1,1,1st story wall line D,z,600,300,0,0,1
-3,1,1,1st story wall line F,z,1200,300,0,0,1
-4,1,2,1st story wall line E,z,900,300,0,0,1
-5,2,3,2nd story west wall,z,-72,0,0,0,1
-6,2,3,2nd story east wall,z,1572,0,0,0,1
-7,3,4,upper stories west wall,z,-72,0,0,0,1
-8,3,4,upper stories east wall,z,1572,0,0,0,1
+1,1,1,1st story wall line B,x,0,0,0,0,1
+2,2,2,2nd Story East Wall,x,0,0,0,0,1
+3,3,3,Upper Stories East Wall,x,0,0,0,0,1

@@ -35,11 +35,6 @@ fprintf(fileID,'geomTransf PDelta 4 1 0 0 \n'); % Columns (z-direction)
 % Define Elements
 for i = 1:height(element)
     ele_props = ele_props_table(ele_props_table.id == element.ele_id(i),:);
-    try
-    test = strcmp(ele_props.type,'column') || strcmp(ele_props.type,'wall');
-    catch
-        test2 = 5;
-    end
     if strcmp(ele_props.type,'column') || strcmp(ele_props.type,'wall')
         if strcmp(element.direction{i},'x')
             geotransf = 1;
@@ -67,11 +62,14 @@ for i = 1:height(element)
         end
     % Assign walls (assign as beam columns for now
     elseif strcmp(ele_props.type,'wall')
-        % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-%         fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,1);
-
-        % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
-        fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(i),ele_props.e*0.5);
+        if analysis.nonlinear ~= 0 % EPP Nonlinear Analysis
+            %uniaxialMaterial ElasticPP $matTag $E $epsyP
+            epsy = ele_props.fc_e/ele_props.e;
+            fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(i), ele_props.e, epsy); % Elastic Perfectly Plastic Material
+        else
+            % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
+            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(i),ele_props.e*0.5);
+        end
         % section Fiber $secTag <-GJ $GJ> {
         fprintf(fileID,'section Fiber %i { \n',element.id(i));
             % patch rect $matTag $numSubdivY $numSubdivZ $yI $zI $yJ $zJ

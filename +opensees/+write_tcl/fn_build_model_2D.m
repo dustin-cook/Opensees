@@ -1,4 +1,4 @@
-function [ node ] = fn_build_model_2D( output_dir, node, element, joint, hinge, analysis, truss )
+function [ node ] = fn_build_model_2D( output_dir, node, element, joint, hinge, analysis )
 %UNTITLED6 Summary of this function goes here
 
 %% Load element properties table
@@ -50,11 +50,14 @@ for i = 1:height(element)
         end
     % Assign walls (assign as beam columns for now
     elseif strcmp(ele_props.type,'wall')
-        % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-%         fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,1);
-
-        % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
-        fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(i),ele_props.e*0.5);
+        if analysis.nonlinear ~= 0 % EPP Nonlinear Analysis
+            %uniaxialMaterial ElasticPP $matTag $E $epsyP
+            epsy = ele_props.fc_e/ele_props.e;
+            fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(i), ele_props.e, epsy); % Elastic Perfectly Plastic Material
+        else
+            % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
+            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(i),ele_props.e*0.5);
+        end
         % section Fiber $secTag <-GJ $GJ> {
         fprintf(fileID,'section Fiber %i { \n',element.id(i));
             % patch rect $matTag $numSubdivY $numSubdivZ $yI $zI $yJ $zJ
@@ -70,17 +73,13 @@ for i = 1:height(element)
 %         fprintf(fileID,'section PlateFiber %i %i %f \n',element.id(i),element.id(i),12);
 %         % element ShellMITC4 $eleTag $iNode $jNode $kNode $lNode $secTag
 %         fprintf(fileID,'element ShellMITC4 %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),element.node_3(i),element.node_4(i),element.id(i));
-%     
-    end
-end
-
-% Define Truss Elements
-if exist('truss','var')
-    for i = 1:height(truss)
+    
+    % Assign walls (assign as beam columns for now
+    elseif strcmp(ele_props.type,'truss')
         % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
-        fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',truss.ele_id(i),truss.e(i));
+        fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(i),ele_props.e);
         % element truss $eleTag $iNode $jNode $A $matTag <-rho $rho> <-cMass $cFlag> <-doRayleigh $rFlag>
-        fprintf(fileID,'element truss %i %i %i %f %i \n',truss.ele_id(i),truss.node_1(i),truss.node_2(i),truss.a(i),truss.ele_id(i));
+        fprintf(fileID,'element truss %i %i %i %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,element.id(i));
     end
 end
 

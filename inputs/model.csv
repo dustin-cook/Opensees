@@ -1,6 +1,6 @@
 id,name,dimension,foundation,hazus_class_x,hazus_class_z,vs30,site_class,tar
 1,3D_test,3D,fix,C1,C1,217.3,D,1
-2,ICBS_model_1ns,3D,fix,C2,NA,217.3,D,1
+2,ICBS_model_1ns,2D,fix,C2,NA,217.3,D,1
 3,ICBS_model_5ew,2D,fix,C1,NA,217.3,D,1
 4,ICBS_model_3D,3D,fix,C1,C2,217.3,D,1
 5,2D_test,2D,fix,C1,NA,217.3,D,1

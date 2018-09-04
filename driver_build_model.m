@@ -6,12 +6,12 @@ clc
 %% DEFINE INPTUTS
 % Primary Inputs
 analysis.model_id = 4;
-analysis.name = 'test';
+analysis.name = 'test_nl';
 
 % Secondary Inputs
-analysis.nonlinear = 0;
+analysis.nonlinear = 2;
 analysis.dead_load = 1.0;
-analysis.live_load = 0;
+analysis.live_load = 1.0;
 analysis.accidental_torsion = 0;
 
 %% Initial Setup

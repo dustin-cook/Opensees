@@ -360,10 +360,14 @@ if analysis.nonlinear ~= 0
     %% Calculate the intial (zero axial load) Moment Capacity of Each element in the model
     for e = 1:length(element.id)
         ele = ele_props(ele_props.id == element.ele_id(e),:);
-
-        % Moment Capcity per ACI
-        [ ~, element.Mn_aci_pos(e,1) ] = fn_aci_moment_capacity( 'pos', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0 ); % change to be based on the gravity load instead?
-        [ ~, element.Mn_aci_neg(e,1) ] = fn_aci_moment_capacity( 'neg', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0 );
+        if strcmp(ele.type,'truss') || contains(ele.description,'rigid')
+            element.Mn_aci_pos(e,1) = 9999999999;
+            element.Mn_aci_neg(e,1) = 9999999999;
+        else
+            % Moment Capcity per ACI
+            [ ~, element.Mn_aci_pos(e,1) ] = fn_aci_moment_capacity( 'pos', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0 ); % change to be based on the gravity load instead?
+            [ ~, element.Mn_aci_neg(e,1) ] = fn_aci_moment_capacity( 'neg', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0 );
+        end
     end
 end
 

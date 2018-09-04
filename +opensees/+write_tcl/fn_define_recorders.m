@@ -42,7 +42,7 @@ fprintf(fileID,'recorder Element -file %s/element_force.txt -ele %s localForce \
 % end
 
 % Hinges
-if analysis.nonlinear ~= 0
+if analysis.nonlinear ~= 0 && ~isempty(hinge)
     % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
     fprintf(fileID,'recorder Element -file %s/hinge_moment_all.txt -eleRange %d %d force \n', output_dir, element.id(end)+1, element.id(end)+hinge.id(end));
     fprintf(fileID,'recorder Element -file %s/hinge_rotation_all.txt -eleRange %d %d deformation \n', output_dir, element.id(end)+1, element.id(end)+hinge.id(end));
