@@ -17,6 +17,7 @@ node.dead_load = [0; model.weight];
 node.live_load = [0;0];
 node.mass = node.dead_load/386;
 node.fix = {'[111111]';'[000000]'};
+node.story = [0;1];
 node.primary_story = [0;1];
 
 %% Build Element Table
@@ -28,6 +29,7 @@ element.node_2 = 2;
 element.length = model.height;
 element.k = 2*pi*(model.weight/386)/(model.period^2);
 element.e = 1000000;
+element.a = 1000000;
 element.i = element.k*(element.length^3)/(3*element.e);
 
 %% Assign Joints

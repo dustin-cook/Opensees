@@ -34,10 +34,10 @@ fprintf(fileID,'geomTransf PDelta 2 \n'); % Beams (x-direction)
 for i = 1:height(element)
     ele_props = ele_props_table(ele_props_table.id == element.ele_id(i),:);
     % Beams and Columns
-    if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column') 
-        if strcmp(ele_props.type,'column')
+    if strcmp(element.type,'beam') || strcmp(element.type,'column') 
+        if strcmp(element.type,'column')
             geotransf = 1;
-        elseif strcmp(ele_props.type,'beam')
+        elseif strcmp(element.type,'beam')
             geotransf = 2;
         end
         if analysis.nonlinear ~= 0 % Nonlinear Analysis
@@ -45,11 +45,16 @@ for i = 1:height(element)
             % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
             fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,Iz_ele,geotransf);
         else
-            % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-            fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
+            if analysis.model_type == 1 % SDOF
+                % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
+                fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),element.a,element.e,element.i,geotransf);
+            elseif analysis.model_type == 2 %MDOF
+                % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
+                fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
+            end
         end
     % Assign walls (assign as beam columns for now
-    elseif strcmp(ele_props.type,'wall')
+    elseif strcmp(element.type,'wall')
         if analysis.nonlinear ~= 0 % EPP Nonlinear Analysis
             %uniaxialMaterial ElasticPP $matTag $E $epsyP
             epsy = ele_props.fc_e/ele_props.e;
@@ -75,7 +80,7 @@ for i = 1:height(element)
 %         fprintf(fileID,'element ShellMITC4 %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),element.node_3(i),element.node_4(i),element.id(i));
     
     % Assign walls (assign as beam columns for now
-    elseif strcmp(ele_props.type,'truss')
+    elseif strcmp(element.type,'truss')
         % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
         fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(i),ele_props.e);
         % element truss $eleTag $iNode $jNode $A $matTag <-rho $rho> <-cMass $cFlag> <-doRayleigh $rFlag>
