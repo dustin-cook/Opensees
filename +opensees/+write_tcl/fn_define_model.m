@@ -20,27 +20,27 @@ end
 %% Define nodes (inches)
 for i = 1:length(node.id)
     if strcmp(dimension,'2D')
-        fprintf(fileID,'node %d %f %f \n',node.id(i),node.x(i),node.y(i));
+        fprintf(fileID,'node %i %f %f \n',node.id(i),node.x(i),node.y(i));
     elseif strcmp(dimension,'3D')
-        fprintf(fileID,'node %d %f %f %f \n',node.id(i),node.x(i),node.y(i),node.z(i));
+        fprintf(fileID,'node %i %f %f %f \n',node.id(i),node.x(i),node.y(i),node.z(i));
     end
 end
 
 %% Set boundary conditions at each node (6dof) (fix = 1, free = 0)
 for i = 1:length(node.id)
     if strcmp(dimension,'2D')
-        fprintf(fileID,'fix %d %s %s %s \n',node.id(i),node.fix{i}(2),node.fix{i}(3),node.fix{i}(7));
+        fprintf(fileID,'fix %i %s %s %s \n',node.id(i),node.fix{i}(2),node.fix{i}(3),node.fix{i}(7));
     elseif strcmp(dimension,'3D')
-        fprintf(fileID,'fix %d %s %s %s %s %s %s \n',node.id(i),node.fix{i}(2),node.fix{i}(3),node.fix{i}(4),node.fix{i}(5),node.fix{i}(6),node.fix{i}(7));
+        fprintf(fileID,'fix %i %s %s %s %s %s %s \n',node.id(i),node.fix{i}(2),node.fix{i}(3),node.fix{i}(4),node.fix{i}(5),node.fix{i}(6),node.fix{i}(7));
     end
 end
 
 %% Define nodal masses (horizontal) (k-s2/in)
 for i = 1:length(node.id)
     if strcmp(dimension,'2D')
-        fprintf(fileID,'mass %d %f 0. 0. \n',node.id(i), node.mass(i));
+        fprintf(fileID,'mass %i %f 0. 0. \n',node.id(i), node.mass(i));
     elseif strcmp(dimension,'3D')
-        fprintf(fileID,'mass %d %f 0. %f 0. 0. 0. \n',node.id(i), node.mass(i), node.mass(i));
+        fprintf(fileID,'mass %i %f 0. %f 0. 0. 0. \n',node.id(i), node.mass(i), node.mass(i));
     end
 end
 
@@ -160,25 +160,49 @@ end
 
 %% Define Joints as rigid beam-column elements
 if exist('joint','var')
+    % %uniaxialMaterial Elastic $matTag $E
+    fprintf(fileID,'uniaxialMaterial Elastic 1 999999999999999. \n'); % Rigid Elastic Material
+    fprintf(fileID,'uniaxialMaterial Elastic 2 999999999999. \n'); % Rigid Elastic Material
     for i = 1:height(joint)
         if strcmp(dimension,'2D')
-            % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-            fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 2 \n',joint.id(i)*10+1,joint.x_neg(i),joint.center(i));
-            fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 2 \n',joint.id(i)*10+2,joint.center(i),joint.x_pos(i));
-            fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 1 \n',joint.id(i)*10+3,joint.y_neg(i),joint.center(i));
-            fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 200000. 1 \n',joint.id(i)*10+4,joint.center(i),joint.y_pos(i));
+            if analysis.joint_model == 1 % Elastic beam column elements
+                % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
+                joint_center.x = node.x(node.id == joint.y_pos(i),:);
+                joint_center.y = node.y(node.id == joint.x_pos(i),:);
+                fprintf(fileID,'node %i %f %f \n',40000+i,joint_center.x,joint_center.y);
+                fprintf(fileID,'element elasticBeamColumn %d %d %d 100000. 9999999999. 20000000. 2 \n',joint.id(i)*10+1,joint.x_neg(i),40000+i);
+                fprintf(fileID,'element elasticBeamColumn %d %d %d 100000. 9999999999. 20000000. 2 \n',joint.id(i)*10+2,40000+i,joint.x_pos(i));
+                fprintf(fileID,'element elasticBeamColumn %d %d %d 100000. 9999999999. 20000000. 1 \n',joint.id(i)*10+3,joint.y_neg(i),40000+i);
+                fprintf(fileID,'element elasticBeamColumn %d %d %d 100000. 9999999999. 20000000. 1 \n',joint.id(i)*10+4,40000+i,joint.y_pos(i));
+            elseif analysis.joint_model == 2  % Joint 2D
+                % element Joint2D $eleTag $Nd1 $Nd2 $Nd3 $Nd4 $NdC <$Mat1 $Mat2 $Mat3 $Mat4> $MatC $LrgDspTag
+                fprintf(fileID,'element Joint2D %i %i %i %i %i %i 1 0 \n', 10000+i, joint.y_pos(i), joint.x_neg(i), joint.y_neg(i), joint.x_pos(i), 10000+i);
+            end
         elseif strcmp(dimension,'3D')
-            fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*10+1,joint.x_neg(i),joint.center(i));
-            fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*10+2,joint.center(i),joint.x_pos(i));
-            fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*10+3,joint.y_neg(i),joint.center(i));
-            fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*10+4,joint.center(i),joint.y_pos(i));
-%             fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*10+5,joint.z_neg(i),joint.center(i));
-%             fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*10+6,joint.center(i),joint.z_pos(i));
+            if analysis.joint_model == 1 % Elastic beam column elements
+                joint_center.x = node.x(node.id == joint.y_pos(i),:);
+                joint_center.y = node.y(node.id == joint.x_pos(i),:);
+                joint_center.z = node.z(node.id == joint.x_pos(i),:);
+                fprintf(fileID,'node %i %f %f %f \n',40000+i,joint_center.x,joint_center.y,joint_center.z);
+                fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*10+1,joint.x_neg(i),40000+i);
+                fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*10+2,40000+i,joint.x_pos(i));
+                fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*10+3,joint.y_neg(i),40000+i);
+                fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*10+4,40000+i,joint.y_pos(i));
+                fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*10+5,joint.z_neg(i),40000+i);
+                fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*10+6,40000+i,joint.z_pos(i));
+            elseif analysis.joint_model == 2  % Joint 3D
+                % Create new nodes to connect with zero length elements such that Joint 3D can play with rigidDiaphragm
+                new_node = node(node.id == joint.y_pos(i),:);
+                fprintf(fileID,'node %i %f %f %f \n',30000+i,new_node.x,new_node.y,new_node.z);
+                fprintf(fileID,'element zeroLength %i %i %i -mat 2 2 2 2 2 2 -dir 1 2 3 4 5 6 \n',20000+i,joint.y_pos(i),30000+i); % Element Id for Hinge
+                % element Joint3D %tag %Nx- %Nx+ %Ny- %Ny+ %Nz- %Nz+ %Nc %MatX %MatY %MatZ %LrgDspTag
+                fprintf(fileID,'element Joint3D %i %i %i %i %i %i %i %i 1 1 1 0 \n', 10000+i, joint.x_neg(i), joint.x_pos(i), joint.y_neg(i), 30000+i, joint.z_neg(i), joint.z_pos(i), 10000+i);
+            end
         end
     end
 end
 
-%% Define Rigid Slabs
+% %% Define Rigid Slabs
 if strcmp(dimension,'3D')
     for i = 1:height(story)
         nodes_at_story = node.id(node.story == story.id(i))';

@@ -99,7 +99,10 @@ joint.x_neg = [];
 joint.x_pos = [];
 joint.y_neg = [];
 joint.y_pos = [];
-joint.center = [];
+if strcmp(model.dimension,'3D')
+    joint.z_neg = [];
+    joint.z_pos = [];
+end
 joint_id = 0;
 for s = 1:height(story)
     story_node = node.id(node.y == (story.y_start(s)+story.story_ht(s)));
@@ -150,14 +153,26 @@ for s = 1:height(story)
             end
             joint_dim_y = max([bm_d_x,bm_d_z]);
             joint_dim_x = max(col_d_x);
-%             joint_dim_z = max(col_d_z);
+            joint_dim_z = max(col_d_z);
             
             % Define New Nodes
-            new_node.x = [node.x(n_id)-joint_dim_x/2;node.x(n_id)+joint_dim_x/2;node.x(n_id);node.x(n_id)];
-            new_node.y = [node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y;node.y(n_id)-joint_dim_y/2];
-%             new_node.z = [node.z(n_id),node.z(n_id),node.z(n_id)-joint_dim_z/2,node.z(n_id)+joint_dim_z/2,node.z(n_id),node.z(n_id)];
-            new_node.z = [node.z(n_id);node.z(n_id);node.z(n_id);node.z(n_id)];
-            new_node.id = [1;2;3;4] + node.id(end);
+            if strcmp(model.dimension,'2D')
+                new_node.id = [1;2;3] + node.id(end);
+                new_node.x = [node.x(n_id)-joint_dim_x/2;node.x(n_id)+joint_dim_x/2;node.x(n_id)];
+                new_node.y = [node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y];
+                new_node.z = [node.z(n_id);node.z(n_id);node.z(n_id)];
+                new_node.dead_load = [0; 0; 0];
+                new_node.live_load = [0; 0; 0];
+                new_node.mass = [0; 0; 0];
+            elseif strcmp(model.dimension,'3D')
+                new_node.id = [1;2;3;4;5] + node.id(end);
+                new_node.x = [node.x(n_id)-joint_dim_x/2;node.x(n_id)+joint_dim_x/2;node.x(n_id);node.x(n_id);node.x(n_id)];
+                new_node.y = [node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y;node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y/2];
+                new_node.z = [node.z(n_id);node.z(n_id);node.z(n_id);node.z(n_id)-joint_dim_z/2;node.z(n_id)+joint_dim_z/2]; 
+                new_node.dead_load = [0; 0; 0; 0; 0];
+                new_node.live_load = [0; 0; 0; 0; 0];
+                new_node.mass = [0; 0; 0; 0; 0];
+            end
             
             % Change elements to connect to new nodes
             if isfield(new_ele,'bm_x_neg') %&& element.ele_id(new_ele.bm_x_neg,1) ~= 16 && element.ele_id(new_ele.bm_x_neg,1) ~= 17
@@ -166,12 +181,12 @@ for s = 1:height(story)
             if isfield(new_ele,'bm_x_pos') %&& element.ele_id(new_ele.bm_x_pos,1) ~= 16 && element.ele_id(new_ele.bm_x_pos,1) ~= 17
                 element.node_1(new_ele.bm_x_pos,1) = new_node.id(2);
             end
-%             if isfield(new_ele,'bm_z_neg')
-%                 element.node_2(new_ele.bm_z_neg,1) = new_node.id(3);
-%             end
-%             if isfield(new_ele,'bm_z_pos')
-%                 element.node_1(new_ele.bm_z_pos,1) = new_node.id(4);
-%             end
+            if isfield(new_ele,'bm_z_neg')
+                element.node_2(new_ele.bm_z_neg,1) = new_node.id(4);
+            end
+            if isfield(new_ele,'bm_z_pos')
+                element.node_1(new_ele.bm_z_pos,1) = new_node.id(5);
+            end
             element.node_2(new_ele.col_y,1) = new_node.id(3);
             clear new_ele
            
@@ -182,19 +197,20 @@ for s = 1:height(story)
             joint.x_pos(joint_id,1) = new_node.id(2);
             joint.y_neg(joint_id,1) = new_node.id(3);
             joint.y_pos(joint_id,1) = n_id;
-%             joint.z_neg(joint_id) = new_node.id(3);
-%             joint.z_pos(joint_id) = new_node.id(4);
-            joint.center(joint_id,1) = new_node.id(4);
+            if strcmp(model.dimension,'3D')
+                joint.z_neg(joint_id,1) = new_node.id(4);
+                joint.z_pos(joint_id,1) = new_node.id(5);
+            end
+%             joint.center(joint_id,1) = new_node.id(4);
             
             % Add new nodes to nodes list
             node.id = [node.id; new_node.id];
             node.x = [node.x; new_node.x];
             node.y = [node.y; new_node.y];
             node.z = [node.z; new_node.z];
-            node.dead_load = [node.dead_load; 0; 0; 0; 0];
-            node.live_load = [node.live_load; 0; 0; 0; 0];
-            node.mass = [node.mass; 0; 0; 0; 0];
-
+            node.dead_load = [node.dead_load; new_node.dead_load];
+            node.live_load = [node.live_load; new_node.live_load];
+            node.mass = [node.mass; new_node.mass];
         end
     end
 end
