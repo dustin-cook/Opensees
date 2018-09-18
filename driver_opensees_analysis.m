@@ -10,10 +10,10 @@ analysis.gm_seq_id = 8;
 analysis.name = 'test';
 
 % Secondary Inputs
-analysis.type = 1; % 1 = dynamic, 2 = pushover
+analysis.type = 2; % 1 = dynamic, 2 = pushover
 analysis.model_type = 2; % 1 = SDOF, 2 = MDOF
 analysis.pushover_drift = 0.10;
-analysis.pushover_num_steps = 10;
+analysis.pushover_num_steps = 100;
 analysis.pushover_direction = 'x';
 analysis.time_step = 0.01;
 analysis.nonlinear = 0;

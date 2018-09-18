@@ -1,9 +1,33 @@
 id,description,ele_id,x_start,x_end,z_start,z_end,y_start,y_end,direction
-1,exterior wall connector,2,0,71,450,300,174,174,x
-2,exterior wall connector,2,0,71,450,600,174,174,x
-3,exterior wall connector,2,1571,1642,300,450,174,174,x
-4,exterior wall connector,2,1571,1642,600,450,174,174,x
-1,exterior wall connector,2,0,71,450,300,336,336,x
-2,exterior wall connector,2,0,71,450,600,336,336,x
-3,exterior wall connector,2,1571,1642,300,450,336,336,x
-4,exterior wall connector,2,1571,1642,600,450,336,336,x
+1,exterior wall connector,2,0,71,0,0,174,174,x
+2,exterior wall connector,2,0,71,300,300,174,174,x
+3,exterior wall connector,2,0,71,600,600,174,174,x
+4,exterior wall connector,2,0,71,900,900,174,174,x
+5,exterior wall top or bottom,2,0,0,0,300,174,174,z
+6,exterior wall top or bottom,2,0,0,300,450,174,174,z
+7,exterior wall top or bottom,2,0,0,450,600,174,174,z
+8,exterior wall top or bottom,2,0,0,600,900,174,174,z
+9,exterior wall connector,2,1571,1642,0,0,174,174,x
+10,exterior wall connector,2,1571,1642,300,300,174,174,x
+11,exterior wall connector,2,1571,1642,600,600,174,174,x
+12,exterior wall connector,2,1571,1642,900,900,174,174,x
+13,exterior wall top or bottom,2,1642,1642,0,300,174,174,z
+14,exterior wall top or bottom,2,1642,1642,300,450,174,174,z
+15,exterior wall top or bottom,2,1642,1642,450,600,174,174,z
+16,exterior wall top or bottom,2,1642,1642,600,900,174,174,z
+17,exterior wall connector,2,0,71,0,0,336,336,x
+18,exterior wall connector,2,0,71,300,300,336,336,x
+19,exterior wall connector,2,0,71,600,600,336,336,x
+20,exterior wall connector,2,0,71,900,900,336,336,x
+21,exterior wall top or bottom,2,0,0,0,300,336,336,z
+22,exterior wall top or bottom,2,0,0,300,450,336,336,z
+23,exterior wall top or bottom,2,0,0,450,600,336,336,z
+24,exterior wall top or bottom,2,0,0,600,900,336,336,z
+25,exterior wall connector,2,1571,1642,0,0,336,336,x
+26,exterior wall connector,2,1571,1642,300,300,336,336,x
+27,exterior wall connector,2,1571,1642,600,600,336,336,x
+28,exterior wall connector,2,1571,1642,900,900,336,336,x
+29,exterior wall top or bottom,2,1642,1642,0,300,336,336,z
+30,exterior wall top or bottom,2,1642,1642,300,450,336,336,z
+31,exterior wall top or bottom,2,1642,1642,450,600,336,336,z
+32,exterior wall top or bottom,2,1642,1642,600,900,336,336,z

@@ -10,6 +10,9 @@ if isfield(node,'x') && isfield(node,'y') && isfield(node,'z')
         node.x(node_id,1) = x;
         node.y(node_id,1) = y;
         node.z(node_id,1) = z;
+        node.dead_load(node_id,1) = 0;
+        node.live_load(node_id,1) = 0;
+        node.mass(node_id,1) = 0;
         id = node_id;
     else % Existing Node
         id = node.id(start_node_check);
@@ -19,6 +22,9 @@ else % First Node
     node.x(1,1) = x;
     node.y(1,1) = y;
     node.z(1,1) = z;
+    node.dead_load(1,1) = 0;
+    node.live_load(1,1) = 0;
+    node.mass(1,1) = 0;
     id = 1;
 end
 

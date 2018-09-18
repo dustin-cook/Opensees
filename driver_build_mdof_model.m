@@ -12,6 +12,7 @@ analysis.nonlinear = 0;
 analysis.dead_load = 1.0;
 analysis.live_load = 1.0;
 analysis.accidental_torsion = 0;
+analysis.primary_node_offset = 71;
 
 %% Initial Setup
 import build_model.fn_build_model

@@ -257,7 +257,7 @@ for s = 1:height(story)
     slab_ht = story.y_start(s) + story.story_ht(s);
     node.story(node.y == slab_ht) = s;
     nodes_on_slab{s} = node.id(node.y == slab_ht);
-    node.primary_story(node.x == 0 & node.z == 0 & node.y == slab_ht) = 1;
+    node.primary_story(node.x == analysis.primary_node_offset & node.z == 0 & node.y == slab_ht) = 1;
 end
 
 %% Offset Mass for Accidental Torsion
