@@ -1,0 +1,9 @@
+id,description,ele_id,x_start,x_end,z_start,z_end,y_start,y_end,direction
+1,exterior wall connector,2,0,71,450,300,174,174,x
+2,exterior wall connector,2,0,71,450,600,174,174,x
+3,exterior wall connector,2,1571,1642,300,450,174,174,x
+4,exterior wall connector,2,1571,1642,600,450,174,174,x
+1,exterior wall connector,2,0,71,450,300,336,336,x
+2,exterior wall connector,2,0,71,450,600,336,336,x
+3,exterior wall connector,2,1571,1642,300,450,336,336,x
+4,exterior wall connector,2,1571,1642,600,450,336,336,x

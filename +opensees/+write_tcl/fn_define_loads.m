@@ -1,6 +1,9 @@
-function [ ground_motion ] = fn_define_loads( output_dir, analysis, node, dimension, num_stories, element_ids )
+function [ ground_motion ] = fn_define_loads( output_dir, analysis, node, dimension, story, element_ids )
 %UNTITLED8 Summary of this function goes here
 %   Detailed explanation goes here
+
+% Import Packages
+import asce_7.*
 
 % Write Loads File
 file_name = [output_dir filesep 'loads.tcl'];
@@ -46,32 +49,56 @@ fprintf(fileID,'} \n');
 fprintf(fileID,'puts "Gravity Load Complete" \n');
 fprintf(fileID,'loadConst -time 0.0 \n');
 
-%% Define Static Lateral Load Pattern
-% fprintf(fileID,'pattern Plain 2 Linear { \n');
-% node_force = 0; % Just turn off for now
-% for i = 1:length(node.id)
-%     fprintf(fileID,'  load %d %f 0.0 0.0 0.0 0.0 0.0 \n', node.id(i), node_force);
-% end
-% fprintf(fileID,'} \n');
+%% Pushover Loading
+if analysis.type == 2
+     % equivalent lateral force vertical distribution
+     w = story.story_dead_load;
+     h = story.story_ht + story.y_start;
+    [ ~, ~, story.lateral_force, ~ ] = fn_equivalent_lateral_force( w, h );
+    
+    % define nodes to push
+    force_nodes = [];
+    node.lateral_load = zeros(height(node),1);
+    for i = 1:height(story)
+        force_nodes_this_story = node.id(node.story == i & node.dead_load > 0);
+        node.lateral_load(ismember(node.id,force_nodes_this_story)) = story.lateral_force(i)/length(force_nodes_this_story);
+        force_nodes = [force_nodes;force_nodes_this_story];
+    end
+    
+    % Define Static Lateral Load Pattern
+    fprintf(fileID,'pattern Plain 2 Linear { \n');
+    for i = 1:length(force_nodes)
+        node_id = force_nodes(i);
+        if strcmp(analysis.pushover_direction,'x')
+            fprintf(fileID,'  load %d %f 0.0 0.0 0.0 0.0 0.0 \n', node_id, node.lateral_load(node.id == node_id));
+        elseif strcmp(analysis.pushover_direction,'z')
+            fprintf(fileID,'  load %d 0.0 0.0 %f 0.0 0.0 0.0 \n', node_id, node.lateral_load(node.id == node_id));
+        end
+    end
+    fprintf(fileID,'} \n');
+end
 
 %% Dynamic Analysis
-% Define Seismic Excitation Load
-% timeSeries Path $tag -dt $dt -filePath $filePath <-factor $cFactor> <-useLast> <-prependZero> <-startTime $tStart>
-% pattern UniformExcitation $patternTag $dir -accel $tsTag <-vel0 $vel0> <-fact $cFactor>
-if ground_motion_seq.eq_id_x ~= 0
-    ground_motion.x = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_x,:);
-    fprintf(fileID,'timeSeries Path 1 -dt %f -filePath %s/%s -factor 386. \n',ground_motion.x.eq_dt, ground_motion.x.eq_dir{1}, ground_motion.x.eq_name{1});
-    fprintf(fileID,'pattern UniformExcitation 3 1 -accel 1 -fact %f \n',ground_motion_seq.x_ratio); 
-end
-if ground_motion_seq.eq_id_z ~= 0
-    ground_motion.z = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_z,:);
-    fprintf(fileID,'timeSeries Path 2 -dt %f -filePath %s/%s -factor 386. \n',ground_motion.z.eq_dt, ground_motion.z.eq_dir{1}, ground_motion.z.eq_name{1});
-    fprintf(fileID,'pattern UniformExcitation 4 3 -accel 2 -fact %f \n',ground_motion_seq.z_ratio); 
-end
-if ground_motion_seq.eq_id_y ~= 0
-    ground_motion.y = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_y,:);
-    fprintf(fileID,'timeSeries Path 3 -dt %f -filePath %s/%s -factor 386. \n',ground_motion.y.eq_dt, ground_motion.y.eq_dir{1}, ground_motion.y.eq_name{1});
-    fprintf(fileID,'pattern UniformExcitation 5 2 -accel 3 -fact %f \n',ground_motion_seq.y_ratio); 
+ground_motion = [];
+if analysis.type == 1
+    % Define Seismic Excitation Load
+    % timeSeries Path $tag -dt $dt -filePath $filePath <-factor $cFactor> <-useLast> <-prependZero> <-startTime $tStart>
+    % pattern UniformExcitation $patternTag $dir -accel $tsTag <-vel0 $vel0> <-fact $cFactor>
+    if ground_motion_seq.eq_id_x ~= 0
+        ground_motion.x = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_x,:);
+        fprintf(fileID,'timeSeries Path 1 -dt %f -filePath %s/%s -factor 386. \n',ground_motion.x.eq_dt, ground_motion.x.eq_dir{1}, ground_motion.x.eq_name{1});
+        fprintf(fileID,'pattern UniformExcitation 3 1 -accel 1 -fact %f \n',ground_motion_seq.x_ratio); 
+    end
+    if ground_motion_seq.eq_id_z ~= 0
+        ground_motion.z = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_z,:);
+        fprintf(fileID,'timeSeries Path 2 -dt %f -filePath %s/%s -factor 386. \n',ground_motion.z.eq_dt, ground_motion.z.eq_dir{1}, ground_motion.z.eq_name{1});
+        fprintf(fileID,'pattern UniformExcitation 4 3 -accel 2 -fact %f \n',ground_motion_seq.z_ratio); 
+    end
+    if ground_motion_seq.eq_id_y ~= 0
+        ground_motion.y = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_y,:);
+        fprintf(fileID,'timeSeries Path 3 -dt %f -filePath %s/%s -factor 386. \n',ground_motion.y.eq_dt, ground_motion.y.eq_dir{1}, ground_motion.y.eq_name{1});
+        fprintf(fileID,'pattern UniformExcitation 5 2 -accel 3 -fact %f \n',ground_motion_seq.y_ratio); 
+    end
 end
 
 % Define Damping based on eigen modes

@@ -9,23 +9,43 @@ function [ ] = fn_define_recorders( output_dir, dimension, nodes, elements, hing
 file_name = [output_dir, filesep 'recorders.tcl'];
 fileID = fopen(file_name,'w');
 
-%% Define Node recorders
-fprintf(fileID,'recorder Node -file %s/nodal_disp_x.txt -node %s -dof 1 disp \n', output_dir, num2str(nodes));
-fprintf(fileID,'recorder Node -file %s/nodal_disp_y.txt -node %s -dof 2 disp \n', output_dir, num2str(nodes));
-fprintf(fileID,'recorder Node -file %s/nodal_reaction_x.txt -node %s -dof 1 reaction \n', output_dir, num2str(nodes));
-fprintf(fileID,'recorder Node -file %s/nodal_reaction_y.txt -node %s -dof 2 reaction \n', output_dir, num2str(nodes));
-fprintf(fileID,'recorder Node -file %s/nodal_accel_x.txt -node %s -dof 1 accel \n', output_dir, num2str(nodes));
-fprintf(fileID,'recorder Node -file %s/nodal_accel_y.txt -node %s -dof 2 accel \n', output_dir, num2str(nodes));
-if strcmp(dimension,'3D')
-    fprintf(fileID,'recorder Node -file %s/nodal_disp_z.txt -node %s -dof 3 disp \n', output_dir, num2str(nodes));
-    fprintf(fileID,'recorder Node -file %s/nodal_reaction_z.txt -node %s -dof 3 reaction \n', output_dir, num2str(nodes));
-    fprintf(fileID,'recorder Node -file %s/nodal_accel_z.txt -node %s -dof 3 accel \n', output_dir, num2str(nodes));
-end
+if analysis.full_recorders == 1
+    %% Define Node recorders
+    fprintf(fileID,'recorder Node -file %s/nodal_disp_x.txt -node %s -dof 1 disp \n', output_dir, num2str(nodes));
+    fprintf(fileID,'recorder Node -file %s/nodal_disp_y.txt -node %s -dof 2 disp \n', output_dir, num2str(nodes));
+    fprintf(fileID,'recorder Node -file %s/nodal_reaction_x.txt -node %s -dof 1 reaction \n', output_dir, num2str(nodes));
+    fprintf(fileID,'recorder Node -file %s/nodal_reaction_y.txt -node %s -dof 2 reaction \n', output_dir, num2str(nodes));
+    fprintf(fileID,'recorder Node -file %s/nodal_accel_x.txt -node %s -dof 1 accel \n', output_dir, num2str(nodes));
+    fprintf(fileID,'recorder Node -file %s/nodal_accel_y.txt -node %s -dof 2 accel \n', output_dir, num2str(nodes));
+    if strcmp(dimension,'3D')
+        fprintf(fileID,'recorder Node -file %s/nodal_disp_z.txt -node %s -dof 3 disp \n', output_dir, num2str(nodes));
+        fprintf(fileID,'recorder Node -file %s/nodal_reaction_z.txt -node %s -dof 3 reaction \n', output_dir, num2str(nodes));
+        fprintf(fileID,'recorder Node -file %s/nodal_accel_z.txt -node %s -dof 3 accel \n', output_dir, num2str(nodes));
+    end
 
-%% Define Element Recorders
-% recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
-fprintf(fileID,'recorder Element -file %s/element_force.txt -ele %s localForce \n', output_dir, num2str(elements'));
-    
+    %% Define Element Recorders
+    % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
+    fprintf(fileID,'recorder Element -file %s/element_force.txt -ele %s localForce \n', output_dir, num2str(elements'));
+
+else
+    %% Define Node recorders
+    fprintf(fileID,'recorder Node -file %s/nodal_disp_x.txt -node %s -dof 1 disp \n', output_dir, num2str(nodes));
+    fprintf(fileID,'recorder Node -file %s/nodal_disp_y.txt -node %s -dof 2 disp \n', output_dir, num2str(nodes));
+    fprintf(fileID,'recorder Node -file %s/nodal_accel_x.txt -node %s -dof 1 accel \n', output_dir, num2str(nodes));
+    fprintf(fileID,'recorder Node -file %s/nodal_accel_y.txt -node %s -dof 2 accel \n', output_dir, num2str(nodes));
+    if strcmp(dimension,'3D')
+        fprintf(fileID,'recorder Node -file %s/nodal_disp_z.txt -node %s -dof 3 disp \n', output_dir, num2str(nodes));
+        fprintf(fileID,'recorder Node -file %s/nodal_accel_z.txt -node %s -dof 3 accel \n', output_dir, num2str(nodes));
+    end
+
+    %% Define Element Recorders
+    % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
+    if strcmp(dimension,'2D')
+        fprintf(fileID,'recorder Element -file %s/element_force.txt -ele %s -dof 1 2 3 6 localForce \n', output_dir, num2str(elements'));
+    else
+        fprintf(fileID,'recorder Element -file %s/element_force.txt -ele %s -dof 1 2 6 12 localForce \n', output_dir, num2str(elements'));
+    end
+end
 % % Walls
 % wall_elements = element.id(strcmp(element.type,'wall'))';
 % if ~isempty(wall_elements)
@@ -59,7 +79,7 @@ if analysis.play_movie
         fprintf(fileID,'vpn 0.4 0.25 1; \n');
     end
     %     fprintf(fileID,'viewWindow -1000 1000 -1000 1000 \n');
-    fprintf(fileID,'display 1 5 40 \n');
+    fprintf(fileID,'display 1 5 %f \n',analysis.movie_scale);
 end
 
 % Close File

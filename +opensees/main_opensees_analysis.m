@@ -7,10 +7,10 @@ import opensees.*
 
 %% Load data
 % Load inital Model info
-if analysis.model_type == 1
+if analysis.model_type == 1 % SDOF
     model_table = readtable(['inputs' filesep 'sdof_models.csv'],'ReadVariableNames',true);
     model = model_table(model_table.id == analysis.model_id,:); 
-elseif analysis.model_type == 2
+elseif analysis.model_type == 2 % MDOF
     model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
     model = model_table(model_table.id == analysis.model_id,:);
 end

@@ -1,4 +1,4 @@
-function [ ] = fn_setup_pushover_analysis( output_dir, analysis, nodes )
+function [ ] = fn_setup_pushover_analysis( output_dir, analysis, node )
 %UNTITLED9 Summary of this function goes here
 %   Detailed explanation goes here
     
@@ -30,17 +30,21 @@ fprintf(fileID,'numberer RCM \n');
 fprintf(fileID,'system BandGeneral \n');
 
 % Test for Convergence
-tolerance = 1e-6;
+tolerance = 1e-5;
 fprintf(fileID,'test NormDispIncr %f 1000 \n',tolerance);
 
 % Define Solution Algorithm
-fprintf(fileID,'algorithm NewtonLineSearch \n');
+fprintf(fileID,'algorithm Newton \n');
 
 % Define Each Load Step
-control_node = nodes(end);
-control_dof = 1;
-num_steps = 10;
-step_size = analysis.max_disp / num_steps;
+control_node = node.id(end);
+if strcmp(analysis.pushover_direction,'x')
+    control_dof = 1;
+elseif strcmp(analysis.pushover_direction,'z')
+    control_dof = 3;
+end
+max_displacement = analysis.pushover_drift*node.y(end);
+step_size = max_displacement / analysis.pushover_num_steps;
 int_controller = ['DisplacementControl ' num2str(control_node) ' ' num2str(control_dof) ' ' num2str(step_size)]; 
 fprintf(fileID,'integrator %s \n',int_controller);
 
