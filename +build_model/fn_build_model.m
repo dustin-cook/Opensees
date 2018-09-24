@@ -231,9 +231,9 @@ for ae = 1:height(additional_elements)
     element.gravity_load(ele_id,1) = 0;
     
     % Check to see if the element nodes exists and assign
-    [ node, id ] = node_exist( node, additional_elements.x_start(ae), additional_elements.y_start(ae), additional_elements.z_start(ae) );
+    [ node, id ] = node_exist( node, additional_elements.x_start(ae), additional_elements.y_start(ae), additional_elements.z_start(ae), 1 );
     element.node_1(ele_id,1) = node.id(id);
-    [ node, id ] = node_exist( node, additional_elements.x_end(ae), additional_elements.y_end(ae), additional_elements.z_end(ae) );
+    [ node, id ] = node_exist( node, additional_elements.x_end(ae), additional_elements.y_end(ae), additional_elements.z_end(ae), 1 );
     element.node_2(ele_id,1) = node.id(id);
     element.node_3(ele_id,1) = 0;
     element.node_4(ele_id,1) = 0;
@@ -256,8 +256,31 @@ node.primary_story = zeros(length(node.id),1);
 for s = 1:height(story)
     slab_ht = story.y_start(s) + story.story_ht(s);
     node.story(node.y == slab_ht) = s;
-    nodes_on_slab{s} = node.id(node.y == slab_ht);
     node.primary_story(node.x == analysis.primary_node_offset & node.z == 0 & node.y == slab_ht) = 1;
+    nodes_on_slab{s} = node.id(node.y == slab_ht);
+end
+
+%% Define new nodes to connect rigid diaphram to
+if strcmp(model.dimension,'3D') 
+    count = 0;
+    last_node = node.id(end);
+    node.on_slab = zeros(length(node.id),1);
+    for s = 1:height(story)
+        for i = 1:length(nodes_on_slab{s})
+            count = count + 1;
+            node_id = last_node + count;
+            node.id(node_id,:) = node_id;
+            node.x(node_id,:) = node.x(node.id == nodes_on_slab{s}(i),:);
+            node.y(node_id,:) = node.y(node.id == nodes_on_slab{s}(i),:);
+            node.z(node_id,:) = node.z(node.id == nodes_on_slab{s}(i),:);
+            node.dead_load(node_id,:) = 0;
+            node.live_load(node_id,:) = 0;
+            node.mass(node_id,:) = 0;
+            node.story(node_id,:) = 0;
+            node.primary_story(node_id,:) = 0;
+            node.on_slab(node_id,:) = s;
+        end
+    end
 end
 
 %% Offset Mass for Accidental Torsion
@@ -352,7 +375,12 @@ end
 node.fix = cell(length(node.id),1);
 node.fix(1:end) = {'[000000]'}; % All nodes
 foundation_nodes_id = node.id(node.y == 0);
-node.fix(foundation_nodes_id,:) = {'[111111]'}; % foundation nodes
+% foundation nodes
+if analysis.foundation == 1
+    node.fix(foundation_nodes_id,:) = {'[111111]'}; % Fixed
+elseif analysis.foundation == 0
+    node.fix(foundation_nodes_id,:) = {'[111000]'}; % Pinned
+end
 
 %% Create Nonlinear Rotational Springs at ends of all beams and columns
 hinge.id = [];
@@ -381,8 +409,8 @@ if analysis.nonlinear ~= 0
             element.Mn_aci_neg(e,1) = 9999999999;
         else
             % Moment Capcity per ACI
-            [ ~, element.Mn_aci_pos(e,1) ] = fn_aci_moment_capacity( 'pos', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0 ); % change to be based on the gravity load instead?
-            [ ~, element.Mn_aci_neg(e,1) ] = fn_aci_moment_capacity( 'neg', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0 );
+            [ ~, element.Mn_aci_pos(e,1) ] = fn_aci_moment_capacity( 'pos', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0, ele.slab_depth, ele.b_eff ); % change to be based on the gravity load instead?
+            [ ~, element.Mn_aci_neg(e,1) ] = fn_aci_moment_capacity( 'neg', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0, ele.slab_depth, ele.b_eff );
         end
     end
 end

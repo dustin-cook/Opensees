@@ -64,10 +64,26 @@ for i = 1:length(d_b)
     [ l_s ] = fn_aci_splice_length( ele_prop.fy_e, ele_prop.fc_e, d_b(i), l_dt_raw );
 
     %% Check to see if development and embedment lengths are long enough
-    test1 = l_d_min(i) >= l_d;
-    test2 = l_d_hook_min(i) >= l_dht;
-    test3 = l_d_hook_ext_min(i) >= 12*d_b(i);
-    test4 = l_s_min(i) >= min([l_s,l_dt]); % Per 10.3.5 of ASCE 41-17
+    if l_d_min == 999
+        test1 = 1;
+    else
+        test1 = l_d_min(i) >= l_d;
+    end
+    if l_d_hook_min == 999
+        test2 = 1;
+    else
+        test2 = l_d_hook_min(i) >= l_dht;
+    end
+    if l_d_hook_ext_min == 999
+        test3 = 1;
+    else
+        test3 = l_d_hook_ext_min(i) >= 12*d_b(i);
+    end
+    if l_s_min == 999
+        test4 = 1;
+    else
+        test4 = l_s_min(i) >= min([l_s,l_dt]); % Per 10.3.5 of ASCE 41-17
+    end
     if test1 && test2 && test3 && test4
         pass_aci_dev_length(i) = 1; 
     else

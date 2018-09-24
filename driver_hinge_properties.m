@@ -7,9 +7,9 @@ import asce_41.*
 import plotting_tools.*
 
 %% Define Analysis and Model parameters
-analysis.model_id = 3;
-analysis.gm_id = 6;
-analysis.name = '11DL11LL';
+analysis.model_id = 11;
+analysis.gm_id = 8;
+analysis.name = 'linear';
 
 %% Read in element and hinge data tables
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
@@ -27,6 +27,8 @@ for i = 1:length(element.id)
         [ hinge ] = fn_beam_hinge( ele, ele_props );
     elseif strcmp(ele.type,'column')
         [ hinge ] = fn_col_hinge( ele, ele_props );
+    elseif strcmp(ele.type,'wall')
+        [ hinge ] = fn_wall_hinge( ele, ele_props );
     end
     
 %     % Plot Hinges

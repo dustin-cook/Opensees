@@ -17,6 +17,7 @@ node.mass(new_node_id) = 0;
 node.story(new_node_id) = 0;
 node.primary_story(new_node_id) = 0;
 node.fix(new_node_id) = node.fix(old_node_id);
+node.on_slab(new_node_id) = 0;
 
 % connect element to new node
 element.(node_end)(ele_id) = new_node_id;

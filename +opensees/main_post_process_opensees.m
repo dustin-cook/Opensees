@@ -21,8 +21,6 @@ else
     dirs_ran = {analysis.pushover_direction};
 end
 
-
-
 %% Element Forces
 % Force component IDs
 comp_names = {'P_TH_1','V_TH_1','M_TH_1','M_TH_2'};
@@ -83,6 +81,8 @@ for i = 1:length(dirs_ran)
     if analysis.type == 1 % Dynamic Analysis
         node.(['accel_' dirs_ran{i} '_rel_TH']) = dlmread([output_dir filesep ['nodal_accel_' dirs_ran{i} '.txt']],' ')'/386; % Convert to G
         node.(['accel_' dirs_ran{i} '_abs_TH']) = node.(['accel_' dirs_ran{i} '_rel_TH'])/386 + ones(length(node.id),1)*eq.(dirs_ran{i});
+    elseif analysis.type == 2 % Pushover Analysis
+        node.(['reaction_' dirs_ran{i} '_TH']) = dlmread([output_dir filesep ['nodal_reaction_' dirs_ran{i} '.txt']],' ')';
     end
     
     % Max edp's at each node
@@ -124,6 +124,7 @@ end
 %% Save element Data
 save([output_dir filesep 'element_TH.mat'],'element_TH')
 save([output_dir filesep 'element_analysis.mat'],'element')
+save([output_dir filesep 'node_analysis.mat'],'node')
 
 %% Save Data
 save([output_dir filesep 'post_process_data'])

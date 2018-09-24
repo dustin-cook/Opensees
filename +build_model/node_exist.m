@@ -1,4 +1,4 @@
-function [ node, id ] = node_exist( node, x, y, z )
+function [ node, id ] = node_exist( node, x, y, z, add_mass )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -12,7 +12,12 @@ if isfield(node,'x') && isfield(node,'y') && isfield(node,'z')
         node.z(node_id,1) = z;
         node.dead_load(node_id,1) = 0;
         node.live_load(node_id,1) = 0;
-        node.mass(node_id,1) = 0;
+        node.on_slab(node_id,1) = 0;
+        if exist('add_mass','var') && add_mass == 1
+            node.mass(node_id,1) = 1;
+        else
+            node.mass(node_id,1) = 0;
+        end
         id = node_id;
     else % Existing Node
         id = node.id(start_node_check);
@@ -24,6 +29,7 @@ else % First Node
     node.z(1,1) = z;
     node.dead_load(1,1) = 0;
     node.live_load(1,1) = 0;
+    node.on_slab(1,1) = 0;
     node.mass(1,1) = 0;
     id = 1;
 end

@@ -15,7 +15,7 @@ end
 if analysis.type == 1 % Dynamic
     fn_setup_dynamic_analysis( output_dir, analysis )
 elseif analysis.type == 2 % Pushover
-    fn_setup_pushover_analysis( output_dir, analysis, node )
+    fn_setup_pushover_analysis( output_dir, analysis, first_story_node, story )
 end
 fn_define_analysis( output_dir, ground_motion, first_story_node, story.story_ht, analysis )
 end

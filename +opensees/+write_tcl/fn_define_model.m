@@ -113,19 +113,38 @@ for i = 1:height(element)
     % Wall Assignment
     elseif strcmp(element.type{i},'wall')
         % Material
-        if analysis.nonlinear ~= 0 % EPP Nonlinear Analysis
-            %uniaxialMaterial ElasticPP $matTag $E $epsyP
-            epsy = ele_props.fc_e/ele_props.e;
-            fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(i), ele_props.e, epsy); % Elastic Perfectly Plastic Material
-        else
+        if analysis.nonlinear == 0 % Elastic
             % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
-            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(i),ele_props.e*0.5);
+            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(i),ele_props.e);
+        elseif analysis.nonlinear == 1 % ASCE 41 IMK hinges
+            k_mem = 6*(ele_props.e*ele_props.iz)/element.length(i); 
+            % Load linear element table
+            ele_lin_table = readtable([output_dir filesep 'element_linear.csv'],'ReadVariableNames',true);
+            ele_lin = ele_lin_table(ele_lin_table.id == element.id(i),:);
+            theta_pc = (ele_lin.b_hinge - ele_lin.a_hinge)/2;
+            theta_u_pos = ele_lin.Mn_aci_pos/k_mem + ele_lin.b_hinge;
+            theta_u_neg = ele_lin.Mn_aci_neg/k_mem + ele_lin.b_hinge;
+            if ele_lin.a_hinge > 0
+                as_mem_pos = min(((ele_lin.Mp_pos-ele_lin.Mn_aci_pos)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
+                as_mem_neg = min(((ele_lin.Mp_neg-ele_lin.Mn_aci_neg)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
+            else
+                as_mem_pos = 0.0;
+                as_mem_neg = 0.0;
+            end
+            %uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
+%             fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(i), k_mem, as_mem_pos, as_mem_neg, ele_lin.Mn_aci_pos, -ele_lin.Mn_aci_neg, ele_lin.a_hinge, ele_lin.a_hinge, theta_pc, theta_pc, ele_lin.c_hinge, ele_lin.c_hinge, theta_u_pos, theta_u_neg);
+            fy_pos = 6*ele_lin.Mn_aci_pos/(ele_props.w*ele_props.d^2);
+            fy_neg = 6*ele_lin.Mn_aci_neg/(ele_props.w*ele_props.d^2);
+            fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(i), ele_props.e, as_mem_pos, as_mem_neg, fy_pos, -fy_pos, ele_lin.a_hinge, ele_lin.a_hinge, theta_pc, theta_pc, ele_lin.c_hinge, ele_lin.c_hinge, theta_u_pos, theta_u_neg);
+        elseif analysis.nonlinear == 2 % General Strain Hardening Material (Use steel 01)
+            %uniaxialMaterial Steel01 $matTag $Fy $E0 $b
+            fprintf(fileID,'uniaxialMaterial Steel01 %i %f %f %f \n', element.id(i), ele_props.fc_e, ele_props.e, 0.10); % Strain Harding Bilinear Material (Steel01)
         end
         
         % section Fiber $secTag <-GJ $GJ> {
         fprintf(fileID,'section Fiber %i { \n',element.id(i));
             % patch rect $matTag $numSubdivY $numSubdivZ $yI $zI $yJ $zJ
-            fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n',element.id(i),10,10,-ele_props.d/2,-ele_props.w/2,ele_props.d/2,ele_props.w/2);
+            fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n',element.id(i),round(ele_props.d),round(ele_props.w),-ele_props.d/2,-ele_props.w/2,ele_props.d/2,ele_props.w/2);
         fprintf(fileID,'} \n');
         
         % element forceBeamColumn $eleTag $iNode $jNode $numIntgrPts $secTag $transfTag <-mass $massDens> <-iter $maxIters $tol> <-integration $intType>
@@ -147,18 +166,7 @@ for i = 1:height(element)
     end
 end
 
-
-% % Define Materials
-% %uniaxialMaterial Elastic $matTag $E
-% fprintf(fileID,'uniaxialMaterial Elastic 1 999999999. \n'); %Rigid Elastic Material
-% 
-% % Define Joints
-% % element Joint3D %tag %Nx- %Nx+ %Ny- %Ny+ %Nz- %Nz+ %Nc %MatX %MatY %MatZ %LrgDspTag
-% for i = 1:length(joint.id)
-%     fprintf(fileID,'element Joint3D %i %i %i %i %i %i %i %i 1 1 1 0 \n',joint.id(i),joint.x_neg(i),joint.x_pos(i),joint.y_neg(i),joint.y_pos(i),joint.z_neg(i),joint.z_pos(i),joint.center(i));
-% end
-
-%% Define Joints as rigid beam-column elements
+%% Define Joints as rigid
 if exist('joint','var')
     % %uniaxialMaterial Elastic $matTag $E
     fprintf(fileID,'uniaxialMaterial Elastic 1 999999999999999. \n'); % Rigid Elastic Material
@@ -191,25 +199,29 @@ if exist('joint','var')
                 fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*10+5,joint.z_neg(i),40000+i);
                 fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*10+6,40000+i,joint.z_pos(i));
             elseif analysis.joint_model == 2  % Joint 3D
-                % Create new nodes to connect with zero length elements such that Joint 3D can play with rigidDiaphragm
-                new_node = node(node.id == joint.y_pos(i),:);
-                fprintf(fileID,'node %i %f %f %f \n',30000+i,new_node.x,new_node.y,new_node.z);
-                fprintf(fileID,'element zeroLength %i %i %i -mat 2 2 2 2 2 2 -dir 1 2 3 4 5 6 \n',20000+i,joint.y_pos(i),30000+i); % Element Id for Hinge
                 % element Joint3D %tag %Nx- %Nx+ %Ny- %Ny+ %Nz- %Nz+ %Nc %MatX %MatY %MatZ %LrgDspTag
-                fprintf(fileID,'element Joint3D %i %i %i %i %i %i %i %i 1 1 1 0 \n', 10000+i, joint.x_neg(i), joint.x_pos(i), joint.y_neg(i), 30000+i, joint.z_neg(i), joint.z_pos(i), 10000+i);
+                fprintf(fileID,'element Joint3D %i %i %i %i %i %i %i %i 1 1 1 0 \n', 10000+i, joint.x_neg(i), joint.x_pos(i), joint.y_neg(i), joint.y_pos(i), joint.z_neg(i), joint.z_pos(i), 10000+i);
             end
         end
     end
 end
 
-% %% Define Rigid Slabs
+%% Define Rigid Slabs
 if strcmp(dimension,'3D')
     for i = 1:height(story)
-        nodes_at_story = node.id(node.story == story.id(i))';
-        fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(nodes_at_story));
+        slab_nodes_at_story = node.id(node.on_slab == story.id(i))';
+        frame_nodes_at_story = node.id(node.story == story.id(i))';
+        fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(slab_nodes_at_story));
+        
+        % Create zero length element to connect rigid diaphram to nodes
+        for j = 1:length(slab_nodes_at_story)
+            new_node = slab_nodes_at_story(j);
+            old_node = frame_nodes_at_story(j);
+            fprintf(fileID,'element zeroLength %i %i %i -mat 2 2 2 2 2 2 -dir 1 2 3 4 5 6 \n',20000+i*1000+j,old_node,new_node); % Element Id for Hinge
+        end
     end
 end
-
+                
 %% Define Plastic Hinges
 if exist('hinge','var')
     for i = 1:height(hinge)
@@ -218,8 +230,9 @@ if exist('hinge','var')
         ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
         % Hinge Stiffnes Calc from appendix B of Ibarra and Krawinkler 2005
         k_mem = 6*(ele_props.e*ele_props.iz)/ele.length; 
-        k_ele = ((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod)*k_mem; 
-        k_spring = analysis.hinge_stiff_mod*k_ele;
+        n = analysis.hinge_stiff_mod;
+        k_ele = ((n+1)/n)*k_mem; 
+        k_spring = n*k_ele;
         if analysis.nonlinear == 1 % IMK Rotational Hinge
             % Load linear element table
             ele_lin_table = readtable([output_dir filesep 'element_linear.csv'],'ReadVariableNames',true);
@@ -239,15 +252,22 @@ if exist('hinge','var')
             %uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
             fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(end), k_spring, as_sping_pos, as_sping_neg, ele_lin.Mn_aci_pos, -ele_lin.Mn_aci_neg, ele_lin.a_hinge, ele_lin.a_hinge, theta_pc, theta_pc, ele_lin.c_hinge, ele_lin.c_hinge, theta_u_pos, theta_u_neg);
             %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
-            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 3 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
-            fprintf(fileID,'equalDOF %i %i 1 2 \n',hinge.node_1(i),hinge.node_2(i));
-        elseif analysis.nonlinear == 2 % Elastic Perfectly Plastic Rotational Hinges
-            epsy = min([ele.Mn_aci_pos,ele.Mn_aci_neg])/k_spring;
-            %uniaxialMaterial ElasticPP $matTag $E $epsyP
-            fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end), k_spring, epsy); % Elastic Perfectly Plastic Material
+            fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 1 1 %i -dir 1 2 3 4 5 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
+%             fprintf(fileID,'equalDOF %i %i 1 2 \n',hinge.node_1(i),hinge.node_2(i));
+        elseif analysis.nonlinear == 2 %Strain Hardening Plastic Rotational Hinges
+            Mn = min([ele.Mn_aci_pos,ele.Mn_aci_neg]);
+            %uniaxialMaterial Steel01 $matTag $Fy $E0 $b
+            fy = 6*Mn/(ele_props.w*ele_props.d^2);
+%             fprintf(fileID,'uniaxialMaterial Steel01 %i %f %f %f \n', element.id(end), Mn, k_spring, 0.1); % Strain Harding Bilinear Material (Steel01)
+            %uniaxialMaterial Hardening $matTag $E $sigmaY $H_iso $H_kin <$eta>
+            fprintf(fileID,'uniaxialMaterial Hardening %i %f %f %f %f \n', element.id(end), k_spring, Mn, k_spring/100, k_spring/100); % Strain Harding Bilinear Material
             %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
-            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 3 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
-            fprintf(fileID,'equalDOF %i %i 1 2 \n',hinge.node_1(i),hinge.node_2(i));
+            if strcmp(dimension,'3D')
+                fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 1 1 %i -dir 1 2 3 4 5 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
+            else
+                fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 %i -dir 1 2 3 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
+            end
+%             fprintf(fileID,'equalDOF %i %i 1 2 3 \n',hinge.node_1(i),hinge.node_2(i));
         end
     end
 end
