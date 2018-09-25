@@ -10,3 +10,4 @@ id,name,dimension,foundation,hazus_class_x,hazus_class_z,vs30,site_class,tar
 9,simple_frame_3D,3D,fix,NA,NA,0,D,0
 10,ICBS_model_3D_short,3D,fix,C1,C2,217.3,D,1
 11,simple_frame_and_wall_3D,3D,fix,NA,NA,0,D,0
+12,ICBS_model_3D_fixed,3D,fix,C1,C2,217.3,D,1
