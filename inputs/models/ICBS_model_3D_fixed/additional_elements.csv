@@ -31,22 +31,22 @@ id,description,ele_id,x_start,x_end,z_start,z_end,y_start,y_end,direction
 30,exterior wall top or bottom,2,1642,1642,300,450,336,336,z
 31,exterior wall top or bottom,2,1642,1642,450,600,336,336,z
 32,exterior wall top or bottom,2,1642,1642,600,900,336,336,z
-33,exterior wall frame extention,14,0,71,0,0,492,492,x
-34,exterior wall frame extention,16,0,71,300,300,492,492,x
-35,exterior wall frame extention,16,0,71,600,600,492,492,x
-36,exterior wall frame extention,14,0,71,900,900,492,492,x
-37,exterior wall top or bottom,2,0,0,0,300,492,492,z
-38,exterior wall top or bottom,2,0,0,300,450,492,492,z
-39,exterior wall top or bottom,2,0,0,450,600,492,492,z
-40,exterior wall top or bottom,2,0,0,600,900,492,492,z
-41,exterior wall frame extention,14,1571,1642,0,0,492,492,x
-42,exterior wall frame extention,16,1571,1642,300,300,492,492,x
-43,exterior wall frame extention,16,1571,1642,600,600,492,492,x
-44,exterior wall frame extention,14,1571,1642,900,900,492,492,x
-45,exterior wall top or bottom,2,1642,1642,0,300,492,492,z
-46,exterior wall top or bottom,2,1642,1642,300,450,492,492,z
-47,exterior wall top or bottom,2,1642,1642,450,600,492,492,z
-48,exterior wall top or bottom,2,1642,1642,600,900,492,492,z
+33,exterior wall frame extention,14,0,71,0,0,498,498,x
+34,exterior wall frame extention,16,0,71,300,300,498,498,x
+35,exterior wall frame extention,16,0,71,600,600,498,498,x
+36,exterior wall frame extention,14,0,71,900,900,498,498,x
+37,exterior wall top or bottom,2,0,0,0,300,498,498,z
+38,exterior wall top or bottom,2,0,0,300,450,498,498,z
+39,exterior wall top or bottom,2,0,0,450,600,498,498,z
+40,exterior wall top or bottom,2,0,0,600,900,498,498,z
+41,exterior wall frame extention,14,1571,1642,0,0,498,498,x
+42,exterior wall frame extention,16,1571,1642,300,300,498,498,x
+43,exterior wall frame extention,16,1571,1642,600,600,498,498,x
+44,exterior wall frame extention,14,1571,1642,900,900,498,498,x
+45,exterior wall top or bottom,2,1642,1642,0,300,498,498,z
+46,exterior wall top or bottom,2,1642,1642,300,450,498,498,z
+47,exterior wall top or bottom,2,1642,1642,450,600,498,498,z
+48,exterior wall top or bottom,2,1642,1642,600,900,498,498,z
 49,exterior wall frame extention,14,0,71,0,0,660,660,x
 50,exterior wall frame extention,16,0,71,300,300,660,660,x
 51,exterior wall frame extention,16,0,71,600,600,660,660,x
@@ -63,34 +63,34 @@ id,description,ele_id,x_start,x_end,z_start,z_end,y_start,y_end,direction
 62,exterior wall top or bottom,2,1642,1642,300,450,660,660,z
 63,exterior wall top or bottom,2,1642,1642,450,600,660,660,z
 64,exterior wall top or bottom,2,1642,1642,600,900,660,660,z
-65,exterior wall frame extention,14,0,71,0,0,882,882,x
-66,exterior wall frame extention,16,0,71,300,300,882,882,x
-67,exterior wall frame extention,16,0,71,600,600,882,882,x
-68,exterior wall frame extention,14,0,71,900,900,882,882,x
-69,exterior wall top or bottom,2,0,0,0,300,882,882,z
-70,exterior wall top or bottom,2,0,0,300,450,882,882,z
-71,exterior wall top or bottom,2,0,0,450,600,882,882,z
-72,exterior wall top or bottom,2,0,0,600,900,882,882,z
-73,exterior wall frame extention,14,1571,1642,0,0,882,882,x
-74,exterior wall frame extention,16,1571,1642,300,300,882,882,x
-75,exterior wall frame extention,16,1571,1642,600,600,882,882,x
-76,exterior wall frame extention,14,1571,1642,900,900,882,882,x
-77,exterior wall top or bottom,2,1642,1642,0,300,882,882,z
-78,exterior wall top or bottom,2,1642,1642,300,450,882,882,z
-79,exterior wall top or bottom,2,1642,1642,450,600,882,882,z
-80,exterior wall top or bottom,2,1642,1642,600,900,882,882,z
-81,exterior wall frame extention,14,0,71,0,0,980,980,x
+65,exterior wall frame extention,14,0,71,0,0,822,822,x
+66,exterior wall frame extention,16,0,71,300,300,822,822,x
+67,exterior wall frame extention,16,0,71,600,600,822,822,x
+68,exterior wall frame extention,14,0,71,900,900,822,822,x
+69,exterior wall top or bottom,2,0,0,0,300,822,822,z
+70,exterior wall top or bottom,2,0,0,300,450,822,822,z
+71,exterior wall top or bottom,2,0,0,450,600,822,822,z
+72,exterior wall top or bottom,2,0,0,600,900,822,822,z
+73,exterior wall frame extention,14,1571,1642,0,0,822,822,x
+74,exterior wall frame extention,16,1571,1642,300,300,822,822,x
+75,exterior wall frame extention,16,1571,1642,600,600,822,822,x
+76,exterior wall frame extention,14,1571,1642,900,900,822,822,x
+77,exterior wall top or bottom,2,1642,1642,0,300,822,822,z
+78,exterior wall top or bottom,2,1642,1642,300,450,822,822,z
+79,exterior wall top or bottom,2,1642,1642,450,600,822,822,z
+80,exterior wall top or bottom,2,1642,1642,600,900,822,822,z
+81,exterior wall frame extention,15,0,71,0,0,980,980,x
 82,exterior wall frame extention,16,0,71,300,300,980,980,x
 83,exterior wall frame extention,16,0,71,600,600,980,980,x
-84,exterior wall frame extention,14,0,71,900,900,980,980,x
+84,exterior wall frame extention,15,0,71,900,900,980,980,x
 85,exterior wall top or bottom,2,0,0,0,300,980,980,z
 86,exterior wall top or bottom,2,0,0,300,450,980,980,z
 87,exterior wall top or bottom,2,0,0,450,600,980,980,z
 88,exterior wall top or bottom,2,0,0,600,900,980,980,z
-89,exterior wall frame extention,14,1571,1642,0,0,980,980,x
+89,exterior wall frame extention,15,1571,1642,0,0,980,980,x
 90,exterior wall frame extention,16,1571,1642,300,300,980,980,x
 91,exterior wall frame extention,16,1571,1642,600,600,980,980,x
-92,exterior wall frame extention,14,1571,1642,900,900,980,980,x
+92,exterior wall frame extention,15,1571,1642,900,900,980,980,x
 93,exterior wall top or bottom,2,1642,1642,0,300,980,980,z
 94,exterior wall top or bottom,2,1642,1642,300,450,980,980,z
 95,exterior wall top or bottom,2,1642,1642,450,600,980,980,z
