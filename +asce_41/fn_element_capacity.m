@@ -25,35 +25,42 @@ end
 % Modify Axial Force as Force Controlled Action (EQ 7-35)
 [ Pmax_force_cotrolled ] = fn_force_controlled_action( ele.Pmax, ele.P_grav, 'cp', 'high', 1, 1 );
 
-if strcmp(ele.type,'beam')
-    % Moment Capcity per ACI
-    [ ~, ele.Mn_aci_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
-    [ ~, ele.Mn_aci_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
-%     ele.Mn_aci_t = ele.Mn_aci_c;
-    % Probable Moment Capcity
-    [ ~, ele.Mp_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
-    [ ~, ele.Mp_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
-%     ele.Mp_t = ele.Mp_c;
+if contains(ele_prop.description,'rigid')
+    ele.Mn_aci_pos = inf;
+    ele.Mn_aci_neg = inf;
+    ele.Mp_pos = inf;
+    ele.Mp_neg = inf;
 else
-    % Moment Capcity per ACI
-    [ ~, ele.Mn_aci_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, ele.P_grav, 0, 0 );
-    [ ~, ele.Mn_aci_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, ele.P_grav, 0, 0 );
-    
-    % Moment Capcity per ACI
-%     [ ~, ele.Mn_aci_t ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, ele.Pmin );
+    if strcmp(ele.type,'beam') 
+        % Moment Capcity per ACI
+        [ ~, ele.Mn_aci_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
+        [ ~, ele.Mn_aci_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
+    %     ele.Mn_aci_t = ele.Mn_aci_c;
+        % Probable Moment Capcity
+        [ ~, ele.Mp_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
+        [ ~, ele.Mp_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
+    %     ele.Mp_t = ele.Mp_c;
+    else
+        % Moment Capcity per ACI
+        [ ~, ele.Mn_aci_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, ele.P_grav, 0, 0 );
+        [ ~, ele.Mn_aci_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, ele.P_grav, 0, 0 );
 
-    % Probable Moment Capcity
-    [ ~, ele.Mp_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, ele.P_grav, 0, 0 );
-    [ ~, ele.Mp_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, ele.P_grav, 0, 0 );
-    
-    % Probable Moment Capcity
-%     [ ~, ele.Mp_t ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, ele.Pmin );
+        % Moment Capcity per ACI
+    %     [ ~, ele.Mn_aci_t ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, ele.Pmin );
 
-    % Calculate PM Diagram Vectors
-    % Percent Pmax
-    vector_P = linspace(-0.9*ele.Pn_aci_t,ele.Pn_aci_c,25);
-    for i = 1:length(vector_P) % Currently Assumes Column has uniform strength in each directions (ie symmetric layout)
-        [ ~, vector_M(i) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, vector_P(i), 0, 0 );
+        % Probable Moment Capcity
+        [ ~, ele.Mp_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, ele.P_grav, 0, 0 );
+        [ ~, ele.Mp_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, ele.P_grav, 0, 0 );
+
+        % Probable Moment Capcity
+    %     [ ~, ele.Mp_t ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, ele.Pmin );
+
+        % Calculate PM Diagram Vectors
+        % Percent Pmax
+        vector_P = linspace(-0.9*ele.Pn_aci_t,ele.Pn_aci_c,25);
+        for i = 1:length(vector_P) % Currently Assumes Column has uniform strength in each directions (ie symmetric layout)
+            [ ~, vector_M(i) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, vector_P(i), 0, 0 );
+        end
     end
 end
 

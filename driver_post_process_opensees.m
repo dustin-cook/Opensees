@@ -5,10 +5,13 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 3;
-analysis.gm_id = 6;
-analysis.name = 'test';
-analysis.nonlinear = 0;
+analysis.model_id = 11;
+analysis.gm_id = 8;
+analysis.name = 'nonlinear';
+analysis.nonlinear = 2;
+analysis.type = 1;
+analysis.full_recorders = 0;
+analysis.run_eigen = 0;
 
 %% Import Packages
 import opensees.main_post_process_opensees
@@ -20,9 +23,12 @@ gm_seq_table = readtable(['inputs' filesep 'ground_motion_sequence.csv'],'ReadVa
 gm_table = readtable(['inputs' filesep 'ground_motion.csv'],'ReadVariableNames',true);
 ground_motion_seq = gm_seq_table(gm_seq_table.id == analysis.gm_id,:);
 output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
-element = readtable([output_dir filesep 'element.csv'],'ReadVariableNames',true);
-node = readtable([output_dir filesep 'node.csv'],'ReadVariableNames',true);
-story = readtable([output_dir filesep 'story.csv'],'ReadVariableNames',true);
+element = readtable(['outputs' filesep model.name{1} filesep 'model data' filesep 'element.csv'],'ReadVariableNames',true);
+node = readtable(['outputs' filesep model.name{1} filesep 'model data' filesep 'node.csv'],'ReadVariableNames',true);
+story = readtable(['outputs' filesep model.name{1} filesep 'model data' filesep 'story.csv'],'ReadVariableNames',true);
+if analysis.nonlinear ~= 0
+    hinge = readtable(['outputs' filesep model.name{1} filesep 'model data' filesep 'hinge.csv'],'ReadVariableNames',true);
+end
 
 dirs = {'x','y','z'};
 for i = 1:length(dirs)
@@ -32,4 +38,4 @@ for i = 1:length(dirs)
 end
 
 %% Run Post Processor
-main_post_process_opensees( analysis, model, story, node, element, ground_motion, output_dir )
+main_post_process_opensees( analysis, model, story, node, element, hinge, ground_motion, output_dir )

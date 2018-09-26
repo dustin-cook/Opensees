@@ -34,10 +34,10 @@ fprintf(fileID,'integrator Newmark 0.5 0.25 \n');
 
 % Convergence test
 tolerance = 1e-6;
-fprintf(fileID,'test NormDispIncr %f 1000 \n',tolerance);
+fprintf(fileID,'test NormDispIncr %f 100 \n',tolerance);
 
 % Define analysis type
-fprintf(fileID,'algorithm Newton \n');
+fprintf(fileID,'algorithm KrylovNewton \n');
 
 % Define analysis type
 fprintf(fileID,'analysis Transient \n');

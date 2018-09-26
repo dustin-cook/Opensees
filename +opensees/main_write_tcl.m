@@ -10,7 +10,7 @@ fn_define_recorders( output_dir, model.dimension, node.id', element.id, hinge, a
 [ground_motion] = fn_define_loads( output_dir, analysis, node, model.dimension, story, element.id');
 first_story_node = node.id(node.primary_story == 1);
 if analysis.run_eigen
-    fn_eigen_analysis( output_dir, analysis.time_step, first_story_node', length(story.id), analysis)
+    fn_eigen_analysis( output_dir, first_story_node', length(story.id), analysis)
 end
 if analysis.type == 1 % Dynamic
     fn_setup_dynamic_analysis( output_dir, analysis )

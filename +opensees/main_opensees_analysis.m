@@ -39,7 +39,7 @@ if analysis.run_opensees
 end
 
 %% Postprocess OS data
-main_post_process_opensees( analysis, model, story, node, element, ground_motion, output_dir )
+main_post_process_opensees( analysis, model, story, node, element, hinge, ground_motion, output_dir )
 
 end
 

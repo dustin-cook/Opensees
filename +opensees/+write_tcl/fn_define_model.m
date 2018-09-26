@@ -113,33 +113,33 @@ for i = 1:height(element)
     % Wall Assignment
     elseif strcmp(element.type{i},'wall')
         % Material
-        if analysis.nonlinear == 0 % Elastic
+%         if analysis.nonlinear == 0 % Elastic
             % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
             fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(i),ele_props.e);
-        elseif analysis.nonlinear == 1 % ASCE 41 IMK hinges
-            k_mem = 6*(ele_props.e*ele_props.iz)/element.length(i); 
-            % Load linear element table
-            ele_lin_table = readtable([output_dir filesep 'element_linear.csv'],'ReadVariableNames',true);
-            ele_lin = ele_lin_table(ele_lin_table.id == element.id(i),:);
-            theta_pc = (ele_lin.b_hinge - ele_lin.a_hinge)/2;
-            theta_u_pos = ele_lin.Mn_aci_pos/k_mem + ele_lin.b_hinge;
-            theta_u_neg = ele_lin.Mn_aci_neg/k_mem + ele_lin.b_hinge;
-            if ele_lin.a_hinge > 0
-                as_mem_pos = min(((ele_lin.Mp_pos-ele_lin.Mn_aci_pos)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
-                as_mem_neg = min(((ele_lin.Mp_neg-ele_lin.Mn_aci_neg)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
-            else
-                as_mem_pos = 0.0;
-                as_mem_neg = 0.0;
-            end
-            %uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
-%             fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(i), k_mem, as_mem_pos, as_mem_neg, ele_lin.Mn_aci_pos, -ele_lin.Mn_aci_neg, ele_lin.a_hinge, ele_lin.a_hinge, theta_pc, theta_pc, ele_lin.c_hinge, ele_lin.c_hinge, theta_u_pos, theta_u_neg);
-            fy_pos = 6*ele_lin.Mn_aci_pos/(ele_props.w*ele_props.d^2);
-            fy_neg = 6*ele_lin.Mn_aci_neg/(ele_props.w*ele_props.d^2);
-            fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(i), ele_props.e, as_mem_pos, as_mem_neg, fy_pos, -fy_pos, ele_lin.a_hinge, ele_lin.a_hinge, theta_pc, theta_pc, ele_lin.c_hinge, ele_lin.c_hinge, theta_u_pos, theta_u_neg);
-        elseif analysis.nonlinear == 2 % General Strain Hardening Material (Use steel 01)
-            %uniaxialMaterial Steel01 $matTag $Fy $E0 $b
-            fprintf(fileID,'uniaxialMaterial Steel01 %i %f %f %f \n', element.id(i), ele_props.fc_e, ele_props.e, 0.10); % Strain Harding Bilinear Material (Steel01)
-        end
+%         elseif analysis.nonlinear == 1 % ASCE 41 IMK hinges
+%             k_mem = 6*(ele_props.e*ele_props.iz)/element.length(i); 
+%             % Load linear element table
+%             ele_lin_table = readtable([output_dir filesep 'element_linear.csv'],'ReadVariableNames',true);
+%             ele_lin = ele_lin_table(ele_lin_table.id == element.id(i),:);
+%             theta_pc = (ele_lin.b_hinge - ele_lin.a_hinge)/2;
+%             theta_u_pos = ele_lin.Mn_aci_pos/k_mem + ele_lin.b_hinge;
+%             theta_u_neg = ele_lin.Mn_aci_neg/k_mem + ele_lin.b_hinge;
+%             if ele_lin.a_hinge > 0
+%                 as_mem_pos = min(((ele_lin.Mp_pos-ele_lin.Mn_aci_pos)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
+%                 as_mem_neg = min(((ele_lin.Mp_neg-ele_lin.Mn_aci_neg)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
+%             else
+%                 as_mem_pos = 0.0;
+%                 as_mem_neg = 0.0;
+%             end
+%             %uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
+% %             fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(i), k_mem, as_mem_pos, as_mem_neg, ele_lin.Mn_aci_pos, -ele_lin.Mn_aci_neg, ele_lin.a_hinge, ele_lin.a_hinge, theta_pc, theta_pc, ele_lin.c_hinge, ele_lin.c_hinge, theta_u_pos, theta_u_neg);
+%             fy_pos = 6*ele_lin.Mn_aci_pos/(ele_props.w*ele_props.d^2);
+%             fy_neg = 6*ele_lin.Mn_aci_neg/(ele_props.w*ele_props.d^2);
+%             fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(i), ele_props.e, as_mem_pos, as_mem_neg, fy_pos, -fy_pos, ele_lin.a_hinge, ele_lin.a_hinge, theta_pc, theta_pc, ele_lin.c_hinge, ele_lin.c_hinge, theta_u_pos, theta_u_neg);
+%         elseif analysis.nonlinear == 2 % General Strain Hardening Material (Use steel 01)
+%             %uniaxialMaterial Steel01 $matTag $Fy $E0 $b
+%             fprintf(fileID,'uniaxialMaterial Steel01 %i %f %f %f \n', element.id(i), ele_props.fc_e, ele_props.e, 0.10); % Strain Harding Bilinear Material (Steel01)
+%         end
         
         % section Fiber $secTag <-GJ $GJ> {
         fprintf(fileID,'section Fiber %i { \n',element.id(i));

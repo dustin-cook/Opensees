@@ -1,4 +1,4 @@
-function [ ] = fn_eigen_analysis( output_dir, time_step, prim_story_nodes, num_stories, analysis )
+function [ ] = fn_eigen_analysis( output_dir, prim_story_nodes, num_stories, analysis )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -11,8 +11,8 @@ fileID = fopen(file_name,'w');
 fprintf(fileID,'wipeAnalysis \n');		
 
 % Record eigenvectors
-fprintf(fileID,'recorder Node -file %s/mode_shape_1.txt -dT %f -node %s -dof 1 3 "eigen 1" \n',output_dir, 2*time_step, num2str(prim_story_nodes));
-fprintf(fileID,'recorder Node -file %s/mode_shape_2.txt -dT %f -node %s -dof 1 3 "eigen 2" \n',output_dir, 2*time_step, num2str(prim_story_nodes));
+fprintf(fileID,'recorder Node -file %s/mode_shape_1.txt -dT %f -node %s -dof 1 3 "eigen 1" \n',output_dir, 1, num2str(prim_story_nodes));
+fprintf(fileID,'recorder Node -file %s/mode_shape_2.txt -dT %f -node %s -dof 1 3 "eigen 2" \n',output_dir, 1, num2str(prim_story_nodes));
 
 % Perform Eigen Analysis
 if strcmp(analysis.damping,'simple')

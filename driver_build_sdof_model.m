@@ -4,7 +4,7 @@ close
 clc
 
 %% DEFINE INPTUTS
-analysis.model_id = 1;
+analysis.model_id = 10;
 
 %% Initial Setup
 import build_model.fn_build_sdof

@@ -1,4 +1,4 @@
-function [ ] = main_post_process_opensees( analysis, model, story, node, element, ground_motion, output_dir )
+function [ ] = main_post_process_opensees( analysis, model, story, node, element, hinge, ground_motion, output_dir )
 % Main function that load raw opensees recorder data and transoforms it into something more readily usable 
 
 %% Import Packages
@@ -58,7 +58,12 @@ clear element_force_recorders
 
 % Load hinge moment and rotation
 if analysis.nonlinear ~= 0
-    hinge.rotation = max(abs(dlmread([output_dir filesep 'hinge_rotation_all.txt'],' ')));
+    for i = 1:height(hinge)
+        rotation_TH = dlmread([output_dir filesep 'hinge_rotation_all.txt'],' ');
+        hinge.rotation_TH{i} = rotation_TH(:,i)';
+        moment_TH = dlmread([output_dir filesep 'hinge_moment_all.txt'],' ');
+        hinge.moment_TH{i} = moment_TH(:,i)';
+    end
 end
 
 % Perform calcs For each direction
@@ -80,7 +85,7 @@ for i = 1:length(dirs_ran)
     node.(['disp_' dirs_ran{i} '_TH']) = dlmread([output_dir filesep ['nodal_disp_' dirs_ran{i} '.txt']],' ')';
     if analysis.type == 1 % Dynamic Analysis
         node.(['accel_' dirs_ran{i} '_rel_TH']) = dlmread([output_dir filesep ['nodal_accel_' dirs_ran{i} '.txt']],' ')'/386; % Convert to G
-        node.(['accel_' dirs_ran{i} '_abs_TH']) = node.(['accel_' dirs_ran{i} '_rel_TH'])/386 + ones(length(node.id),1)*eq.(dirs_ran{i});
+        node.(['accel_' dirs_ran{i} '_abs_TH']) = node.(['accel_' dirs_ran{i} '_rel_TH'])/386 + ones(length(node.id),1)*eq.(dirs_ran{i})(1:length(node.(['accel_' dirs_ran{i} '_rel_TH'])));
     elseif analysis.type == 2 % Pushover Analysis
         node.(['reaction_' dirs_ran{i} '_TH']) = dlmread([output_dir filesep ['nodal_reaction_' dirs_ran{i} '.txt']],' ')';
     end
@@ -121,12 +126,14 @@ for i = 1:length(dirs_ran)
     end
 end
 
-%% Save element Data
+%% Save Specific Data
 save([output_dir filesep 'element_TH.mat'],'element_TH')
 save([output_dir filesep 'element_analysis.mat'],'element')
 save([output_dir filesep 'node_analysis.mat'],'node')
+save([output_dir filesep 'hinge_analysis.mat'],'hinge')
+save([output_dir filesep 'gm_data.mat'],'eq','dirs_ran','ground_motion')
 
-%% Save Data
+%% Save All Data
 save([output_dir filesep 'post_process_data'])
 
 end
