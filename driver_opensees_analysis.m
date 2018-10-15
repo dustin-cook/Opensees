@@ -5,18 +5,18 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 12;
-analysis.gm_seq_id = 8;
-analysis.name = 'nonlinear';
+analysis.model_id = 8;
+analysis.gm_seq_id = 6;
+analysis.name = 'linear';
 
 % Secondary Inputs
-analysis.type = 1; % 1 = dynamic, 2 = pushover
+analysis.type = 2; % 1 = dynamic, 2 = pushover
 analysis.model_type = 2; % 1 = SDOF, 2 = MDOF
 analysis.pushover_drift = 0.05;
 analysis.pushover_num_steps = 200;
 analysis.pushover_direction = 'x';
 analysis.ground_motion_scale_factor = 1;
-analysis.nonlinear = 1; % 1 = IMK Rotational Hinge, 2 = strain hardening hinges
+analysis.nonlinear = 0; % 1 = IMK Rotational Hinge, 2 = strain hardening hinges
 analysis.dead_load = 1.0;
 analysis.live_load = 1.0;
 analysis.accidental_torsion = 0;
