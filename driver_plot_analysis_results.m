@@ -5,15 +5,14 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 9;
-analysis.gm_id = 6;
+analysis.model_id = 12;
+analysis.gm_id = 8;
 analysis.name = 'nonlinear';
 analysis.nonlinear = 1;
 analysis.type = 1;
 analysis.pushover_direction = 'x';
 analysis.initial_timestep_factor = 1;
 plot_asce = 0;
-% dirs_ran = {'x','y','z'};
 
 %% Import Packages
 import plotting_tools.*
@@ -24,6 +23,7 @@ model = model_table(model_table.id == analysis.model_id,:);
 output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
 plot_dir = [output_dir filesep 'plots'];
 load([output_dir filesep 'node_analysis.mat'])
+load([output_dir filesep 'story_analysis.mat'])
 load([output_dir filesep 'gm_data.mat'])
 
 
@@ -151,13 +151,13 @@ elseif analysis.type == 1
     for i = 1:length(dirs_ran)
         if ~strcmp(dirs_ran(i),'y') % Update way I am doing this directional thing
             %% Plot EDP Profiles
-%             fn_plot_profile( [max(abs(eq.(dirs_ran(i)))); story.(['max_accel_' dirs_ran(i)])], [0;story.id], plot_dir, ['Acceleration Profile ' dirs_ran(i)], 'PFA (g)', 0.5, record_edp.max_accel.(dirs_ran(i)))
-%             fn_plot_profile( [0; story.(['max_disp_' dirs_ran(i)])], [0;story.id], plot_dir, ['Displacement Profile ' dirs_ran(i)], 'Displacement (in)', 10, record_edp.max_disp.(dirs_ran(i)) )
-%             fn_plot_profile( story.(['max_drift_' dirs_ran(i)]), story.id, plot_dir, ['Drift Profile ' dirs_ran(i)], 'SDR', 0.01 )
-%             if plot_asce
-%                 fn_plot_profile( [0; story.(['max_disp_' dirs_ran(i) '_ASCE'])], [0;story.id], plot_dir, ['ASCE Displacement Profile ' dirs_ran(i)], 'Displacement (in)', 10, record_edp.max_disp.(dirs_ran(i)) )
-%                 fn_plot_profile( story.(['max_drift_' dirs_ran(i) '_ASCE']), story.id, plot_dir, ['ASCE Drift Profile ' dirs_ran(i)], 'SDR', 0.01 )
-%             end
+            fn_plot_profile( [max(abs(eq.(dirs_ran{i}))); story.(['max_accel_' dirs_ran{i}])], [0;story.id], plot_dir, ['Acceleration Profile ' dirs_ran{i}], 'PFA (g)', 0.5, record_edp.max_accel.(dirs_ran{i}))
+            fn_plot_profile( [0; story.(['max_disp_' dirs_ran{i}])], [0;story.id], plot_dir, ['Displacement Profile ' dirs_ran{i}], 'Displacement (in)', 10, record_edp.max_disp.(dirs_ran{i}) )
+            fn_plot_profile( story.(['max_drift_' dirs_ran{i}]), story.id, plot_dir, ['Drift Profile ' dirs_ran{i}], 'SDR', 0.01 )
+            if plot_asce
+                fn_plot_profile( [0; story.(['max_disp_' dirs_ran{i} '_ASCE'])], [0;story.id], plot_dir, ['ASCE Displacement Profile ' dirs_ran{i}], 'Displacement (in)', 10, record_edp.max_disp.(dirs_ran{i}) )
+                fn_plot_profile( story.(['max_drift_' dirs_ran{i} '_ASCE']), story.id, plot_dir, ['ASCE Drift Profile ' dirs_ran{i}], 'SDR', 0.01 )
+            end
             
             % Plot specific TH comparisons
             if strcmp(model.dimension,'3D')

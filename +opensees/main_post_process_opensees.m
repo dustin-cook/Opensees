@@ -131,10 +131,11 @@ save([output_dir filesep 'element_TH.mat'],'element_TH')
 save([output_dir filesep 'element_analysis.mat'],'element')
 save([output_dir filesep 'node_analysis.mat'],'node')
 save([output_dir filesep 'hinge_analysis.mat'],'hinge')
+save([output_dir filesep 'story_analysis.mat'],'story')
 save([output_dir filesep 'gm_data.mat'],'eq','dirs_ran','ground_motion')
 
 %% Save All Data
-save([output_dir filesep 'post_process_data'])
+% save([output_dir filesep 'post_process_data'])
 
 end
 

@@ -4,7 +4,7 @@ close all
 clc
 
 %% User Input
-analysis.model_id = 4;
+analysis.model_id = 12;
 analysis.name = 'linear';
 
 %% Import Packages
@@ -21,7 +21,7 @@ load([output_dir filesep 'element_analysis.mat'])
 for i = 1:length(element.id)
     ele = element(i,:);
     ele_id = ele.ele_id;
-    ele_prop = ele_prop_table(ele_id,:);
+    ele_prop = ele_prop_table(ele_prop_table.id == ele_id,:);
     ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
     
     %% Calculate Element Capacties

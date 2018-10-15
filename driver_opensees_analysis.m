@@ -5,12 +5,12 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 4;
-analysis.gm_seq_id = 6;
+analysis.model_id = 12;
+analysis.gm_seq_id = 8;
 analysis.name = 'nonlinear';
 
 % Secondary Inputs
-analysis.type = 2; % 1 = dynamic, 2 = pushover
+analysis.type = 1; % 1 = dynamic, 2 = pushover
 analysis.model_type = 2; % 1 = SDOF, 2 = MDOF
 analysis.pushover_drift = 0.05;
 analysis.pushover_num_steps = 200;
@@ -29,7 +29,7 @@ analysis.run_eigen = 1;
 analysis.run_opensees = 1;
 analysis.initial_timestep_factor = 1;
 analysis.solution_algorithm = 1;
-analysis.collapse_drift = 0.1;
+analysis.collapse_drift = 0.1;  
 analysis.joint_model = 2; % 1 = elastic elements, 2 = joint 3D
 analysis.full_recorders = 0; % 0 = simple recorders, 1 = full recorders
 
