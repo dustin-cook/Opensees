@@ -5,20 +5,14 @@ function [ ] = main_post_process_opensees( analysis, model, story, node, element
 import opensees.post_process.*
 
 %% Load in Analysis data
-% Load element force data
-element_force_recorders = dlmread([output_dir filesep 'element_force.txt'],' ');
-time_step_vector = element_force_recorders(:,1)';
-% if exist([output_dir filesep 'element_force_beams_and_columns.txt'],'file')
-%     beam_column_force_TH = dlmread([output_dir filesep 'element_force_beams_and_columns.txt'],' ');
-% end
-% if exist([output_dir filesep 'element_force_walls.txt'],'file')
-%     wall_force_TH = dlmread([output_dir filesep 'element_force_walls.txt'],' ');
-% end
-
-% Ground mottion data
-if analysis.type == 1
+if analysis.type == 1 % dynamic analysis
+    % Ground mottion data
     dirs_ran = fieldnames(ground_motion);
-else
+    
+    % Load element force data
+    element_force_recorders = dlmread([output_dir filesep 'element_force.txt'],' ');
+    time_step_vector = element_force_recorders(:,1)';
+else % pushover analysis
     dirs_ran = {analysis.pushover_direction};
 end
 
@@ -39,19 +33,21 @@ else
 end
 
 %% Loop through elements and save data
-for i = 1:length(element.id)
-    ele_force_TH = element_force_recorders(:,((i-1)*num_comps+2):(i*num_comps+1));
-    ele_force_max_abs = max(abs(ele_force_TH));
-    ele_force_max = max(ele_force_TH);
-    ele_force_min = min(ele_force_TH);
-    for j = 1:length(comp_names)
-        element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH(:,comp_keys(j))';
+if analysis.type == 1 % dynamic analysis
+    for i = 1:length(element.id)
+        ele_force_TH = element_force_recorders(:,((i-1)*num_comps+2):(i*num_comps+1));
+        ele_force_max_abs = max(abs(ele_force_TH));
+        ele_force_max = max(ele_force_TH);
+        ele_force_min = min(ele_force_TH);
+        for j = 1:length(comp_names)
+            element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH(:,comp_keys(j))';
+        end
+        element.P_grav(i) = ele_force_TH(1,1);
+        element.Pmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH_1));
+        element.Pmin(i) = min(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH_1));
+        element.Vmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_1));
+        element.Mmax(i) = max(abs([element_TH.(['ele_' num2str(element.id(i))]).M_TH_1,element_TH.(['ele_' num2str(element.id(i))]).M_TH_1]));
     end
-    element.P_grav(i) = ele_force_TH(1,1);
-    element.Pmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH_1));
-    element.Pmin(i) = min(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH_1));
-    element.Vmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_1));
-    element.Mmax(i) = max(abs([element_TH.(['ele_' num2str(element.id(i))]).M_TH_1,element_TH.(['ele_' num2str(element.id(i))]).M_TH_1]));
 end
     
 % clear raw opesees data
@@ -128,13 +124,14 @@ for i = 1:length(dirs_ran)
 end
 
 %% Save Specific Data
-save([output_dir filesep 'element_TH.mat'],'element_TH')
 save([output_dir filesep 'element_analysis.mat'],'element')
 save([output_dir filesep 'node_analysis.mat'],'node')
 save([output_dir filesep 'hinge_analysis.mat'],'hinge')
 save([output_dir filesep 'story_analysis.mat'],'story')
-save([output_dir filesep 'gm_data.mat'],'eq','dirs_ran','ground_motion')
-
+if analysis.type == 1 % Dynamic Analysis
+    save([output_dir filesep 'element_TH.mat'],'element_TH')
+    save([output_dir filesep 'gm_data.mat'],'eq','dirs_ran','ground_motion')
+end
 %% Save All Data
 % save([output_dir filesep 'post_process_data'])
 

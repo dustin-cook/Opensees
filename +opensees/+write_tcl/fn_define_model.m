@@ -112,51 +112,60 @@ for i = 1:height(element)
         
     % Wall Assignment
     elseif strcmp(element.type{i},'wall')
-        % Material
-%         if analysis.nonlinear == 0 % Elastic
+        if analysis.nonlinear == 0 % Elastic
             % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
             fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(i),ele_props.e);
-%         elseif analysis.nonlinear == 1 % ASCE 41 IMK hinges
-%             k_mem = 6*(ele_props.e*ele_props.iz)/element.length(i); 
-%             % Load linear element table
-%             ele_lin_table = readtable([output_dir filesep 'element_linear.csv'],'ReadVariableNames',true);
-%             ele_lin = ele_lin_table(ele_lin_table.id == element.id(i),:);
-%             theta_pc = (ele_lin.b_hinge - ele_lin.a_hinge)/2;
-%             theta_u_pos = ele_lin.Mn_aci_pos/k_mem + ele_lin.b_hinge;
-%             theta_u_neg = ele_lin.Mn_aci_neg/k_mem + ele_lin.b_hinge;
-%             if ele_lin.a_hinge > 0
-%                 as_mem_pos = min(((ele_lin.Mp_pos-ele_lin.Mn_aci_pos)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
-%                 as_mem_neg = min(((ele_lin.Mp_neg-ele_lin.Mn_aci_neg)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
-%             else
-%                 as_mem_pos = 0.0;
-%                 as_mem_neg = 0.0;
-%             end
-%             %uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
-% %             fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(i), k_mem, as_mem_pos, as_mem_neg, ele_lin.Mn_aci_pos, -ele_lin.Mn_aci_neg, ele_lin.a_hinge, ele_lin.a_hinge, theta_pc, theta_pc, ele_lin.c_hinge, ele_lin.c_hinge, theta_u_pos, theta_u_neg);
-%             fy_pos = 6*ele_lin.Mn_aci_pos/(ele_props.w*ele_props.d^2);
-%             fy_neg = 6*ele_lin.Mn_aci_neg/(ele_props.w*ele_props.d^2);
-%             fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(i), ele_props.e, as_mem_pos, as_mem_neg, fy_pos, -fy_pos, ele_lin.a_hinge, ele_lin.a_hinge, theta_pc, theta_pc, ele_lin.c_hinge, ele_lin.c_hinge, theta_u_pos, theta_u_neg);
-%         elseif analysis.nonlinear == 2 % General Strain Hardening Material (Use steel 01)
-%             %uniaxialMaterial Steel01 $matTag $Fy $E0 $b
-%             fprintf(fileID,'uniaxialMaterial Steel01 %i %f %f %f \n', element.id(i), ele_props.fc_e, ele_props.e, 0.10); % Strain Harding Bilinear Material (Steel01)
-%         end
+        elseif analysis.nonlinear == 1 % ASCE 41 IMK hinges
+            k_mem = 6*(ele_props.e*ele_props.iz)/element.length(i); 
+            % Load linear element table
+            ele_lin_table = readtable([output_dir filesep 'element_linear.csv'],'ReadVariableNames',true);
+            ele_lin = ele_lin_table(ele_lin_table.id == element.id(i),:);
+            theta_pc = (ele_lin.b_hinge - ele_lin.a_hinge)/2;
+            theta_u_pos = ele_lin.Mn_aci_pos/k_mem + ele_lin.b_hinge;
+            theta_u_neg = ele_lin.Mn_aci_neg/k_mem + ele_lin.b_hinge;
+            if ele_lin.a_hinge > 0
+                as_mem_pos = min(((ele_lin.Mp_pos-ele_lin.Mn_aci_pos)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
+                as_mem_neg = min(((ele_lin.Mp_neg-ele_lin.Mn_aci_neg)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
+            else
+                as_mem_pos = 0.0;
+                as_mem_neg = 0.0;
+            end
+            fy_pos = 6*ele_lin.Mn_aci_pos/(ele_props.w*ele_props.d^2);
+            fy_neg = 6*ele_lin.Mn_aci_neg/(ele_props.w*ele_props.d^2);
+            Lp = 0.2*ele_props.d + 0.07*(element.length/2);
+            rot_conv = ele_props.d/Lp;
+            %uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
+            fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(i), ele_props.e, as_mem_pos, as_mem_neg, fy_pos, -fy_neg, ele_lin.a_hinge*rot_conv, ele_lin.a_hinge*rot_conv, theta_pc*rot_conv, theta_pc*rot_conv, ele_lin.c_hinge, ele_lin.c_hinge, theta_u_pos*rot_conv, theta_u_neg*rot_conv);
+        elseif analysis.nonlinear == 2 % Expliceit steel and concrete fibers
+            % uniaxialMaterial Steel02 $matTag $Fy $E $b $R0 $cR1 $cR2 <$a1 $a2 $a3 $a4 $sigInit>
+            fprintf(fileID,'uniaxialMaterial Steel02 %i %f %f 0.05 15. 0.925 0.15 \n', 1, ele_props.fy_e, ele_props.Es);
+            % uniaxialMaterial Concrete04 $matTag $fc $ec $ecu $Ec <$fct $et> <$beta>
+            fprintf(fileID,'uniaxialMaterial Concrete04 %i %f -0.002 -0.06 %f %f 0.00015 \n', 2, -ele_props.fc_e, ele_props.e/.35, 7.5*sqrt(ele_props.fc_e));
+        end
         
         % section Fiber $secTag <-GJ $GJ> {
         fprintf(fileID,'section Fiber %i { \n',element.id(i));
             % patch rect $matTag $numSubdivY $numSubdivZ $yI $zI $yJ $zJ
-            fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n',element.id(i),round(ele_props.d),round(ele_props.w),-ele_props.d/2,-ele_props.w/2,ele_props.d/2,ele_props.w/2);
+            fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n',2,round(ele_props.d),round(ele_props.w),0,0,ele_props.d,ele_props.w);
+            if analysis.nonlinear == 2
+                As = str2double(strsplit(strrep(strrep(ele_props.As{1},'[',''),']','')));
+                num_bars = str2double(strsplit(strrep(strrep(ele_props.n_b{1},'[',''),']','')));
+                depth_bars = str2double(strsplit(strrep(strrep(ele_props.As_d{1},'[',''),']','')));
+                for row = 1:length(As)
+                    % layer straight $matTag $numFiber $areaFiber $yStart $zStart $yEnd $zEnd
+                    height_bars = depth_bars(row);
+                    width_start = ele_props.clear_cover + 1;
+                    width_end = ele_props.w - width_start;
+                    fprintf(fileID,'layer straight %i %i %f %f %f %f %f \n', 1, num_bars(row), As(row), height_bars, width_start, height_bars, width_end);
+                end
+            end
+            
         fprintf(fileID,'} \n');
+        
         
         % element forceBeamColumn $eleTag $iNode $jNode $numIntgrPts $secTag $transfTag <-mass $massDens> <-iter $maxIters $tol> <-integration $intType>
         fprintf(fileID,'element forceBeamColumn %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),5,element.id(i),geotransf);  
 
-%         % nDMaterial ElasticIsotropic $matTag $E $v <$rho>
-%         fprintf(fileID,'nDMaterial ElasticIsotropic %i %f %f \n',element.id(i),ele_props.e,ele_props.poisson_ratio);
-%         % section PlateFiber $secTag $matTag $h
-%         fprintf(fileID,'section PlateFiber %i %i %f \n',element.id(i),element.id(i),12);
-%         % element ShellMITC4 $eleTag $iNode $jNode $kNode $lNode $secTag
-%         fprintf(fileID,'element ShellMITC4 %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),element.node_3(i),element.node_4(i),element.id(i));
-    
     % Truss Assigment
     elseif strcmp(element.type{i},'truss')
         % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
@@ -168,10 +177,10 @@ end
 
 %% Define Joints as rigid
 if exist('joint','var')
-    % %uniaxialMaterial Elastic $matTag $E
-    fprintf(fileID,'uniaxialMaterial Elastic 1 999999999999999. \n'); % Rigid Elastic Material
-    fprintf(fileID,'uniaxialMaterial Elastic 2 999999999999. \n'); % Rigid Elastic Material
     for i = 1:height(joint)
+        % %uniaxialMaterial Elastic $matTag $E
+        fprintf(fileID,'uniaxialMaterial Elastic 1 999999999999999. \n'); % Rigid Elastic Material
+        fprintf(fileID,'uniaxialMaterial Elastic 2 999999999999. \n'); % Rigid Elastic Material
         if strcmp(dimension,'2D')
             if analysis.joint_model == 1 % Elastic beam column elements
                 % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag

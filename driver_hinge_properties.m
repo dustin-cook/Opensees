@@ -7,7 +7,7 @@ import asce_41.*
 import plotting_tools.*
 
 %% Define Analysis and Model parameters
-analysis.model_id = 12;
+analysis.model_id = 8;
 analysis.gm_id = 6;
 analysis.name = 'linear';
 

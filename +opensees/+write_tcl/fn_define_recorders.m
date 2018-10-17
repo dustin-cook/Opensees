@@ -49,11 +49,11 @@ elseif analysis.type == 1 % Default Dyanmic Recorders
 elseif analysis.type == 2 % Default Pushover Recorders
     %% Define Node recorders
     if strcmp(analysis.pushover_direction,'x')
-        fprintf(fileID,'recorder Node -file %s/nodal_disp_x.txt -node %s -dof 1 disp \n', output_dir, num2str(nodes));
-        fprintf(fileID,'recorder Node -file %s/nodal_reaction_x.txt -node %s -dof 1 reaction \n', output_dir, num2str(nodes));
+        fprintf(fileID,'recorder Node -file %s/nodal_disp_x.txt -time -node %s -dof 1 disp \n', output_dir, num2str(nodes));
+        fprintf(fileID,'recorder Node -file %s/nodal_reaction_x.txt -time -node %s -dof 1 reaction \n', output_dir, num2str(nodes));
     elseif strcmp(analysis.pushover_direction,'z')
-        fprintf(fileID,'recorder Node -file %s/nodal_disp_z.txt -node %s -dof 3 disp \n', output_dir, num2str(nodes));
-        fprintf(fileID,'recorder Node -file %s/nodal_reaction_z.txt -node %s -dof 3 reaction \n', output_dir, num2str(nodes));
+        fprintf(fileID,'recorder Node -file %s/nodal_disp_z.txt -time -node %s -dof 3 disp \n', output_dir, num2str(nodes));
+        fprintf(fileID,'recorder Node -file %s/nodal_reaction_z.txt -time -node %s -dof 3 reaction \n', output_dir, num2str(nodes));
     end
 end
 % % Walls

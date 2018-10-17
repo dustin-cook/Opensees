@@ -16,16 +16,14 @@ ground_motion_table = readtable(['inputs' filesep 'ground_motion.csv'],'ReadVari
 
 %% Define Gravity Loads (node id, axial, shear, moment)
 fprintf(fileID,'pattern Plain 1 Linear {  \n');
-if strcmp(dimension,'2D')
-    for i = 1:length(node.id) 
+for i = 1:length(node.id) 
+    if strcmp(dimension,'2D')
         fprintf(fileID,'   load %d 0.0 -%f 0.0 \n', node.id(i), node.dead_load(i)*analysis.dead_load + node.live_load(i)*analysis.live_load);
-    end
-elseif strcmp(dimension,'3D')
-    for i = 1:length(node.id) 
+    elseif strcmp(dimension,'3D')
         fprintf(fileID,'   load %d 0.0 -%f 0.0 0.0 0.0 0.0 \n', node.id(i), node.dead_load(i)*analysis.dead_load + node.live_load(i)*analysis.live_load);
+    else
+        error('Number of Dimensions Not Recognized')
     end
-else
-    error('Number of Dimensions Not Recognized')
 end
 fprintf(fileID,'} \n');
 
@@ -69,10 +67,14 @@ if analysis.type == 2
     fprintf(fileID,'pattern Plain 2 Linear { \n');
     for i = 1:length(force_nodes)
         node_id = force_nodes(i);
-        if strcmp(analysis.pushover_direction,'x')
-            fprintf(fileID,'  load %d %f 0.0 0.0 0.0 0.0 0.0 \n', node_id, node.lateral_load(node.id == node_id));
-        elseif strcmp(analysis.pushover_direction,'z')
-            fprintf(fileID,'  load %d 0.0 0.0 %f 0.0 0.0 0.0 \n', node_id, node.lateral_load(node.id == node_id));
+        if strcmp(dimension,'2D')
+            fprintf(fileID,'  load %d %f 0.0 0.0 \n', node_id, node.lateral_load(node.id == node_id));
+        elseif strcmp(dimension,'3D')
+            if strcmp(analysis.pushover_direction,'x')
+                fprintf(fileID,'  load %d %f 0.0 0.0 0.0 0.0 0.0 \n', node_id, node.lateral_load(node.id == node_id));
+            elseif strcmp(analysis.pushover_direction,'z')
+                fprintf(fileID,'  load %d 0.0 0.0 %f 0.0 0.0 0.0 \n', node_id, node.lateral_load(node.id == node_id));
+            end
         end
     end
     fprintf(fileID,'} \n');

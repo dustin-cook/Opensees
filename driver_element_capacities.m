@@ -4,7 +4,7 @@ close all
 clc
 
 %% User Input
-analysis.model_id = 12;
+analysis.model_id = 8;
 analysis.name = 'linear';
 
 %% Import Packages
