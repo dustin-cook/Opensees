@@ -84,7 +84,7 @@ for i = 1:length(dirs_ran)
        node.(['accel_' dirs_ran{i} '_abs_TH']) = node.(['accel_' dirs_ran{i} '_rel_TH'])/386 + ones(length(node.id),1)*eq.(dirs_ran{i})(1:length(node.(['accel_' dirs_ran{i} '_rel_TH'])));
    elseif analysis.type == 2 % Pushover Analysis
        node_reac_raw = dlmread([output_dir filesep ['nodal_reaction_' dirs_ran{i} '.txt']],' ')';
-       node.(['reaction_' dirs_ran{i} '_TH']) = node_disp_raw(2:end,:);
+       node.(['reaction_' dirs_ran{i} '_TH']) = node_reac_raw(2:end,:);
    end
     
     % Max edp's at each node

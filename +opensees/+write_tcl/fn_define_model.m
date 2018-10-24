@@ -136,17 +136,17 @@ for i = 1:height(element)
             rot_conv = ele_props.d/Lp;
             %uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
             fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(i), ele_props.e, as_mem_pos, as_mem_neg, fy_pos, -fy_neg, ele_lin.a_hinge*rot_conv, ele_lin.a_hinge*rot_conv, theta_pc*rot_conv, theta_pc*rot_conv, ele_lin.c_hinge, ele_lin.c_hinge, theta_u_pos*rot_conv, theta_u_neg*rot_conv);
-        elseif analysis.nonlinear == 2 % Expliceit steel and concrete fibers
+        elseif analysis.nonlinear == 2 % Explicit steel and concrete fibers
             % uniaxialMaterial Steel02 $matTag $Fy $E $b $R0 $cR1 $cR2 <$a1 $a2 $a3 $a4 $sigInit>
-            fprintf(fileID,'uniaxialMaterial Steel02 %i %f %f 0.05 15. 0.925 0.15 \n', 1, ele_props.fy_e, ele_props.Es);
+            fprintf(fileID,'uniaxialMaterial Steel02 %i %f %f 0.05 15. 0.925 0.15 \n', 1000 + element.id(i), ele_props.fy_e, ele_props.Es);
             % uniaxialMaterial Concrete04 $matTag $fc $ec $ecu $Ec <$fct $et> <$beta>
-            fprintf(fileID,'uniaxialMaterial Concrete04 %i %f -0.002 -0.06 %f %f 0.00015 \n', 2, -ele_props.fc_e, ele_props.e/.35, 7.5*sqrt(ele_props.fc_e));
+            fprintf(fileID,'uniaxialMaterial Concrete04 %i %f -0.002 -0.06 %f %f 0.00015 \n', element.id(i), -ele_props.fc_e, ele_props.e/.35, 7.5*sqrt(ele_props.fc_e));
         end
         
         % section Fiber $secTag <-GJ $GJ> {
         fprintf(fileID,'section Fiber %i { \n',element.id(i));
             % patch rect $matTag $numSubdivY $numSubdivZ $yI $zI $yJ $zJ
-            fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n',2,round(ele_props.d),round(ele_props.w),0,0,ele_props.d,ele_props.w);
+            fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n',element.id(i),round(ele_props.d),round(ele_props.w),0,0,ele_props.d,ele_props.w);
             if analysis.nonlinear == 2
                 As = str2double(strsplit(strrep(strrep(ele_props.As{1},'[',''),']','')));
                 num_bars = str2double(strsplit(strrep(strrep(ele_props.n_b{1},'[',''),']','')));
@@ -156,12 +156,11 @@ for i = 1:height(element)
                     height_bars = depth_bars(row);
                     width_start = ele_props.clear_cover + 1;
                     width_end = ele_props.w - width_start;
-                    fprintf(fileID,'layer straight %i %i %f %f %f %f %f \n', 1, num_bars(row), As(row), height_bars, width_start, height_bars, width_end);
+                    fprintf(fileID,'layer straight %i %i %f %f %f %f %f \n', 1000 + element.id(i), num_bars(row), As(row), height_bars, width_start, height_bars, width_end);
                 end
             end
             
         fprintf(fileID,'} \n');
-        
         
         % element forceBeamColumn $eleTag $iNode $jNode $numIntgrPts $secTag $transfTag <-mass $massDens> <-iter $maxIters $tol> <-integration $intType>
         fprintf(fileID,'element forceBeamColumn %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),5,element.id(i),geotransf);  

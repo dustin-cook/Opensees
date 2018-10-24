@@ -46,7 +46,7 @@ elseif analysis.type == 1 % Default Dyanmic Recorders
         fprintf(fileID,'recorder Element -file %s/element_force.txt -time -ele %s -dof 1 2 6 12 localForce \n', output_dir, num2str(elements'));
     end
     
-elseif analysis.type == 2 % Default Pushover Recorders
+elseif analysis.type == 2 || analysis.type == 3 % Default Pushover Recorders
     %% Define Node recorders
     if strcmp(analysis.pushover_direction,'x')
         fprintf(fileID,'recorder Node -file %s/nodal_disp_x.txt -time -node %s -dof 1 disp \n', output_dir, num2str(nodes));

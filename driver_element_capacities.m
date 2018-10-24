@@ -5,7 +5,7 @@ clc
 
 %% User Input
 analysis.model_id = 8;
-analysis.name = 'linear';
+analysis.name = 'nonlinear';
 
 %% Import Packages
 import asce_41.*
