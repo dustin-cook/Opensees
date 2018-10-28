@@ -47,8 +47,8 @@ fprintf(fileID,'} \n');
 fprintf(fileID,'puts "Gravity Load Complete" \n');
 fprintf(fileID,'loadConst -time 0.0 \n');
 
-%% Pushover Loading
-if analysis.type == 2
+%% Static Lateral Loading
+if analysis.type == 2 || analysis.type == 3
      % equivalent lateral force vertical distribution
      w = story.story_dead_load;
      h = story.story_ht + story.y_start;

@@ -23,9 +23,9 @@ model = model_table(model_table.id == analysis.model_id,:);
 output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
 plot_dir = [output_dir filesep 'plots'];
 load([output_dir filesep 'node_analysis.mat'])
+load([output_dir filesep 'element_analysis.mat'])
 load([output_dir filesep 'story_analysis.mat'])
 load([output_dir filesep 'gm_data.mat'])
-
 
 %% Pushover Analysis
 if analysis.type == 2
@@ -33,7 +33,11 @@ if analysis.type == 2
     base_nodes = node(node.y == 0,:);
     
     % Calulate base shear
-    base_shear = abs(sum(base_nodes.(['reaction_' analysis.pushover_direction '_TH'])));
+    if height(base_nodes) == 1
+        base_shear = abs(base_nodes.(['reaction_' analysis.pushover_direction '_TH']));
+    else
+        base_shear = abs(sum(base_nodes.(['reaction_' analysis.pushover_direction '_TH'])));
+    end
     
     % Calculate roof disp
     roof_node = control_nodes(control_nodes.y == max(control_nodes.y),:);
@@ -45,6 +49,14 @@ if analysis.type == 2
     xlabel('Roof Displacement (in)')
     plot_dir = [output_dir filesep 'Pushover_Plots'];
     plot_name = ['Roof Pushover - ' analysis.pushover_direction];
+    fn_format_and_save_plot( plot_dir, plot_name, 2 )
+    
+    % TEMP 
+    plot(roof_disp/(174/2),base_shear/(1000*1300))
+    ylabel('Q/Qy')
+    xlabel('Total Rotation')
+    plot_dir = [output_dir filesep 'Pushover_Plots'];
+    plot_name = ['Roof Pushover Hinge - ' analysis.pushover_direction];
     fn_format_and_save_plot( plot_dir, plot_name, 2 )
     
     % Plot story Drift Pushover
@@ -180,12 +192,12 @@ elseif analysis.type == 1
                 node_ground = node(node.x == 1200 & node.y == 0 & node.id < 300,:);
                 node_second_center = node(node.x == 900 & node.y == 174 & node.id < 300,:);
                 node_roof_center = node(node.x == 900 & node.y == 822 & node.id < 300,:);
-                fn_plot_response_history( node_ground.(['disp_' dirs_ran(i) '_TH']), record_edp.disp_TH_ground.(dirs_ran(i)), eq.(dirs_ran(i)), ground_motion.(dirs_ran(i)).eq_dt, plot_dir, ['Ground Displacemnet ' dirs_ran(i) ' (in)'] )
-                fn_plot_response_history( node_ground.(['accel_' dirs_ran(i) '_abs_TH']), record_edp.accel_TH_ground.(dirs_ran(i)), eq.(dirs_ran(i)), ground_motion.(dirs_ran(i)).eq_dt, plot_dir, ['Ground Acceleration ' dirs_ran(i) ' (g)'] )
-                fn_plot_response_history( node_second_center.(['disp_' dirs_ran(i) '_TH']), record_edp.disp_TH_second.(dirs_ran(i)), eq.(dirs_ran(i)), ground_motion.(dirs_ran(i)).eq_dt, plot_dir, ['Second Floor Displacemnet Center ' dirs_ran(i) ' (in)'] )
-                fn_plot_response_history( node_second_center.(['accel_' dirs_ran(i) '_abs_TH']), record_edp.accel_TH_second.(dirs_ran(i)), eq.(dirs_ran(i)), ground_motion.(dirs_ran(i)).eq_dt, plot_dir, ['Second Floor Acceleration Center ' dirs_ran(i) ' (g)'] )
-                fn_plot_response_history( node_roof_center.(['disp_' dirs_ran(i) '_TH'])-node_roof_center.(['disp_' dirs_ran(i) '_TH'])(1), record_edp.disp_TH_roof.(dirs_ran(i)), eq.(dirs_ran(i)), ground_motion.(dirs_ran(i)).eq_dt, plot_dir, ['Roof Displacemnet Center ' dirs_ran(i) ' (in)'] )
-                fn_plot_response_history( node_roof_center.(['accel_' dirs_ran(i) '_abs_TH']), record_edp.accel_TH_roof.(dirs_ran(i)), eq.(dirs_ran(i)), ground_motion.(dirs_ran(i)).eq_dt, plot_dir, ['Roof Acceleration Center ' dirs_ran(i) ' (g)'] )
+%                 fn_plot_response_history( node_ground.(['disp_' dirs_ran(i) '_TH']), record_edp.disp_TH_ground.(dirs_ran(i)), eq.(dirs_ran(i)), ground_motion.(dirs_ran(i)).eq_dt, plot_dir, ['Ground Displacemnet ' dirs_ran(i) ' (in)'] )
+%                 fn_plot_response_history( node_ground.(['accel_' dirs_ran(i) '_abs_TH']), record_edp.accel_TH_ground.(dirs_ran(i)), eq.(dirs_ran(i)), ground_motion.(dirs_ran(i)).eq_dt, plot_dir, ['Ground Acceleration ' dirs_ran(i) ' (g)'] )
+%                 fn_plot_response_history( node_second_center.(['disp_' dirs_ran(i) '_TH']), record_edp.disp_TH_second.(dirs_ran(i)), eq.(dirs_ran(i)), ground_motion.(dirs_ran(i)).eq_dt, plot_dir, ['Second Floor Displacemnet Center ' dirs_ran(i) ' (in)'] )
+%                 fn_plot_response_history( node_second_center.(['accel_' dirs_ran(i) '_abs_TH']), record_edp.accel_TH_second.(dirs_ran(i)), eq.(dirs_ran(i)), ground_motion.(dirs_ran(i)).eq_dt, plot_dir, ['Second Floor Acceleration Center ' dirs_ran(i) ' (g)'] )
+%                 fn_plot_response_history( node_roof_center.(['disp_' dirs_ran(i) '_TH'])-node_roof_center.(['disp_' dirs_ran(i) '_TH'])(1), record_edp.disp_TH_roof.(dirs_ran(i)), eq.(dirs_ran(i)), ground_motion.(dirs_ran(i)).eq_dt, plot_dir, ['Roof Displacemnet Center ' dirs_ran(i) ' (in)'] )
+%                 fn_plot_response_history( node_roof_center.(['accel_' dirs_ran(i) '_abs_TH']), record_edp.accel_TH_roof.(dirs_ran(i)), eq.(dirs_ran(i)), ground_motion.(dirs_ran(i)).eq_dt, plot_dir, ['Roof Acceleration Center ' dirs_ran(i) ' (g)'] )
             end
         end
     end
@@ -201,23 +213,35 @@ elseif analysis.type == 1
             fn_format_and_save_plot( plot_dir, plot_name, 2 )
         end
     end
-%% Plot PM Diagrams for each element
-%     for i = 1:length(element.id)
-%         if strcmp(element.type{i},'column')
-%             ele = element(i,:);
-%             ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
-%             ele_PM = element_PM.(['ele_' num2str(element.id(i))]);
-% 
-%             hold on
-%             plot(ele_PM.vector_M/1000,ele_PM.vector_P/1000,'k','LineWidth',2)
-%             plot(abs(ele_TH.M_TH_1)/1000,ele_TH.P_TH_1/1000,'b','LineWidth',0.75)
-%             ylabel('Axial (k)')
-%             xlabel('Moment (k-in)')
-%             plot_dir = [output_dir filesep 'PM_plots'];
-%             plot_name = ['ele_' num2str(element.id(i))];
-%             fn_format_and_save_plot( plot_dir, plot_name, 2 )
-%         end
-% 
-%     end
+% Plot PM Diagrams for each element
+    for i = 1:length(element.id)
+        ele = element(i,:);
+        ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
+        if strcmp(element.type{i},'column')
+            ele_PM = element_PM.(['ele_' num2str(element.id(i))]);
+
+            hold on
+            plot(ele_PM.vector_M/1000,ele_PM.vector_P/1000,'k','LineWidth',2)
+            plot(abs(ele_TH.M_TH_1)/1000,ele_TH.P_TH_1/1000,'b','LineWidth',0.75)
+            ylabel('Axial (k)')
+            xlabel('Moment (k-in)')
+            plot_dir = [output_dir filesep 'PM_plots'];
+            plot_name = ['ele_' num2str(element.id(i))];
+            fn_format_and_save_plot( plot_dir, plot_name, 2 )
+        elseif strcmp(element.type{i},'wall')
+            node_1 = node(node.id == ele.node_1,:);
+            node_2 = node(node.id == ele.node_2,:);
+            wall_rotation = (node_2.disp_x_TH - node_1.disp_x_TH) / ele.length;
+            
+            hold on
+            plot(wall_rotation,ele_TH.M_TH_1/1000,'b','LineWidth',0.75)
+            ylabel('Moment (k-in)')
+            xlabel('Wall Rotation')
+            plot_dir = [output_dir filesep 'Fiber Wall Plots'];
+            plot_name = ['ele_' num2str(element.id(i))];
+            fn_format_and_save_plot( plot_dir, plot_name, 2 )
+        end
+
+    end
 end
 
