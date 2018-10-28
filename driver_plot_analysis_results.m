@@ -7,8 +7,8 @@ clc
 %% Define Analysis and Model parameters
 analysis.model_id = 12;
 analysis.gm_id = 8;
-analysis.name = 'nonlinear';
-analysis.nonlinear = 1;
+analysis.name = 'linear';
+analysis.nonlinear = 0;
 analysis.type = 1;
 analysis.pushover_direction = 'x';
 analysis.initial_timestep_factor = 1;
