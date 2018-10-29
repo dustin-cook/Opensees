@@ -120,7 +120,7 @@ for i = 1:height(element)
             % Load linear element table
             ele_lin_table = readtable([output_dir filesep 'element_linear.csv'],'ReadVariableNames',true);
             ele_lin = ele_lin_table(ele_lin_table.id == element.id(i),:);
-            theta_pc = (ele_lin.b_hinge - ele_lin.a_hinge)/2;
+            theta_pc = ele_lin.b_hinge - ele_lin.a_hinge;
             theta_u_pos = ele_lin.Mn_aci_pos/k_mem + ele_lin.b_hinge;
             theta_u_neg = ele_lin.Mn_aci_neg/k_mem + ele_lin.b_hinge;
             if ele_lin.a_hinge > 0
@@ -245,7 +245,7 @@ if exist('hinge','var')
             % Load linear element table
             ele_lin_table = readtable([output_dir filesep 'element_linear.csv'],'ReadVariableNames',true);
             ele_lin = ele_lin_table(ele_lin_table.id == hinge.element_id(i),:);
-            theta_pc = (ele_lin.b_hinge - ele_lin.a_hinge)/2;
+            theta_pc = ele_lin.b_hinge - ele_lin.a_hinge;
             theta_u_pos = ele_lin.Mn_aci_pos/k_spring + ele_lin.b_hinge;
             theta_u_neg = ele_lin.Mn_aci_neg/k_spring + ele_lin.b_hinge;
             if ele_lin.a_hinge > 0
