@@ -7,9 +7,9 @@ import asce_41.*
 import plotting_tools.*
 
 %% Define Analysis and Model parameters
-analysis.model_id = 8;
-analysis.gm_id = 6;
-analysis.name = 'nonlinear';
+analysis.model_id = 10;
+analysis.gm_id = 8;
+analysis.name = 'linear';
 
 %% Read in element and hinge data tables
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
@@ -44,9 +44,17 @@ for i = 1:length(element.id)
 %     fn_format_and_save_plot( [output_dir filesep 'hinge_plots' filesep] , ['element_' num2str(ele.id)], 2 )
 
     % save as element hinge table
-    element.a_hinge(i) = hinge.a_hinge;
-    element.b_hinge(i) = hinge.b_hinge;
-    element.c_hinge(i) = hinge.c_hinge;
+    if strcmp(ele.type,'wall')
+        element.c_hinge(i,1) = hinge.c_hinge;
+        element.d_hinge(i,1) = hinge.d_hinge;
+        element.e_hinge(i,1) = hinge.e_hinge;
+        element.f_hinge(i,1) = hinge.f_hinge;
+        element.g_hinge(i,1) = hinge.g_hinge;
+    else
+        element.a_hinge(i,1) = hinge.a_hinge;
+        element.b_hinge(i,1) = hinge.b_hinge;
+        element.c_hinge(i,1) = hinge.c_hinge;
+    end
     element.io(i) = hinge.io;
     element.ls(i) = hinge.ls;
     element.cp(i) = hinge.cp;

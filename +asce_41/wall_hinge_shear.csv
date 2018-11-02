@@ -1,0 +1,3 @@
+id,strength_term,d_hinge,e_hinge,g_hinge,c_hinge,f_hinge,io,ls,cp
+1,<=0.05,1,2,0.4,0.2,0.6,0.4,1.5,2
+2,>0.05,0.75,1,0.4,0,0.6,0.4,0.75,1

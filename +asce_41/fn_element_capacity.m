@@ -19,8 +19,18 @@ end
 % Shear capacity per ASCE 41
 [ ele.Vn, ele.V0 ] = fn_shear_capacity( ele_prop.Av, ele_prop.fy_e, ele_prop.As_d, ele_prop.S, ele_prop.lambda, ele_prop.fc_e, ele_prop.a, ele.Mmax, ele.Vmax, ele.Pmax, ele.DCR_total_raw );
 
+% Check if wall is force controlled
+if strcmp(ele.type,'wall')
+    rho_n = ele_prop.Av/(ele_prop.S*ele_prop.w);
+    if rho_n < 0.0015 % ASCE 41-17 10.7.2.3
+        error('Wall is force controlled, modify element')
+    end
+else
+    rho_n = nan;
+end
+
 % Shear Capacity per ACI
-[ ~, ele.Vn_aci, ele.Vs_aci ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele.Pmax, ele_prop.Av, ele_prop.fy_e, ele_prop.S, ele_prop.lambda, ele_prop.a );
+[ ele.Vu_aci, ele.Vn_aci, ele.Vs_aci ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele.Pmax, ele_prop.Av, ele_prop.fy_e, ele_prop.S, ele_prop.lambda, ele_prop.a, ele_prop.hw, ele.type, rho_n, ele_prop.As_d );
 
 % Modify Axial Force as Force Controlled Action (EQ 7-35)
 [ Pmax_force_cotrolled ] = fn_force_controlled_action( ele.Pmax, ele.P_grav, 'cp', 'high', 1, 1 );
@@ -67,8 +77,8 @@ end
 % Balanced Moment Capcity and Reinforcement Ratio
 [ ele.row_bal ] = fn_balanced_moment( ele_prop.fc_e, ele_prop.fy_e );
 
-% Determin Flexure v Shear Critical
-[ ele ] = fn_element_critical_mode( ele );
+% Determine Flexure v Shear Critical
+[ ele ] = fn_element_critical_mode( ele, ele_prop.d );
 
 %% Calculate Capacity Time Histories
 for i = 1:length(ele_TH.P_TH_1) %% ASSUMING P is uniform throughout member
@@ -84,7 +94,7 @@ for i = 1:length(ele_TH.P_TH_1) %% ASSUMING P is uniform throughout member
     if strcmp(ele.type,'column')
         [ ele_TH.Vn(i), ~ ] = fn_shear_capacity( ele_prop.Av, ele_prop.fy_e, ele_prop.As_d, ele_prop.S, ele_prop.lambda, ele_prop.fc_e, ele_prop.a, max(abs([ele_TH.M_TH_1(i),ele_TH.M_TH_2(i)])), abs(ele_TH.V_TH_1(i)), ele_TH.P_force_controlled(i), ele.DCR_total_raw );
     else
-        [ ~, ele_TH.Vn(i), ~ ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_TH.P_force_controlled(i), ele_prop.Av, ele_prop.fy_e, ele_prop.S, ele_prop.lambda, ele_prop.a );
+        [ ~, ele_TH.Vn(i), ~ ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_TH.P_force_controlled(i), ele_prop.Av, ele_prop.fy_e, ele_prop.S, ele_prop.lambda, ele_prop.a, ele_prop.hw, ele.type, rho_n, ele_prop.As_d );
     end  
 end
 
