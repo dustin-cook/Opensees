@@ -55,11 +55,13 @@ clear element_force_recorders
 
 %% Load hinge moment and rotation
 if analysis.nonlinear ~= 0
+    deformation_TH = dlmread([output_dir filesep 'hinge_deformation_all.txt'],' ');
+    force_TH = dlmread([output_dir filesep 'hinge_force_all.txt'],' ');
     for i = 1:height(hinge)
-        rotation_TH = dlmread([output_dir filesep 'hinge_rotation_all.txt'],' ');
-        hinge.rotation_TH{i} = rotation_TH(:,i+1)';
-        moment_TH = dlmread([output_dir filesep 'hinge_moment_all.txt'],' ');
-        hinge.moment_TH{i} = moment_TH(:,i+1)';
+        hinge.deformation_TH{i} = deformation_TH(:,2*i-1+1)';
+        hinge.shear_TH{i} = force_TH(:,2*i-1+1)';
+        hinge.rotation_TH{i} = deformation_TH(:,2*i+1)';
+        hinge.moment_TH{i} = force_TH(:,2*i+1)';
     end
 end
 

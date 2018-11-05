@@ -5,10 +5,10 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 12;
-analysis.gm_id = 8;
+analysis.model_id = 8;
+analysis.gm_id = 6;
 analysis.name = 'linear';
-analysis.nonlinear = 0;
+analysis.nonlinear = 1;
 analysis.type = 1;
 analysis.pushover_direction = 'x';
 analysis.initial_timestep_factor = 1;
@@ -49,14 +49,6 @@ if analysis.type == 2
     xlabel('Roof Displacement (in)')
     plot_dir = [output_dir filesep 'Pushover_Plots'];
     plot_name = ['Roof Pushover - ' analysis.pushover_direction];
-    fn_format_and_save_plot( plot_dir, plot_name, 2 )
-    
-    % TEMP 
-    plot(roof_disp/(174/2),base_shear/(1000*1300))
-    ylabel('Q/Qy')
-    xlabel('Total Rotation')
-    plot_dir = [output_dir filesep 'Pushover_Plots'];
-    plot_name = ['Roof Pushover Hinge - ' analysis.pushover_direction];
     fn_format_and_save_plot( plot_dir, plot_name, 2 )
     
     % Plot story Drift Pushover
@@ -206,11 +198,19 @@ elseif analysis.type == 1
         load([output_dir filesep 'hinge_analysis.mat'])
         plot_dir = [output_dir filesep 'Hinge_Plots'];
         for i = 1:height(hinge)
-            plot(hinge.rotation_TH{i},hinge.moment_TH{i});
-            ylabel('Hinge Moment (k-in)')
-            xlabel('Hinge Rotation (rads)')
-            plot_name = ['Hinge ' num2str(i) ' Response'];
-            fn_format_and_save_plot( plot_dir, plot_name, 2 )
+            if strcmp(hinge.type(i),'rotational')
+                plot(hinge.rotation_TH{i},hinge.moment_TH{i}/1000);
+                ylabel('Hinge Moment (k-in)')
+                xlabel('Hinge Rotation (rads)')
+                plot_name = ['Hinge ' num2str(i) ' Rotation Response'];
+                fn_format_and_save_plot( plot_dir, plot_name, 2 )
+            elseif strcmp(hinge.type(i),'shear')
+                plot(hinge.deformation_TH{i},hinge.shear_TH{i}/1000);
+                ylabel('Hinge Shear (k)')
+                xlabel('Hinge Deformation (in)')
+                plot_name = ['Hinge ' num2str(i) ' Shear Response'];
+                fn_format_and_save_plot( plot_dir, plot_name, 2 )
+            end
         end
     end
 % Plot PM Diagrams for each element
@@ -228,18 +228,18 @@ elseif analysis.type == 1
             plot_dir = [output_dir filesep 'PM_plots'];
             plot_name = ['ele_' num2str(element.id(i))];
             fn_format_and_save_plot( plot_dir, plot_name, 2 )
-        elseif strcmp(element.type{i},'wall')
-            node_1 = node(node.id == ele.node_1,:);
-            node_2 = node(node.id == ele.node_2,:);
-            wall_rotation = (node_2.disp_x_TH - node_1.disp_x_TH) / ele.length;
-            
-            hold on
-            plot(wall_rotation,ele_TH.M_TH_1/1000,'b','LineWidth',0.75)
-            ylabel('Moment (k-in)')
-            xlabel('Wall Rotation')
-            plot_dir = [output_dir filesep 'Fiber Wall Plots'];
-            plot_name = ['ele_' num2str(element.id(i))];
-            fn_format_and_save_plot( plot_dir, plot_name, 2 )
+%         elseif strcmp(element.type{i},'wall')
+%             node_1 = node(node.id == ele.node_1,:);
+%             node_2 = node(node.id == ele.node_2,:);
+%             wall_rotation = (node_2.disp_x_TH - node_1.disp_x_TH) / ele.length;
+%             
+%             hold on
+%             plot(wall_rotation,ele_TH.M_TH_1/1000,'b','LineWidth',0.75)
+%             ylabel('Moment (k-in)')
+%             xlabel('Wall Rotation')
+%             plot_dir = [output_dir filesep 'Fiber Wall Plots'];
+%             plot_name = ['ele_' num2str(element.id(i))];
+%             fn_format_and_save_plot( plot_dir, plot_name, 2 )
         end
 
     end

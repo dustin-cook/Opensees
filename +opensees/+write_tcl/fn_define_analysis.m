@@ -8,14 +8,20 @@ fileID = fopen(file_name,'w');
 
 %% Set Parameters
 min_tolerance_steps = 10;
-max_tolerance_steps = 1000;
+max_tolerance_steps = 100;
 
 %% Run the Analysis
 if analysis.type == 1 % Dynamic
     % Set analysis timestep equal to the ground motion time step
     time_step = ground_motion.x.eq_dt; % Clean up to be not based on x?
     num_steps = ground_motion.x.eq_length;
+    
+    % Set loop factors
+    dt_reduction = [1,10,20,50];
+    algorithm_typs = {'KrylovNewton', 'NewtonLineSearch', 'Newton -initial', 'Newton'};
+    tolerance = [1, 10, 100, 1000]*1e-5;
 
+    % Initial Analysis Setup
     fprintf(fileID,'source %s/setup_dynamic_analysis.tcl \n', output_dir);
     fprintf(fileID,'set singularity_check 0 \n');
     fprintf(fileID,'set collapse_check 0 \n');
@@ -25,40 +31,44 @@ if analysis.type == 1 % Dynamic
     if analysis.solution_algorithm
         % While loop through each step of the ground motion
         fprintf(fileID,'while {$ok == 0 && $currentTime < %f && $collapse_check == 0 && $singularity_check == 0} { \n',time_step*num_steps);
-        tolerance = 1e-6;
-        fprintf(fileID,'test NormDispIncr %f %i \n',tolerance, min_tolerance_steps);
+        fprintf(fileID,'test NormDispIncr %f %i \n',tolerance(1), min_tolerance_steps);
         fprintf(fileID,'algorithm KrylovNewton \n');
         fprintf(fileID,'set dt_reduce %f \n', 1);
         fprintf(fileID,'set dt [expr %f/$dt_reduce] \n', time_step);
+        fprintf(fileID,'set dt_max %f \n', time_step);
         fprintf(fileID,'set dt_min [expr %f/($dt_reduce*100)] \n', time_step);
-        fprintf(fileID,'set ok [analyze 1 $dt $dt_min $dt] \n');
+        fprintf(fileID,'set ok [analyze 1 $dt $dt_min $dt_max] \n');
         % fprintf(fileID,'set ok [analyze %i $dt] \n',round(num_steps));
         fprintf(fileID,'puts "analysis failure = $ok " \n');
 
         % Loop Through Tolerance
-        for tol = 1:5
-            tolerance = 1e-5*10^(tol-1);
+        for tol = 1:length(tolerance)
             
             % Loop Though dt
-            for t = 1:8
-                dt_reduction = 10*(t-1);
+            for t = 1:length(dt_reduction)
 
                 % Loop Through Algorithms
-                algorithm_typs = {'KrylovNewton', 'NewtonLineSearch', 'Newton -initial', 'Newton'};
-                for a = 1:length(algorithm_typs)
+%                 for a = 1:length(algorithm_typs)
                     fprintf(fileID,'if {$ok != 0} { \n');
-                    fprintf(fileID,'puts "analysis failed, try try tolerance = %f, dt/%f, and %s" \n', tolerance, dt_reduction, algorithm_typs{a});
-                    if tol == 1
-                        fprintf(fileID,'test NormDispIncr %f %i \n',tolerance, min_tolerance_steps);
+                    fprintf(fileID,'puts "analysis failed, try try tolerance = %f, dt/%f, and %s" \n', tolerance(tol), dt_reduction(t), algorithm_typs{1});
+                    if tol <= 2
+                        fprintf(fileID,'test NormDispIncr %f %i \n',tolerance(tol), min_tolerance_steps);
                     else
-                        fprintf(fileID,'test NormDispIncr %f %i \n', tolerance, max_tolerance_steps);
+                        fprintf(fileID,'test NormDispIncr %f %i \n', tolerance(tol), max_tolerance_steps);
                     end
-                    fprintf(fileID,'algorithm %s \n', algorithm_typs{a});
-                    fprintf(fileID,'set dt_reduce %f \n', dt_reduction);
+                    fprintf(fileID,'algorithm %s \n', algorithm_typs{1});
+                    fprintf(fileID,'set dt_reduce %f \n', dt_reduction(t));
                     fprintf(fileID,'set dt [expr %f/$dt_reduce] \n', time_step);
                     fprintf(fileID,'set ok [analyze 1 $dt] \n');
                     fprintf(fileID,'} \n');
-                end
+                    
+                    fprintf(fileID,'if {$ok == 0} { \n');
+                    fprintf(fileID,'if {$dt_reduce > 1} { \n');
+                    fprintf(fileID,'puts "analysis success, run a few more at this time step" \n');
+                    fprintf(fileID,'set ok [analyze %i $dt] \n',dt_reduction(t)-1);
+                    fprintf(fileID,'} \n');
+                    fprintf(fileID,'} \n');
+%                 end
             end
         end
 
@@ -92,8 +102,7 @@ if analysis.type == 1 % Dynamic
         fprintf(fileID,'} \n');
         fprintf(fileID,'} \n');
     else
-        tolerance = 1e-6;
-        fprintf(fileID,'test NormDispIncr %f 100 \n',tolerance);
+        fprintf(fileID,'test NormDispIncr %f 100 \n',tolerance(1));
         fprintf(fileID,'algorithm Newton \n');
         fprintf(fileID,'set dt_reduce %f \n', analysis.initial_timestep_factor);
         fprintf(fileID,'set dt [expr %f/$dt_reduce] \n', time_step);

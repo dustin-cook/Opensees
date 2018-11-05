@@ -1,4 +1,4 @@
-function [ ] = fn_define_recorders( output_dir, dimension, nodes, elements, hinge, analysis )
+function [ ] = fn_define_recorders( output_dir, dimension, nodes, element, hinge, analysis )
 
 %UNTITLED7 Summary of this function goes here
 %   Detailed explanation goes here
@@ -25,7 +25,7 @@ if analysis.full_recorders == 1
 
     %% Define Element Recorders
     % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
-    fprintf(fileID,'recorder Element -file %s/element_force.txt -time -ele %s localForce \n', output_dir, num2str(elements'));
+    fprintf(fileID,'recorder Element -file %s/element_force.txt -time -ele %s localForce \n', output_dir, num2str(element.id'));
 
 elseif analysis.type == 1 % Default Dyanmic Recorders
     %% Define Node recorders
@@ -41,9 +41,9 @@ elseif analysis.type == 1 % Default Dyanmic Recorders
     %% Define Element Recorders
     % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
     if strcmp(dimension,'2D')
-        fprintf(fileID,'recorder Element -file %s/element_force.txt -time -ele %s -dof 1 2 3 6 localForce \n', output_dir, num2str(elements'));
+        fprintf(fileID,'recorder Element -file %s/element_force.txt -time -ele %s -dof 1 2 3 6 localForce \n', output_dir, num2str(element.id'));
     else
-        fprintf(fileID,'recorder Element -file %s/element_force.txt -time -ele %s -dof 1 2 6 12 localForce \n', output_dir, num2str(elements'));
+        fprintf(fileID,'recorder Element -file %s/element_force.txt -time -ele %s -dof 1 2 6 12 localForce \n', output_dir, num2str(element.id'));
     end
     
 elseif analysis.type == 2 || analysis.type == 3 % Default Pushover Recorders
@@ -74,8 +74,25 @@ end
 % Hinges
 if analysis.nonlinear ~= 0 && ~isempty(hinge)
     % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
-    fprintf(fileID,'recorder Element -file %s/hinge_moment_all.txt -eleRange %d %d -dof 6 force \n', output_dir, elements(end)+1, elements(end)+hinge.id(end));
-    fprintf(fileID,'recorder Element -file %s/hinge_rotation_all.txt -eleRange %d %d -dof 6 deformation \n', output_dir, elements(end)+1, elements(end)+hinge.id(end));
+    
+    % Wall Hinges (shear)
+%     wall_elements = element.id(strcmp(element.type,'wall'));
+%     shear_hinges = hinge.id(strcmp(hinge.type,'shear'));
+%     wall_hinge_ele_ids = element.id(end) + shear_hinges;
+
+%     if ~isempty(wall_hinge_ele_ids)
+        fprintf(fileID,'recorder Element -file %s/hinge_force_all.txt -time -ele %s -dof 1 6 force \n', output_dir, num2str(element.id(end) + hinge.id'));
+        fprintf(fileID,'recorder Element -file %s/hinge_deformation_all.txt -time -ele %s -dof 1 6 deformation \n', output_dir, num2str(element.id(end) + hinge.id'));
+%     end
+    
+%     % Other Hinges
+%     rot_hinges = hinge.id(strcmp(hinge.type,'rotational'));
+%     rot_hinge_ele_ids = element.id(end) + rot_hinges;
+%     
+%     if ~isempty(rot_hinge_ele_ids)
+%         fprintf(fileID,'recorder Element -file %s/hinge_moment_all.txt -time -ele %s -dof 6 force \n', output_dir, num2str(rot_hinge_ele_ids));
+%         fprintf(fileID,'recorder Element -file %s/hinge_rotation_all.txt -time -ele %s -dof 6 deformation \n', output_dir, num2str(rot_hinge_ele_ids));
+%     end
 end
 
 %% Movie Recorders

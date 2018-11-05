@@ -1,4 +1,4 @@
-function [ node, element, hinge ] = fn_create_hinge( node, element, hinge, node_end, ele_id, hinge_id, foundation_nodes_id )
+function [ node, element, hinge ] = fn_create_hinge( node, element, hinge, node_end, ele_id, hinge_id, foundation_nodes_id, type )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -24,12 +24,13 @@ element.(node_end)(ele_id) = new_node_id;
 
 % Define fixity of foundation nodes
 if sum(old_node_id == foundation_nodes_id) > 0
-    node.fix{new_node_id} = '[111000]';
+    node.fix{new_node_id} = '[000000]';
 end
 
 % Assign hinge properties
 hinge.id(hinge_id,1) = hinge_id;
 hinge.element_id(hinge_id,1) = element.id(ele_id);
+hinge.type{hinge_id,1} = type;
 hinge.node_1(hinge_id,1) = new_node_id;
 hinge.node_2(hinge_id,1) = old_node_id;
 

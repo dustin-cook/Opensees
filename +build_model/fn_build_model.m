@@ -279,6 +279,8 @@ if strcmp(model.dimension,'3D')
             node.story(node_id,:) = 0;
             node.primary_story(node_id,:) = 0;
             node.on_slab(node_id,:) = s;
+            
+%             node.on_slab(nodes_on_slab{s},:) = s;
         end
     end
 end
@@ -382,7 +384,7 @@ elseif analysis.foundation == 0
     node.fix(foundation_nodes_id,:) = {'[111000]'}; % Pinned
 end
 
-%% Create Nonlinear Rotational Springs at ends of all beams and columns
+%% Create Nonlinear Rotational Springs at ends of all beams and columns, and shear springs at the bottom of walls
 hinge.id = [];
 hinge.element_id = [];
 hinge.node_1 = [];
@@ -394,10 +396,14 @@ if analysis.nonlinear ~= 0
         if strcmp(element.type{i},'column') || strcmp(element.type{i},'beam') % For all columns and beams
             hinge_id = hinge_id+1;
             % Define hinge at start of element
-            [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id ); 
+            [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id, 'rotational' ); 
             hinge_id = hinge_id+1;
             % Define hinge at end of element
-            [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_2', i, hinge_id, foundation_nodes_id );
+            [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_2', i, hinge_id, foundation_nodes_id, 'rotational' );
+        elseif strcmp(element.type{i},'wall') % For walls
+            hinge_id = hinge_id+1;
+            % Define hinge at start of element
+            [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id, 'shear' ); 
         end
     end
     
