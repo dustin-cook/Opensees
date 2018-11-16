@@ -393,17 +393,19 @@ hinge_id = 0;
 if analysis.nonlinear ~= 0
     % Define Hinges
     for i = 1:length(element.id)
-        if strcmp(element.type{i},'column') || strcmp(element.type{i},'beam') % For all columns and beams
-            hinge_id = hinge_id+1;
-            % Define hinge at start of element
-            [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id, 'rotational' ); 
-            hinge_id = hinge_id+1;
-            % Define hinge at end of element
-            [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_2', i, hinge_id, foundation_nodes_id, 'rotational' );
-        elseif strcmp(element.type{i},'wall') % For walls
-            hinge_id = hinge_id+1;
-            % Define hinge at start of element
-            [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id, 'shear' ); 
+        if element.story(i) <= analysis.stories_nonlinear
+            if strcmp(element.type{i},'column') || strcmp(element.type{i},'beam') % For all columns and beams
+                hinge_id = hinge_id+1;
+                % Define hinge at start of element
+                [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id, 'rotational' ); 
+                hinge_id = hinge_id+1;
+                % Define hinge at end of element
+                [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_2', i, hinge_id, foundation_nodes_id, 'rotational' );
+            elseif strcmp(element.type{i},'wall') % For walls
+                hinge_id = hinge_id+1;
+                % Define hinge at start of element
+                [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id, 'shear' ); 
+            end
         end
     end
     

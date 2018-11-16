@@ -104,6 +104,7 @@ for i = 1:height(element)
                     % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
                     fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
                 elseif strcmp(dimension,'3D')
+%                     fprintf(fileID,'element ElasticTimoshenkoBeam %i %i %i %f %f %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.e,ele_props.g,ele_props.a,ele_props.j,ele_props.iy,ele_props.iz,(5/6)*ele_props.a,(5/6)*ele_props.a,geotransf);
                     % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
                     fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,geotransf);
                 end
@@ -115,21 +116,25 @@ for i = 1:height(element)
         % Elastic
         if analysis.nonlinear == 0 
             if strcmp(dimension,'2D')
-                % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-                fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
+                 fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
+                % element ElasticTimoshenkoBeam $eleTag $iNode $jNode $E $G $A $Iz $Avy $transfTag
+%                 fprintf(fileID,'element ElasticTimoshenkoBeam %i %i %i %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.e,ele_props.g,ele_props.a,ele_props.iz,ele_props.av,geotransf);
             elseif strcmp(dimension,'3D')
-                % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
-                fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,geotransf);
+                fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,geotransf);
+                % element ElasticTimoshenkoBeam $eleTag $iNode $jNode $E $G $A $Jx $Iy $Iz $Avy $Avz $transfTag
+%                 fprintf(fileID,'element ElasticTimoshenkoBeam %i %i %i %f %f %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.e,ele_props.g,ele_props.a,ele_props.j,ele_props.iy,ele_props.iz,ele_props.av,ele_props.av,geotransf);
             end
         % Shear springs
         elseif analysis.nonlinear == 1
             Iz_ele = ele_props.iz;%*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
             if strcmp(dimension,'2D')
-                % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-                fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,Iz_ele,geotransf);
+                fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
+                % element ElasticTimoshenkoBeam $eleTag $iNode $jNode $E $G $A $Iz $Avy $transfTag
+%                 fprintf(fileID,'element ElasticTimoshenkoBeam %i %i %i %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.e,ele_props.g,ele_props.a,ele_props.iz,ele_props.av,geotransf);
             elseif strcmp(dimension,'3D')
-                % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
-                fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,Iz_ele,geotransf);
+                fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,geotransf);
+                % element ElasticTimoshenkoBeam $eleTag $iNode $jNode $E $G $A $Jx $Iy $Iz $Avy $Avz $transfTag
+%                 fprintf(fileID,'element ElasticTimoshenkoBeam %i %i %i %f %f %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.e,ele_props.g,ele_props.a,ele_props.j,ele_props.iy,ele_props.iz,ele_props.av,ele_props.av,geotransf);
             end
         % Explicit steel and concrete fibers
         elseif analysis.nonlinear == 2 

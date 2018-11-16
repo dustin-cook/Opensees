@@ -5,7 +5,7 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 10;
+analysis.model_id = 4;
 
 % Secondary Inputs
 analysis.nonlinear = 1;
@@ -14,6 +14,7 @@ analysis.live_load = 1.0;
 analysis.accidental_torsion = 0;
 analysis.primary_node_offset = 71;
 analysis.foundation = 1; % 1 = fixed, 0 = pined
+analysis.stories_nonlinear = 2;
 
 %% Initial Setup
 import build_model.fn_build_model

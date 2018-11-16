@@ -7,7 +7,7 @@ import asce_41.*
 import plotting_tools.*
 
 %% Define Analysis and Model parameters
-analysis.model_id = 11;
+analysis.model_id = 4;
 analysis.gm_id = 8;
 analysis.name = 'linear';
 
@@ -17,6 +17,8 @@ model = model_table(model_table.id == analysis.model_id,:);
 output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
 ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
 load([output_dir filesep 'element_analysis.mat'])
+
+% element = element(:,1:41);
 
 %% Go through each element and calculate the hinge properties
 for i = 1:length(element.id)

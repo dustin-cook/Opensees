@@ -7,8 +7,8 @@ clc
 %% Define Analysis and Model parameters
 analysis.model_id = 12;
 analysis.gm_id = 8;
-analysis.name = 'nonlinear';
-analysis.nonlinear = 1;
+analysis.name = 'linear';
+analysis.nonlinear = 0;
 analysis.type = 1;
 analysis.full_recorders = 0;
 analysis.run_eigen = 0;
@@ -26,6 +26,7 @@ output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
 element = readtable(['outputs' filesep model.name{1} filesep 'model data' filesep 'element.csv'],'ReadVariableNames',true);
 node = readtable(['outputs' filesep model.name{1} filesep 'model data' filesep 'node.csv'],'ReadVariableNames',true);
 story = readtable(['outputs' filesep model.name{1} filesep 'model data' filesep 'story.csv'],'ReadVariableNames',true);
+hinge = [];
 if analysis.nonlinear ~= 0
     hinge = readtable(['outputs' filesep model.name{1} filesep 'model data' filesep 'hinge.csv'],'ReadVariableNames',true);
 end

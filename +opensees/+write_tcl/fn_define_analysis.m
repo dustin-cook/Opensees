@@ -59,14 +59,7 @@ if analysis.type == 1 % Dynamic
                     fprintf(fileID,'algorithm %s \n', algorithm_typs{1});
                     fprintf(fileID,'set dt_reduce %f \n', dt_reduction(t));
                     fprintf(fileID,'set dt [expr %f/$dt_reduce] \n', time_step);
-                    fprintf(fileID,'set ok [analyze 1 $dt] \n');
-                    fprintf(fileID,'} \n');
-                    
-                    fprintf(fileID,'if {$ok == 0} { \n');
-                    fprintf(fileID,'if {$dt_reduce > 1} { \n');
-                    fprintf(fileID,'puts "analysis success, run a few more at this time step" \n');
-                    fprintf(fileID,'set ok [analyze %i $dt] \n',dt_reduction(t)-1);
-                    fprintf(fileID,'} \n');
+                    fprintf(fileID,'set ok [analyze %i $dt] \n',dt_reduction(t));
                     fprintf(fileID,'} \n');
 %                 end
             end
