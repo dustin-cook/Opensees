@@ -8,18 +8,18 @@ fileID = fopen(file_name,'w');
 
 %% Set Parameters
 min_tolerance_steps = 10;
-max_tolerance_steps = 100;
+max_tolerance_steps = 1000;
 
 %% Run the Analysis
-if analysis.type == 1 % Dynamic
+if analysis.type == 1 % Dynamic 
     % Set analysis timestep equal to the ground motion time step
     time_step = ground_motion.x.eq_dt; % Clean up to be not based on x?
     num_steps = ground_motion.x.eq_length;
     
     % Set loop factors
-    dt_reduction = [1,10,20,50];
+    dt_reduction = [1,10,20,50,100];
     algorithm_typs = {'KrylovNewton', 'NewtonLineSearch', 'Newton -initial', 'Newton'};
-    tolerance = [1, 10, 100, 1000]*1e-5;
+    tolerance = [1e-5, 1e-4 0.001, 0.01, 0.1, 1];
 
     % Initial Analysis Setup
     fprintf(fileID,'source %s/setup_dynamic_analysis.tcl \n', output_dir);
@@ -29,9 +29,22 @@ if analysis.type == 1 % Dynamic
     fprintf(fileID,'set ok 0 \n');
 
     if analysis.solution_algorithm
+        % Set up Log Files
+        log_file = [output_dir '/converge_tol_file.txt'];
+        fprintf(fileID,'set converge_tol_file [open %s w] \n', log_file);
+        convergence_file = [output_dir '/converge_file.txt'];
+        fprintf(fileID,'set converge_file [open %s w] \n', convergence_file);
+    
         % While loop through each step of the ground motion
-        fprintf(fileID,'while {$ok == 0 && $currentTime < %f && $collapse_check == 0 && $singularity_check == 0} { \n',time_step*num_steps);
-        fprintf(fileID,'test NormDispIncr %f %i \n',tolerance(1), min_tolerance_steps);
+        eq_total_time = time_step*num_steps;
+        fprintf(fileID,'while {$ok == 0 && $currentTime < %f && $collapse_check == 0 && $singularity_check == 0} { \n',eq_total_time);
+        
+        % Output current time progress
+        fprintf(fileID,'puts "tFinal is %f; and tCurrent is $currentTime" \n',eq_total_time);
+        
+        % Run analysis with basic props
+        fprintf(fileID,'set tol %f \n', tolerance(1));
+        fprintf(fileID,'test NormDispIncr $tol %i \n', min_tolerance_steps);
         fprintf(fileID,'algorithm KrylovNewton \n');
         fprintf(fileID,'set dt_reduce %f \n', 1);
         fprintf(fileID,'set dt [expr %f/$dt_reduce] \n', time_step);
@@ -51,22 +64,28 @@ if analysis.type == 1 % Dynamic
 %                 for a = 1:length(algorithm_typs)
                     fprintf(fileID,'if {$ok != 0} { \n');
                     fprintf(fileID,'puts "analysis failed, try try tolerance = %f, dt/%f, and %s" \n', tolerance(tol), dt_reduction(t), algorithm_typs{1});
-                    if tol <= 2
-                        fprintf(fileID,'test NormDispIncr %f %i \n',tolerance(tol), min_tolerance_steps);
+                    fprintf(fileID,'set tol %f \n', tolerance(tol));
+                    if tol <= 4
+                        fprintf(fileID,'test NormDispIncr $tol %i \n', min_tolerance_steps);
                     else
-                        fprintf(fileID,'test NormDispIncr %f %i \n', tolerance(tol), max_tolerance_steps);
+                        fprintf(fileID,'test NormDispIncr $tol %i \n', max_tolerance_steps);
                     end
                     fprintf(fileID,'algorithm %s \n', algorithm_typs{1});
                     fprintf(fileID,'set dt_reduce %f \n', dt_reduction(t));
                     fprintf(fileID,'set dt [expr %f/$dt_reduce] \n', time_step);
-                    fprintf(fileID,'set ok [analyze %i $dt] \n',dt_reduction(t));
+                    fprintf(fileID,'set ok [analyze 1 $dt] \n');
                     fprintf(fileID,'} \n');
 %                 end
             end
         end
 
+        % Output time
         fprintf(fileID,'set currentTime [getTime] \n');
         fprintf(fileID,'puts "Time = $currentTime" \n');
+        
+        % Save info to log file
+        fprintf(fileID,'set converge_tol_log "$currentTime $tol" \n');
+        fprintf(fileID,'puts $converge_tol_file $converge_tol_log \n');
 
         % Check for singularity and collapse
         fprintf(fileID,'if {$ok == 0} { \n');
@@ -94,6 +113,19 @@ if analysis.type == 1 % Dynamic
         end
         fprintf(fileID,'} \n');
         fprintf(fileID,'} \n');
+        
+        % Check if Model Fully Converged
+        fprintf(fileID,'if {$currentTime > %f || $singularity_check == 1 || $collapse_check == 1} { \n',eq_total_time-2); % 2 seconds before the end of the EQ is okay
+        fprintf(fileID,'puts "EQ fully converged" \n');
+        fprintf(fileID,'puts $converge_file 1 \n');
+        fprintf(fileID,'} else { \n');
+        fprintf(fileID,'puts "EQ NOT FULLY converged" \n');
+        fprintf(fileID,'puts $converge_file 0 \n');
+        fprintf(fileID,'} \n');
+    
+        % Close Log Files
+        fprintf(fileID,'close $converge_tol_file \n');
+        fprintf(fileID,'close $converge_file \n');
     else
         fprintf(fileID,'test NormDispIncr %f 100 \n',tolerance(1));
         fprintf(fileID,'algorithm Newton \n');

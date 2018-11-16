@@ -5,9 +5,9 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 4;
+analysis.model_id = 11;
 analysis.gm_seq_id = 8;
-analysis.name = 'nonlinear';
+analysis.name = 'test';
 
 % Secondary Inputs
 analysis.type = 1; % 1 = dynamic, 2 = pushover % 3 = static cyclic

@@ -7,9 +7,9 @@ import asce_41.*
 import plotting_tools.*
 
 %% Define Analysis and Model parameters
-analysis.model_id = 4;
+analysis.model_id = 11;
 analysis.gm_id = 8;
-analysis.name = 'linear';
+analysis.name = 'test';
 
 %% Read in element and hinge data tables
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
