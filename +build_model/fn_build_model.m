@@ -380,8 +380,10 @@ foundation_nodes_id = node.id(node.y == 0);
 % foundation nodes
 if analysis.foundation == 1
     node.fix(foundation_nodes_id,:) = {'[111111]'}; % Fixed
-elseif analysis.foundation == 0
+elseif analysis.foundation == 0 
     node.fix(foundation_nodes_id,:) = {'[111000]'}; % Pinned
+elseif analysis.foundation == 2
+    node.fix(foundation_nodes_id,:) = {'[000000]'}; % Partial Fixity (ie pile hinge)
 end
 
 %% Create Nonlinear Rotational Springs at ends of all beams and columns, and shear springs at the bottom of walls
@@ -420,6 +422,15 @@ if analysis.nonlinear ~= 0
             [ ~, element.Mn_aci_pos(e,1) ] = fn_aci_moment_capacity( 'pos', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0, ele.slab_depth, ele.b_eff ); % change to be based on the gravity load instead?
             [ ~, element.Mn_aci_neg(e,1) ] = fn_aci_moment_capacity( 'neg', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0, ele.slab_depth, ele.b_eff );
         end
+    end
+end
+
+%% Define Foundation Hinges
+if analysis.foundation == 2 % partial fixity such as pile hinge
+    for f_node = 1:length(foundation_nodes_id)
+        hinge_id = hinge_id+1;
+        % Define hinge at foundation
+        [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'NA', foundation_nodes_id(f_node), hinge_id, foundation_nodes_id, 'foundation' ); 
     end
 end
 

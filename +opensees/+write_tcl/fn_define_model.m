@@ -235,89 +235,101 @@ end
 %% Define Plastic Hinges
 if height(hinge) > 0
     % Load linear element table
-    ele_lin_table = readtable([output_dir filesep 'element_linear.csv'],'ReadVariableNames',true);
+    if analysis.nonlinear ~= 0
+        ele_lin_table = readtable([output_dir filesep 'element_linear.csv'],'ReadVariableNames',true);
+    end
     
     for i = 1:height(hinge)
         element.id(end + 1) = element.id(end) + 1;
-        ele = element(element.id == hinge.element_id(i),:);
-        ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
-        ele_lin = ele_lin_table(ele_lin_table.id == hinge.element_id(i),:);
-        if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column')
-            % Hinge Stiffnes Calc from appendix B of Ibarra and Krawinkler 2005
-            k_mem = 6*(ele_props.e*ele_props.iz)/ele.length; 
-            n = analysis.hinge_stiff_mod;
-            k_ele = ((n+1)/n)*k_mem; 
-            k_spring = n*k_ele;
-            if analysis.nonlinear == 1 % IMK Rotational Hinge
-                theta_pc = ele_lin.b_hinge - ele_lin.a_hinge;
-                theta_u_pos = ele_lin.Mn_aci_pos/k_spring + ele_lin.b_hinge;
-                theta_u_neg = ele_lin.Mn_aci_neg/k_spring + ele_lin.b_hinge;
-                if ele_lin.a_hinge > 0
-                    as_mem_pos = min(((ele_lin.Mp_pos-ele_lin.Mn_aci_pos)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
-                    as_sping_pos = ((n+1)*as_mem_pos)/(n+1-n*as_mem_pos);
-                    as_mem_neg = min(((ele_lin.Mp_neg-ele_lin.Mn_aci_neg)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
-                    as_sping_neg = ((n+1)*as_mem_neg)/(n+1-n*as_mem_neg);
-                else
-                    as_sping_pos = 0.0;
-                    as_sping_neg = 0.0;
-                end
-                % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
-                fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(end), k_spring, as_sping_pos, as_sping_neg, ele_lin.Mn_aci_pos, -ele_lin.Mn_aci_neg, ele_lin.a_hinge, ele_lin.a_hinge, theta_pc, theta_pc, ele_lin.c_hinge, ele_lin.c_hinge, theta_u_pos, theta_u_neg);
-                
-%                 % uniaxialMaterial ElasticPP $matTag $E $epsyP
-%                 fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end) , k_spring, ele_lin.a_hinge);
-                
-                %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
-                fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 1 1 %i -dir 1 2 3 4 5 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
-    %             fprintf(fileID,'equalDOF %i %i 1 2 \n',hinge.node_1(i),hinge.node_2(i));
-            elseif analysis.nonlinear == 2 %Strain Hardening Plastic Rotational Hinges
-                Mn = min([ele.Mn_aci_pos,ele.Mn_aci_neg]);
-                %uniaxialMaterial Steel01 $matTag $Fy $E0 $b
-                fy = 6*Mn/(ele_props.w*ele_props.d^2);
-    %             fprintf(fileID,'uniaxialMaterial Steel01 %i %f %f %f \n', element.id(end), Mn, k_spring, 0.1); % Strain Harding Bilinear Material (Steel01)
-                %uniaxialMaterial Hardening $matTag $E $sigmaY $H_iso $H_kin <$eta>
-                fprintf(fileID,'uniaxialMaterial Hardening %i %f %f %f %f \n', element.id(end), k_spring, Mn, k_spring/100, k_spring/100); % Strain Harding Bilinear Material
-                %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
-                if strcmp(dimension,'3D')
-                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 1 1 %i -dir 1 2 3 4 5 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
-                else
-                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 %i -dir 1 2 3 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
-                end
-    %             fprintf(fileID,'equalDOF %i %i 1 2 3 \n',hinge.node_1(i),hinge.node_2(i));
+        if strcmp(hinge.type(i),'foundation')
+            pile_stiffness = 2015344*9; % Force-Displacement Stiffness of Bundle of Piles
+            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(end),pile_stiffness); % Rigid Elastic Material
+            if strcmp(dimension,'3D') % Input as rotational for now
+                fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 %i 1 %i -dir 1 2 3 4 5 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end), element.id(end)); % Element Id for Hinge
+            else
+                fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 %i -dir 1 2 3 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
             end
-        elseif strcmp(ele_props.type,'wall')
-            if analysis.nonlinear == 1 % Multilinear shear spring hinge with min/max limit
-                % Define Stiffness
-                k_mem = ele_props.g*ele_props.a/ele.length; 
-                k_spring = 1000*k_mem;
+        elseif analysis.nonlinear ~= 0
+            ele = element(element.id == hinge.element_id(i),:);
+            ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
+            ele_lin = ele_lin_table(ele_lin_table.id == hinge.element_id(i),:);
+            if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column')
+                % Hinge Stiffnes Calc from appendix B of Ibarra and Krawinkler 2005
+                k_mem = 6*(ele_props.e*ele_props.iz)/ele.length; 
+                n = analysis.hinge_stiff_mod;
+                k_ele = ((n+1)/n)*k_mem; 
+                k_spring = n*k_ele;
+                if analysis.nonlinear == 1 % IMK Rotational Hinge
+                    theta_pc = ele_lin.b_hinge - ele_lin.a_hinge;
+                    theta_u_pos = ele_lin.Mn_aci_pos/k_spring + ele_lin.b_hinge;
+                    theta_u_neg = ele_lin.Mn_aci_neg/k_spring + ele_lin.b_hinge;
+                    if ele_lin.a_hinge > 0
+                        as_mem_pos = min(((ele_lin.Mp_pos-ele_lin.Mn_aci_pos)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
+                        as_sping_pos = ((n+1)*as_mem_pos)/(n+1-n*as_mem_pos);
+                        as_mem_neg = min(((ele_lin.Mp_neg-ele_lin.Mn_aci_neg)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
+                        as_sping_neg = ((n+1)*as_mem_neg)/(n+1-n*as_mem_neg);
+                    else
+                        as_sping_pos = 0.0;
+                        as_sping_neg = 0.0;
+                    end
+                    % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
+                    fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(end), k_spring, as_sping_pos, as_sping_neg, ele_lin.Mn_aci_pos, -ele_lin.Mn_aci_neg, ele_lin.a_hinge, ele_lin.a_hinge, theta_pc, theta_pc, ele_lin.c_hinge, ele_lin.c_hinge, theta_u_pos, theta_u_neg);
 
-                % Define backbone coordinates
-                f1 = ele_lin.f_hinge*ele_lin.Vn_aci;
-                u1 = f1/k_spring;
-                f2 = ele_lin.Vn_aci;
-                u2 = (ele_lin.g_hinge/100)*ele_lin.length;
-                f3 = ele_lin.Vn_aci*1.001;
-                u3 = (ele_lin.d_hinge/100)*ele_lin.length;
-                f4 = ele_lin.Vn_aci*ele_lin.c_hinge;
-                u4 = (ele_lin.e_hinge/100)*ele_lin.length;
+    %                 % uniaxialMaterial ElasticPP $matTag $E $epsyP
+    %                 fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end) , k_spring, ele_lin.a_hinge);
 
-                % uniaxialMaterial MultiLinear $matTag $u1 $f1 $u2 $f2 $u3 $f3 $u4 $f4 ...
-                fprintf(fileID,'uniaxialMaterial MultiLinear %i %f %f %f %f %f %f %f %f \n',element.id(end) + 9000,u1,f1,u2,f2,u3,f3,u4,f4);
-                
-                % uniaxialMaterial MinMax $matTag $otherTag <-min $minStrain> <-max $maxStrain>
-                fprintf(fileID,'uniaxialMaterial MinMax %i %i -min %f -max %f \n',element.id(end),element.id(end) + 9000,-u4,u4);
-                
-                % uniaxialMaterial ElasticPP $matTag $E $epsyP
-%                 fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end) , k_spring, u2);
-                
-                %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
-                if strcmp(ele.direction,'x')
-                    fprintf(fileID,'element zeroLength %i %i %i -mat %i 1 1 1 1 1 -dir 1 2 3 4 5 6\n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
-                elseif strcmp(ele.direction,'z')
-                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 %i 1 1 1 -dir 1 2 3 4 5 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
+                    %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
+                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 1 1 %i -dir 1 2 3 4 5 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
+        %             fprintf(fileID,'equalDOF %i %i 1 2 \n',hinge.node_1(i),hinge.node_2(i));
+                elseif analysis.nonlinear == 2 %Strain Hardening Plastic Rotational Hinges
+                    Mn = min([ele.Mn_aci_pos,ele.Mn_aci_neg]);
+                    %uniaxialMaterial Steel01 $matTag $Fy $E0 $b
+                    fy = 6*Mn/(ele_props.w*ele_props.d^2);
+        %             fprintf(fileID,'uniaxialMaterial Steel01 %i %f %f %f \n', element.id(end), Mn, k_spring, 0.1); % Strain Harding Bilinear Material (Steel01)
+                    %uniaxialMaterial Hardening $matTag $E $sigmaY $H_iso $H_kin <$eta>
+                    fprintf(fileID,'uniaxialMaterial Hardening %i %f %f %f %f \n', element.id(end), k_spring, Mn, k_spring/100, k_spring/100); % Strain Harding Bilinear Material
+                    %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
+                    if strcmp(dimension,'3D')
+                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 1 1 %i -dir 1 2 3 4 5 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
+                    else
+                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 %i -dir 1 2 3 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
+                    end
+        %             fprintf(fileID,'equalDOF %i %i 1 2 3 \n',hinge.node_1(i),hinge.node_2(i));
                 end
-                
-%                 fprintf(fileID,'equalDOF 1 3 2 3 \n');
+            elseif strcmp(ele_props.type,'wall')
+                if analysis.nonlinear == 1 % Multilinear shear spring hinge with min/max limit
+                    % Define Stiffness
+                    k_mem = ele_props.g*ele_props.a/ele.length; 
+                    k_spring = 1000*k_mem;
+
+                    % Define backbone coordinates
+                    f1 = ele_lin.f_hinge*ele_lin.Vn_aci;
+                    u1 = f1/k_spring;
+                    f2 = ele_lin.Vn_aci;
+                    u2 = (ele_lin.g_hinge/100)*ele_lin.length;
+                    f3 = ele_lin.Vn_aci*1.001;
+                    u3 = (ele_lin.d_hinge/100)*ele_lin.length;
+                    f4 = ele_lin.Vn_aci*ele_lin.c_hinge;
+                    u4 = (ele_lin.e_hinge/100)*ele_lin.length;
+
+                    % uniaxialMaterial MultiLinear $matTag $u1 $f1 $u2 $f2 $u3 $f3 $u4 $f4 ...
+                    fprintf(fileID,'uniaxialMaterial MultiLinear %i %f %f %f %f %f %f %f %f \n',element.id(end) + 9000,u1,f1,u2,f2,u3,f3,u4,f4);
+
+                    % uniaxialMaterial MinMax $matTag $otherTag <-min $minStrain> <-max $maxStrain>
+                    fprintf(fileID,'uniaxialMaterial MinMax %i %i -min %f -max %f \n',element.id(end),element.id(end) + 9000,-u4,u4);
+
+                    % uniaxialMaterial ElasticPP $matTag $E $epsyP
+    %                 fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end) , k_spring, u2);
+
+                    %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
+                    if strcmp(ele.direction,'x')
+                        fprintf(fileID,'element zeroLength %i %i %i -mat %i 1 1 1 1 1 -dir 1 2 3 4 5 6\n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
+                    elseif strcmp(ele.direction,'z')
+                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 %i 1 1 1 -dir 1 2 3 4 5 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
+                    end
+
+    %                 fprintf(fileID,'equalDOF 1 3 2 3 \n');
+                end
             end
         end
     end
