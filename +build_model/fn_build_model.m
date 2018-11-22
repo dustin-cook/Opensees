@@ -261,10 +261,10 @@ for s = 1:height(story)
 end
 
 %% Define new nodes to connect rigid diaphram to
-if strcmp(model.dimension,'3D') 
+node.on_slab = zeros(length(node.id),1);
+if analysis.rigid_diaphram
     count = 0;
     last_node = node.id(end);
-    node.on_slab = zeros(length(node.id),1);
     for s = 1:height(story)
         for i = 1:length(nodes_on_slab{s})
             count = count + 1;
@@ -279,8 +279,6 @@ if strcmp(model.dimension,'3D')
             node.story(node_id,:) = 0;
             node.primary_story(node_id,:) = 0;
             node.on_slab(node_id,:) = s;
-            
-%             node.on_slab(nodes_on_slab{s},:) = s;
         end
     end
 end
@@ -421,6 +419,15 @@ if analysis.nonlinear ~= 0
             % Moment Capcity per ACI
             [ ~, element.Mn_aci_pos(e,1) ] = fn_aci_moment_capacity( 'pos', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0, ele.slab_depth, ele.b_eff ); % change to be based on the gravity load instead?
             [ ~, element.Mn_aci_neg(e,1) ] = fn_aci_moment_capacity( 'neg', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0, ele.slab_depth, ele.b_eff );
+        end
+    end
+else
+    % Define Shear Spings on Walls
+    for i = 1:length(element.id)
+        if strcmp(element.type{i},'wall')
+            hinge_id = hinge_id+1;
+            % Define hinge at start of element
+            [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id, 'shear' ); 
         end
     end
 end

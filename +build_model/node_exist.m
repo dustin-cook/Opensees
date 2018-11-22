@@ -12,7 +12,6 @@ if isfield(node,'x') && isfield(node,'y') && isfield(node,'z')
         node.z(node_id,1) = z;
         node.dead_load(node_id,1) = 0;
         node.live_load(node_id,1) = 0;
-        node.on_slab(node_id,1) = 0;
         if exist('add_mass','var') && add_mass == 1
             node.mass(node_id,1) = 1;
         else
@@ -29,7 +28,6 @@ else % First Node
     node.z(1,1) = z;
     node.dead_load(1,1) = 0;
     node.live_load(1,1) = 0;
-    node.on_slab(1,1) = 0;
     node.mass(1,1) = 0;
     id = 1;
 end

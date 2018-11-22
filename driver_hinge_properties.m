@@ -7,7 +7,7 @@ import asce_41.*
 import plotting_tools.*
 
 %% Define Analysis and Model parameters
-analysis.model_id = 11;
+analysis.model_id = 9;
 analysis.gm_id = 8;
 analysis.name = 'test';
 

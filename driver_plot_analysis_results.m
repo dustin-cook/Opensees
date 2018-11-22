@@ -5,11 +5,11 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 8;
-analysis.gm_id = 6;
-analysis.name = 'linear';
+analysis.model_id = 9;
+analysis.gm_id = 8;
+analysis.name = 'test';
 analysis.nonlinear = 1;
-analysis.type = 1;
+analysis.type = 2;
 analysis.pushover_direction = 'x';
 analysis.initial_timestep_factor = 1;
 plot_asce = 0;
