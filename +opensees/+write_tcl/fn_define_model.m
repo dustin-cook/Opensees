@@ -234,10 +234,15 @@ if height(hinge) > 0
     for i = 1:height(hinge)
         element.id(end + 1) = element.id(end) + 1;
         if strcmp(hinge.type(i),'foundation')
-            pile_stiffness = 2015344*9; % Force-Displacement Stiffness of Bundle of Piles
-            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(end),pile_stiffness); % Rigid Elastic Material
+            pile_rot_stiff = 881511412050; % Force-Displacement rotational Stiffness of Bundle of Piles
+            pile_lat_stiff = 18138095; % Force-Displacement lateral Stiffness of Bundle of Piles
+            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(end),pile_rot_stiff); % Rigid Elastic Material
+            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(end)+8000,pile_lat_stiff); % Rigid Elastic Material
+            hinge_node = hinge.node_2(i);
+            fprintf(fileID,'node %i %f %f %f \n',8000+element.id(end),node.x(node.id == hinge_node),node.y(node.id == hinge_node),node.z(node.id == hinge_node));
             if strcmp(dimension,'3D') % Input as rotational for now
-                fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 %i 1 %i -dir 1 2 3 4 5 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end), element.id(end)); % Element Id for Hinge
+                fprintf(fileID,'element zeroLength %i %i %i -mat %i 1 %i 1 1 1 -dir 1 2 3 4 5 6 \n',element.id(end)+8000,hinge.node_1(i),8000+element.id(end), element.id(end), element.id(end)); % Element Id for Hinge
+                fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 %i 1 %i -dir 1 2 3 4 5 6 \n',element.id(end),8000+element.id(end),hinge.node_2(i), element.id(end), element.id(end)); % Element Id for Hinge
             else
                 fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 %i -dir 1 2 3 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
             end
