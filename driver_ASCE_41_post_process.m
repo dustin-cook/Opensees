@@ -5,9 +5,10 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 3;
-analysis.gm_id = 6;
-analysis.name = '11DL11LL';
+analysis.model_id = 12;
+analysis.gm_id = 8;
+analysis.name = 'output_fix_polly';
+analysis.nonlinear = 1;
 
 %% Import Packages
 import asce_41.*
@@ -18,9 +19,11 @@ model = model_table(model_table.id == analysis.model_id,:);
 output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
 m_table.col = readtable(['+asce_41' filesep 'linear_col_m.csv'],'ReadVariableNames',true);
 m_table.beam = readtable(['+asce_41' filesep 'linear_beam_m.csv'],'ReadVariableNames',true);
-load([output_dir filesep 'post_process_data.mat'])
+% load([output_dir filesep 'post_process_data.mat'])
 load([output_dir filesep 'element_TH.mat'])
 load([output_dir filesep 'element_analysis.mat'])
+load([output_dir filesep 'hinge_analysis.mat'])
+load([output_dir filesep 'story_analysis.mat'])
 
 % Linear Procedures
 if analysis.nonlinear == 0
@@ -120,25 +123,26 @@ else
     [ hinge ] = fn_accept_hinge( hinge, output_dir );
     story.max_disp_x_ASCE = story.max_disp_x;
     story.max_drift_x_ASCE = story.max_drift_x;
+    if strcmp(model.dimension,'3D')
+        story.max_disp_z_ASCE = story.max_disp_z;
+        story.max_drift_z_ASCE = story.max_drift_z;
+    end
 end
 
 %% Calculate Beam Column Strength Ratios
-for i =1:length(joint.id)
-   beam1 = max([element.Mn_aci_pos(element.node_2 == joint.x_neg(i)),element.Mn_aci_neg(element.node_2 == joint.x_neg(i))]); % Maximum of beam pos and neg nominal bending strength
-   beam2 = max([element.Mn_aci_pos(element.node_1 == joint.x_pos(i)),element.Mn_aci_neg(element.node_1 == joint.x_pos(i))]); 
-   column1 = min([element.Mn_aci_pos(element.node_2 == joint.y_neg(i)),element.Mn_aci_neg(element.node_2 == joint.y_neg(i))]); % Minimum of column pos and negative nominal moment strength
-   column2 = min([element.Mn_aci_pos(element.node_1 == joint.y_pos(i)),element.Mn_aci_neg(element.node_1 == joint.y_pos(i))]); 
-   joint.beam_strength(i) = sum([beam1,beam2]);
-   joint.column_strength(i) = sum([column1,column2]);
-   joint.col_bm_ratio(i) = joint.column_strength(i)/joint.beam_strength(i);
-end
+% for i =1:length(joint.id)
+%    beam1 = max([element.Mn_aci_pos(element.node_2 == joint.x_neg(i)),element.Mn_aci_neg(element.node_2 == joint.x_neg(i))]); % Maximum of beam pos and neg nominal bending strength
+%    beam2 = max([element.Mn_aci_pos(element.node_1 == joint.x_pos(i)),element.Mn_aci_neg(element.node_1 == joint.x_pos(i))]); 
+%    column1 = min([element.Mn_aci_pos(element.node_2 == joint.y_neg(i)),element.Mn_aci_neg(element.node_2 == joint.y_neg(i))]); % Minimum of column pos and negative nominal moment strength
+%    column2 = min([element.Mn_aci_pos(element.node_1 == joint.y_pos(i)),element.Mn_aci_neg(element.node_1 == joint.y_pos(i))]); 
+%    joint.beam_strength(i) = sum([beam1,beam2]);
+%    joint.column_strength(i) = sum([column1,column2]);
+%    joint.col_bm_ratio(i) = joint.column_strength(i)/joint.beam_strength(i);
+% end
 
 
 %% Save Data
-% remove extra data
-clear analysis
-
-% save data
-save([output_dir filesep 'ASCE_data'])
+save([output_dir filesep 'hinge_analysis.mat'],'hinge')
+save([output_dir filesep 'story_analysis.mat'],'story')
 
 

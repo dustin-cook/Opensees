@@ -7,11 +7,11 @@ clc
 %% Define Analysis and Model parameters
 analysis.model_id = 12;
 analysis.gm_id = 8;
-analysis.name = 'linear';
-analysis.nonlinear = 0;
+analysis.name = 'output_fix_polly';
+analysis.nonlinear = 1;
 analysis.type = 1;
 analysis.full_recorders = 0;
-analysis.run_eigen = 0;
+analysis.run_eigen = 1;
 
 %% Import Packages
 import opensees.main_post_process_opensees

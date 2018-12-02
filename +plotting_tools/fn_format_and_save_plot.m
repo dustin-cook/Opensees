@@ -20,6 +20,10 @@ elseif  plot_ops == 3
     box on
 elseif  plot_ops == 4
     box on
+elseif plot_ops == 5 % Default settings
+    legend('Location','southeast')
+    grid on
+    box on
 end
 
 % Save and close plot

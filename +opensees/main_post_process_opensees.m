@@ -74,16 +74,18 @@ for i = 1:length(dirs_ran)
         eq_length = ground_motion.(dirs_ran{i}).eq_length;
         eq_dt = ground_motion.(dirs_ran{i}).eq_dt;
         eq_timespace = linspace(eq_dt,eq_length*eq_dt,eq_length);
-        eq.(dirs_ran{i}) = interp1(eq_timespace,eq.(dirs_ran{i}),time_step_vector);
+        eq_analysis_timespace = time_step_vector;
+        eq_analysis.(dirs_ran{i}) = interp1(eq_timespace,eq.(dirs_ran{i}),eq_analysis_timespace);
     end
     
    % EDP response history at each node
    node_disp_raw = dlmread([output_dir filesep ['nodal_disp_' dirs_ran{i} '.txt']],' ')';
-   node.(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2:end,:);
+   node.(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2:(height(node)+1),:);
+%    node.(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2:end,:);
    if analysis.type == 1 % Dynamic Analysis
        node_accel_raw = dlmread([output_dir filesep ['nodal_accel_' dirs_ran{i} '.txt']],' ')';
-       node.(['accel_' dirs_ran{i} '_rel_TH']) = node_disp_raw(2:end,:)/386; % Convert to G
-       node.(['accel_' dirs_ran{i} '_abs_TH']) = node.(['accel_' dirs_ran{i} '_rel_TH'])/386 + ones(length(node.id),1)*eq.(dirs_ran{i})(1:length(node.(['accel_' dirs_ran{i} '_rel_TH'])));
+       node.(['accel_' dirs_ran{i} '_rel_TH']) = node_disp_raw(2:(height(node)+1),:)/386; % Convert to G
+       node.(['accel_' dirs_ran{i} '_abs_TH']) = node_disp_raw(2:(height(node)+1),:)/386 + ones(height(node),1)*eq_analysis.(dirs_ran{i});
    elseif analysis.type == 2 % Pushover Analysis
        node_reac_raw = dlmread([output_dir filesep ['nodal_reaction_' dirs_ran{i} '.txt']],' ')';
        node.(['reaction_' dirs_ran{i} '_TH']) = node_reac_raw(2:end,:);
@@ -132,7 +134,7 @@ save([output_dir filesep 'hinge_analysis.mat'],'hinge')
 save([output_dir filesep 'story_analysis.mat'],'story')
 if analysis.type == 1 % Dynamic Analysis
     save([output_dir filesep 'element_TH.mat'],'element_TH')
-    save([output_dir filesep 'gm_data.mat'],'eq','dirs_ran','ground_motion')
+    save([output_dir filesep 'gm_data.mat'],'eq','dirs_ran','ground_motion','eq_analysis_timespace','eq_analysis')
 end
 %% Save All Data
 % save([output_dir filesep 'post_process_data'])

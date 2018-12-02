@@ -4,8 +4,8 @@ close all
 clc
 
 %% User Input
-analysis.model_id = 9;
-analysis.name = 'test';
+analysis.model_id = 12;
+analysis.name = 'output_fix_polly';
 
 %% Import Packages
 import asce_41.*
