@@ -50,7 +50,7 @@ element_list = hinge.element_id(hinge.accept == 1);
 for i = 1:length(element_list)
     s_break_3 = ele.node_1(ele.id == element_list(i));
     t_break_3 = ele.node_2(ele.id == element_list(i));
-    highlight(H,s_break_3,t_break_3,'EdgeColor','b','LineWidth',2)
+    highlight(H,s_break_3,t_break_3,'EdgeColor','g','LineWidth',2)
 end
 
 % Highlight elemets that pass LS
@@ -58,7 +58,7 @@ element_list = hinge.element_id(hinge.accept == 2);
 for i = 1:length(element_list)
     s_break_3 = ele.node_1(ele.id == element_list(i));
     t_break_3 = ele.node_2(ele.id == element_list(i));
-    highlight(H,s_break_3,t_break_3,'EdgeColor','g','LineWidth',2)
+    highlight(H,s_break_3,t_break_3,'EdgeColor','b','LineWidth',2)
 end
 
 % Highlight elemets that pass CP

@@ -73,7 +73,7 @@ for i = 1:length(element_list)
     if (sum(ele.id == element_list(i))>0)
         s_break_3 = ele_new.node_1(ele.id == element_list(i));
         t_break_3 = ele_new.node_2(ele.id == element_list(i));
-        highlight(H,s_break_3,t_break_3,'EdgeColor','b','LineWidth',2)
+        highlight(H,s_break_3,t_break_3,'EdgeColor','g','LineWidth',2)
     end
 end
 
@@ -83,7 +83,7 @@ for i = 1:length(element_list)
     if (sum(ele.id == element_list(i))>0)
         s_break_3 = ele_new.node_1(ele.id == element_list(i));
         t_break_3 = ele_new.node_2(ele.id == element_list(i));
-        highlight(H,s_break_3,t_break_3,'EdgeColor','g','LineWidth',2)
+        highlight(H,s_break_3,t_break_3,'EdgeColor','b','LineWidth',2)
     end
 end
 
@@ -103,7 +103,7 @@ for i = 1:length(element_list)
     if (sum(ele.id == element_list(i))>0)
         s_break_3 = ele_new.node_1(ele.id == element_list(i));
         t_break_3 = ele_new.node_2(ele.id == element_list(i));
-        highlight(H,s_break_3,t_break_3,'EdgeColor','R','LineWidth',2)
+        highlight(H,s_break_3,t_break_3,'EdgeColor','r','LineWidth',2)
     end
 end
 
