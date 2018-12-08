@@ -68,6 +68,35 @@ for s = 1:height(story)
     element.live_load(element.story == story.id(s),1) = element.trib_wt(element.story == story.id(s))*story.story_live_load(s)/sum_trib_wt;
 end
 
+%% For each node created go through as say whats connected in
+mf_id = 0;
+for i = 1:length(node.id)
+    eles_at_node = element.id(((element.node_1 == node.id(i)) | (element.node_2 == node.id(i))));
+    if length(eles_at_node) > 1 && ~strcmp(element.type(element.id == eles_at_node(1)),'wall')
+        mf_id = mf_id + 1;
+        mf_joint.id(mf_id,1) = mf_id;
+        mf_joint.column_low(mf_id,1) = 0;
+        mf_joint.column_high(mf_id,1) = 0;
+        mf_joint.beam_left(mf_id,1) = 0;
+        mf_joint.beam_right(mf_id,1) = 0;
+        for e = 1:length(eles_at_node)
+            if strcmp(element.type(element.id == eles_at_node(e)),'column')
+                if element.node_1(element.id == eles_at_node(e)) == node.id(i)
+                    mf_joint.column_high(mf_id,1) = eles_at_node(e);
+                elseif element.node_2(element.id == eles_at_node(e)) == node.id(i)
+                    mf_joint.column_low(mf_id,1) = eles_at_node(e);
+                end
+            elseif strcmp(element.type(element.id == eles_at_node(e)),'beam')
+                if element.node_1(element.id == eles_at_node(e)) == node.id(i)
+                    mf_joint.beam_right(mf_id,1) = eles_at_node(e);
+                elseif element.node_2(element.id == eles_at_node(e)) == node.id(i)
+                    mf_joint.beam_left(mf_id,1) = eles_at_node(e);
+                end
+            end
+        end
+    end
+end
+
 %% Calculate Total Element Gravity Load
 element.gravity_load = element.dead_load*analysis.dead_load + element.live_load*analysis.live_load;
 
@@ -465,6 +494,8 @@ ele_table = struct2table(element);
 writetable(ele_table,[output_dir filesep 'element.csv'])
 joint_table = struct2table(joint);
 writetable(joint_table,[output_dir filesep 'joint.csv'])
+mf_joint_table = struct2table(mf_joint);
+writetable(mf_joint_table,[output_dir filesep 'mf_joint.csv'])
 hinge_table = struct2table(hinge);
 writetable(hinge_table,[output_dir filesep 'hinge.csv'])
 

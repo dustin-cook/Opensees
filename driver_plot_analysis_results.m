@@ -222,13 +222,16 @@ elseif analysis.type == 1
                 % Plot Hinge Backbone
                 ele = element(element.id == hinge.element_id(i),:);
                 ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
+%                 
+%                 % Find node response of element end
+%                 this_node = node(node.id == ele.node_1,:);
                 theta_yeild = ele.Mn_aci_pos/(6*(ele_props.e*ele_props.iz)/ele.length);
 %                 theta_yeild = ele.Mn_aci_pos*(ele.length)/(4*ele_props.e*ele_props.iz);
                 Q_y = ele.Mn_aci_pos;
                 Q_ult = ele.Mp_pos;
                 post_yeild_slope = min([((Q_ult-Q_y)/Q_y)/ele.a_hinge,0.1*(1/theta_yeild)]);
-                force_vector = [0, ele.Mn_aci_pos, (post_yeild_slope*ele.a_hinge+1)*ele.Mn_aci_pos, ele.c_hinge, ele.c_hinge]/1000;
-                disp_vector = [0, theta_yeild, theta_yeild+ele.a_hinge, theta_yeild+ele.a_hinge+(ele.b_hinge-ele.a_hinge)/2, theta_yeild+ele.b_hinge];
+                force_vector = [0, ele.Mn_aci_pos, (post_yeild_slope*ele.a_hinge+1)*ele.Mn_aci_pos, ele.c_hinge]/1000;
+                disp_vector = [0, theta_yeild, theta_yeild+ele.a_hinge, theta_yeild+ele.b_hinge];
                 plot(disp_vector,force_vector,'k','LineWidth',2,'DisplayName','ASCE 41 Backone')
         
                 % Plot Hinge Hystertic 
@@ -249,17 +252,22 @@ elseif analysis.type == 1
                 fn_format_and_save_plot( plot_dir, plot_name, 1 )
                 
                 % Plot Hinge Rotation Time History
-                hold on
-                plot([0,15],[theta_yeild,theta_yeild],'--k','LineWidth',1.25,'DisplayName','yield');
-                plot([0,15],[ele.b_hinge,ele.b_hinge],'--k','LineWidth',1.25,'DisplayName','b_value');
-                plot([0,15],[-theta_yeild,-theta_yeild],'--k','LineWidth',1.25,'DisplayName','yield');
-                plot([0,15],[-ele.b_hinge,-ele.b_hinge],'--k','LineWidth',1.25,'DisplayName','b_value');
-                plot(eq_analysis_timespace,hinge.rotation_TH{i},'b','LineWidth',1,'DisplayName','Analysis');
-                ylabel('Hinge Rotation (rads)')
-                xlabel('Time (s)')
-                xlim([0,15])
-                plot_name = ['element_' num2str(hinge.element_id(i)) ' - ' hinge_name ' Rotation Time History'];
-                fn_format_and_save_plot( plot_dir, plot_name, 1 )
+%                 hold on
+%                 yeild_point = theta_yeild - (10/11)*theta_yeild;
+%                 b_point = ele.b_hinge + yeild_point;
+%                 hist_plot = plot([0,15],[yeild_point,yeild_point],'--','color',[0.5,0.5,0.5],'LineWidth',1.25,'DisplayName','yield');
+%                 set(get(get(hist_plot,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+%                 hist_plot = plot([0,15],[b_point,b_point],'--k','LineWidth',1.25,'DisplayName','b');
+%                 set(get(get(hist_plot,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+%                 hist_plot = plot([0,15],[-yeild_point,-yeild_point],'--','color',[0.5,0.5,0.5],'LineWidth',1.25,'DisplayName','yield');
+%                 hist_plot = plot([0,15],[-b_point,-b_point],'--k','LineWidth',1.25,'DisplayName','b');
+%                 hist_plot = plot(eq_analysis_timespace,hinge.rotation_TH{i},'b','LineWidth',1,'DisplayName','Analysis');
+%                 ylabel('Hinge Rotation (rads)')
+%                 xlabel('Time (s)')
+%                 xlim([0,15])
+%                 ylim([-1.5*b_point,1.5*b_point])
+%                 plot_name = ['element_' num2str(hinge.element_id(i)) ' - ' hinge_name ' Rotation Time History'];
+%                 fn_format_and_save_plot( plot_dir, plot_name, 2 )
             elseif strcmp(hinge.type(i),'shear')
                 plot(hinge.deformation_TH{i},hinge.shear_TH{i}/1000);
                 ylabel('Hinge Shear (k)')
