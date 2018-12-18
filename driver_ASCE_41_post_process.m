@@ -5,9 +5,9 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 12;
-analysis.gm_id = 8;
-analysis.name = 'output_fix_polly';
+analysis.model_id = 9;
+analysis.gm_id = 6;
+analysis.name = 'test';
 analysis.nonlinear = 1;
 
 %% Import Packages
@@ -124,8 +124,8 @@ else
     story.max_disp_x_ASCE = story.max_disp_x;
     story.max_drift_x_ASCE = story.max_drift_x;
     if strcmp(model.dimension,'3D')
-        story.max_disp_z_ASCE = story.max_disp_z;
-        story.max_drift_z_ASCE = story.max_drift_z;
+%         story.max_disp_z_ASCE = story.max_disp_z;
+%         story.max_drift_z_ASCE = story.max_drift_z;
     end
 end
 

@@ -7,9 +7,9 @@ import asce_41.*
 import plotting_tools.*
 
 %% Define Analysis and Model parameters
-analysis.model_id = 12;
-analysis.gm_id = 8;
-analysis.name = 'output_fix_polly';
+analysis.model_id = 9;
+analysis.gm_id = 6;
+analysis.name = 'test';
 
 %% Read in element and hinge data tables
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
@@ -17,8 +17,6 @@ model = model_table(model_table.id == analysis.model_id,:);
 output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
 ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
 load([output_dir filesep 'element_analysis.mat'])
-
-% element = element(:,1:41);
 
 %% Go through each element and calculate the hinge properties
 for i = 1:length(element.id)
@@ -34,32 +32,9 @@ for i = 1:length(element.id)
     end
     
     % Plot Hinges
-    if strcmp(ele.type,'beam') || strcmp(ele.type,'column')
-        theta_yeild = ele.Mn_aci_pos*(ele.length)/(4*ele_props.e*ele_props.iz);
-        Q_y = ele.Mn_aci_pos;
-        Q_ult = ele.Mp_pos;
-        post_yeild_slope = min([((Q_ult-Q_y)/Q_y)/hinge.a_hinge,0.1*(1/theta_yeild)]);
-        force_vector = [0,1,post_yeild_slope*hinge.a_hinge+1,hinge.c_hinge,hinge.c_hinge];
-        disp_vector = [0, theta_yeild, theta_yeild+hinge.a_hinge, theta_yeild+hinge.a_hinge+(hinge.b_hinge-hinge.a_hinge)/2, theta_yeild+hinge.b_hinge];
-        plot(disp_vector,force_vector)
-        xlabel('Rotation')
-    elseif strcmp(ele.type,'wall')
-        elastic_shear_stiffness = 0.4*ele_props.g*ele_props.a/ele.length; 
-        f1 = hinge.f_hinge*ele.Vn_aci;
-        u1 = f1/elastic_shear_stiffness;
-        f2 = ele.Vn_aci;
-        u2 = (hinge.g_hinge/100)*ele.length;
-        f3 = ele.Vn_aci*1.001;
-        u3 = (hinge.d_hinge/100)*ele.length;
-        f4 = ele.Vn_aci*ele.c_hinge;
-        u4 = (hinge.e_hinge/100)*ele.length;
-        force_vector = [0,f1,f2,f3,f4]/f1;
-        disp_vector = [0,u1,u2,u3,u4]/ele.length;
-        plot(disp_vector,force_vector)
-        xlabel('Drift')
-    end
-    ylabel('Q/Qy')
-    fn_format_and_save_plot( [output_dir filesep 'hinge_plots' filesep] , ['element_' num2str(ele.id)], 2 )
+    plot_name = ['element_' num2str(ele.id)];
+    fn_plot_backbone( ele, ele_props, hinge, output_dir, plot_name, 1)
+
     % save as element hinge table
     if strcmp(ele.type,'wall')
         element.c_hinge(i,1) = hinge.c_hinge;

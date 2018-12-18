@@ -42,11 +42,7 @@ for i = 1:height(element)
                 for k = 1:height(hin)
                     hinge_demand = [hinge_demand, max(hin.rotation_TH{k})];
                 end
-                try
                 inputs.max_element_demand(id,1) = max(hinge_demand);
-                catch
-                    test = 5;
-                end
                 inputs.e(id,1) = ele_prop.e;
                 inputs.i(id,1) = ele_prop.iz;
                 inputs.l(id,1) = ele.length;

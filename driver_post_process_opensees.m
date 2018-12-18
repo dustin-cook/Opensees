@@ -5,9 +5,9 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 12;
-analysis.gm_id = 8;
-analysis.name = 'output_fix_polly';
+analysis.model_id = 9;
+analysis.gm_id = 6;
+analysis.name = 'test';
 analysis.nonlinear = 1;
 analysis.type = 1;
 analysis.full_recorders = 0;

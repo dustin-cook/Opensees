@@ -262,13 +262,14 @@ if height(hinge) > 0
                     theta_u_neg = ele_lin.Mn_aci_neg/k_spring + theta_pc + ele_lin.a_hinge;
                     if ele_lin.a_hinge > 0
                         as_mem_pos = min(((ele_lin.Mp_pos-ele_lin.Mn_aci_pos)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
-                        as_sping_pos = ((n+1)*as_mem_pos)/(n+1-n*as_mem_pos);
+                        as_sping_pos = as_mem_pos*(k_mem/k_spring);
                         as_mem_neg = min(((ele_lin.Mp_neg-ele_lin.Mn_aci_neg)/ele_lin.a_hinge)/k_mem,0.1); % No more than 10% of the elastic stiffness acording to ASCE 41-17 10.3.1.2
-                        as_sping_neg = ((n+1)*as_mem_neg)/(n+1-n*as_mem_neg);
+                        as_sping_neg = as_mem_neg*(k_mem/k_spring);
                     else
                         as_sping_pos = 0.0;
                         as_sping_neg = 0.0;
                     end
+                    
                     % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
                     fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(end), k_spring, as_sping_pos, as_sping_neg, ele_lin.Mn_aci_pos, -ele_lin.Mn_aci_neg, ele_lin.a_hinge, ele_lin.a_hinge, theta_pc, theta_pc, ele_lin.c_hinge, ele_lin.c_hinge, theta_u_pos, theta_u_neg);
                     

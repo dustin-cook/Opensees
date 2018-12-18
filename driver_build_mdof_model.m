@@ -5,14 +5,14 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 12;
+analysis.model_id = 9;
 
 % Secondary Inputs
 analysis.nonlinear = 1;
 analysis.dead_load = 1.0;
 analysis.live_load = 1.0;
 analysis.accidental_torsion = 0;
-analysis.primary_node_offset = 71;
+analysis.primary_node_offset = 0;
 analysis.foundation = 1; % 2 = piles, 1 = fixed, 0 = pined, 
 analysis.stories_nonlinear = 3;
 analysis.rigid_diaphram = 1;

@@ -5,14 +5,14 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 12;
-analysis.gm_id = 8;
-analysis.name = 'output_fix_polly';
+analysis.model_id = 9;
+analysis.gm_id = 6;
+analysis.name = 'test';
 analysis.nonlinear = 1;
 analysis.type = 1;
 analysis.pushover_direction = 'x';
 analysis.initial_timestep_factor = 1;
-plot_asce = 1;
+plot_asce = 0;
 
 %% Import Packages
 import plotting_tools.*
@@ -28,6 +28,7 @@ load([output_dir filesep 'element_analysis.mat'])
 load([output_dir filesep 'story_analysis.mat'])
 load([output_dir filesep 'hinge_analysis.mat'])
 load([output_dir filesep 'gm_data.mat'])
+load([output_dir filesep 'element_PM.mat'])
 
 %% Pushover Analysis
 if analysis.type == 2
@@ -217,39 +218,18 @@ elseif analysis.type == 1
         load([output_dir filesep 'hinge_analysis.mat'])
         plot_dir = [output_dir filesep 'Hinge_Plots'];
         for i = 1:height(hinge)
+            % Grab Element Properties
+            ele = element(element.id == hinge.element_id(i),:);
+            ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
+            
             if strcmp(hinge.type(i),'rotational')
-                hold on
-                % Plot Hinge Backbone
-                ele = element(element.id == hinge.element_id(i),:);
-                ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
-%                 
-%                 % Find node response of element end
-%                 this_node = node(node.id == ele.node_1,:);
-                theta_yeild = ele.Mn_aci_pos/(6*(ele_props.e*ele_props.iz)/ele.length);
-%                 theta_yeild = ele.Mn_aci_pos*(ele.length)/(4*ele_props.e*ele_props.iz);
-                Q_y = ele.Mn_aci_pos;
-                Q_ult = ele.Mp_pos;
-                post_yeild_slope = min([((Q_ult-Q_y)/Q_y)/ele.a_hinge,0.1*(1/theta_yeild)]);
-                force_vector = [0, ele.Mn_aci_pos, (post_yeild_slope*ele.a_hinge+1)*ele.Mn_aci_pos, ele.c_hinge]/1000;
-                disp_vector = [0, theta_yeild, theta_yeild+ele.a_hinge, theta_yeild+ele.b_hinge];
-                plot(disp_vector,force_vector,'k','LineWidth',2,'DisplayName','ASCE 41 Backone')
-        
-                % Plot Hinge Hystertic 
-                % add elastic moment to the hinge
-                plot(-hinge.rotation_TH{i}+(10/11)*theta_yeild,hinge.moment_TH{i}/1000,'b','LineWidth',1,'DisplayName','Analysis');
-                
-                % Format and Save
-                xlim([0,inf])
-                ylim([0,inf])
-                ylabel('Element Moment (k-in)')
-                xlabel('Element Rotation (rads)')
                 if strcmp(ele.type,'column')
                     hinge_name = ['Hinge_y_', num2str(node.y(node.id == hinge.node_1(i)))];
                 elseif strcmp(ele.type,'beam')
                     hinge_name = ['Hinge_x_', num2str(node.x(node.id == hinge.node_1(i)))];
                 end
                 plot_name = ['element_' num2str(hinge.element_id(i)) ' - ' hinge_name ' Rotation Response'];
-                fn_format_and_save_plot( plot_dir, plot_name, 1 )
+                fn_plot_backbone( ele, ele_props, ele, output_dir, plot_name, 2, hinge.rotation_TH{i}, hinge.moment_TH{i})
                 
                 % Plot Hinge Rotation Time History
 %                 hold on
@@ -268,16 +248,14 @@ elseif analysis.type == 1
 %                 ylim([-1.5*b_point,1.5*b_point])
 %                 plot_name = ['element_' num2str(hinge.element_id(i)) ' - ' hinge_name ' Rotation Time History'];
 %                 fn_format_and_save_plot( plot_dir, plot_name, 2 )
+
             elseif strcmp(hinge.type(i),'shear')
-                plot(hinge.deformation_TH{i},hinge.shear_TH{i}/1000);
-                ylabel('Hinge Shear (k)')
-                xlabel('Hinge Deformation (in)')
                 plot_name = ['Hinge ' num2str(i) ' Shear Response'];
-                fn_format_and_save_plot( plot_dir, plot_name, 2 )
+                fn_plot_backbone( ele, ele_props, ele, output_dir, plot_name, 2, hinge.deformation_TH{i}, hinge.shear_TH{i})
             end
         end
     end
-Plot PM Diagrams for each element
+% Plot PM Diagrams for each element
     for i = 1:length(element.id)
         ele = element(i,:);
         ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
