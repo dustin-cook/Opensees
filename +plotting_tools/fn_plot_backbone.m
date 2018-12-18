@@ -50,7 +50,7 @@ if strcmp(ele.type,'beam') || strcmp(ele.type,'column')
     
 % For Walls Plot shear springs
 elseif strcmp(ele.type,'wall')
-    elastic_stiffness = 0.4*ele_props.g*ele_props.a/ele.length; 
+    elastic_stiffness = ele_props.g*ele_props.av/ele.length; 
     f1 = hinge_props.f_hinge*ele.Vn_aci;
     u1 = f1/elastic_stiffness;
     f2 = ele.Vn_aci;

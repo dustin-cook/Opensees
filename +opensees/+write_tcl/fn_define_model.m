@@ -299,7 +299,7 @@ if height(hinge) > 0
                 end
             elseif strcmp(ele_props.type,'wall')
                 % Define Stiffness
-                elastic_shear_stiffness = ele_props.g*ele_props.a/ele.length; 
+                elastic_shear_stiffness = ele_props.g*ele_props.av/ele.length;
                     
                 if analysis.nonlinear == 0 % Elastic Lateral Spring for shear deformations
                     % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
