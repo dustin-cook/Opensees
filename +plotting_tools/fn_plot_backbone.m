@@ -17,24 +17,27 @@ function [ ] = fn_plot_backbone( ele, ele_props, hinge_props, output_dir, plot_n
 % 6) Elastic shear stiffness from delta = PL/GA
 
 %% Begin Method
-% Import Plotting Tools
+% Import Tools
 import plotting_tools.*
+import asce_41.*
 
 % For Beams and Columns plot rotational hinge
 if strcmp(ele.type,'beam') || strcmp(ele.type,'column')
-    elastic_stiffness = 6*ele_props.e*ele_props.iz/ele.length;
-    theta_yeild_pos = ele.Mn_aci_pos/elastic_stiffness;
-    theta_yeild_neg = ele.Mn_aci_pos/elastic_stiffness;
-    Q_y_pos = ele.Mn_aci_pos;
-    Q_ult_pos = ele.Mp_pos;
-    Q_y_neg = ele.Mn_aci_neg;
-    Q_ult_neg = ele.Mp_neg;
-    post_yeild_slope_pos = min([((Q_ult_pos-Q_y_pos)/Q_y_pos)/hinge_props.a_hinge,0.1*(1/theta_yeild_pos)]);
-    post_yeild_slope_neg = min([((Q_ult_neg-Q_y_neg)/Q_y_neg)/hinge_props.a_hinge,0.1*(1/theta_yeild_neg)]);
-    force_vector_pos = [1, post_yeild_slope_pos*hinge_props.a_hinge+1,hinge_props.c_hinge];
-    force_vector_neg = [1, post_yeild_slope_neg*hinge_props.a_hinge+1,hinge_props.c_hinge];
-    disp_vector_pos = theta_yeild_pos + [0, hinge_props.a_hinge, hinge_props.b_hinge];
-    disp_vector_neg = theta_yeild_neg + [0, hinge_props.a_hinge, hinge_props.b_hinge];
+%     elastic_stiffness = 6*ele_props.e*ele_props.iz/ele.length;
+%     theta_yeild_pos = ele.Mn_aci_pos/elastic_stiffness;
+%     theta_yeild_neg = ele.Mn_aci_pos/elastic_stiffness;
+%     Q_y_pos = ele.Mn_aci_pos;
+%     Q_ult_pos = ele.Mp_pos;
+%     Q_y_neg = ele.Mn_aci_neg;
+%     Q_ult_neg = ele.Mp_neg;
+%     post_yeild_slope_pos = min([((Q_ult_pos-Q_y_pos)/Q_y_pos)/hinge_props.a_hinge,0.1*(1/theta_yeild_pos)]);
+%     post_yeild_slope_neg = min([((Q_ult_neg-Q_y_neg)/Q_y_neg)/hinge_props.a_hinge,0.1*(1/theta_yeild_neg)]);
+%     force_vector_pos = [1, post_yeild_slope_pos*hinge_props.a_hinge+1,hinge_props.c_hinge];
+%     force_vector_neg = [1, post_yeild_slope_neg*hinge_props.a_hinge+1,hinge_props.c_hinge];
+%     disp_vector_pos = theta_yeild_pos + [0, hinge_props.a_hinge, hinge_props.b_hinge];
+%     disp_vector_neg = theta_yeild_neg + [0, hinge_props.a_hinge, hinge_props.b_hinge];
+    
+    [ force_vector_pos, force_vector_neg, disp_vector_pos, disp_vector_neg ] = fn_define_backbone( ele, ele_props, hinge_props );
     if plot_style == 1
         plot([0,disp_vector_pos],[0,force_vector_pos],'k','LineWidth',2,'DisplayName','ASCE 41 Backone') % Don't need to worry about negative bending because this plot is normalized by Qy
         xlabel('Total Rotation (rad)')
@@ -42,7 +45,7 @@ if strcmp(ele.type,'beam') || strcmp(ele.type,'column')
     elseif plot_style == 2
         hold on
         % -hinge_rotation_to_plot+(10/11)*theta_yeild
-        plot([fliplr(-(disp_vector_neg-theta_yeild_neg)),0,(disp_vector_pos-theta_yeild_pos)],[fliplr(-force_vector_neg*Q_y_neg),0,force_vector_pos*Q_y_pos]/1000,'k','LineWidth',2,'DisplayName','ASCE 41 Backone')
+        plot([fliplr(-(disp_vector_neg-disp_vector_neg(1))),0,(disp_vector_pos-disp_vector_pos(1))],[fliplr(-force_vector_neg*ele.Mn_aci_neg),0,force_vector_pos*ele.Mn_aci_pos]/1000,'k','LineWidth',2,'DisplayName','ASCE 41 Backone') % Converted to K-in
         plot(hinge_disp_to_plot,-hinge_force_to_plot/1000,'b','LineWidth',1,'DisplayName','Analysis');
         xlabel('Hinge Rotation (rad)')
         ylabel('Moment (k-in)')
