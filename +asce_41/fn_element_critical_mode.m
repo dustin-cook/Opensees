@@ -1,4 +1,4 @@
-function [ ele ] = fn_element_critical_mode( ele, d )
+function [ ele ] = fn_element_critical_mode( ele, ele_prop )
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -35,27 +35,39 @@ elseif strcmp(ele.type,'column')
     % Save shear at moment yeild as Vye
     ele.vye = shear_at_flexure_yeild;
 elseif strcmp(ele.type,'wall')
-    % Method 3 - Based on Shear Span Ratio (as defined by Pugh, Lowes, Lehman)
-    shear_span_ratio = ele.Mmax/(ele.Vmax*d);
-    if shear_span_ratio > 2
+    % Start by checking the aspect ratio criteria as defiend by the
+    % appendix of ASCE 41-17 (A10.7)
+    aspect_ratio = ele.length/ele_prop.d;
+    
+    if aspect_ratio > 3
         ele.critical_mode = {'flexure'};
-    else
+    elseif aspect_ratio < 1.5
         ele.critical_mode = {'shear'};
+    else
+        % Based on Shear Span Ratio (as defined by Pugh, Lowes, Lehman)
+        shear_span_ratio = ele.Mmax/(ele.Vmax*ele_prop.d);
+        if shear_span_ratio > 2
+            ele.critical_mode = {'flexure'};
+        else
+            ele.critical_mode = {'shear'};
+        end
     end
     
     % Save shear at moment yeild as Vye
     ele.vye = NaN;
 end
 
-% %% Method 4 - Based on Table 10-11 from ASCE 41-13 for Columns
-% shear_ratio = shear_at_flexure_yeild/ele.V0;
-% if shear_ratio <= 0.6
-%     mode_4 = {'flexure'};
-% elseif shear_ratio <= 1.0
-%     mode_4 = {'flexure-shear'};
-% else
-%     mode_4 = {'shear'};
-% end
+% Check if shear deformations need to be considered
+flexural_delta = (1*ele.length^3)/(12*ele_prop.e*ele_prop.iz); % assume a unit lateral force
+shear_delta = 1*ele.length/(ele_prop.g*ele_prop.av); % assume a unit lateral force
+
+if shear_delta > 0.1*flexural_delta
+    ele.model_shear_deform = true;
+else
+    ele.model_shear_deform = false;
+end
+
+
 
 end
 

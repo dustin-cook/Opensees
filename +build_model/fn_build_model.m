@@ -70,6 +70,7 @@ end
 
 %% For each node created go through as say whats connected in
 mf_id = 0;
+mf_joint.id = [];
 for i = 1:length(node.id)
     eles_at_node = element.id(((element.node_1 == node.id(i)) | (element.node_2 == node.id(i))));
     if length(eles_at_node) > 1 && ~strcmp(element.type(element.id == eles_at_node(1)),'wall')

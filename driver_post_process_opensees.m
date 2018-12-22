@@ -5,13 +5,14 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 9;
+analysis.model_id = 14;
 analysis.gm_id = 6;
 analysis.name = 'test';
 analysis.nonlinear = 1;
 analysis.type = 1;
 analysis.full_recorders = 0;
 analysis.run_eigen = 1;
+analysis.pushover_direction = 'x';
 
 %% Import Packages
 import opensees.main_post_process_opensees

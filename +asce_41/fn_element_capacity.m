@@ -19,11 +19,17 @@ end
 % Shear capacity per ASCE 41
 [ ele.Vn, ele.V0 ] = fn_shear_capacity( ele_prop.Av, ele_prop.fy_e, ele_prop.As_d, ele_prop.S, ele_prop.lambda, ele_prop.fc_e, ele_prop.a, ele.Mmax, ele.Vmax, ele.Pmax, ele.DCR_total_raw );
 
-% Check if wall is force controlled
+% Check if walls
 if strcmp(ele.type,'wall')
+    % Is it force Controlled?
     rho_n = ele_prop.Av/(ele_prop.S*ele_prop.w);
     if rho_n < 0.0015 % ASCE 41-17 10.7.2.3
         error('Wall is force controlled, modify element')
+    end
+    
+    % Are the axial loads too high for lateral resistance
+    if ele.Pmax > 0.35*ele.Pn_aci_c 
+        error('Wall has too much axial load to take lateral force, modify model')
     end
 else
     rho_n = nan;
@@ -70,7 +76,7 @@ end
 [ ele.row_bal ] = fn_balanced_moment( ele_prop.fc_e, ele_prop.fy_e );
 
 % Determine Flexure v Shear Critical
-[ ele ] = fn_element_critical_mode( ele, ele_prop.d );
+[ ele ] = fn_element_critical_mode( ele, ele_prop );
 
 %% Calculate Capacity Time Histories
 for i = 1:length(ele_TH.P_TH_1) %% ASSUMING P is uniform throughout member

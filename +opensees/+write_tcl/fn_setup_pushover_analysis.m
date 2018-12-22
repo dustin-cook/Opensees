@@ -34,7 +34,7 @@ tolerance = 5e-5;
 fprintf(fileID,'test NormDispIncr %f 1000 \n',tolerance);
 
 % Define Solution Algorithm
-fprintf(fileID,'algorithm Newton \n');
+fprintf(fileID,'algorithm KrylovNewton \n');
 
 % Define Each Load Step
 control_node = primary_nodes(end);

@@ -7,7 +7,7 @@ import asce_41.*
 import plotting_tools.*
 
 %% Define Analysis and Model parameters
-analysis.model_id = 9;
+analysis.model_id = 11;
 analysis.gm_id = 6;
 analysis.name = 'test';
 
@@ -36,7 +36,7 @@ for i = 1:length(element.id)
     fn_plot_backbone( ele, ele_props, hinge, output_dir, plot_name, 1)
 
     % save as element hinge table
-    if strcmp(ele.type,'wall')
+    if strcmp(ele.type,'wall') && strcmp(ele.critical_mode,'shear')
         element.c_hinge(i,1) = hinge.c_hinge;
         element.d_hinge(i,1) = hinge.d_hinge;
         element.e_hinge(i,1) = hinge.e_hinge;

@@ -5,13 +5,12 @@ function [ ] = main_post_process_opensees( analysis, model, story, node, element
 import opensees.post_process.*
 
 %% Load in Analysis data
+% Load element force data
+element_force_recorders = dlmread([output_dir filesep 'element_force.txt'],' ');
+time_step_vector = element_force_recorders(:,1)';
 if analysis.type == 1 % dynamic analysis
     % Ground mottion data
     dirs_ran = fieldnames(ground_motion);
-    
-    % Load element force data
-    element_force_recorders = dlmread([output_dir filesep 'element_force.txt'],' ');
-    time_step_vector = element_force_recorders(:,1)';
 else % pushover analysis
     dirs_ran = {analysis.pushover_direction};
 end
@@ -33,21 +32,19 @@ else
 end
 
 %% Loop through elements and save data
-if analysis.type == 1 % dynamic analysis
-    for i = 1:length(element.id)
-        ele_force_TH = element_force_recorders(:,((i-1)*num_comps+2):(i*num_comps+1));
-        ele_force_max_abs = max(abs(ele_force_TH));
-        ele_force_max = max(ele_force_TH);
-        ele_force_min = min(ele_force_TH);
-        for j = 1:length(comp_names)
-            element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH(:,comp_keys(j))';
-        end
-        element.P_grav(i) = ele_force_TH(1,1);
-        element.Pmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH_1));
-        element.Pmin(i) = min(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH_1));
-        element.Vmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_1));
-        element.Mmax(i) = max(abs([element_TH.(['ele_' num2str(element.id(i))]).M_TH_1,element_TH.(['ele_' num2str(element.id(i))]).M_TH_1]));
+for i = 1:length(element.id)
+    ele_force_TH = element_force_recorders(:,((i-1)*num_comps+2):(i*num_comps+1));
+    ele_force_max_abs = max(abs(ele_force_TH));
+    ele_force_max = max(ele_force_TH);
+    ele_force_min = min(ele_force_TH);
+    for j = 1:length(comp_names)
+        element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH(:,comp_keys(j))';
     end
+    element.P_grav(i) = ele_force_TH(1,1);
+    element.Pmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH_1));
+    element.Pmin(i) = min(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH_1));
+    element.Vmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_1));
+    element.Mmax(i) = max(abs([element_TH.(['ele_' num2str(element.id(i))]).M_TH_1,element_TH.(['ele_' num2str(element.id(i))]).M_TH_1]));
 end
     
 % clear raw opesees data

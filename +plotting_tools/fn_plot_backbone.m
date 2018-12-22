@@ -9,80 +9,57 @@ function [ ] = fn_plot_backbone( ele, ele_props, hinge_props, output_dir, plot_n
 % plot_style: 1 = single backbone with no response, 2 = double backbone with response
 
 % Assumptions:
-% 1) Post yeild hardening slope ...
-% 2) Yeild point is equal to nominal capacity
-% 3) Ultimate point is equal to the plastic or probabl capacity (not sure which one we are reffering to it as)
-% 4) Elastic rotational stiffness from ibbarra et al 2005
-% 5) Post peak slope goes straight from point C to E (peak to end)
-% 6) Elastic shear stiffness from delta = PL/GA
+% 1) hinge stiffness modification, n = 10
 
 %% Begin Method
 % Import Tools
 import plotting_tools.*
 import asce_41.*
 
-% For Beams and Columns plot rotational hinge
-if strcmp(ele.type,'beam') || strcmp(ele.type,'column')
-%     elastic_stiffness = 6*ele_props.e*ele_props.iz/ele.length;
-%     theta_yeild_pos = ele.Mn_aci_pos/elastic_stiffness;
-%     theta_yeild_neg = ele.Mn_aci_pos/elastic_stiffness;
-%     Q_y_pos = ele.Mn_aci_pos;
-%     Q_ult_pos = ele.Mp_pos;
-%     Q_y_neg = ele.Mn_aci_neg;
-%     Q_ult_neg = ele.Mp_neg;
-%     post_yeild_slope_pos = min([((Q_ult_pos-Q_y_pos)/Q_y_pos)/hinge_props.a_hinge,0.1*(1/theta_yeild_pos)]);
-%     post_yeild_slope_neg = min([((Q_ult_neg-Q_y_neg)/Q_y_neg)/hinge_props.a_hinge,0.1*(1/theta_yeild_neg)]);
-%     force_vector_pos = [1, post_yeild_slope_pos*hinge_props.a_hinge+1,hinge_props.c_hinge];
-%     force_vector_neg = [1, post_yeild_slope_neg*hinge_props.a_hinge+1,hinge_props.c_hinge];
-%     disp_vector_pos = theta_yeild_pos + [0, hinge_props.a_hinge, hinge_props.b_hinge];
-%     disp_vector_neg = theta_yeild_neg + [0, hinge_props.a_hinge, hinge_props.b_hinge];
-    
-    [ force_vector_pos, force_vector_neg, disp_vector_pos, disp_vector_neg ] = fn_define_backbone( ele, ele_props, hinge_props );
+% For Beams and Columns and (walls controlled by flexure), plot rotational hinge
+if strcmp(ele.type,'beam') || strcmp(ele.type,'column') || (strcmp(ele.type,'wall') && strcmp(ele.critical_mode,'flexure'))
+    n = 10;
+    [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.Mn_aci_pos, ele.Mn_aci_neg, ele.Mp_pos, ele.Mp_neg, ele.length, ele_props.e, ele_props.iz, hinge_props, n );
     if plot_style == 1
-        plot([0,disp_vector_pos],[0,force_vector_pos],'k','LineWidth',2,'DisplayName','ASCE 41 Backone') % Don't need to worry about negative bending because this plot is normalized by Qy
+        plot([0,rot_vec_pos],[0,moment_vec_pos/moment_vec_pos(1)],'k','LineWidth',2) % Don't need to worry about negative bending because this plot is normalized by Qy
         xlabel('Total Rotation (rad)')
         ylabel('Q/Qy')
     elseif plot_style == 2
         hold on
-        % -hinge_rotation_to_plot+(10/11)*theta_yeild
-        plot([fliplr(-(disp_vector_neg-disp_vector_neg(1))),0,(disp_vector_pos-disp_vector_pos(1))],[fliplr(-force_vector_neg*ele.Mn_aci_neg),0,force_vector_pos*ele.Mn_aci_pos]/1000,'k','LineWidth',2,'DisplayName','ASCE 41 Backone') % Converted to K-in
-        plot(hinge_disp_to_plot,-hinge_force_to_plot/1000,'b','LineWidth',1,'DisplayName','Analysis');
+        elastic_element_disp_pos = rot_vec_pos(1)*(n/(n+1)); % removes contribution from elastic beam/column. assumes n = 10;
+        elastic_element_disp_neg = rot_vec_neg(1)*(n/(n+1)); % removes contribution from elastic beam/column. assumes n = 10;
+        plot([fliplr(-(rot_vec_neg-elastic_element_disp_neg)),0,(rot_vec_pos-elastic_element_disp_pos)],[fliplr(-moment_vec_neg),0,moment_vec_pos]/1000,'k','LineWidth',2,'DisplayName','ASCE 41 Backone') % Converted to K-in
+        plot(hinge_disp_to_plot,-hinge_force_to_plot/1000,'b','LineWidth',1,'DisplayName','Analysis'); % transform from lb-in to kip-in
         xlabel('Hinge Rotation (rad)')
         ylabel('Moment (k-in)')
+        xlim([-max(rot_vec_neg)*1.25,max(rot_vec_pos)*1.25])
+        ylim([-max(moment_vec_neg)*1.25/1000,max(moment_vec_pos)*1.25/1000])
     end
     
-% For Walls Plot shear springs
-elseif strcmp(ele.type,'wall')
-    elastic_stiffness = ele_props.g*ele_props.av/ele.length; 
-    f1 = hinge_props.f_hinge*ele.Vn_aci;
-    u1 = f1/elastic_stiffness;
-    f2 = ele.Vn_aci;
-    u2 = (hinge_props.g_hinge/100)*ele.length;
-    f3 = ele.Vn_aci*1.001;
-    u3 = (hinge_props.d_hinge/100)*ele.length;
-    f4 = ele.Vn_aci*ele.c_hinge;
-    u4 = (hinge_props.e_hinge/100)*ele.length;
-    force_vector_pos = [f1,f2,f3,f4]/f1;
-    disp_vector_pos = [u1,u2,u3,u4]/ele.length;
+% For Walls Contolled by shearPlot shear springs
+elseif strcmp(ele.type,'wall') && strcmp(ele.critical_mode,'shear')
+    [ force_vec, disp_vec ] = fn_define_backbone_shear( ele.Vn_aci, ele.length, ele_props.g, ele_props.av, hinge_props );
     if plot_style == 1
-        plot([0,disp_vector_pos],[0,force_vector_pos],'k','LineWidth',2,'DisplayName','ASCE 41 Backone')
+        plot([0,disp_vec/ele.length],[0,force_vec/force_vec(2)],'k','LineWidth',2)
+        xlabel('Drift')
+        ylabel('Q/Qy')
     elseif plot_style == 2
         hold on
-        plot([fliplr(-disp_vector_pos),0,disp_vector_pos],[fliplr(-force_vector_pos),0,force_vector_pos],'k','LineWidth',2,'DisplayName','ASCE 41 Backone')
-        plot(hinge_disp_to_plot/ele.length,-hinge_force_to_plot/Q_y,'b','LineWidth',1,'DisplayName','Analysis');
-    end
-    xlabel('Drift')
+        plot([fliplr(-disp_vec),0,disp_vec],[fliplr(-force_vec),0,force_vec]/1000,'k','LineWidth',2,'DisplayName','ASCE 41 Backone') % transform from lbs to kips
+        plot(hinge_disp_to_plot,-hinge_force_to_plot/1000,'b','LineWidth',1,'DisplayName','Analysis'); % transform from lbs to kips
+        xlabel('Hinge Displacement (in)')
+        ylabel('Shear Force (k)')
+        xlim([-max(disp_vec)*1.25,max(disp_vec)*1.25])
+        ylim([-max(force_vec)*1.25/1000,max(force_vec)*1.25/1000])
+    end    
 end
 
 % Format and save plot      
-ylabel('Q/Qy')
 if plot_style == 1
-    xlim([0,max(disp_vector_pos)*1.25])
-    ylim([0,max(force_vector_pos)*1.25])
+    fn_format_and_save_plot( [output_dir filesep 'hinge_plots' filesep] , plot_name, 2 )
 elseif plot_style == 2
-    xlim([-max(disp_vector_neg)*1.25,max(disp_vector_pos)*1.25])
-    ylim([-max(force_vector_neg*Q_y_neg)*1.25/1000,max(force_vector_pos*Q_y_pos)*1.25/1000])
+    fn_format_and_save_plot( [output_dir filesep 'hinge_plots' filesep] , plot_name, 1 )
 end
-fn_format_and_save_plot( [output_dir filesep 'hinge_plots' filesep] , plot_name, 1 )
+
 end
 

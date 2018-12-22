@@ -5,7 +5,7 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 9;
+analysis.model_id = 11;
 analysis.gm_id = 6;
 analysis.name = 'test';
 analysis.nonlinear = 1;
@@ -213,48 +213,7 @@ elseif analysis.type == 1
             end
         end
     end
-    %% Plot Hinge Response
-    if analysis.nonlinear ~= 0
-        load([output_dir filesep 'hinge_analysis.mat'])
-        plot_dir = [output_dir filesep 'Hinge_Plots'];
-        for i = 1:height(hinge)
-            % Grab Element Properties
-            ele = element(element.id == hinge.element_id(i),:);
-            ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
-            
-            if strcmp(hinge.type(i),'rotational')
-                if strcmp(ele.type,'column')
-                    hinge_name = ['Hinge_y_', num2str(node.y(node.id == hinge.node_1(i)))];
-                elseif strcmp(ele.type,'beam')
-                    hinge_name = ['Hinge_x_', num2str(node.x(node.id == hinge.node_1(i)))];
-                end
-                plot_name = ['element_' num2str(hinge.element_id(i)) ' - ' hinge_name ' Rotation Response'];
-                fn_plot_backbone( ele, ele_props, ele, output_dir, plot_name, 2, hinge.rotation_TH{i}, hinge.moment_TH{i})
-                
-                % Plot Hinge Rotation Time History
-%                 hold on
-%                 yeild_point = theta_yeild - (10/11)*theta_yeild;
-%                 b_point = ele.b_hinge + yeild_point;
-%                 hist_plot = plot([0,15],[yeild_point,yeild_point],'--','color',[0.5,0.5,0.5],'LineWidth',1.25,'DisplayName','yield');
-%                 set(get(get(hist_plot,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-%                 hist_plot = plot([0,15],[b_point,b_point],'--k','LineWidth',1.25,'DisplayName','b');
-%                 set(get(get(hist_plot,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-%                 hist_plot = plot([0,15],[-yeild_point,-yeild_point],'--','color',[0.5,0.5,0.5],'LineWidth',1.25,'DisplayName','yield');
-%                 hist_plot = plot([0,15],[-b_point,-b_point],'--k','LineWidth',1.25,'DisplayName','b');
-%                 hist_plot = plot(eq_analysis_timespace,hinge.rotation_TH{i},'b','LineWidth',1,'DisplayName','Analysis');
-%                 ylabel('Hinge Rotation (rads)')
-%                 xlabel('Time (s)')
-%                 xlim([0,15])
-%                 ylim([-1.5*b_point,1.5*b_point])
-%                 plot_name = ['element_' num2str(hinge.element_id(i)) ' - ' hinge_name ' Rotation Time History'];
-%                 fn_format_and_save_plot( plot_dir, plot_name, 2 )
 
-            elseif strcmp(hinge.type(i),'shear')
-                plot_name = ['Hinge ' num2str(i) ' Shear Response'];
-                fn_plot_backbone( ele, ele_props, ele, output_dir, plot_name, 2, hinge.deformation_TH{i}, hinge.shear_TH{i})
-            end
-        end
-    end
 % Plot PM Diagrams for each element
     for i = 1:length(element.id)
         ele = element(i,:);
@@ -284,6 +243,49 @@ elseif analysis.type == 1
 %             fn_format_and_save_plot( plot_dir, plot_name, 2 )
         end
 
+    end
+end
+
+%% Plot Hinge Response (For both Dynamic and Pushover)
+if analysis.nonlinear ~= 0
+    load([output_dir filesep 'hinge_analysis.mat'])
+    plot_dir = [output_dir filesep 'Hinge_Plots'];
+    for i = 1:height(hinge)
+        % Grab Element Properties
+        ele = element(element.id == hinge.element_id(i),:);
+        ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
+
+        if strcmp(hinge.type(i),'rotational')
+            if strcmp(ele.type,'column')
+                hinge_name = ['Hinge_y_', num2str(node.y(node.id == hinge.node_1(i)))];
+            elseif strcmp(ele.type,'beam')
+                hinge_name = ['Hinge_x_', num2str(node.x(node.id == hinge.node_1(i)))];
+            end
+            plot_name = ['element_' num2str(hinge.element_id(i)) ' - ' hinge_name ' Rotation Response'];
+            fn_plot_backbone( ele, ele_props, ele, output_dir, plot_name, 2, hinge.rotation_TH{i}, hinge.moment_TH{i})
+
+            % Plot Hinge Rotation Time History
+%                 hold on
+%                 yeild_point = theta_yeild - (10/11)*theta_yeild;
+%                 b_point = ele.b_hinge + yeild_point;
+%                 hist_plot = plot([0,15],[yeild_point,yeild_point],'--','color',[0.5,0.5,0.5],'LineWidth',1.25,'DisplayName','yield');
+%                 set(get(get(hist_plot,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+%                 hist_plot = plot([0,15],[b_point,b_point],'--k','LineWidth',1.25,'DisplayName','b');
+%                 set(get(get(hist_plot,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+%                 hist_plot = plot([0,15],[-yeild_point,-yeild_point],'--','color',[0.5,0.5,0.5],'LineWidth',1.25,'DisplayName','yield');
+%                 hist_plot = plot([0,15],[-b_point,-b_point],'--k','LineWidth',1.25,'DisplayName','b');
+%                 hist_plot = plot(eq_analysis_timespace,hinge.rotation_TH{i},'b','LineWidth',1,'DisplayName','Analysis');
+%                 ylabel('Hinge Rotation (rads)')
+%                 xlabel('Time (s)')
+%                 xlim([0,15])
+%                 ylim([-1.5*b_point,1.5*b_point])
+%                 plot_name = ['element_' num2str(hinge.element_id(i)) ' - ' hinge_name ' Rotation Time History'];
+%                 fn_format_and_save_plot( plot_dir, plot_name, 2 )
+
+        elseif strcmp(hinge.type(i),'shear')
+            plot_name = ['Hinge ' num2str(i) ' Shear Response'];
+            fn_plot_backbone( ele, ele_props, ele, output_dir, plot_name, 2, hinge.deformation_TH{i}, hinge.shear_TH{i})
+        end
     end
 end
 
