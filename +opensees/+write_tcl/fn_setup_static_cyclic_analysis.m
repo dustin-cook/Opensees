@@ -27,7 +27,11 @@ fprintf(fileID,'constraints Transformation \n');
 fprintf(fileID,'numberer RCM \n');
 
 % Construct Linear Solver and linear SOE Objects
-fprintf(fileID,'system BandGeneral \n');
+if analysis.summit_SP
+    fprintf(fileID,'system Mumps \n'); % Use Mumps for OpenseesSP
+else
+    fprintf(fileID,'system BandGeneral \n');
+end
 
 % Test for Convergence
 tolerance = 1e-5;

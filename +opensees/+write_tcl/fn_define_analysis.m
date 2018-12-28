@@ -10,6 +10,13 @@ fileID = fopen(file_name,'w');
 min_tolerance_steps = 10;
 max_tolerance_steps = 1000;
 
+%% Initial Analysis Setup
+fprintf(fileID,'source %s/setup_analysis.tcl \n', output_dir);
+fprintf(fileID,'set singularity_check 0 \n');
+fprintf(fileID,'set collapse_check 0 \n');
+fprintf(fileID,'set currentTime [getTime] \n');
+fprintf(fileID,'set ok 0 \n');
+
 %% Run the Analysis
 if analysis.type == 1 % Dynamic 
     % Set analysis timestep equal to the ground motion time step
@@ -20,13 +27,6 @@ if analysis.type == 1 % Dynamic
     dt_reduction = [1,10,20,50,100];
     algorithm_typs = {'KrylovNewton', 'NewtonLineSearch', 'Newton -initial', 'Newton'};
     tolerance = [1e-5, 1e-4 0.001, 0.01, 0.1, 1];
-
-    % Initial Analysis Setup
-    fprintf(fileID,'source %s/setup_dynamic_analysis.tcl \n', output_dir);
-    fprintf(fileID,'set singularity_check 0 \n');
-    fprintf(fileID,'set collapse_check 0 \n');
-    fprintf(fileID,'set currentTime [getTime] \n');
-    fprintf(fileID,'set ok 0 \n');
 
     if analysis.solution_algorithm
         % Set up Log Files
@@ -127,8 +127,6 @@ if analysis.type == 1 % Dynamic
         fprintf(fileID,'close $converge_tol_file \n');
         fprintf(fileID,'close $converge_file \n');
     else
-        fprintf(fileID,'test NormDispIncr %f 100 \n',tolerance(1));
-        fprintf(fileID,'algorithm Newton \n');
         fprintf(fileID,'set dt_reduce %f \n', analysis.initial_timestep_factor);
         fprintf(fileID,'set dt [expr %f/$dt_reduce] \n', time_step);
         fprintf(fileID,'puts "Analysis dt = $dt" \n');
@@ -136,11 +134,6 @@ if analysis.type == 1 % Dynamic
         fprintf(fileID,'puts "analysis failure = $ok " \n');
     end
 elseif analysis.type == 2 % Pushover
-    fprintf(fileID,'source %s/setup_pushover_analysis.tcl \n', output_dir);
-    fprintf(fileID,'set singularity_check 0 \n');
-    fprintf(fileID,'set collapse_check 0 \n');
-    fprintf(fileID,'set currentTime [getTime] \n');
-    fprintf(fileID,'set ok 0 \n');
     fprintf(fileID,'set ok [analyze %i] \n', analysis.pushover_num_steps);
     fprintf(fileID,'puts "analysis failure = $ok " \n');
 elseif analysis.type == 3 % Static Cyclic

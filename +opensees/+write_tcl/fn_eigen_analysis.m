@@ -2,7 +2,16 @@ function [ ] = fn_eigen_analysis( output_dir, prim_story_nodes, num_stories, ana
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
-% Write Recorder File
+% Define File Type to Write to
+if analysis.summit_SP
+    file_type = '-xml';
+    file_ext = 'xml';
+else
+    file_type = '-file';
+    file_ext = 'txt';
+end
+
+% Write Eigen File
 file_name = [output_dir filesep 'eigen.tcl'];
 fileID = fopen(file_name,'w');
 
@@ -11,8 +20,8 @@ fileID = fopen(file_name,'w');
 fprintf(fileID,'wipeAnalysis \n');		
 
 % Record eigenvectors
-fprintf(fileID,'recorder Node -file %s/mode_shape_1.txt -dT %f -node %s -dof 1 3 "eigen 1" \n',output_dir, 1, num2str(prim_story_nodes));
-fprintf(fileID,'recorder Node -file %s/mode_shape_2.txt -dT %f -node %s -dof 1 3 "eigen 2" \n',output_dir, 1, num2str(prim_story_nodes));
+fprintf(fileID,'recorder Node %s %s/mode_shape_1.%s -dT %f -node %s -dof 1 3 "eigen 1" \n', file_type, output_dir, file_ext, 1, num2str(prim_story_nodes));
+fprintf(fileID,'recorder Node %s %s/mode_shape_2.%s -dT %f -node %s -dof 1 3 "eigen 2" \n', file_type, output_dir, file_ext, 1, num2str(prim_story_nodes));
 
 % Perform Eigen Analysis
 if strcmp(analysis.damping,'simple')
@@ -38,10 +47,14 @@ fprintf(fileID,'close $Periods \n');
 % Run Simple one step gravity load to record eigenvectors
 fprintf(fileID,'integrator LoadControl 0 1 0 0 \n');
 fprintf(fileID,'test EnergyIncr 1.0e-10 100 0 \n');
-fprintf(fileID,'algorithm Newton \n');
+fprintf(fileID,'algorithm KrylovNewton \n');
 fprintf(fileID,'numberer RCM \n');
 fprintf(fileID,'constraints Transformation \n');
-fprintf(fileID,'system ProfileSPD \n');
+if analysis.summit_SP
+    fprintf(fileID,'system Mumps \n'); % Use Mumps for OpenseesSP
+else
+    fprintf(fileID,'system ProfileSPD \n');
+end
 fprintf(fileID,'analysis Static \n');
 fprintf(fileID,'set res [analyze 1] \n');
 fprintf(fileID,'if {$res < 0} { \n');
@@ -50,5 +63,8 @@ fprintf(fileID,'} \n');
 
 % Remove recorder
 fprintf(fileID,'remove recorders \n');
+
+% Close File
+fclose(fileID);
 end
 

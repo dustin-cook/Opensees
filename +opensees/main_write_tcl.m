@@ -12,10 +12,8 @@ first_story_node = node.id(node.primary_story == 1);
 if analysis.run_eigen
     fn_eigen_analysis( output_dir, first_story_node', length(story.id), analysis)
 end
-if analysis.type == 1 % Dynamic
-    fn_setup_dynamic_analysis( output_dir, analysis )
-elseif analysis.type == 2 % Pushover
-    fn_setup_pushover_analysis( output_dir, analysis, first_story_node, story )
+if analysis.type == 1 || analysis.type == 2 % Dynamic or Pushover
+    fn_setup_analysis( output_dir, analysis, first_story_node, story )
 elseif analysis.type == 3 % Static Cyclic
     fn_setup_static_cyclic_analysis( output_dir, analysis )
 end

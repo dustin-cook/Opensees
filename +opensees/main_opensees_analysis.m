@@ -31,6 +31,11 @@ end
 %% Write TCL files
 [ node, ground_motion ] = main_write_tcl( model, output_dir, node, element, story, joint, hinge, analysis );
 
+%% Write Summit Batch File
+if analysis.summit_SP
+    fn_write_summit_batch_file( output_dir, analysis.name, model.name{1} )
+end
+
 %% Run Opensees
 if analysis.run_opensees
     tic
