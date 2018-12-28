@@ -28,7 +28,7 @@ analysis.movie_scale = 1;
 analysis.run_eigen = 1;
 analysis.run_opensees = 1;
 analysis.initial_timestep_factor = 1;
-analysis.solution_algorithm = 0;
+analysis.solution_algorithm = 1;
 analysis.collapse_drift = 0.25;  
 analysis.joint_model = 2; % 1 = elastic elements, 2 = joint 3D
 analysis.full_recorders = 0; % 0 = simple recorders, 1 = full recorders

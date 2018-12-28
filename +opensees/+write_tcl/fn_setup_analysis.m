@@ -1,6 +1,9 @@
-function [ ] = fn_setup_analysis( output_dir, analysis, primary_nodes, story )
+function [ ] = fn_setup_analysis( output_dir, analysis, first_story_node, story )
 %UNTITLED9 Summary of this function goes here
 %   Detailed explanation goes here
+
+%% Import Packages
+import opensees.write_tcl.*
 
 %% Write Analysis Setup File
 file_name = [output_dir filesep 'setup_analysis.tcl'];
@@ -48,14 +51,7 @@ if analysis.type == 1 % Dynamic Analysis
     fprintf(fileID,'analysis Transient \n');
 elseif analysis.type == 2 % Pushover Analysis
     % Define Each Load Step
-    control_node = primary_nodes(end);
-    if strcmp(analysis.pushover_direction,'x')
-        control_dof = 1;
-    elseif strcmp(analysis.pushover_direction,'z')
-        control_dof = 3;
-    end
-    max_displacement = analysis.pushover_drift*(story.y_start(end)+story.story_ht(end));
-    step_size = max_displacement / analysis.pushover_num_steps;
+    [ control_node, control_dof, ~, step_size ] = fn_pushover_properties( first_story_node, analysis, story );
     int_controller = ['DisplacementControl ' num2str(control_node) ' ' num2str(control_dof) ' ' num2str(step_size)]; 
     fprintf(fileID,'integrator %s \n',int_controller);
 
