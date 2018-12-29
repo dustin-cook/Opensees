@@ -6,7 +6,7 @@ import opensees.post_process.*
 
 %% Load in Analysis data
 % Load element force data
-if analysis.summit_SP
+if analysis.write_xml
     [ element_force_recorders ] = fn_xml_read([output_dir filesep 'element_force.xml']);
 else
     element_force_recorders = dlmread([output_dir filesep 'element_force.txt'],' ');
@@ -56,7 +56,7 @@ clear element_force_recorders
 
 %% Load hinge moment and rotation
 if analysis.nonlinear ~= 0
-    if analysis.summit_SP
+    if analysis.write_xml
         [ deformation_TH ] = fn_xml_read([output_dir filesep 'hinge_deformation_all.xml']);
         [ force_TH ] = fn_xml_read([output_dir filesep 'hinge_force_all.xml']);
     else
@@ -85,7 +85,7 @@ for i = 1:length(dirs_ran)
     end
     
    % EDP response history at each node
-   if analysis.summit_SP
+   if analysis.write_xml
        [ node_disp_raw ] = fn_xml_read([output_dir filesep 'nodal_disp_' dirs_ran{i} '.xml']);
        node_disp_raw = node_disp_raw'; % flip to be node per row
    else
@@ -94,7 +94,7 @@ for i = 1:length(dirs_ran)
    node.(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2:(height(node)+1),:);
 %    node.(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2:end,:);
    if analysis.type == 1 % Dynamic Analysis
-       if analysis.summit_SP
+       if analysis.write_xml
            [ node_accel_raw ] = fn_xml_read([output_dir filesep 'nodal_accel_' dirs_ran{i} '.xml']);
            node_accel_raw = node_accel_raw'; % flip to be node per row
        else
@@ -103,7 +103,7 @@ for i = 1:length(dirs_ran)
        node.(['accel_' dirs_ran{i} '_rel_TH']) = node_accel_raw(2:(height(node)+1),:)/386; % Convert to G
        node.(['accel_' dirs_ran{i} '_abs_TH']) = node_accel_raw(2:(height(node)+1),:)/386 + ones(height(node),1)*eq_analysis.(dirs_ran{i});
    elseif analysis.type == 2 % Pushover Analysis
-       if analysis.summit_SP
+       if analysis.write_xml
            [ node_reac_raw ] = fn_xml_read([output_dir filesep 'nodal_reaction_' dirs_ran{i} '.xml']);
            node_reac_raw = node_reac_raw'; % flip to be node per row
        else
@@ -134,7 +134,7 @@ for i = 1:length(dirs_ran)
             % Save periods
             model.(['T1_' dirs_ran{i}]) = periods(1);
             % Save mode shapes
-            if analysis.summit_SP
+            if analysis.write_xml
                 [ mode_shape_raw ] = fn_xml_read([output_dir filesep 'mode_shape_1.xml']);
             else
                 mode_shape_raw = dlmread([output_dir filesep 'mode_shape_1.txt']);
@@ -145,7 +145,7 @@ for i = 1:length(dirs_ran)
             % Save periods
             model.(['T1_' dirs_ran{i}]) = periods(2);
             % Save mode shapes
-            if analysis.summit_SP
+            if analysis.write_xml
                 [ mode_shape_raw ] = fn_xml_read([output_dir filesep 'mode_shape_2.xml']);
             else
                 mode_shape_raw = dlmread([output_dir filesep 'mode_shape_2.txt']);

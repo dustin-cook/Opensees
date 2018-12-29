@@ -3,7 +3,7 @@ function [ ] = fn_define_recorders( output_dir, dimension, nodes, element, hinge
 %   Detailed explanation goes here
 
 % Define File Type to Write to
-if analysis.summit_SP
+if analysis.write_xml
     file_type = '-xml';
     file_ext = 'xml';
 else
