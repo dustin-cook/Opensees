@@ -46,16 +46,16 @@ p_vals_2 = linspace(-0.7*Pn_aci_t,0.7*compression_cap_exp,100);
 
 % Go through range of P values and calc moment capacity
 for i = 1:length(p_vals_1)
-    [ ~, Mn_aci_1(i) ] = fn_aci_moment_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, p_vals_1(i) );
+    [ ~, Mn_1(i) ] = fn_aci_moment_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, p_vals_1(i) );
 end
 
 for i = 1:length(p_vals_2)
-    [ ~, Mn_aci_2(i) ] = fn_aci_moment_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, p_vals_2(i) );
+    [ ~, Mn_2(i) ] = fn_aci_moment_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, p_vals_2(i) );
 end
 
 hold on
-plot([0,Mn_aci_2/12,0]/1000,[-Pn_aci_t, p_vals_2,compression_cap_exp]/1000,'--r')
-plot([0,Mn_aci_1/12,0]/1000,[-Pn_aci_t, p_vals_1,Pn_aci_c]/1000)
+plot([0,Mn_2/12,0]/1000,[-Pn_aci_t, p_vals_2,compression_cap_exp]/1000,'--r')
+plot([0,Mn_1/12,0]/1000,[-Pn_aci_t, p_vals_1,Pn_aci_c]/1000)
 grid on
 box on
 xlabel('Moment, M (kip-ft)')

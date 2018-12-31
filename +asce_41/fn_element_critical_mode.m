@@ -4,7 +4,7 @@ function [ ele ] = fn_element_critical_mode( ele, ele_prop )
 
 % % Method 1 - based on actual loading from analysis
 % demand = ele.Mmax/ele.Vmax;
-% capacity = ele.Mn_aci/ele.Vn_aci;
+% capacity = ele.Mn_pos/ele.Vn;
 % if demand > capacity
 %     ele.critical_mode = {'flexure'};
 % else
@@ -14,8 +14,8 @@ function [ ele ] = fn_element_critical_mode( ele, ele_prop )
 %% Determine Controlling Factors
 if strcmp(ele.type,'beam')
     % Method 2 - From ACI / Based on Stiffness Matrix
-    shear_at_flexure_yeild = (ele.Mn_aci_pos + ele.Mn_aci_neg)/ele.length + ele.gravity_load/2;
-    if ele.Vu_aci > shear_at_flexure_yeild
+    shear_at_flexure_yeild = (ele.Mn_pos + ele.Mn_neg)/ele.length + ele.gravity_load/2;
+    if ele.Vn > shear_at_flexure_yeild
         ele.critical_mode = {'flexure'};
     else
         ele.critical_mode = {'shear'};
@@ -25,8 +25,8 @@ if strcmp(ele.type,'beam')
     ele.vye = shear_at_flexure_yeild;
 elseif strcmp(ele.type,'column')
     % Method 2 - From ACI / Based on Stiffness Matrix
-    shear_at_flexure_yeild = (ele.Mn_aci_pos + ele.Mn_aci_neg)/ele.length;
-    if ele.Vu_aci > shear_at_flexure_yeild
+    shear_at_flexure_yeild = (ele.Mn_pos + ele.Mn_neg)/ele.length;
+    if ele.Vn > shear_at_flexure_yeild
         ele.critical_mode = {'flexure'};
     else
         ele.critical_mode = {'shear'};

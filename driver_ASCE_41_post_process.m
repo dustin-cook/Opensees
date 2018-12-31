@@ -36,7 +36,7 @@ if analysis.nonlinear == 0
 %         ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
 %         
 %         % Calculate Element Capacity
-%         [ ele, element_TH.(['ele_' num2str(element.id(i))]) ] = fn_element_capacity( ele, ele_prop, ele_TH );
+%         [ ele, element_TH.(['ele_' num2str(element.id(i))]) ] = main_element_capacity( ele, ele_prop, ele_TH );
 %         
 %         % Caculate required development length and make sure there is enough
 %         [ ele.pass_aci_dev_length ] = fn_development_check( ele, ele_prop );
@@ -57,7 +57,7 @@ if analysis.nonlinear == 0
 %         ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
 %         
 %         % Calculate Element Capacity
-%         [ ele, element_TH.(['ele_' num2str(element.id(i))]) ] = fn_element_capacity( ele, ele_prop, ele_TH );
+%         [ ele, element_TH.(['ele_' num2str(element.id(i))]) ] = main_element_capacity( ele, ele_prop, ele_TH );
 %         
 %         % Caculate required development length and make sure there is enough
 %         [ ele.pass_aci_dev_length ] = fn_development_check( ele, ele_prop );
@@ -131,10 +131,10 @@ end
 
 %% Calculate Beam Column Strength Ratios
 % for i =1:length(joint.id)
-%    beam1 = max([element.Mn_aci_pos(element.node_2 == joint.x_neg(i)),element.Mn_aci_neg(element.node_2 == joint.x_neg(i))]); % Maximum of beam pos and neg nominal bending strength
-%    beam2 = max([element.Mn_aci_pos(element.node_1 == joint.x_pos(i)),element.Mn_aci_neg(element.node_1 == joint.x_pos(i))]); 
-%    column1 = min([element.Mn_aci_pos(element.node_2 == joint.y_neg(i)),element.Mn_aci_neg(element.node_2 == joint.y_neg(i))]); % Minimum of column pos and negative nominal moment strength
-%    column2 = min([element.Mn_aci_pos(element.node_1 == joint.y_pos(i)),element.Mn_aci_neg(element.node_1 == joint.y_pos(i))]); 
+%    beam1 = max([element.Mn_pos(element.node_2 == joint.x_neg(i)),element.Mn_neg(element.node_2 == joint.x_neg(i))]); % Maximum of beam pos and neg nominal bending strength
+%    beam2 = max([element.Mn_pos(element.node_1 == joint.x_pos(i)),element.Mn_neg(element.node_1 == joint.x_pos(i))]); 
+%    column1 = min([element.Mn_pos(element.node_2 == joint.y_neg(i)),element.Mn_neg(element.node_2 == joint.y_neg(i))]); % Minimum of column pos and negative nominal moment strength
+%    column2 = min([element.Mn_pos(element.node_1 == joint.y_pos(i)),element.Mn_neg(element.node_1 == joint.y_pos(i))]); 
 %    joint.beam_strength(i) = sum([beam1,beam2]);
 %    joint.column_strength(i) = sum([column1,column2]);
 %    joint.col_bm_ratio(i) = joint.column_strength(i)/joint.beam_strength(i);

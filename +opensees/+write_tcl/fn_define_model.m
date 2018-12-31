@@ -241,11 +241,8 @@ if height(hinge) > 0
             pile_lat_stiff = 18138095; % Force-Displacement lateral Stiffness of Bundle of Piles
             fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(end),pile_rot_stiff); % Rigid Elastic Material
             fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(end)+8000,pile_lat_stiff); % Rigid Elastic Material
-            hinge_node = hinge.node_2(i);
-            fprintf(fileID,'node %i %f %f %f \n',8000+element.id(end),node.x(node.id == hinge_node),node.y(node.id == hinge_node),node.z(node.id == hinge_node));
             if strcmp(dimension,'3D') % Input as rotational for now
-                fprintf(fileID,'element zeroLength %i %i %i -mat %i 1 %i 1 1 1 -dir 1 2 3 4 5 6 \n',element.id(end)+8000,hinge.node_1(i),8000+element.id(end), element.id(end), element.id(end)); % Element Id for Hinge
-                fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 %i 1 %i -dir 1 2 3 4 5 6 \n',element.id(end),8000+element.id(end),hinge.node_2(i), element.id(end), element.id(end)); % Element Id for Hinge
+                fprintf(fileID,'element zeroLength %i %i %i -mat %i 1 %i %i 1 %i -dir 1 2 3 4 5 6 \n',element.id(end), hinge.node_1(i), hinge.node_2(i), element.id(end)+8000, element.id(end)+8000, element.id(end), element.id(end)); % Element Id for Hinge
             else
                 fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 %i -dir 1 2 3 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
             end
@@ -253,15 +250,10 @@ if height(hinge) > 0
             ele = element(element.id == hinge.element_id(i),:);
             ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
             if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column')
-                % Hinge Stiffness Calc from appendix B of Ibarra and Krawinkler 2005
-%                 k_mem = 6*(ele_props.e*ele_props.iz)/ele.length; 
-%                 n = analysis.hinge_stiff_mod;
-%                 k_ele = ((n+1)/n)*k_mem; 
-%                 k_spring = n*k_ele;
                 if analysis.nonlinear == 1 % IMK Rotational Hinge
                     % Load in backbone curve
                     ele_lin = ele_lin_table(ele_lin_table.id == hinge.element_id(i),:);
-                    [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', ele_lin.Mn_aci_pos, ele_lin.Mn_aci_neg, ele_lin.Mp_pos, ele_lin.Mp_neg, ele.length, ele_props.e, ele_props.iz, ele_lin, analysis.hinge_stiff_mod );
+                    [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', ele_lin.Mn_pos, ele_lin.Mn_neg, ele_lin.Mp_pos, ele_lin.Mp_neg, ele.length, ele_props.e, ele_props.iz, ele_lin, analysis.hinge_stiff_mod );
                     
                     % Define IMK Parameters
                     Ko = moment_vec_pos(1)/rot_vec_pos(1);
@@ -275,7 +267,7 @@ if height(hinge) > 0
                     fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 1 1 %i -dir 1 2 3 4 5 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
         %             fprintf(fileID,'equalDOF %i %i 1 2 \n',hinge.node_1(i),hinge.node_2(i));
                 elseif analysis.nonlinear == 2 %Strain Hardening Plastic Rotational Hinges
-                    Mn = min([ele.Mn_aci_pos,ele.Mn_aci_neg]);
+                    Mn = min([ele.Mn_pos,ele.Mn_neg]);
                     %uniaxialMaterial Steel01 $matTag $Fy $E0 $b
                     fy = 6*Mn/(ele_props.w*ele_props.d^2);
         %             fprintf(fileID,'uniaxialMaterial Steel01 %i %f %f %f \n', element.id(end), Mn, k_spring, 0.1); % Strain Harding Bilinear Material (Steel01)
@@ -308,7 +300,7 @@ if height(hinge) > 0
                     ele_lin = ele_lin_table(ele_lin_table.id == hinge.element_id(i),:);
 
                     % Define backbone coordinates
-                    [ force_vec, disp_vec ] = fn_define_backbone_shear( ele_lin.Vn_aci, ele.length, ele_props.g, ele_props.av, ele_lin );
+                    [ force_vec, disp_vec ] = fn_define_backbone_shear( ele_lin.Vn, ele.length, ele_props.g, ele_props.av, ele_lin );
 
                     % uniaxialMaterial MultiLinear $matTag $u1 $f1 $u2 $f2 $u3 $f3 $u4 $f4 ...
                     fprintf(fileID,'uniaxialMaterial MultiLinear %i %f %f %f %f %f %f %f %f %f %f \n',element.id(end) + 9000,disp_vec(1),force_vec(1),disp_vec(2),force_vec(2),disp_vec(3),force_vec(3),disp_vec(4),force_vec(4), 999, force_vec(4)); % continue hinge at residual strength

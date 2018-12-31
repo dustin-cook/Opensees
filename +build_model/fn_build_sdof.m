@@ -42,8 +42,8 @@ hinge.node_1 = [];
 hinge.node_2 = [];
 if model.nonlinear ~= 0
     [ node, element, hinge ] = fn_define_hinge( hinge, element, node, 0, 0 );
-    element.Mn_aci_pos = model.moment_capacity;
-    element.Mn_aci_neg = model.moment_capacity;
+    element.Mn_pos = model.moment_capacity;
+    element.Mn_neg = model.moment_capacity;
 end
 
 %% Reformat outputs to table and write CSV's

@@ -1,10 +1,13 @@
-function [ Vn, V0 ] = fn_shear_capacity( Av, fy, As_d, s, lambda, fc, Ag, M, V, Nu, DCR_max )
+function [ Vn, V0 ] = fn_shear_capacity( Av, fy, As_d, s, lambda, fc, Ag, M_TH, V_TH, Nug, DCR_max )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
 As_d = str2double(strsplit(strrep(strrep(As_d{1},']',''),'[',''),','));
 d_eff = max(As_d);
-mv_ratio = min([max([M/(V*d_eff),2]),4]);
+mv_ratio = min([max([max(abs(M_TH/(V_TH*d_eff))),2]),4]);
+
+% If Nu is in tension, set to zero
+Nug = max([Nug,0]); % based on gravity load of asce 41-17 eq 7-3
 
 % Set alpha factor
 if s/d_eff <= 0.75
@@ -25,7 +28,7 @@ else
 end
 
 % Calculate shear based on EQ 10-3 from ASCE 41-17
-V0 = alpha*Av*fy*d_eff/s + lambda*(6*sqrt(fc)/mv_ratio)*sqrt(1+Nu/(6*sqrt(fc)*Ag))*0.8*Ag;
+V0 = alpha*Av*fy*d_eff/s + lambda*(6*sqrt(fc)/mv_ratio)*sqrt(1+Nug/(6*sqrt(fc)*Ag))*0.8*Ag;
 Vn = k*V0;
 
 end

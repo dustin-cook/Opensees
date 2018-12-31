@@ -8,7 +8,7 @@ clc
 analysis.model_id = 11;
 
 % Secondary Inputs
-analysis.nonlinear = 1;
+analysis.nonlinear = 0;
 analysis.dead_load = 1.0;
 analysis.live_load = 1.0;
 analysis.accidental_torsion = 0;

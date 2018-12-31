@@ -43,16 +43,16 @@ for i = 1:height(mf_joint_table)
     
     %?Mc/?Mb
     if isempty(column_high)
-        sum_col = column_low.Mn_aci_pos;
+        sum_col = column_low.Mn_pos;
     else
-        sum_col = column_low.Mn_aci_pos + column_high.Mn_aci_pos;
+        sum_col = column_low.Mn_pos + column_high.Mn_pos;
     end
     if isempty(beam_left)
-        sum_bm = max([beam_right.Mn_aci_pos,beam_right.Mn_aci_neg]);
+        sum_bm = max([beam_right.Mn_pos,beam_right.Mn_neg]);
     elseif isempty(beam_right)
-        sum_bm = max([beam_left.Mn_aci_pos,beam_left.Mn_aci_neg]);
+        sum_bm = max([beam_left.Mn_pos,beam_left.Mn_neg]);
     else
-        sum_bm = max([beam_left.Mn_aci_pos + beam_right.Mn_aci_neg,beam_left.Mn_aci_neg + beam_right.Mn_aci_pos]);
+        sum_bm = max([beam_left.Mn_pos + beam_right.Mn_neg,beam_left.Mn_neg + beam_right.Mn_pos]);
     end
     output.scwb(i,1) = sum_col/sum_bm;
     
@@ -89,10 +89,10 @@ for i = 1:height(mf_joint_table)
     %Beam Veq/Vn	
     beam_vn = 0;
     if ~isempty(beam_left)
-        beam_vn = [beam_vn, beam_left.Vmax/beam_left.Vn_aci];
+        beam_vn = [beam_vn, beam_left.Vmax/beam_left.Vn];
     end
     if ~isempty(beam_right)
-        beam_vn = [beam_vn, beam_right.Vmax/beam_right.Vn_aci];
+        beam_vn = [beam_vn, beam_right.Vmax/beam_right.Vn];
     end
     output.beam_vn(i,1) = max(beam_vn);
     
@@ -106,9 +106,9 @@ for i = 1:height(mf_joint_table)
     % Column Veq/Vn	
     col_vn = 0;
     if ~isempty(column_high)
-        col_vn = [col_vn, column_high.Vmax/column_high.Vn_aci];
+        col_vn = [col_vn, column_high.Vmax/column_high.Vn];
     end
-    col_vn = [col_vn, column_low.Vmax/column_low.Vn_aci];
+    col_vn = [col_vn, column_low.Vmax/column_low.Vn];
     output.col_vn(i,1) = max(col_vn);
     
     %Inadequate Reinforcement Development per ASCE 41-06

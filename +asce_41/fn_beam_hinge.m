@@ -30,7 +30,7 @@ for i = 1:length(condition)
             if ele.DCR_total_raw < 2
                 % Conforming Transverse Reinforcement
                 trans_rien = 'C';
-            elseif ele.Vs_aci > 0.75*ele.Vmax
+            elseif ele.Vs > 0.75*ele.Vmax
                 % Conforming Transverse Reinforcement
                 trans_rien = 'C'; 
             else

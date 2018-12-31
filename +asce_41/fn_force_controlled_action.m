@@ -17,6 +17,6 @@ else
 end
 
 eq_force = raw_force - grav_force;
-mod_force = grav_force + x*eq_force/(c1*c2*j); % ONLY SUPPOSED TO APPLY TO EQ DEMANDS, NOT GRAVITY (UPDATE)
+mod_force = grav_force + x*eq_force/(c1*c2*j);
 end
 

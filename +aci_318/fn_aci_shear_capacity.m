@@ -1,23 +1,33 @@
-function [ Vu, Vn, Vs ] = fn_aci_shear_capacity( fc, b, d, P, Av, fy, S, lambda, Ag, hw, type, rho_t, As_d )
+function [ Vu, Vn, Vs ] = fn_aci_shear_capacity( fc, b, d, Av, fy, S, lambda, Ag, hw, type, As_d, P )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
-%% Shear Walls
-if strcmp(type,'wall')
+% Assumptions:
+
+%% Begin Method
+if strcmp(type,'wall') % Shear Walls
+    rho_t = Av/(S*b);
+    if rho_t < 0.0015 % ASCE 41-17 10.7.2.3
+        error('Wall is force controlled, modify element')
+    end
+    
     Acv = b*d;
     aspect_ratio = hw/d;
     alpha_c = min(max((-2)*(aspect_ratio-2) + 2, 2), 3);
     Vn = Acv*(alpha_c*lambda*sqrt(fc) + rho_t*fy); % ACI 318-14 eq 18.10.4.1
     Vs = nan;
 
-%% Beams and Columns
-else
+else % Beams and Columns
     % Reformat steel depth
     As_d = str2double(strsplit(strrep(strrep(As_d{1},']',''),'[',''),','));
     d_eff = max(As_d);
 
     % Concrete Capacity
-    Vc = 2*(1 + P/(2000*Ag))*lambda*b*d_eff*sqrt(fc); 
+    if strcmp(type,'beam') % Beams
+        Vc = 2*lambda*b*d_eff*sqrt(fc); 
+    elseif strcmp(type,'columns') % Columns
+        Vc = 2*(1 + P/(2000*Ag))*lambda*b*d_eff*sqrt(fc); 
+    end
 
     % Reinforcement Capacity
     if Av > 0
@@ -30,6 +40,8 @@ else
     Vn = Vc + Vs;
 
 end
+
+
 %% Ultimate Capacity
 phi = 0.75;
 Vu = phi*Vn;

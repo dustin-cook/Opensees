@@ -447,12 +447,12 @@ if analysis.nonlinear ~= 0
     for e = 1:length(element.id)
         ele = ele_props(ele_props.id == element.ele_id(e),:);
         if strcmp(ele.type,'truss') || contains(ele.description,'rigid')
-            element.Mn_aci_pos(e,1) = 9999999999;
-            element.Mn_aci_neg(e,1) = 9999999999;
+            element.Mn_pos(e,1) = 9999999999;
+            element.Mn_neg(e,1) = 9999999999;
         else
             % Moment Capcity per ACI
-            [ ~, element.Mn_aci_pos(e,1) ] = fn_aci_moment_capacity( 'pos', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0, ele.slab_depth, ele.b_eff ); % change to be based on the gravity load instead?
-            [ ~, element.Mn_aci_neg(e,1) ] = fn_aci_moment_capacity( 'neg', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0, ele.slab_depth, ele.b_eff );
+            [ ~, element.Mn_pos(e,1) ] = fn_aci_moment_capacity( 'pos', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0, ele.slab_depth, ele.b_eff ); % change to be based on the gravity load instead?
+            [ ~, element.Mn_neg(e,1) ] = fn_aci_moment_capacity( 'neg', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0, ele.slab_depth, ele.b_eff );
         end
     end
 else

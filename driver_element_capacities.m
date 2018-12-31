@@ -25,7 +25,7 @@ for i = 1:length(element.id)
     ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
     
     %% Calculate Element Capacties
-    [ ele, element_TH.(['ele_' num2str(element.id(i))]), element_PM.(['ele_' num2str(element.id(i))]) ] = fn_element_capacity( ele, ele_prop, ele_TH );
+    [ ele, element_TH.(['ele_' num2str(element.id(i))]), element_PM.(['ele_' num2str(element.id(i))]) ] = main_element_capacity( ele, ele_prop, ele_TH );
     disp([num2str(i), ' out of ', num2str(length(element.id)) ' elements complete' ])
     
     %% Caculate required development length and make sure there is enough

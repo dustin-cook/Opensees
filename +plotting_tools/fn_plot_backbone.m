@@ -19,7 +19,7 @@ import asce_41.*
 % For Beams and Columns and (walls controlled by flexure), plot rotational hinge
 if strcmp(ele.type,'beam') || strcmp(ele.type,'column') || (strcmp(ele.type,'wall') && strcmp(ele.critical_mode,'flexure'))
     n = 10;
-    [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.Mn_aci_pos, ele.Mn_aci_neg, ele.Mp_pos, ele.Mp_neg, ele.length, ele_props.e, ele_props.iz, hinge_props, n );
+    [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.Mn_pos, ele.Mn_neg, ele.Mp_pos, ele.Mp_neg, ele.length, ele_props.e, ele_props.iz, hinge_props, n );
     if plot_style == 1
         plot([0,rot_vec_pos],[0,moment_vec_pos/moment_vec_pos(1)],'k','LineWidth',2) % Don't need to worry about negative bending because this plot is normalized by Qy
         xlabel('Total Rotation (rad)')
@@ -38,7 +38,7 @@ if strcmp(ele.type,'beam') || strcmp(ele.type,'column') || (strcmp(ele.type,'wal
     
 % For Walls Contolled by shearPlot shear springs
 elseif strcmp(ele.type,'wall') && strcmp(ele.critical_mode,'shear')
-    [ force_vec, disp_vec ] = fn_define_backbone_shear( ele.Vn_aci, ele.length, ele_props.g, ele_props.av, hinge_props );
+    [ force_vec, disp_vec ] = fn_define_backbone_shear( ele.Vn, ele.length, ele_props.g, ele_props.av, hinge_props );
     if plot_style == 1
         plot([0,disp_vec/ele.length],[0,force_vec/force_vec(2)],'k','LineWidth',2)
         xlabel('Drift')

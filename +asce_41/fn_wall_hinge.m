@@ -36,7 +36,7 @@ if strcmp(ele.critical_mode,'flexure')
     %% Filter table based on strength term
     As = sum(str2double(strsplit(strrep(strrep(ele_props.As{1},']',''),'[',''))))/2;
     As_prime = As;
-    strength_term = ((As - As_prime)*ele_props.fy_e + abs(ele.P_grav)) / (ele_props.w*ele_props.d*ele_props.fc_e);
+    strength_term = ((As - As_prime)*ele_props.fy_e + abs(ele.Pmax)) / (ele_props.w*ele_props.d*ele_props.fc_e); % The bigger the Axial load the more consertvative the hinge is, therefore the max axial load from the analysis is used.
     [ hinge_filt ] = fn_filter_asce41_table( hinge_filt, strength_term, 'strength_term', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
 
     %% Filter table based on V ratio
@@ -58,7 +58,7 @@ elseif strcmp(ele.critical_mode,'shear')
     %% Filter table based on strength term
     As = sum(str2double(strsplit(strrep(strrep(ele_props.As{1},']',''),'[',''))))/2;
     As_prime = As;
-    strength_term = ((As - As_prime)*ele_props.fy_e + abs(ele.P_grav)) / (ele_props.w*ele_props.d*ele_props.fc_e);
+    strength_term = ((As - As_prime)*ele_props.fy_e + abs(ele.Pmax)) / (ele_props.w*ele_props.d*ele_props.fc_e); % The bigger the Axial load the more consertvative the hinge is, therefore the max axial load from the analysis is used.
     if strength_term <= 0.05
         hinge_filt = hinge_table(strcmp(hinge_table.strength_term,'<=0.05'),:);
     else
