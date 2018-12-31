@@ -78,6 +78,14 @@ end
 % Determine Flexure v Shear Critical
 [ ele ] = fn_element_critical_mode( ele, ele_prop );
 
+% Check if walls are force controlled
+if strcmp(ele.type,'wall')
+    % For walls controlled by shear, if 
+    if strcmp(ele.critical_mode,'shear') && ele.Pmax > 0.15*ele_prop.a*ele_prop.fc_e % ASCE 41-17 table 10-20 note b
+        error('Wall is force controlled, too much axial load')
+    end
+end
+
 %% Calculate Capacity Time Histories
 for i = 1:length(ele_TH.P_TH_1) %% ASSUMING P is uniform throughout member
     % Axial Capacity

@@ -432,9 +432,13 @@ if analysis.nonlinear ~= 0
                 % Define hinge at end of element
                 [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_2', i, hinge_id, foundation_nodes_id, 'rotational' );
             elseif strcmp(element.type{i},'wall') % For walls
-                hinge_id = hinge_id+1;
-                % Define hinge at start of element
-                [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id, 'shear' ); 
+                % Check if wall is the bottom wall
+                walls_with_same_node = element.id(strcmp(element.type,'wall') & element.node_2 == element.node_1(i));
+                if isempty(walls_with_same_node)
+                    hinge_id = hinge_id+1;
+                    % Define hinge at start of element
+                    [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id, 'shear' ); 
+                end
             end
         end
     end
@@ -455,9 +459,12 @@ else
     % Define Shear Spings on Walls
     for i = 1:length(element.id)
         if strcmp(element.type{i},'wall')
-            hinge_id = hinge_id+1;
-            % Define hinge at start of element
-            [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id, 'shear' ); 
+            walls_with_same_node = element.id(strcmp(element.type,'wall') & element.node_2 == element.node_1(i));
+            if isempty(walls_with_same_node)
+                hinge_id = hinge_id+1;
+                % Define hinge at start of element
+                [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id, 'shear' ); 
+            end
         end
     end
 end
