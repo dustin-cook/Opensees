@@ -5,7 +5,7 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 11;
+analysis.model_id = 9;
 analysis.gm_seq_id = 6;
 analysis.name = 'test';
 
@@ -13,7 +13,7 @@ analysis.name = 'test';
 analysis.type = 1; % 1 = dynamic, 2 = pushover % 3 = static cyclic
 analysis.model_type = 2; % 1 = SDOF, 2 = MDOF
 analysis.pushover_drift = 0.02;
-analysis.pushover_num_steps = 1000;
+analysis.pushover_num_steps = 100;
 analysis.pushover_direction = 'x';
 analysis.ground_motion_scale_factor = 1;
 analysis.nonlinear = 0; % 1 = IMK Rotational Hinge, 2 = strain hardening hinges

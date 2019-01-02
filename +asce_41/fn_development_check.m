@@ -89,6 +89,13 @@ for i = 1:length(d_b)
     else
         pass_aci_dev_length(i) = 0;
     end
+    
+    % Check Hooked Embedments on First Story Columns
+    if strcmp(ele.type,'column') && ele.story == 1
+        if ~(test2 && test3)
+            error('Columns are not embeded enough into foundations, rework foundation model')
+        end
+    end
 end
 
 pass_aci_dev_length = min(pass_aci_dev_length);
