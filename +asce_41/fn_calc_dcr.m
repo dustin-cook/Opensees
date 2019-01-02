@@ -30,7 +30,7 @@ for i = 1:length(element.id)
     DCR_V_TH(i,:) = DCR_V_raw_TH(i,:) / element.(['m_' perform_level])(i);
 
     %% Calculate Quf for force controlled actions
-    DCR_P_TH(i,:) = ele_TH.P_force_controlled ./ ele_TH.Pn;
+    DCR_P_TH(i,:) = ele_TH.P_TH_linear ./ ele_TH.Pn;
 
     %% Calc Max DCR for Each Element
     element.DCR_raw_max_M(i) = max([DCR_M_raw_TH_1(i,:),DCR_M_raw_TH_2(i,:)]);

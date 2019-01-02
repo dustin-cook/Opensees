@@ -5,10 +5,10 @@ rehash
 clc
 
 %% Define Analysis and Model parameters
-analysis.model_id = 11;
+analysis.model_id = 6;
 analysis.gm_id = 6;
 analysis.name = 'test';
-analysis.nonlinear = 1;
+analysis.nonlinear = 0;
 analysis.type = 1;
 analysis.pushover_direction = 'x';
 analysis.initial_timestep_factor = 1;
@@ -16,6 +16,7 @@ plot_asce = 0;
 
 %% Import Packages
 import plotting_tools.*
+import asce_41.*
 
 %% Load Analysis Data
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
@@ -29,6 +30,7 @@ load([output_dir filesep 'story_analysis.mat'])
 load([output_dir filesep 'hinge_analysis.mat'])
 load([output_dir filesep 'gm_data.mat'])
 load([output_dir filesep 'element_PM.mat'])
+load([output_dir filesep 'model_analysis.mat'])
 
 %% Pushover Analysis
 if analysis.type == 2
@@ -159,18 +161,29 @@ elseif analysis.type == 1
     
     for i = 1:length(dirs_ran)
         if ~strcmp(dirs_ran(i),'y') % Update way I am doing this directional thing
+            %% Load Spectra and Calculate Sa
+            spectra_table.(dirs_ran{i}) = readtable([ground_motion.(dirs_ran{i}).eq_dir{1} filesep 'spectra_' erase(erase(ground_motion.(dirs_ran{i}).eq_name{1},'.tcl'),'gm_') '.csv'],'ReadVariableNames',true);
+            Sa.(dirs_ran{i}) = interp1(spectra_table.(dirs_ran{i}).period,spectra_table.(dirs_ran{i}).psa_5,model.(['T1_' dirs_ran{i}]));
+            
+            %% Calculate Target Displacement
+            strength_ratio = model.DCR_raw_max; % We have no Vy for linear analysis, therefor use DCR max as a proxy for strength ratio
+            [ target_disp_in ] = fn_target_disp( strength_ratio, model.site_class{1}, story.(['mode_shape_' dirs_ran{i}]), model.num_stories, model.(['T1_' dirs_ran{i}]), Sa.(dirs_ran{i}), model.(['cm_' dirs_ran{i}]) );
+            
             %% Plot EDP Profiles
-%             fn_plot_profile( [max(abs(eq.(dirs_ran{i}))); story.(['max_accel_' dirs_ran{i}])], [0;story.id], plot_dir, ['Acceleration Profile ' dirs_ran{i}], 'PFA (g)', 0.8, record_edp.max_accel.(dirs_ran{i}))
-%             recorded_roof_disp = record_edp.max_disp.(dirs_ran{i})(end);
-%             analysis_roof_disp = story.(['max_disp_' dirs_ran{i}])(end);
-%             fn_plot_profile( [0; story.(['max_disp_' dirs_ran{i}])], [0;story.id], plot_dir, ['Displacement Profile ' dirs_ran{i}], 'Displacement (in)', 10, record_edp.max_disp.(dirs_ran{i}))
-%             fn_plot_profile( [0; story.(['max_disp_' dirs_ran{i}])]/analysis_roof_disp , [0;story.id], plot_dir, ['Normalized Displacement Profile ' dirs_ran{i}], 'Normalized Displacement', 1, record_edp.max_disp.(dirs_ran{i})/recorded_roof_disp  )
-%             fn_plot_profile( story.(['max_drift_' dirs_ran{i}]), story.id, plot_dir, ['Drift Profile ' dirs_ran{i}], 'SDR', 0.05 )
-%             if plot_asce
-%                 fn_plot_profile( [0; story.(['max_disp_' dirs_ran{i} '_ASCE'])], [0;story.id], plot_dir, ['ASCE Displacement Profile ' dirs_ran{i}], 'Displacement (in)', 10, record_edp.max_disp.(dirs_ran{i}) )
-%                 fn_plot_profile( story.(['max_drift_' dirs_ran{i} '_ASCE']), story.id, plot_dir, ['ASCE Drift Profile ' dirs_ran{i}], 'SDR', 0.05 )
-%             end
-%             
+            % Acceleration
+            fn_plot_profile( [max(abs(eq.(dirs_ran{i}))); story.(['max_accel_' dirs_ran{i}])], [0;story.id], plot_dir, ['Acceleration Profile ' dirs_ran{i}], 'PFA (g)', 0.8, record_edp.max_accel.(dirs_ran{i}))
+            
+            % Displacement
+            recorded_roof_disp = record_edp.max_disp.(dirs_ran{i})(end);
+            analysis_roof_disp = story.(['max_disp_' dirs_ran{i}])(end);
+            fn_plot_profile( [0; story.(['max_disp_' dirs_ran{i}])], [0;story.id], plot_dir, ['Displacement Profile ' dirs_ran{i}], 'Displacement (in)', 10, record_edp.max_disp.(dirs_ran{i}), target_disp_in, model.num_stories)
+            fn_plot_profile( [0; story.(['max_disp_' dirs_ran{i}])]/analysis_roof_disp , [0;story.id], plot_dir, ['Normalized Displacement Profile ' dirs_ran{i}], 'Normalized Displacement', 1, record_edp.max_disp.(dirs_ran{i})/recorded_roof_disp  )
+            fn_plot_profile( story.(['max_drift_' dirs_ran{i}]), story.id, plot_dir, ['Drift Profile ' dirs_ran{i}], 'SDR', 0.05 )
+            if plot_asce
+                fn_plot_profile( [0; story.(['max_disp_' dirs_ran{i} '_ASCE'])], [0;story.id], plot_dir, ['ASCE Displacement Profile ' dirs_ran{i}], 'Displacement (in)', 10, record_edp.max_disp.(dirs_ran{i}) )
+                fn_plot_profile( story.(['max_drift_' dirs_ran{i} '_ASCE']), story.id, plot_dir, ['ASCE Drift Profile ' dirs_ran{i}], 'SDR', 0.05 )
+            end
+            
             % Plot specific TH comparisons
             if strcmp(model.dimension,'3D')
                 center_x = 671;

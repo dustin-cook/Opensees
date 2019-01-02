@@ -157,6 +157,7 @@ for i = 1:length(dirs_ran)
 end
 
 %% Save Specific Data
+save([output_dir filesep 'model_analysis.mat'],'model')
 save([output_dir filesep 'element_analysis.mat'],'element')
 save([output_dir filesep 'node_analysis.mat'],'node')
 save([output_dir filesep 'hinge_analysis.mat'],'hinge')

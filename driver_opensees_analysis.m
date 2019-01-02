@@ -5,7 +5,7 @@ clc
 
 %% DEFINE INPTUTS
 % Primary Inputs
-analysis.model_id = 9;
+analysis.model_id = 6;
 analysis.gm_seq_id = 6;
 analysis.name = 'test';
 
@@ -26,7 +26,7 @@ analysis.hinge_stiff_mod = 10;
 analysis.play_movie = 1;
 analysis.movie_scale = 1;
 analysis.run_eigen = 1;
-analysis.run_opensees = 1;
+analysis.run_opensees = 0;
 analysis.initial_timestep_factor = 1;
 analysis.solution_algorithm = 0;
 analysis.collapse_drift = 0.25;  

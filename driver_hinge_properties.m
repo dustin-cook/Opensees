@@ -7,9 +7,10 @@ import asce_41.*
 import plotting_tools.*
 
 %% Define Analysis and Model parameters
-analysis.model_id = 11;
+analysis.model_id = 6;
 analysis.gm_id = 6;
 analysis.name = 'test';
+analsyis.plot_hinges = 0;
 
 %% Read in element and hinge data tables
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
@@ -32,8 +33,10 @@ for i = 1:length(element.id)
     end
     
     % Plot Hinges
-    plot_name = ['element_' num2str(ele.id)];
-    fn_plot_backbone( ele, ele_props, hinge, output_dir, plot_name, 1)
+    if analsyis.plot_hinges
+        plot_name = ['element_' num2str(ele.id)];
+        fn_plot_backbone( ele, ele_props, hinge, output_dir, plot_name, 1)
+    end
 
     % save as element hinge table
     if strcmp(ele.type,'wall') && strcmp(ele.critical_mode,'shear')

@@ -1,10 +1,10 @@
 id,name,dimension,hazus_class_x,hazus_class_z,vs30,site_class,tar
 1,simple_sdof,2D,NA,NA,0,D,0
-2,simple_frame_2D,2D,NA,NA,0,D,0
-3,simple_wall_2D,2D,NA,NA,0,D,0
-4,simple_frame_3D,3D,NA,NA,0,D,0
-5,simple_wall_3D,3D,NA,NA,0,D,0
-6,simple_frame_and_wall_3D,3D,NA,NA,0,D,0
+2,simple_frame_2D,2D,C1,NA,0,D,0
+3,simple_wall_2D,2D,C2,NA,0,D,0
+4,simple_frame_3D,3D,C1,C1,0,D,0
+5,simple_wall_3D,3D,C2,C2,0,D,0
+6,simple_frame_and_wall_3D,3D,C1,C2,0,D,0
 7,ICBS_model_1ns,2D,C2,NA,217.3,D,1
 8,ICBS_model_5ew,2D,C1,NA,217.3,D,1
 9,ICBS_model_3D_short,3D,C1,C2,217.3,D,1

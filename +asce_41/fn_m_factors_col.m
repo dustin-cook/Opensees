@@ -25,7 +25,7 @@ for i = 1:length(condition)
     [ m_factor ] = fn_filter_asce41_table( m_factor, row, 'row', {'m_io','m_ls','m_cp'} );
 
     % Filter table based on Vye/VcolOE
-    v_ratio = ele.Vn_aci/ele.V0;
+    v_ratio = ele.Vn/ele.V0;
     [ m_factor ] = fn_filter_asce41_table( m_factor, v_ratio, 'v_ratio', {'m_io','m_ls','m_cp'} );
 
     % Double Check only 1 row of the table remains

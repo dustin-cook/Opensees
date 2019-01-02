@@ -22,10 +22,10 @@ for i = 1:length(ele_TH.P_TH_1)
     % Axial Capacity
     if ele_TH.P_TH_1(i) >= 0 
         ele_TH.Pn(i) = ele.Pn_c; % Compressive Capacity is the same for each timestep
-        [ ele_TH.P_linear(i) ] = fn_force_controlled_action( ele_TH.P_TH_1(i), ele.P_grav, 'cp', 'high', 1, 1 ); % Use force controlled axial loads for linear procedures
+        [ ele_TH.P_TH_linear(i) ] = fn_force_controlled_action( ele_TH.P_TH_1(i), ele.P_grav, 'cp', 'high', 1, 1 ); % Use force controlled axial loads for linear procedures
     else
         ele_TH.Pn(i) = ele.Pn_t; % Tensile Capacity is the same for each timestep
-        ele_TH.P_linear(i) = ele_TH.P_TH_1(i); % Tensile Capacity for linear procedures is not force controlled
+        ele_TH.P_TH_linear(i) = ele_TH.P_TH_1(i); % Tensile Capacity for linear procedures is not force controlled
     end
 end
 
@@ -72,7 +72,7 @@ else
         ele_TH.Mn_neg = ele_TH.Mn_pos; % assumes columns are the same in both directions
         ele_TH.Mp_pos = interp1(vector_P,vector_Mp,ele_TH.P_TH_1);
         ele_TH.Mp_neg = ele_TH.Mn_pos; % assumes columns are the same in both directions
-        ele_TH.Mn_pos_linear = interp1(vector_P,vector_M,ele_TH.P_TH_1);
+        ele_TH.Mn_pos_linear = interp1(vector_P,vector_M,ele_TH.P_TH_linear);
         ele_TH.Mn_neg_linear = ele_TH.Mn_pos_linear; % assumes columns are the same in both directions
         % Moment Capcity
         ele.Mn_pos = min(ele_TH.Mn_pos); % Best estimate moment is the minumum from the time history (most conservative)

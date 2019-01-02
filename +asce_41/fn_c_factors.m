@@ -1,4 +1,4 @@
-function [ c1, c2 ] = fn_c_factors( site_class, num_stories, T, haz_class, DCR_max )
+function [ c1, c2, c_m ] = fn_c_factors( site_class, num_stories, T, haz_class, DCR_max )
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
