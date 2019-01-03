@@ -1,4 +1,4 @@
-function [ ] = fn_build_model( model, analysis, output_dir )
+function [ ] = main_build_model( model, analysis, output_dir )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
