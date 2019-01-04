@@ -2,7 +2,7 @@ function [ node, element ] = fn_create_element( ele_type, ele_id, ele_props, ele
 %UNTITLED6 Summary of this function goes here
 %   Detailed explanation goes here
 
-import build_model.node_exist
+import build_model.fn_node_exist
 
 element.id(ele_id,1) = ele_id;
 
@@ -52,18 +52,18 @@ end
     
 % Assign nodes to elements (create nodes if they do not already exist)
 % if strcmp(ele_type,'wall')
-%     [ node, id ] = node_exist( node, ele_x_start, ele_y_start, ele_z_start );
+%     [ node, id ] = fn_node_exist( node, ele_x_start, ele_y_start, ele_z_start );
 %     element.node_1(ele_id,1) = node.id(id);
-%     [ node, id ] = node_exist( node, ele_x_end, ele_y_start, ele_z_end );
+%     [ node, id ] = fn_node_exist( node, ele_x_end, ele_y_start, ele_z_end );
 %     element.node_2(ele_id,1) = node.id(id);
-%     [ node, id ] = node_exist( node, ele_x_end, ele_y_end, ele_z_end );
+%     [ node, id ] = fn_node_exist( node, ele_x_end, ele_y_end, ele_z_end );
 %     element.node_3(ele_id,1) = node.id(id);
-%     [ node, id ] = node_exist( node, ele_x_start, ele_y_end, ele_z_start );
+%     [ node, id ] = fn_node_exist( node, ele_x_start, ele_y_end, ele_z_start );
 %     element.node_4(ele_id,1) = node.id(id);
 % else
-    [ node, id ] = node_exist( node, ele_x_start, ele_y_start, ele_z_start );
+    [ node, id ] = fn_node_exist( node, ele_x_start, ele_y_start, ele_z_start );
     element.node_1(ele_id,1) = node.id(id);
-    [ node, id ] = node_exist( node, ele_x_end, ele_y_end, ele_z_end );
+    [ node, id ] = fn_node_exist( node, ele_x_end, ele_y_end, ele_z_end );
     element.node_2(ele_id,1) = node.id(id);
     element.node_3(ele_id,1) = 0;
     element.node_4(ele_id,1) = 0;

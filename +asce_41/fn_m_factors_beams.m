@@ -24,7 +24,7 @@ for i = 1:length(condition)
     if condition(i) == 1
         % Filter table for transverse reinforcement
         if ele_props.S <= ele_props.d/3
-            if ele.DCR_total_raw < 2
+            if ele.DCR_raw_max_all < 2
                 % Conforming Transverse Reinforcement
                 trans_rien = 'C';
             elseif ele.Vs > 0.75*ele.Vmax

@@ -1,4 +1,4 @@
-function [ node, id ] = node_exist( node, x, y, z, add_mass )
+function [ node, id ] = fn_node_exist( node, x, y, z, add_mass )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 

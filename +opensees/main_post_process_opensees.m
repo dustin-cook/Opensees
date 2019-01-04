@@ -37,13 +37,13 @@ end
 
 %% Loop through elements and save data
 for i = 1:length(element.id)
+    % Force Time Histories
     ele_force_TH = element_force_recorders(:,((i-1)*num_comps+2):(i*num_comps+1));
-    ele_force_max_abs = max(abs(ele_force_TH));
-    ele_force_max = max(ele_force_TH);
-    ele_force_min = min(ele_force_TH);
     for j = 1:length(comp_names)
         element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH(:,comp_keys(j))';
     end
+    
+    % Max Force for each element
     element.P_grav(i) = ele_force_TH(1,1);
     element.Pmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH_1));
     element.Pmin(i) = min(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH_1));
@@ -65,9 +65,9 @@ if analysis.nonlinear ~= 0
     end
     for i = 1:height(hinge)
         hinge.deformation_TH{i} = deformation_TH(:,2*i-1+1)';
-        hinge.shear_TH{i} = force_TH(:,2*i-1+1)';
+        hinge.shear_TH{i} = -force_TH(:,2*i-1+1)';
         hinge.rotation_TH{i} = deformation_TH(:,2*i+1)';
-        hinge.moment_TH{i} = force_TH(:,2*i+1)';
+        hinge.moment_TH{i} = -force_TH(:,2*i+1)'; % I think the forces here are coming in backward, but should triple check
     end
 end
 

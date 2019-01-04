@@ -1,4 +1,4 @@
-function [ hinge ] = fn_beam_hinge( ele, ele_props  )
+function [ hinge ] = fn_beam_hinge( ele, ele_props )
 % Description: Find beam hinge properties based on Table 10-7 of ASCE 41-17
 % Created by: Dustin Cook
 % Date Created: 7-1-18
@@ -27,7 +27,7 @@ for i = 1:length(condition)
     if condition(i) == 1 
         %% Fitler Table based on Transverse Rienforcement 
         if ele_props.S <= ele_props.d/3
-            if ele.DCR_total_raw < 2
+            if ele.disp_duct < 2
                 % Conforming Transverse Reinforcement
                 trans_rien = 'C';
             elseif ele.Vs > 0.75*ele.Vmax

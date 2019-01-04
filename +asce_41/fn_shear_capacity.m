@@ -1,4 +1,4 @@
-function [ Vn, V0 ] = fn_shear_capacity( Av, fy, As_d, s, lambda, fc, Ag, M_TH, V_TH, Nug, DCR_max )
+function [ Vn, V0 ] = fn_shear_capacity( Av, fy, As_d, s, lambda, fc, Ag, M_TH, V_TH, Nug, ductility_factor )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -19,12 +19,13 @@ else
 end
 
 % Set K factor
-if DCR_max <= 2
+if ductility_factor <= 2
     k = 1;
-elseif DCR_max >= 6
+elseif ductility_factor >= 6
     k = 0.7;
 else
-    k = interp1([2,6],[1,0.7],DCR_max);
+    k = interp1([2,6],[1,0.7],ductility_factor); % The Ductility Factor This is max DCR for linear and displacement ductility for nonlinear.
+
 end
 
 % Calculate shear based on EQ 10-3 from ASCE 41-17

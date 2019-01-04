@@ -2,6 +2,9 @@ function [ ele ] = fn_element_critical_mode( ele, ele_prop )
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
+% %% Import Packages
+% import aci_318.fn_fye
+
 % % Method 1 - based on actual loading from analysis
 % demand = ele.Mmax/ele.Vmax;
 % capacity = ele.Mn_pos/ele.Vn;
@@ -11,29 +14,17 @@ function [ ele ] = fn_element_critical_mode( ele, ele_prop )
 %     ele.critical_mode = {'shear'};
 % end
 
+%% Calculate Shear at Flexural Yield
+% [ ele.vye ] = fn_vye( ele.type, ele.Mn_pos, ele.Mn_neg, ele.length, ele.gravity_load );
+
 %% Determine Controlling Factors
-if strcmp(ele.type,'beam')
-    % Method 2 - From ACI / Based on Stiffness Matrix
-    shear_at_flexure_yeild = (ele.Mn_pos + ele.Mn_neg)/ele.length + ele.gravity_load/2;
-    if ele.Vn > shear_at_flexure_yeild
+% Method 2 - From ACI / Based on Stiffness Matrix
+if strcmp(ele.type,'beam') || strcmp(ele.type,'column')
+    if ele.Vn > ele.vye
         ele.critical_mode = {'flexure'};
     else
         ele.critical_mode = {'shear'};
     end
-    
-    % Save shear at moment yeild as Vye
-    ele.vye = shear_at_flexure_yeild;
-elseif strcmp(ele.type,'column')
-    % Method 2 - From ACI / Based on Stiffness Matrix
-    shear_at_flexure_yeild = (ele.Mn_pos + ele.Mn_neg)/ele.length;
-    if ele.Vn > shear_at_flexure_yeild
-        ele.critical_mode = {'flexure'};
-    else
-        ele.critical_mode = {'shear'};
-    end
-    
-    % Save shear at moment yeild as Vye
-    ele.vye = shear_at_flexure_yeild;
 elseif strcmp(ele.type,'wall')
     % Start by checking the aspect ratio criteria as defiend by the
     % appendix of ASCE 41-17 (A10.7)
@@ -52,9 +43,6 @@ elseif strcmp(ele.type,'wall')
             ele.critical_mode = {'shear'};
         end
     end
-    
-    % Save shear at moment yeild as Vye
-    ele.vye = NaN;
 end
 
 % Check if shear deformations need to be considered

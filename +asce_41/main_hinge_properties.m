@@ -1,23 +1,10 @@
-clear
-close
-clc
+function [ element ] = main_hinge_properties( ele_prop_table, element, plot_hinges, output_dir )
+%UNTITLED4 Summary of this function goes here
+%   Detailed explanation goes here
 
 %% Import Packages
 import asce_41.*
 import plotting_tools.*
-
-%% Define Analysis and Model parameters
-analysis.model_id = 6;
-analysis.gm_id = 6;
-analysis.name = 'test';
-analsyis.plot_hinges = 0;
-
-%% Read in element and hinge data tables
-model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
-model = model_table(model_table.id == analysis.model_id,:);
-output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
-ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
-load([output_dir filesep 'element_analysis.mat'])
 
 %% Go through each element and calculate the hinge properties
 for i = 1:length(element.id)
@@ -33,7 +20,7 @@ for i = 1:length(element.id)
     end
     
     % Plot Hinges
-    if analsyis.plot_hinges
+    if plot_hinges
         plot_name = ['element_' num2str(ele.id)];
         fn_plot_backbone( ele, ele_props, hinge, output_dir, plot_name, 1)
     end
@@ -55,6 +42,5 @@ for i = 1:length(element.id)
     element.cp(i) = hinge.cp;
 end
 
-%% Save capacities to element database
-save([output_dir filesep 'element_analysis.mat'],'element')
-writetable(element,[output_dir filesep 'element_linear.csv'])
+end
+
