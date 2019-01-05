@@ -2,6 +2,7 @@
 clear
 close
 clc
+fclose('all');
 
 %% Description: Method to build an Opensees model and run a ASCE 41-17 teir
 % 3 seismic assessment.
@@ -23,8 +24,6 @@ analysis.live_load = 1.0;
 analysis.accidental_torsion = 0;
 
 analysis.gm_seq_id = 6; % Maybe also make this part ot the defualts or model?
-analysis.pushover_direction = 'x'; % Maybe also make this part ot the defualts or model?
-
 
 %% Initial Setup
 import asce_41.main_ASCE_41

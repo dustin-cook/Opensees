@@ -25,7 +25,7 @@ fn_make_directory( write_dir )
 load([read_dir filesep 'element_analysis.mat'])
 
 %% Plot Hinge Convergence
-if analysis.plot_hinges
+if analysis.plot_hinges && strcmp(analysis.proceedure,'NDP')
     for i = 1:height(element)
         ele = element(i,:);
         ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);

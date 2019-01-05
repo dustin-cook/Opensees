@@ -1,4 +1,4 @@
-function [ ] = fn_eigen_analysis( write_dir, prim_story_nodes, num_stories, analysis )
+function [ ] = fn_eigen_analysis( write_dir, prim_story_nodes, num_stories, analysis, dims )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -27,7 +27,11 @@ fprintf(fileID,'recorder Node %s %s/mode_shape_2.%s -dT %f -node %s -dof 1 3 "ei
 if strcmp(analysis.damping,'simple')
     fprintf(fileID,'set numModes %i \n',1);
 else
-    fprintf(fileID,'set numModes %i \n',min([6,num_stories]));
+    if strcmp(dims,'3D')
+        fprintf(fileID,'set numModes %i \n',min([6,num_stories*2]));
+    else
+        fprintf(fileID,'set numModes %i \n',min([6,num_stories]));
+    end
 end
 fprintf(fileID,'set lambda [eigen -fullGenLapack $numModes] \n');
 fprintf(fileID,'set T {}\n');

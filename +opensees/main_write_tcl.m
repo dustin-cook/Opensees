@@ -10,7 +10,7 @@ fn_define_recorders( write_dir, model_dimension, node.id', element, hinge, analy
 [ground_motion] = fn_define_loads( write_dir, analysis, node, model_dimension, story, element.id');
 first_story_node = node.id(node.primary_story == 1);
 if analysis.run_eigen
-    fn_eigen_analysis( write_dir, first_story_node', length(story.id), analysis)
+    fn_eigen_analysis( write_dir, first_story_node', length(story.id), analysis, model_dimension)
 end
 if analysis.type == 1 || analysis.type == 2 % Dynamic or Pushover
     fn_setup_analysis( write_dir, analysis, first_story_node, story )

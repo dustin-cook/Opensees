@@ -5,40 +5,59 @@ function [ ] = main_post_process_opensees( analysis, model, story, node, element
 import opensees.post_process.*
 
 %% Load in Analysis data
-% Load element force data
-if analysis.write_xml
-    [ element_force_recorders ] = fn_xml_read([opensees_dir filesep 'element_force.xml']);
-else
-    element_force_recorders = dlmread([opensees_dir filesep 'element_force.txt'],' ');
-end
-time_step_vector = element_force_recorders(:,1)';
 if analysis.type == 1 % dynamic analysis
     % Ground mottion data
     dirs_ran = fieldnames(ground_motion);
+    
+    % Load element force data
+    if analysis.write_xml
+        [ element_force_recorders ] = fn_xml_read([opensees_dir filesep 'element_force.xml']);
+    else
+        element_force_recorders = dlmread([opensees_dir filesep 'element_force.txt'],' ');
+    end
+    
+    % Define Time Step Vector from element force output
+    time_step_vector = element_force_recorders(:,1)';
 else % pushover analysis
-    dirs_ran = {analysis.pushover_direction};
+    % Load element force data
+    if analysis.write_xml
+        [ element_force_recorders_x ] = fn_xml_read([opensees_dir filesep 'element_force_x.xml']);
+        if strcmp(model.dimension,'3D')
+            [ element_force_recorders_z ] = fn_xml_read([opensees_dir filesep 'element_force_z.xml']);
+        end
+    else
+        element_force_recorders_x = dlmread([opensees_dir filesep 'element_forcee_x.txt'],' ');
+        if strcmp(model.dimension,'3D')
+            element_force_recorders_z = dlmread([opensees_dir filesep 'element_forcee_z.txt'],' ');
+        end
+    end
+    
+    % Define Direction Ran
+    if strcmp(model.dimension,'3D')
+        dirs_ran = {'x', 'z'};
+    else
+        dirs_ran = {'x'};
+    end
 end
 
 %% Element Forces
 % Force component IDs
 comp_names = {'P_TH_1','V_TH_1','M_TH_1','M_TH_2'};
-if analysis.full_recorders == 1
-    if length(dirs_ran) == 1 % 2D
-        num_comps = 6;
-        comp_keys = [1,2,3,6];
-    elseif length(dirs_ran) == 3 % 3D
-        num_comps = 12;
-        comp_keys = [1,2,6,12];
-    end
-else
-    num_comps = 4;
-    comp_keys = [1,2,3,4];
-end
+num_comps = 4;
+comp_keys = [1,2,3,4];
 
 %% Loop through elements and save data
 for i = 1:length(element.id)
     % Force Time Histories
-    ele_force_TH = element_force_recorders(:,((i-1)*num_comps+2):(i*num_comps+1));
+    if analysis.type == 1 % dynamic analysis
+        ele_force_TH = element_force_recorders(:,((i-1)*num_comps+2):(i*num_comps+1));
+    else % pushover analysis
+        if strcmp(element.direction{i},'x')
+            ele_force_TH = element_force_recorders_x(:,((i-1)*num_comps+2):(i*num_comps+1));
+        elseif strcmp(element.direction{i},'z')
+            ele_force_TH = element_force_recorders_z(:,((i-1)*num_comps+2):(i*num_comps+1));
+        end
+    end
     for j = 1:length(comp_names)
         element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH(:,comp_keys(j))';
     end
@@ -92,7 +111,6 @@ for i = 1:length(dirs_ran)
        node_disp_raw = dlmread([opensees_dir filesep 'nodal_disp_' dirs_ran{i} '.txt'],' ')';
    end
    node.(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2:(height(node)+1),:);
-%    node.(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2:end,:);
    if analysis.type == 1 % Dynamic Analysis
        if analysis.write_xml
            [ node_accel_raw ] = fn_xml_read([opensees_dir filesep 'nodal_accel_' dirs_ran{i} '.xml']);
@@ -166,8 +184,6 @@ save([opensees_dir filesep 'element_TH.mat'],'element_TH')
 if analysis.type == 1 % Dynamic Analysis
     save([opensees_dir filesep 'gm_data.mat'],'eq','dirs_ran','ground_motion','eq_analysis_timespace','eq_analysis')
 end
-%% Save All Data
-% save([output_dir filesep 'post_process_data'])
 
 end
 

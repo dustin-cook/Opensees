@@ -6,7 +6,7 @@ command = ['opensees ' opensees_dir filesep 'run_analysis.tcl'];
 [status,cmdout] = system(command,'-echo');
 
 % test for analysis failure and terminate Matlab
-if contains(cmdout,'Analysis Failure:')
+if contains(cmdout,'Analysis Failure: Convergence') || contains(cmdout,'Analysis Failure: Singularity')
     error('Opensees Failed')
 end
 

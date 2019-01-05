@@ -23,19 +23,32 @@ story = readtable([read_dir_model filesep 'story.csv'],'ReadVariableNames',true)
 joint = readtable([read_dir_model filesep 'joint.csv'],'ReadVariableNames',true);
 hinge = readtable([read_dir_model filesep 'hinge.csv'],'ReadVariableNames',true);
 
-%% Write TCL files
-[ node, ground_motion ] = main_write_tcl( model.dimension, write_dir_opensees, node, element, story, joint, hinge, analysis, read_dir_analysis );
-
-%% Write Summit Batch File
-if analysis.summit_SP
-    write_dir_summit = [analysis.out_dir filesep 'summit'];
-    fn_make_directory( write_dir_summit )
-    fn_write_summit_batch_file( write_dir_summit, analysis.proceedure, model.name{1} )
+% Define Number of Opensees runs to be performed
+pushover_directions = {'x', 'z'};
+if analysis.type == 2 && strcmp(model.dimension,'3D') % 3D pushover
+    num_OS_runs = 2;
+else
+    num_OS_runs = 1;
 end
 
-%% Run Opensees
-if analysis.run_opensees
-    main_run_opensees( write_dir_opensees )
+for i = 1:num_OS_runs
+    %% Define inputs for this run
+    analysis.pushover_direction = pushover_directions{i};
+    
+    %% Write TCL files
+    [ node, ground_motion ] = main_write_tcl( model.dimension, write_dir_opensees, node, element, story, joint, hinge, analysis, read_dir_analysis );
+
+    %% Write Summit Batch File
+    if analysis.summit_SP
+        write_dir_summit = [analysis.out_dir filesep 'summit'];
+        fn_make_directory( write_dir_summit )
+        fn_write_summit_batch_file( write_dir_summit, analysis.proceedure, model.name{1} )
+    end
+
+    %% Run Opensees
+    if analysis.run_opensees
+        main_run_opensees( write_dir_opensees )
+    end
 end
 
 %% Postprocess OS data

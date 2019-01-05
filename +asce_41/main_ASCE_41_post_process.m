@@ -44,10 +44,8 @@ if analysis.asce_41_post_process
     % Procedure Specific Analysis
     if strcmp(analysis.proceedure,'NDP') % Nonlinear Dynamic Proceedure
         [ element, element_TH, element_PM ] = main_element_capacity( story, ele_prop_table, element, element_TH, analysis );
-        if analysis.nonlinear == 0 % First Linear Run to get hinge parameters
-            [ element ] = main_hinge_properties( ele_prop_table, element );
-        else % Rest of the nonlinear runs
-            [ element ] = main_hinge_properties( ele_prop_table, element );
+        [ element ] = main_hinge_properties( ele_prop_table, element );
+        if analysis.nonlinear ~= 0 % Only for nonlinear runs
             [ hinge ] = fn_accept_hinge( element, hinge );
         end
     else % Linear Dynamic Proceedure and Test Proceedure (and all others defined so be careful)
