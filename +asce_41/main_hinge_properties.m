@@ -1,10 +1,9 @@
-function [ element ] = main_hinge_properties( ele_prop_table, element, plot_hinges, output_dir )
+function [ element ] = main_hinge_properties( ele_prop_table, element )
 %UNTITLED4 Summary of this function goes here
 %   Detailed explanation goes here
 
 %% Import Packages
 import asce_41.*
-import plotting_tools.*
 
 %% Go through each element and calculate the hinge properties
 for i = 1:length(element.id)
@@ -17,12 +16,6 @@ for i = 1:length(element.id)
         [ hinge ] = fn_col_hinge( ele, ele_props );
     elseif strcmp(ele.type,'wall')
         [ hinge ] = fn_wall_hinge( ele, ele_props );
-    end
-    
-    % Plot Hinges
-    if plot_hinges
-        plot_name = ['element_' num2str(ele.id)];
-        fn_plot_backbone( ele, ele_props, hinge, output_dir, plot_name, 1)
     end
 
     % save as element hinge table

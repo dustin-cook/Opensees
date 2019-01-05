@@ -1,4 +1,4 @@
-function [ ] = fn_build_sdof( model, output_dir )
+function [ ] = fn_build_sdof( model, write_dir )
 % Funtion to build sdof element and node tables
 
 %% INITIAL SETUP
@@ -48,15 +48,15 @@ end
 
 %% Reformat outputs to table and write CSV's
 story_table = struct2table(story);
-writetable(story_table,[output_dir filesep 'story.csv'])
+writetable(story_table,[write_dir filesep 'story.csv'])
 node_table = struct2table(node);
-writetable(node_table,[output_dir filesep 'node.csv'])
+writetable(node_table,[write_dir filesep 'node.csv'])
 ele_table = struct2table(element);
-writetable(ele_table,[output_dir filesep 'element.csv'])
+writetable(ele_table,[write_dir filesep 'element.csv'])
 joint_table = struct2table(joint);
-writetable(joint_table,[output_dir filesep 'joint.csv'])
+writetable(joint_table,[write_dir filesep 'joint.csv'])
 hinge_table = struct2table(hinge);
-writetable(hinge_table,[output_dir filesep 'hinge.csv'])
+writetable(hinge_table,[write_dir filesep 'hinge.csv'])
 
 end
 

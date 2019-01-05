@@ -1,4 +1,4 @@
-function [ ] = fn_eigen_analysis( output_dir, prim_story_nodes, num_stories, analysis )
+function [ ] = fn_eigen_analysis( write_dir, prim_story_nodes, num_stories, analysis )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -12,7 +12,7 @@ else
 end
 
 % Write Eigen File
-file_name = [output_dir filesep 'eigen.tcl'];
+file_name = [write_dir filesep 'eigen.tcl'];
 fileID = fopen(file_name,'w');
 
 % Initail Setup
@@ -20,8 +20,8 @@ fileID = fopen(file_name,'w');
 fprintf(fileID,'wipeAnalysis \n');		
 
 % Record eigenvectors
-fprintf(fileID,'recorder Node %s %s/mode_shape_1.%s -dT %f -node %s -dof 1 3 "eigen 1" \n', file_type, output_dir, file_ext, 1, num2str(prim_story_nodes));
-fprintf(fileID,'recorder Node %s %s/mode_shape_2.%s -dT %f -node %s -dof 1 3 "eigen 2" \n', file_type, output_dir, file_ext, 1, num2str(prim_story_nodes));
+fprintf(fileID,'recorder Node %s %s/mode_shape_1.%s -dT %f -node %s -dof 1 3 "eigen 1" \n', file_type, write_dir, file_ext, 1, num2str(prim_story_nodes));
+fprintf(fileID,'recorder Node %s %s/mode_shape_2.%s -dT %f -node %s -dof 1 3 "eigen 2" \n', file_type, write_dir, file_ext, 1, num2str(prim_story_nodes));
 
 % Perform Eigen Analysis
 if strcmp(analysis.damping,'simple')
@@ -37,7 +37,7 @@ fprintf(fileID,'	lappend T [expr (2.0*$pi)/sqrt($lam)]\n');
 fprintf(fileID,'}\n');
 
 % Write Output File for periods
-fprintf(fileID,'set period_file %s/period.txt \n',output_dir);
+fprintf(fileID,'set period_file %s/period.txt \n',write_dir);
 fprintf(fileID,'set Periods [open $period_file "w"] \n');
 fprintf(fileID,'foreach t $T { \n');
 fprintf(fileID,'	puts $Periods " $t" \n');

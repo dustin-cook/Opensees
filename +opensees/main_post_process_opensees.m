@@ -1,4 +1,4 @@
-function [ ] = main_post_process_opensees( analysis, model, story, node, element, hinge, ground_motion, output_dir )
+function [ ] = main_post_process_opensees( analysis, model, story, node, element, hinge, ground_motion, opensees_dir )
 % Main function that load raw opensees recorder data and transoforms it into something more readily usable 
 
 %% Import Packages
@@ -7,9 +7,9 @@ import opensees.post_process.*
 %% Load in Analysis data
 % Load element force data
 if analysis.write_xml
-    [ element_force_recorders ] = fn_xml_read([output_dir filesep 'element_force.xml']);
+    [ element_force_recorders ] = fn_xml_read([opensees_dir filesep 'element_force.xml']);
 else
-    element_force_recorders = dlmread([output_dir filesep 'element_force.txt'],' ');
+    element_force_recorders = dlmread([opensees_dir filesep 'element_force.txt'],' ');
 end
 time_step_vector = element_force_recorders(:,1)';
 if analysis.type == 1 % dynamic analysis
@@ -57,11 +57,11 @@ clear element_force_recorders
 %% Load hinge moment and rotation
 if analysis.nonlinear ~= 0
     if analysis.write_xml
-        [ deformation_TH ] = fn_xml_read([output_dir filesep 'hinge_deformation_all.xml']);
-        [ force_TH ] = fn_xml_read([output_dir filesep 'hinge_force_all.xml']);
+        [ deformation_TH ] = fn_xml_read([opensees_dir filesep 'hinge_deformation_all.xml']);
+        [ force_TH ] = fn_xml_read([opensees_dir filesep 'hinge_force_all.xml']);
     else
-        deformation_TH = dlmread([output_dir filesep 'hinge_deformation_all.txt'],' ');
-        force_TH = dlmread([output_dir filesep 'hinge_force_all.txt'],' ');
+        deformation_TH = dlmread([opensees_dir filesep 'hinge_deformation_all.txt'],' ');
+        force_TH = dlmread([opensees_dir filesep 'hinge_force_all.txt'],' ');
     end
     for i = 1:height(hinge)
         hinge.deformation_TH{i} = deformation_TH(:,2*i-1+1)';
@@ -86,28 +86,28 @@ for i = 1:length(dirs_ran)
     
    % EDP response history at each node
    if analysis.write_xml
-       [ node_disp_raw ] = fn_xml_read([output_dir filesep 'nodal_disp_' dirs_ran{i} '.xml']);
+       [ node_disp_raw ] = fn_xml_read([opensees_dir filesep 'nodal_disp_' dirs_ran{i} '.xml']);
        node_disp_raw = node_disp_raw'; % flip to be node per row
    else
-       node_disp_raw = dlmread([output_dir filesep 'nodal_disp_' dirs_ran{i} '.txt'],' ')';
+       node_disp_raw = dlmread([opensees_dir filesep 'nodal_disp_' dirs_ran{i} '.txt'],' ')';
    end
    node.(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2:(height(node)+1),:);
 %    node.(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2:end,:);
    if analysis.type == 1 % Dynamic Analysis
        if analysis.write_xml
-           [ node_accel_raw ] = fn_xml_read([output_dir filesep 'nodal_accel_' dirs_ran{i} '.xml']);
+           [ node_accel_raw ] = fn_xml_read([opensees_dir filesep 'nodal_accel_' dirs_ran{i} '.xml']);
            node_accel_raw = node_accel_raw'; % flip to be node per row
        else
-           node_accel_raw = dlmread([output_dir filesep 'nodal_accel_' dirs_ran{i} '.txt'],' ')';
+           node_accel_raw = dlmread([opensees_dir filesep 'nodal_accel_' dirs_ran{i} '.txt'],' ')';
        end
        node.(['accel_' dirs_ran{i} '_rel_TH']) = node_accel_raw(2:(height(node)+1),:)/386; % Convert to G
        node.(['accel_' dirs_ran{i} '_abs_TH']) = node_accel_raw(2:(height(node)+1),:)/386 + ones(height(node),1)*eq_analysis.(dirs_ran{i});
    elseif analysis.type == 2 % Pushover Analysis
        if analysis.write_xml
-           [ node_reac_raw ] = fn_xml_read([output_dir filesep 'nodal_reaction_' dirs_ran{i} '.xml']);
+           [ node_reac_raw ] = fn_xml_read([opensees_dir filesep 'nodal_reaction_' dirs_ran{i} '.xml']);
            node_reac_raw = node_reac_raw'; % flip to be node per row
        else
-           node_reac_raw = dlmread([output_dir filesep 'nodal_reaction_' dirs_ran{i} '.txt'],' ')';
+           node_reac_raw = dlmread([opensees_dir filesep 'nodal_reaction_' dirs_ran{i} '.txt'],' ')';
        end
        node.(['reaction_' dirs_ran{i} '_TH']) = node_reac_raw(2:end,:);
    end
@@ -129,15 +129,15 @@ for i = 1:length(dirs_ran)
     
     % Load Mode shape data and period
     if analysis.run_eigen
-        periods = dlmread([output_dir filesep 'period.txt']);
+        periods = dlmread([opensees_dir filesep 'period.txt']);
         if strcmp(dirs_ran{i},'x')
             % Save periods
             model.(['T1_' dirs_ran{i}]) = periods(1);
             % Save mode shapes
             if analysis.write_xml
-                [ mode_shape_raw ] = fn_xml_read([output_dir filesep 'mode_shape_1.xml']);
+                [ mode_shape_raw ] = fn_xml_read([opensees_dir filesep 'mode_shape_1.xml']);
             else
-                mode_shape_raw = dlmread([output_dir filesep 'mode_shape_1.txt']);
+                mode_shape_raw = dlmread([opensees_dir filesep 'mode_shape_1.txt']);
             end
             mode_shape_norm = mode_shape_raw(1:2:end)/mode_shape_raw(end-1); % Extract odd rows and normalize by roof
             story.(['mode_shape_x']) = mode_shape_norm';
@@ -146,9 +146,9 @@ for i = 1:length(dirs_ran)
             model.(['T1_' dirs_ran{i}]) = periods(2);
             % Save mode shapes
             if analysis.write_xml
-                [ mode_shape_raw ] = fn_xml_read([output_dir filesep 'mode_shape_2.xml']);
+                [ mode_shape_raw ] = fn_xml_read([opensees_dir filesep 'mode_shape_2.xml']);
             else
-                mode_shape_raw = dlmread([output_dir filesep 'mode_shape_2.txt']);
+                mode_shape_raw = dlmread([opensees_dir filesep 'mode_shape_2.txt']);
             end
             mode_shape_norm = mode_shape_raw(1:2:end)/mode_shape_raw(end-1); % Extract odd rows and normalize by roof
             story.(['mode_shape_z']) = mode_shape_norm';
@@ -157,14 +157,14 @@ for i = 1:length(dirs_ran)
 end
 
 %% Save Specific Data
-save([output_dir filesep 'model_analysis.mat'],'model')
-save([output_dir filesep 'element_analysis.mat'],'element')
-save([output_dir filesep 'node_analysis.mat'],'node')
-save([output_dir filesep 'hinge_analysis.mat'],'hinge')
-save([output_dir filesep 'story_analysis.mat'],'story')
+save([opensees_dir filesep 'model_analysis.mat'],'model')
+save([opensees_dir filesep 'element_analysis.mat'],'element')
+save([opensees_dir filesep 'node_analysis.mat'],'node')
+save([opensees_dir filesep 'hinge_analysis.mat'],'hinge')
+save([opensees_dir filesep 'story_analysis.mat'],'story')
+save([opensees_dir filesep 'element_TH.mat'],'element_TH')
 if analysis.type == 1 % Dynamic Analysis
-    save([output_dir filesep 'element_TH.mat'],'element_TH')
-    save([output_dir filesep 'gm_data.mat'],'eq','dirs_ran','ground_motion','eq_analysis_timespace','eq_analysis')
+    save([opensees_dir filesep 'gm_data.mat'],'eq','dirs_ran','ground_motion','eq_analysis_timespace','eq_analysis')
 end
 %% Save All Data
 % save([output_dir filesep 'post_process_data'])

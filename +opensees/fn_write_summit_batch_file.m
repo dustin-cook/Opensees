@@ -1,9 +1,9 @@
-function [ ] = fn_write_summit_batch_file( output_dir, analysis_name, model_name )
+function [ ] = fn_write_summit_batch_file( write_dir, analysis_name, model_name )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
 % Write Eigen File
-file_name = [output_dir filesep 'run_summit.sh'];
+file_name = [write_dir filesep 'run_summit.sh'];
 fileID = fopen(file_name,'w');
 
 % Write Batch Commands

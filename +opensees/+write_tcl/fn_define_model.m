@@ -1,4 +1,4 @@
-function [ node ] = fn_define_model( output_dir, node, element, joint, hinge, analysis, dimension, story )
+function [ node ] = fn_define_model( write_dir, node, element, joint, hinge, analysis, dimension, story, read_dir_analysis )
 %UNTITLED6 Summary of this function goes here
 
 %% Import Tools
@@ -8,7 +8,7 @@ import asce_41.*
 ele_props_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
 
 %% Write TCL file
-file_name = [output_dir filesep 'model.tcl'];
+file_name = [write_dir filesep 'model.tcl'];
 fileID = fopen(file_name,'w');
 
 %% Define the model (2 dimensions, 3 dof)
@@ -231,7 +231,7 @@ end
 if height(hinge) > 0
     % Load linear element table
     if analysis.nonlinear ~= 0
-        element_analysis_temp = load([output_dir filesep 'element_analysis.mat']);
+        element_analysis_temp = load([read_dir_analysis filesep 'element_analysis.mat']);
         element_analysis = element_analysis_temp.element;
     end
     

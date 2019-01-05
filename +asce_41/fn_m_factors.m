@@ -1,9 +1,14 @@
-function [ ele ] = fn_m_factors( m_table, ele, ele_props )
+function [ ele ] = fn_m_factors( ele, ele_props )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
-%% Import Packages
+%% Initial Setup
+% Import Packages
 import asce_41.*
+
+% Load M Factor Tables
+m_table.col = readtable(['+asce_41' filesep 'linear_col_m.csv'],'ReadVariableNames',true);
+m_table.beam = readtable(['+asce_41' filesep 'linear_beam_m.csv'],'ReadVariableNames',true);
 
 %% Find M factors 
 % Omit ID on m-factors table

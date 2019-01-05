@@ -1,4 +1,4 @@
-function [ ] = fn_build_mdof( model, analysis, output_dir )
+function [ ] = fn_build_mdof( model, ele_props_table, analysis, write_dir, read_dir)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -8,11 +8,10 @@ import build_model.*
 import aci_318.fn_aci_moment_capacity
 
 % Load data tables
-story = readtable(['inputs' filesep 'models' filesep model.name{1} filesep 'story.csv'],'ReadVariableNames',true);
-story_group_table = readtable(['inputs' filesep 'models' filesep model.name{1} filesep 'story_group.csv'],'ReadVariableNames',true);
-element_group_table = readtable(['inputs' filesep 'models' filesep model.name{1} filesep 'element_group.csv'],'ReadVariableNames',true);
-ele_props = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
-additional_elements = readtable(['inputs' filesep 'models' filesep model.name{1} filesep 'additional_elements.csv'],'ReadVariableNames',true);
+story = readtable([read_dir filesep 'story.csv'],'ReadVariableNames',true);
+story_group_table = readtable([read_dir filesep 'story_group.csv'],'ReadVariableNames',true);
+element_group_table = readtable([read_dir filesep 'element_group.csv'],'ReadVariableNames',true);
+additional_elements = readtable([read_dir filesep 'additional_elements.csv'],'ReadVariableNames',true);
 
 % Story property calculations
 for s = 1:height(story)
@@ -43,21 +42,21 @@ for s = 1:height(story)
                 % Element Properties Column
                 if element_group.col_id ~= 0
                     ele_id = ele_id + 1;
-                    [ node, element ] = fn_create_element( 'col', ele_id, ele_props, element_group, nb, story_props, story_group(g,:), node, element, story_group.direction{g} );
+                    [ node, element ] = fn_create_element( 'col', ele_id, ele_props_table, element_group, nb, story_props, story_group(g,:), node, element, story_group.direction{g} );
                 end
                 if element_group.beam_id ~= 0
                     ele_id = ele_id + 1;
-                    [ node, element ] = fn_create_element( 'beam', ele_id, ele_props, element_group, nb, story_props, story_group(g,:), node, element, story_group.direction{g} );
+                    [ node, element ] = fn_create_element( 'beam', ele_id, ele_props_table, element_group, nb, story_props, story_group(g,:), node, element, story_group.direction{g} );
                 end
                 if element_group.wall_id ~= 0
                     ele_id = ele_id + 1;
-                    [ node, element ] = fn_create_element( 'wall', ele_id, ele_props, element_group, nb, story_props, story_group(g,:), node, element, story_group.direction{g} );
+                    [ node, element ] = fn_create_element( 'wall', ele_id, ele_props_table, element_group, nb, story_props, story_group(g,:), node, element, story_group.direction{g} );
                 end
             end
             % Last column in bay span
             if element_group.col_id ~= 0
                 ele_id = ele_id + 1;
-                [ node, element ] = fn_create_element( 'col', ele_id, ele_props, element_group, element_group.num_bays+1, story_props, story_group(g,:), node, element, story_group.direction{g} );
+                [ node, element ] = fn_create_element( 'col', ele_id, ele_props_table, element_group, element_group.num_bays+1, story_props, story_group(g,:), node, element, story_group.direction{g} );
             end
         end
     end
@@ -147,7 +146,7 @@ for s = 1:height(story)
             col_d_z = 0;
             for e = 1:length(elements_at_node)
                 e_id = elements_at_node(e);
-                ele = ele_props(ele_props.id == element.ele_id(e_id),:);
+                ele = ele_props_table(ele_props_table.id == element.ele_id(e_id),:);
                 
                 % Find Joint properties based on elements that frame in
                 if strcmp(element.type{e_id},'column')
@@ -249,7 +248,7 @@ end
 for ae = 1:height(additional_elements)
     % Element Properties
     ele_id = ele_id + 1;
-    ele = ele_props(ele_props.id == additional_elements.ele_id(ae),:);
+    ele = ele_props_table(ele_props_table.id == additional_elements.ele_id(ae),:);
     element.id(ele_id,1) = ele_id;
     element.trib_wt(ele_id,1) = 0;
     element.ele_id(ele_id,1) = ele.id;
@@ -286,7 +285,7 @@ node.primary_story = zeros(length(node.id),1);
 for s = 1:height(story)
     slab_ht = story.y_start(s) + story.story_ht(s);
     node.story(node.y == slab_ht) = s;
-    node.primary_story(node.x == analysis.primary_node_offset & node.z == 0 & node.y == slab_ht) = 1;
+    node.primary_story(node.x == model.primary_node_offset & node.z == 0 & node.y == slab_ht) = 1;
     nodes_on_slab{s} = node.id(node.y == slab_ht);
 end
 
@@ -406,11 +405,11 @@ node.fix = cell(length(node.id),1);
 node.fix(1:end) = {'[000000]'}; % All nodes
 foundation_nodes_id = node.id(node.y == 0);
 % foundation nodes
-if analysis.foundation == 1
+if model.foundation == 1
     node.fix(foundation_nodes_id,:) = {'[111111]'}; % Fixed
-elseif analysis.foundation == 0 
+elseif model.foundation == 0 
     node.fix(foundation_nodes_id,:) = {'[111000]'}; % Pinned
-elseif analysis.foundation == 2
+elseif model.foundation == 2
     node.fix(foundation_nodes_id,:) = {'[000000]'}; % Partial Fixity (ie pile hinge)
 end
 
@@ -445,7 +444,7 @@ if analysis.nonlinear ~= 0
     
     %% Calculate the intial (zero axial load) Moment Capacity of Each element in the model
     for e = 1:length(element.id)
-        ele = ele_props(ele_props.id == element.ele_id(e),:);
+        ele = ele_props_table(ele_props_table.id == element.ele_id(e),:);
         if strcmp(ele.type,'truss') || contains(ele.description,'rigid')
             element.Mn_pos(e,1) = 9999999999;
             element.Mn_neg(e,1) = 9999999999;
@@ -470,7 +469,7 @@ else
 end
 
 %% Define Foundation Hinges
-if analysis.foundation == 2 % partial fixity such as pile hinge
+if model.foundation == 2 % partial fixity such as pile hinge
     for f_node = 1:length(foundation_nodes_id)
         hinge_id = hinge_id+1;
         % Define hinge at foundation
@@ -495,17 +494,17 @@ if strcmp(model.dimension,'2D')
 end
 
 %% Reformat outputs to table and write CSV's
-writetable(story,[output_dir filesep 'story.csv'])
+writetable(story,[write_dir filesep 'story.csv'])
 node_table = struct2table(node);
-writetable(node_table,[output_dir filesep 'node.csv'])
+writetable(node_table,[write_dir filesep 'node.csv'])
 ele_table = struct2table(element);
-writetable(ele_table,[output_dir filesep 'element.csv'])
+writetable(ele_table,[write_dir filesep 'element.csv'])
 joint_table = struct2table(joint);
-writetable(joint_table,[output_dir filesep 'joint.csv'])
+writetable(joint_table,[write_dir filesep 'joint.csv'])
 mf_joint_table = struct2table(mf_joint);
-writetable(mf_joint_table,[output_dir filesep 'mf_joint.csv'])
+writetable(mf_joint_table,[write_dir filesep 'mf_joint.csv'])
 hinge_table = struct2table(hinge);
-writetable(hinge_table,[output_dir filesep 'hinge.csv'])
+writetable(hinge_table,[write_dir filesep 'hinge.csv'])
 
 end
 

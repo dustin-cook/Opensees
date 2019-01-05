@@ -1,6 +1,40 @@
-function [ ] = main_check_analysis( )
-%UNTITLED8 Summary of this function goes here
-%   Detailed explanation goes here
+function [ ] = main_check_analysis( analysis, ele_prop_table )
+% Description: Checks proceedures and analyses are working as expected and
+% creates visuals. Check come from both a general modeling perpective as
+% well as specific checks perscribed in ASCE 41-17.
+
+% Created By: Dustin Cook
+% Date Created: 1/4/2019
+
+% Inputs: 
+
+% Outputs: 
+
+% Assumptions:
+
+%% Initial Setup
+% Import Packages
+import plotting_tools.fn_plot_backbone
+
+% Define Read and Write Directories
+read_dir = [analysis.out_dir filesep 'asce_41_data'];
+write_dir = [analysis.out_dir filesep 'validation_plots'];
+fn_make_directory( write_dir )
+
+% Load Analysis Data
+load([read_dir filesep 'element_analysis.mat'])
+
+%% Plot Hinge Convergence
+if analysis.plot_hinges
+    for i = 1:height(element)
+        ele = element(i,:);
+        ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
+        plot_name = ['element_' num2str(ele.id)];
+        fn_plot_backbone( ele, ele_props, write_dir, plot_name, 1)
+    end
+end
+
+%% Vertical Ground Motion Convergence
 
 
 %% Torsion
@@ -15,8 +49,6 @@ function [ ] = main_check_analysis( )
 % moment, or (b) the ratio of the displacement multiplier ? caused by the 
 % actual plus accidental torsion and the displacement multiplier caused by 
 % actual torsion is less than 1.1 at every floor.
-
-%% Check convergence of model iterations
 
 %% Calculate Beam Column Strength Ratios
 % for i =1:length(joint.id)

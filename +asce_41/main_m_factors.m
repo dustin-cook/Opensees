@@ -1,4 +1,4 @@
-function [ element ] = main_m_factors( ele_prop_table, element, m_table )
+function [ element ] = main_m_factors( ele_prop_table, element )
 % Description: Main script for calculating ASCE 41 m-factors
 
 % Created By: Dustin Cook
@@ -18,7 +18,7 @@ for i = 1:length(element.id)
     ele = element(i,:);
     ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
     
-    [ element_temp(i,:) ] = fn_m_factors( m_table, ele, ele_props );
+    [ element_temp(i,:) ] = fn_m_factors( ele, ele_props );
 end
 element = element_temp;
 end

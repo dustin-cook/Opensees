@@ -1,4 +1,4 @@
-function [ ground_motion ] = fn_define_loads( output_dir, analysis, node, dimension, story, element_ids )
+function [ ground_motion ] = fn_define_loads( write_dir, analysis, node, dimension, story, element_ids )
 %UNTITLED8 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -6,7 +6,7 @@ function [ ground_motion ] = fn_define_loads( output_dir, analysis, node, dimens
 import asce_7.*
 
 % Write Loads File
-file_name = [output_dir filesep 'loads.tcl'];
+file_name = [write_dir filesep 'loads.tcl'];
 fileID = fopen(file_name,'w');
 
 %% Load ground motion data

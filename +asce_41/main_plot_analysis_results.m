@@ -1,4 +1,4 @@
-function [ ] = main_plot_analysis_results( analysis )
+function [ ] = main_plot_analysis_results( analysis, ele_prop_table )
 % Description: Main script that compiles interesting results and creates
 % visuals.
 
@@ -12,26 +12,29 @@ function [ ] = main_plot_analysis_results( analysis )
 % Assumptions:
 
 
-%% Define Analysis and Model parameters
-plot_asce = 0;
-
-%% Import Packages
+%% Initial Setup
+% Import Packages
 import plotting_tools.*
 import asce_41.*
 
-%% Load Analysis Data
-model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
-model = model_table(model_table.id == analysis.model_id,:);
-ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
-output_dir = ['outputs' filesep model.name{1} filesep analysis.name];
-plot_dir = [output_dir filesep 'plots'];
-load([output_dir filesep 'node_analysis.mat'])
-load([output_dir filesep 'element_analysis.mat'])
-load([output_dir filesep 'story_analysis.mat'])
-load([output_dir filesep 'hinge_analysis.mat'])
-load([output_dir filesep 'gm_data.mat'])
-load([output_dir filesep 'element_PM.mat'])
-load([output_dir filesep 'model_analysis.mat'])
+% Define Read and Write Directories
+read_dir = [analysis.out_dir filesep 'asce_41_data'];
+read_dir_opensees = [analysis.out_dir filesep 'opensees_data'];
+plot_dir = [analysis.out_dir filesep 'plots'];
+fn_make_directory( plot_dir )
+
+% Load Analysis Data
+load([read_dir filesep 'element_analysis.mat'])
+load([read_dir filesep 'story_analysis.mat'])
+load([read_dir filesep 'hinge_analysis.mat'])
+load([read_dir filesep 'model_analysis.mat'])
+
+load([read_dir_opensees filesep 'node_analysis.mat']) % Could probably change these to read from model inputs instead of the opensses analysis
+load([read_dir_opensees filesep 'gm_data.mat'])
+
+if analysis.asce_41_post_process
+    load([read_dir filesep 'element_PM.mat']) % Maybe move this to where its needed
+end
 
 %% Pushover Analysis
 if analysis.type == 2
@@ -53,7 +56,7 @@ if analysis.type == 2
     plot(roof_disp,base_shear/1000)
     ylabel('Total Base Shear (k)')
     xlabel('Roof Displacement (in)')
-    plot_dir = [output_dir filesep 'Pushover_Plots'];
+    plot_dir = [read_dir filesep 'Pushover_Plots'];
     plot_name = ['Roof Pushover - ' analysis.pushover_direction];
     fn_format_and_save_plot( plot_dir, plot_name, 2 )
     
@@ -74,24 +77,24 @@ if analysis.type == 2
     end
     ylabel('Total Base Shear (k)')
     xlabel('Story Drift (in)')
-    plot_dir = [output_dir filesep 'Pushover_Plots'];
+    plot_dir = [read_dir filesep 'Pushover_Plots'];
     plot_name = ['Story Pushover - ' analysis.pushover_direction];
     fn_format_and_save_plot( plot_dir, plot_name, 1 )
     
 %% Dynamic Analysis
 elseif analysis.type == 1
     %% Load Data
-    load([output_dir filesep 'element_TH.mat']);
+    load([read_dir filesep 'element_TH.mat']);
     % Max channel recordings
     load([pwd filesep 'ground_motions' filesep 'ICSB_recordings' filesep 'recorded_edp_profile.mat'])
     
-    if plot_asce
+    if analysis.asce_41_post_process
         %% Load Data
-        load([output_dir filesep 'element_PM.mat'])
+        load([read_dir filesep 'element_PM.mat'])
     
         %% Linear Procedures
         if analysis.nonlinear == 0  
-            if strcmp(model.dimension,'3D')% for 3D linear analysis
+            if strcmp(model.dimension,'3D')% for 3D linear analysis (REDINE AND FIGURE OUT THESE PLOTS)
                 %% Plot DCR
                 % envelope
                 fn_plot_building( element.DCR_max_all, element, node, 'DCR_view_envelope_ext', plot_dir, '3D', 'linear', 'ext' )
@@ -112,25 +115,25 @@ elseif analysis.type == 1
                 % axial
                 fn_plot_building( element.DCR_raw_max_P, element, node, 'DCR_view_axial_ext_raw', plot_dir, '3D', 'raw', 'ext' )
 
-                %% Plot DCR
-                % envelope
-                fn_plot_building( element.DCR_max_all, element, node, 'DCR_view_envelope_int', plot_dir, '3D', 'linear', 'int' )
-                % moment
-                fn_plot_building( element.DCR_max_M, element, node, 'DCR_view_moment_int', plot_dir, '3D', 'linear', 'int' )
-                % shear
-                fn_plot_building( element.DCR_max_V, element, node, 'DCR_view_shear_int', plot_dir, '3D', 'linear', 'int' )
-                % axial
-                fn_plot_building( element.DCR_max_P, element, node, 'DCR_view_axial_int', plot_dir, '3D', 'linear', 'int' )
-
-                %% Plot DCR raw
-                % envelope
-                fn_plot_building( element.DCR_raw_max_all, element, node, 'DCR_view_envelope_int_raw', plot_dir, '3D', 'raw', 'int' )
-                % moment
-                fn_plot_building( element.DCR_raw_max_M, element, node, 'DCR_view_moment_int_raw', plot_dir, '3D', 'raw', 'int' )
-                % shear
-                fn_plot_building( element.DCR_raw_max_V, element, node, 'DCR_view_shear_int_raw', plot_dir, '3D', 'raw', 'int' )
-                % axial
-                fn_plot_building( element.DCR_raw_max_P, element, node, 'DCR_view_axial_int_raw', plot_dir, '3D', 'raw', 'int' )
+%                 %% Plot DCR
+%                 % envelope
+%                 fn_plot_building( element.DCR_max_all, element, node, 'DCR_view_envelope_int', plot_dir, '3D', 'linear', 'int' )
+%                 % moment
+%                 fn_plot_building( element.DCR_max_M, element, node, 'DCR_view_moment_int', plot_dir, '3D', 'linear', 'int' )
+%                 % shear
+%                 fn_plot_building( element.DCR_max_V, element, node, 'DCR_view_shear_int', plot_dir, '3D', 'linear', 'int' )
+%                 % axial
+%                 fn_plot_building( element.DCR_max_P, element, node, 'DCR_view_axial_int', plot_dir, '3D', 'linear', 'int' )
+% 
+%                 %% Plot DCR raw
+%                 % envelope
+%                 fn_plot_building( element.DCR_raw_max_all, element, node, 'DCR_view_envelope_int_raw', plot_dir, '3D', 'raw', 'int' )
+%                 % moment
+%                 fn_plot_building( element.DCR_raw_max_M, element, node, 'DCR_view_moment_int_raw', plot_dir, '3D', 'raw', 'int' )
+%                 % shear
+%                 fn_plot_building( element.DCR_raw_max_V, element, node, 'DCR_view_shear_int_raw', plot_dir, '3D', 'raw', 'int' )
+%                 % axial
+%                 fn_plot_building( element.DCR_raw_max_P, element, node, 'DCR_view_axial_int_raw', plot_dir, '3D', 'raw', 'int' )
             else
                 % envelope
                 fn_plot_building_2D( element.DCR_max_all, element, node, 'DCR_view_envelope_ext', plot_dir,  'linear' )
@@ -162,14 +165,18 @@ elseif analysis.type == 1
     
     for i = 1:length(dirs_ran)
         if ~strcmp(dirs_ran(i),'y') % Update way I am doing this directional thing
-            %% Load Spectra and Calculate Sa
-            spectra_table.(dirs_ran{i}) = readtable([ground_motion.(dirs_ran{i}).eq_dir{1} filesep 'spectra_' erase(erase(ground_motion.(dirs_ran{i}).eq_name{1},'.tcl'),'gm_') '.csv'],'ReadVariableNames',true);
-            Sa.(dirs_ran{i}) = interp1(spectra_table.(dirs_ran{i}).period,spectra_table.(dirs_ran{i}).psa_5,model.(['T1_' dirs_ran{i}]));
-            
-            %% Calculate Target Displacement
-            strength_ratio = model.DCR_raw_max; % We have no Vy for linear analysis, therefor use DCR max as a proxy for strength ratio
-            [ c_m ] = fn_cm( model.num_stories, model.(['T1_' dirs_ran{i}]), model.(['hazus_class_' dirs_ran{i}]) );
-            [ target_disp_in ] = fn_target_disp( strength_ratio, model.site_class{1}, story.(['mode_shape_' dirs_ran{i}]), model.num_stories, model.(['T1_' dirs_ran{i}]), Sa.(dirs_ran{i}), c_m );
+            if analysis.asce_41_post_process
+                %% Load Spectra and Calculate Sa
+                spectra_table.(dirs_ran{i}) = readtable([ground_motion.(dirs_ran{i}).eq_dir{1} filesep 'spectra_' erase(erase(ground_motion.(dirs_ran{i}).eq_name{1},'.tcl'),'gm_') '.csv'],'ReadVariableNames',true);
+                Sa.(dirs_ran{i}) = interp1(spectra_table.(dirs_ran{i}).period,spectra_table.(dirs_ran{i}).psa_5,model.(['T1_' dirs_ran{i}]));
+
+                %% Calculate Target Displacement
+                strength_ratio = model.DCR_raw_max; % We have no Vy for linear analysis, therefor use DCR max as a proxy for strength ratio
+                [ c_m ] = fn_cm( model.num_stories, model.(['T1_' dirs_ran{i}]), model.(['hazus_class_' dirs_ran{i}]) );
+                [ target_disp_in ] = fn_target_disp( strength_ratio, model.site_class{1}, story.(['mode_shape_' dirs_ran{i}]), model.num_stories, model.(['T1_' dirs_ran{i}]), Sa.(dirs_ran{i}), c_m );
+            else
+                target_disp_in = NaN;
+            end
             
             %% Plot EDP Profiles
             % Acceleration
@@ -181,10 +188,6 @@ elseif analysis.type == 1
             fn_plot_profile( [0; story.(['max_disp_' dirs_ran{i}])], [0;story.id], plot_dir, ['Displacement Profile ' dirs_ran{i}], 'Displacement (in)', 10, record_edp.max_disp.(dirs_ran{i}), target_disp_in, model.num_stories)
             fn_plot_profile( [0; story.(['max_disp_' dirs_ran{i}])]/analysis_roof_disp , [0;story.id], plot_dir, ['Normalized Displacement Profile ' dirs_ran{i}], 'Normalized Displacement', 1, record_edp.max_disp.(dirs_ran{i})/recorded_roof_disp  )
             fn_plot_profile( story.(['max_drift_' dirs_ran{i}]), story.id, plot_dir, ['Drift Profile ' dirs_ran{i}], 'SDR', 0.05 )
-            if plot_asce
-                fn_plot_profile( [0; story.(['max_disp_' dirs_ran{i} '_ASCE'])], [0;story.id], plot_dir, ['ASCE Displacement Profile ' dirs_ran{i}], 'Displacement (in)', 10, record_edp.max_disp.(dirs_ran{i}) )
-                fn_plot_profile( story.(['max_drift_' dirs_ran{i} '_ASCE']), story.id, plot_dir, ['ASCE Drift Profile ' dirs_ran{i}], 'SDR', 0.05 )
-            end
             
             % Plot specific TH comparisons
             if strcmp(model.dimension,'3D')
@@ -229,77 +232,81 @@ elseif analysis.type == 1
         end
     end
 
-% Plot PM Diagrams for each element
-    for i = 1:length(element.id)
-        ele = element(i,:);
-        ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
-        if strcmp(element.type{i},'column')
-            ele_PM = element_PM.(['ele_' num2str(element.id(i))]);
+    if analysis.asce_41_post_process
+    % Plot PM Diagrams for each element
+        for i = 1:length(element.id)
+            ele = element(i,:);
+            ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
+            if strcmp(element.type{i},'column')
+                ele_PM = element_PM.(['ele_' num2str(element.id(i))]);
 
-            hold on
-            plot(ele_PM.vector_M/1000,ele_PM.vector_P/1000,'k','LineWidth',2)
-            plot(abs(ele_TH.M_TH_1)/1000,ele_TH.P_TH_1/1000,'b','LineWidth',0.75)
-            ylabel('Axial (k)')
-            xlabel('Moment (k-in)')
-            plot_dir = [output_dir filesep 'PM_plots'];
-            plot_name = ['ele_' num2str(element.id(i))];
-            fn_format_and_save_plot( plot_dir, plot_name, 2 )
-%         elseif strcmp(element.type{i},'wall')
-%             node_1 = node(node.id == ele.node_1,:);
-%             node_2 = node(node.id == ele.node_2,:);
-%             wall_rotation = (node_2.disp_x_TH - node_1.disp_x_TH) / ele.length;
-%             
-%             hold on
-%             plot(wall_rotation,ele_TH.M_TH_1/1000,'b','LineWidth',0.75)
-%             ylabel('Moment (k-in)')
-%             xlabel('Wall Rotation')
-%             plot_dir = [output_dir filesep 'Fiber Wall Plots'];
-%             plot_name = ['ele_' num2str(element.id(i))];
-%             fn_format_and_save_plot( plot_dir, plot_name, 2 )
+                hold on
+                plot(ele_PM.vector_M/1000,ele_PM.vector_P/1000,'k','LineWidth',2)
+                plot(abs(ele_TH.M_TH_1)/1000,ele_TH.P_TH_1/1000,'b','LineWidth',0.75)
+                ylabel('Axial (k)')
+                xlabel('Moment (k-in)')
+                plot_dir = [read_dir filesep 'PM_plots'];
+                plot_name = ['ele_' num2str(element.id(i))];
+                fn_format_and_save_plot( plot_dir, plot_name, 2 )
+    %         elseif strcmp(element.type{i},'wall')
+    %             node_1 = node(node.id == ele.node_1,:);
+    %             node_2 = node(node.id == ele.node_2,:);
+    %             wall_rotation = (node_2.disp_x_TH - node_1.disp_x_TH) / ele.length;
+    %             
+    %             hold on
+    %             plot(wall_rotation,ele_TH.M_TH_1/1000,'b','LineWidth',0.75)
+    %             ylabel('Moment (k-in)')
+    %             xlabel('Wall Rotation')
+    %             plot_dir = [output_dir filesep 'Fiber Wall Plots'];
+    %             plot_name = ['ele_' num2str(element.id(i))];
+    %             fn_format_and_save_plot( plot_dir, plot_name, 2 )
+            end
+
         end
-
     end
 end
 
 %% Plot Hinge Response (For both Dynamic and Pushover)
-if analysis.nonlinear ~= 0
-    load([output_dir filesep 'hinge_analysis.mat'])
-    plot_dir = [output_dir filesep 'Hinge_Plots'];
-    for i = 1:height(hinge)
-        % Grab Element Properties
-        ele = element(element.id == hinge.element_id(i),:);
-        ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
+if analysis.asce_41_post_process
+    if analysis.nonlinear ~= 0
+        load([read_dir filesep 'hinge_analysis.mat'])
+        plot_dir = [read_dir filesep 'Hinge_Plots'];
+        for i = 1:height(hinge)
+            % Grab Element Properties
+            ele = element(element.id == hinge.element_id(i),:);
+            ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
 
-        if strcmp(hinge.type(i),'rotational')
-            if strcmp(ele.type,'column')
-                hinge_name = ['Hinge_y_', num2str(node.y(node.id == hinge.node_1(i)))];
-            elseif strcmp(ele.type,'beam')
-                hinge_name = ['Hinge_x_', num2str(node.x(node.id == hinge.node_1(i)))];
+            if strcmp(hinge.type(i),'rotational')
+                if strcmp(ele.type,'column')
+                    hinge_name = ['Hinge_y_', num2str(node.y(node.id == hinge.node_1(i)))];
+                elseif strcmp(ele.type,'beam')
+                    hinge_name = ['Hinge_x_', num2str(node.x(node.id == hinge.node_1(i)))];
+                end
+                plot_name = ['element_' num2str(hinge.element_id(i)) ' - ' hinge_name ' Rotation Response'];
+                fn_plot_backbone( ele, ele_props, read_dir, plot_name, 2, hinge.rotation_TH{i}, hinge.moment_TH{i})
+
+                % Plot Hinge Rotation Time History
+    %                 hold on
+    %                 yeild_point = theta_yeild - (10/11)*theta_yeild;
+    %                 b_point = ele.b_hinge + yeild_point;
+    %                 hist_plot = plot([0,15],[yeild_point,yeild_point],'--','color',[0.5,0.5,0.5],'LineWidth',1.25,'DisplayName','yield');
+    %                 set(get(get(hist_plot,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+    %                 hist_plot = plot([0,15],[b_point,b_point],'--k','LineWidth',1.25,'DisplayName','b');
+    %                 set(get(get(hist_plot,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+    %                 hist_plot = plot([0,15],[-yeild_point,-yeild_point],'--','color',[0.5,0.5,0.5],'LineWidth',1.25,'DisplayName','yield');
+    %                 hist_plot = plot([0,15],[-b_point,-b_point],'--k','LineWidth',1.25,'DisplayName','b');
+    %                 hist_plot = plot(eq_analysis_timespace,hinge.rotation_TH{i},'b','LineWidth',1,'DisplayName','Analysis');
+    %                 ylabel('Hinge Rotation (rads)')
+    %                 xlabel('Time (s)')
+    %                 xlim([0,15])
+    %                 ylim([-1.5*b_point,1.5*b_point])
+    %                 plot_name = ['element_' num2str(hinge.element_id(i)) ' - ' hinge_name ' Rotation Time History'];
+    %                 fn_format_and_save_plot( plot_dir, plot_name, 2 )
+
+            elseif strcmp(hinge.type(i),'shear')
+                plot_name = ['Hinge ' num2str(i) ' Shear Response'];
+                fn_plot_backbone( ele, ele_props, ele, read_dir, plot_name, 2, hinge.deformation_TH{i}, hinge.shear_TH{i})
             end
-            plot_name = ['element_' num2str(hinge.element_id(i)) ' - ' hinge_name ' Rotation Response'];
-            fn_plot_backbone( ele, ele_props, ele, output_dir, plot_name, 2, hinge.rotation_TH{i}, hinge.moment_TH{i})
-
-            % Plot Hinge Rotation Time History
-%                 hold on
-%                 yeild_point = theta_yeild - (10/11)*theta_yeild;
-%                 b_point = ele.b_hinge + yeild_point;
-%                 hist_plot = plot([0,15],[yeild_point,yeild_point],'--','color',[0.5,0.5,0.5],'LineWidth',1.25,'DisplayName','yield');
-%                 set(get(get(hist_plot,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-%                 hist_plot = plot([0,15],[b_point,b_point],'--k','LineWidth',1.25,'DisplayName','b');
-%                 set(get(get(hist_plot,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-%                 hist_plot = plot([0,15],[-yeild_point,-yeild_point],'--','color',[0.5,0.5,0.5],'LineWidth',1.25,'DisplayName','yield');
-%                 hist_plot = plot([0,15],[-b_point,-b_point],'--k','LineWidth',1.25,'DisplayName','b');
-%                 hist_plot = plot(eq_analysis_timespace,hinge.rotation_TH{i},'b','LineWidth',1,'DisplayName','Analysis');
-%                 ylabel('Hinge Rotation (rads)')
-%                 xlabel('Time (s)')
-%                 xlim([0,15])
-%                 ylim([-1.5*b_point,1.5*b_point])
-%                 plot_name = ['element_' num2str(hinge.element_id(i)) ' - ' hinge_name ' Rotation Time History'];
-%                 fn_format_and_save_plot( plot_dir, plot_name, 2 )
-
-        elseif strcmp(hinge.type(i),'shear')
-            plot_name = ['Hinge ' num2str(i) ' Shear Response'];
-            fn_plot_backbone( ele, ele_props, ele, output_dir, plot_name, 2, hinge.deformation_TH{i}, hinge.shear_TH{i})
         end
     end
 end

@@ -1,4 +1,4 @@
-function [ ] = fn_define_analysis( output_dir, ground_motion, first_story_node, story_ht, analysis, story )
+function [ ] = fn_define_analysis( write_dir, ground_motion, first_story_node, story_ht, analysis, story )
 %UNTITLED9 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -6,11 +6,11 @@ function [ ] = fn_define_analysis( output_dir, ground_motion, first_story_node, 
 import opensees.write_tcl.*
 
 %% Write Loads File
-file_name = [output_dir filesep 'run_analysis.tcl'];
+file_name = [write_dir filesep 'run_analysis.tcl'];
 fileID = fopen(file_name,'w');
 
 %% Initial Analysis Setup
-fprintf(fileID,'source %s/setup_analysis.tcl \n', output_dir);
+fprintf(fileID,'source %s/setup_analysis.tcl \n', write_dir);
 fprintf(fileID,'set singularity_check 0 \n');
 fprintf(fileID,'set collapse_check 0 \n');
 fprintf(fileID,'set currentStep [getTime] \n');
@@ -25,7 +25,7 @@ if analysis.type == 1 % Dynamic
     if analysis.solution_algorithm
         % Solution Algorithm Setup
         eq_total_time = time_step*num_steps;
-        fn_solution_algorithm( fileID, analysis, output_dir, eq_total_time, time_step, first_story_node, story_ht )
+        fn_solution_algorithm( fileID, analysis, write_dir, eq_total_time, time_step, first_story_node, story_ht )
     else
         fprintf(fileID,'set dt_reduce %f \n', analysis.initial_timestep_factor);
         fprintf(fileID,'set dt [expr %f/$dt_reduce] \n', time_step);
@@ -40,13 +40,13 @@ elseif analysis.type == 2 % Pushover
         [ control_node, control_dof, max_displacement, step_size ] = fn_pushover_properties( first_story_node, analysis, story );
         
         % Call solution algorithm
-        fn_solution_algorithm( fileID, analysis, output_dir, max_displacement, step_size, first_story_node, story_ht, control_node, control_dof )
+        fn_solution_algorithm( fileID, analysis, write_dir, max_displacement, step_size, first_story_node, story_ht, control_node, control_dof )
     else
         fprintf(fileID,'set ok [analyze %i] \n', analysis.pushover_num_steps);
         fprintf(fileID,'puts "analysis failure = $ok " \n');
     end
 elseif analysis.type == 3 % Static Cyclic
-    fprintf(fileID,'source %s/setup_static_cyclic_analysis.tcl \n', output_dir);
+    fprintf(fileID,'source %s/setup_static_cyclic_analysis.tcl \n', write_dir);
     fprintf(fileID,'set singularity_check 0 \n');
     fprintf(fileID,'set collapse_check 0 \n');
     fprintf(fileID,'set currentStep [getTime] \n');
@@ -100,7 +100,7 @@ fprintf(fileID,'if {$ok == 0} { \n');
 fprintf(fileID,'puts "Analysis Complete!" \n');
 % Write output file for final analysis time step
 if analysis.type == 1
-    fprintf(fileID,'set time_step_file %s/final_time_step_reduction.txt \n',output_dir);
+    fprintf(fileID,'set time_step_file %s/final_time_step_reduction.txt \n',write_dir);
     fprintf(fileID,'set TS [open $time_step_file "w"] \n');
     fprintf(fileID,'puts $TS " $dt_reduce" \n');
     fprintf(fileID,'close $TS \n');

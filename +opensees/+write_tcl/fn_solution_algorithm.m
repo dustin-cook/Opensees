@@ -1,4 +1,4 @@
-function [ ] = fn_solution_algorithm( fileID, analysis, output_dir, analysis_length, step_length, first_story_node, story_ht, control_node, control_dof )
+function [ ] = fn_solution_algorithm( fileID, analysis, write_dir, analysis_length, step_length, first_story_node, story_ht, control_node, control_dof )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -12,9 +12,9 @@ algorithm_typs = {'NewtonLineSearch', 'Newton -initial', 'Newton'};
 tolerance = [1e-5, 1e-4 0.001, 0.01, 0.1, 1];
 
 %% Set up Log Files
-log_file = [output_dir '/converge_tol_file.txt'];
+log_file = [write_dir '/converge_tol_file.txt'];
 fprintf(fileID,'set converge_tol_file [open %s w] \n', log_file);
-convergence_file = [output_dir '/converge_file.txt'];
+convergence_file = [write_dir '/converge_file.txt'];
 fprintf(fileID,'set converge_file [open %s w] \n', convergence_file);
 
 %% While loop through each step of the ground motion

@@ -1,4 +1,4 @@
-function [ ] = fn_setup_analysis( output_dir, analysis, first_story_node, story )
+function [ ] = fn_setup_analysis( write_dir, analysis, first_story_node, story )
 %UNTITLED9 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -6,19 +6,19 @@ function [ ] = fn_setup_analysis( output_dir, analysis, first_story_node, story 
 import opensees.write_tcl.*
 
 %% Write Analysis Setup File
-file_name = [output_dir filesep 'setup_analysis.tcl'];
+file_name = [write_dir filesep 'setup_analysis.tcl'];
 fileID = fopen(file_name,'w');
 
 % Clear set up for this analysis
 fprintf(fileID,'wipe \n');
 
 % Build Model and Analysis Parameters
-fprintf(fileID,'source %s/model.tcl \n', output_dir);
+fprintf(fileID,'source %s/model.tcl \n', write_dir);
 if analysis.run_eigen
-    fprintf(fileID,'source %s/eigen.tcl \n', output_dir);
+    fprintf(fileID,'source %s/eigen.tcl \n', write_dir);
 end
-fprintf(fileID,'source %s/loads.tcl \n', output_dir);
-fprintf(fileID,'source %s/recorders.tcl \n', output_dir);
+fprintf(fileID,'source %s/loads.tcl \n', write_dir);
+fprintf(fileID,'source %s/recorders.tcl \n', write_dir);
 
 % ANALYSIS DEFINITION
 fprintf(fileID,'wipeAnalysis \n');

@@ -1,50 +1,45 @@
-function [ ] = main_opensees_analysis( analysis )
+function [ ] = main_opensees_analysis( model, analysis )
 %UNTITLED5 Summary of this function goes here
 %   Detailed explanation goes here
 
 %% Initial Setup
+% Import Packages
 import opensees.*
 
-%% Load data
-% Load inital Model info
-if analysis.model_type == 1 % SDOF
-    model_table = readtable(['inputs' filesep 'sdof_models.csv'],'ReadVariableNames',true);
-    model = model_table(model_table.id == analysis.model_id,:); 
-elseif analysis.model_type == 2 % MDOF
-    model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
-    model = model_table(model_table.id == analysis.model_id,:);
+% Create Write Directory
+write_dir_opensees = ['outputs/' model.name{1} '/' analysis.proceedure '/opensees_data']; % TCL or Opensees does not like filesep command on windows, therefore must manually define forward slash seperators
+if analysis.run_opensees % Don't clear the file if you don't want to run opensees
+    fn_make_directory( write_dir_opensees )
 end
 
-% Load Model
-node = readtable(['outputs/' model.name{1} filesep 'model data' filesep 'node.csv'],'ReadVariableNames',true);
-element = readtable(['outputs/' model.name{1} filesep 'model data' filesep 'element.csv'],'ReadVariableNames',true);
-story = readtable(['outputs/' model.name{1} filesep 'model data' filesep 'story.csv'],'ReadVariableNames',true);
-joint = readtable(['outputs/' model.name{1} filesep 'model data' filesep 'joint.csv'],'ReadVariableNames',true);
-hinge = readtable(['outputs/' model.name{1} filesep 'model data' filesep 'hinge.csv'],'ReadVariableNames',true);
+% Define Read Directories
+read_dir_model = [analysis.out_dir filesep 'model_data'];
+read_dir_analysis = [analysis.out_dir filesep 'asce_41_data'];
 
-%% Create Outputs Directory
-output_dir = ['outputs/' model.name{1} '/' analysis.name];
-if ~exist(output_dir,'dir')
-    mkdir(output_dir);
-end 
+% Load Model Data
+node = readtable([read_dir_model filesep 'node.csv'],'ReadVariableNames',true);
+element = readtable([read_dir_model filesep 'element.csv'],'ReadVariableNames',true);
+story = readtable([read_dir_model filesep 'story.csv'],'ReadVariableNames',true);
+joint = readtable([read_dir_model filesep 'joint.csv'],'ReadVariableNames',true);
+hinge = readtable([read_dir_model filesep 'hinge.csv'],'ReadVariableNames',true);
 
 %% Write TCL files
-[ node, ground_motion ] = main_write_tcl( model, output_dir, node, element, story, joint, hinge, analysis );
+[ node, ground_motion ] = main_write_tcl( model.dimension, write_dir_opensees, node, element, story, joint, hinge, analysis, read_dir_analysis );
 
 %% Write Summit Batch File
 if analysis.summit_SP
-    fn_write_summit_batch_file( output_dir, analysis.name, model.name{1} )
+    write_dir_summit = [analysis.out_dir filesep 'summit'];
+    fn_make_directory( write_dir_summit )
+    fn_write_summit_batch_file( write_dir_summit, analysis.proceedure, model.name{1} )
 end
 
 %% Run Opensees
 if analysis.run_opensees
-    tic
-    main_run_opensees( output_dir )
-    toc
+    main_run_opensees( write_dir_opensees )
 end
 
 %% Postprocess OS data
-main_post_process_opensees( analysis, model, story, node, element, hinge, ground_motion, output_dir )
+main_post_process_opensees( analysis, model, story, node, element, hinge, ground_motion, write_dir_opensees )
 
 end
 
