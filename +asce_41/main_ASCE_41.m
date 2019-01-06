@@ -15,7 +15,7 @@ import build_model.main_build_model
 import opensees.main_opensees_analysis
 import asce_41.main_ASCE_41_post_process
 import asce_41.main_plot_analysis_results
-
+import asce_41.main_combine_load_case
 
 %% Begin Method
 % Pull in database of available models
@@ -41,6 +41,9 @@ end
 for i = 1:length(analysis.type_list)
     analysis.type = analysis.type_list(i);
     analysis.nonlinear = analysis.nonlinear_list(i);
+    analysis.dead_load = analysis.dead_load_list(i);
+    analysis.live_load = analysis.live_load_list(i);
+    analysis.case = analysis.case_list{i};
     disp(['Running ' analysis.proceedure ' step ' num2str(i) ' of ' num2str(length(analysis.type_list)) ' ...'])
     
     %% Build Model
@@ -60,11 +63,16 @@ for i = 1:length(analysis.type_list)
     main_check_analysis( analysis, ele_prop_table )
 end
 
+%% Combine Load Cases
+if strcmp(analysis.proceedure,'LDP')
+    main_combine_load_case( analysis );
+end
+
 %% Compile Results and Create Visuals
 disp('Plotting Analysis Results ...')
 main_plot_analysis_results( analysis, ele_prop_table )
     
-%% Latex Report Writer
+%% LaTeX Report Writer
 
 
 disp('Analysis Complete!')

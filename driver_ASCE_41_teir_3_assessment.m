@@ -17,10 +17,8 @@ fclose('all');
 % Assumptions:
 
 %% User Inputs (Think about changing this to a file read and command line execution)
-analysis.model_id = 4;
+analysis.model_id = 6;
 analysis.proceedure = 'NDP'; % LDP or NDP or test
-analysis.dead_load = 1.0; % Define as part of proceedures
-analysis.live_load = 1.0;
 analysis.accidental_torsion = 0;
 
 analysis.gm_seq_id = 6; % Maybe also make this part ot the defualts or model?

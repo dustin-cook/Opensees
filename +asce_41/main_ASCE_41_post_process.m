@@ -64,5 +64,12 @@ save([write_dir filesep 'story_analysis.mat'],'story')
 save([write_dir filesep 'element_analysis.mat'],'element')
 save([write_dir filesep 'element_TH.mat'],'element_TH')
 save([write_dir filesep 'hinge_analysis.mat'],'hinge')
+
+if ~strcmp(analysis.case,'NA')
+    write_dir = [analysis.out_dir filesep analysis.case];
+    fn_make_directory( write_dir )
+    save([write_dir filesep 'story_analysis.mat'],'story')
+    save([write_dir filesep 'element_analysis.mat'],'element')
+end
 end
 
