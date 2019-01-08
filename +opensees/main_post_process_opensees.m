@@ -18,6 +18,10 @@ if analysis.type == 1 % dynamic analysis
     
     % Define Time Step Vector from element force output
     time_step_vector = element_force_recorders(:,1)';
+    
+    % Omit Y direction if ran
+    dirs_ran = dirs_ran(~strcmp(dirs_ran,'y'));
+
 else % pushover analysis
     % Load element force data
     if analysis.write_xml

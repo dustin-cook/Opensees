@@ -148,7 +148,7 @@ for s = 1:height(story)
                 e_id = elements_at_node(e);
                 ele = ele_props_table(ele_props_table.id == element.ele_id(e_id),:);
                 
-                % Find Joint properties based on elements that frame in
+                % Find Joint properties based on elements that frame into the joint
                 if strcmp(element.type{e_id},'column')
                     new_ele.col_y = e_id;
                     if strcmp(element.direction{e_id},'x')
@@ -217,7 +217,6 @@ for s = 1:height(story)
                 element.node_1(new_ele.bm_z_pos,1) = new_node.id(5);
             end
             element.node_2(new_ele.col_y,1) = new_node.id(3);
-            clear new_ele
            
             % Define Joint
             joint_id = joint_id + 1;
@@ -230,8 +229,22 @@ for s = 1:height(story)
                 joint.z_neg(joint_id,1) = new_node.id(4);
                 joint.z_pos(joint_id,1) = new_node.id(5);
             end
-%             joint.center(joint_id,1) = new_node.id(4);
+%             joint.center(joint_id,1) = new_node.id(4);    
             
+            % Define Joint Classification according to ASCE 41-17 figure 10-3
+            % ASSUMES THERE ARE NEVER ANY TRANSFER BEAMS (ie in the z
+            % direction) AND THAT THE PRIMARY DIRECTION IS ALWAYS THE X.
+            % ALSO THAT THERE WILL ALWAYS BE A COLUMN ABOVE UNLESS ITS THE
+            % TOP STORY.
+            if isfield(new_ele,'bm_x_pos') && isfield(new_ele,'bm_x_neg')
+                joint.class{joint_id,1} = 'b'; % interior joint without transfer beams
+            elseif s == height(story) % top story
+                joint.class{joint_id,1} = 'e'; % knee joint with or without transfer beams
+            else
+                joint.class{joint_id,1} = 'd'; % exterior joint without transfer beams
+            end
+                
+                
             % Add new nodes to nodes list
             node.id = [node.id; new_node.id];
             node.x = [node.x; new_node.x];
@@ -240,6 +253,9 @@ for s = 1:height(story)
             node.dead_load = [node.dead_load; new_node.dead_load];
             node.live_load = [node.live_load; new_node.live_load];
             node.mass = [node.mass; new_node.mass];
+            
+            % Clear data
+            clear new_ele
         end
     end
 end

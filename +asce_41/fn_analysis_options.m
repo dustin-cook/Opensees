@@ -37,8 +37,8 @@ analysis.pushover_drift = 0.05; % Drfit limit where the pushover will go till
 analysis.pushover_num_steps = 100; % Number of steps a pushover will take to get to the dirft limit
 
 % Visuals and Graphics
-analysis.element_plots = 1; % Plot hinge backnones
-analysis.plot_recordings = 0;
+analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
+analysis.plot_recordings = 0; % Plot analysis results v recorded results
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 1; % Visual scale of the movie playback
 

@@ -4,8 +4,7 @@ close
 clc
 fclose('all');
 
-%% Description: Method to build an Opensees model and run a ASCE 41-17 teir
-% 3 seismic assessment.
+%% Description: Method to build an Opensees model and run a ASCE 41-17 teir 3 seismic assessment.
 
 % Created By: Dustin Cook
 % Date Created: 1/2/2019
@@ -21,7 +20,7 @@ analysis.model_id = 4;
 analysis.proceedure = 'NDP'; % LDP or NDP or test
 analysis.accidental_torsion = 0;
 
-analysis.gm_seq_id = 6; % Maybe also make this part ot the defualts or model?
+analysis.gm_seq_id = 8; % Maybe also make this part ot the defualts or model?
 
 %% Initial Setup
 import asce_41.main_ASCE_41
