@@ -1,4 +1,4 @@
-function [ ] = fn_plot_profile( profile_x, story_ids, plot_dir, plot_name, name, plot_max, additional_data, target_disp, num_stories  )
+function [ ] = fn_plot_profile( profile_x, story_ids, plot_dir, plot_name, name, plot_max, target_disp, num_stories, additional_data )
 %UNTITLED9 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -19,8 +19,8 @@ if exist('additional_data','var')
 end
 
 % Add target dispalcement
-if exist('target_disp','var')
-    scatter(target_disp,num_stories,76,'m','*','DisplayName','Target Displacement')
+if ~isnan(target_disp)
+    scatter(target_disp,num_stories,75,'m','*','DisplayName','Target Displacement')
 end
 
 xlim([0,plot_max])

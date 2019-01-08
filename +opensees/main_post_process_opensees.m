@@ -183,6 +183,13 @@ save([opensees_dir filesep 'story_analysis.mat'],'story')
 save([opensees_dir filesep 'element_TH.mat'],'element_TH')
 if analysis.type == 1 % Dynamic Analysis
     save([opensees_dir filesep 'gm_data.mat'],'eq','dirs_ran','ground_motion','eq_analysis_timespace','eq_analysis')
+elseif analysis.type == 2 % Pushover Analysis
+    pushover_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure filesep 'pushover'];
+    fn_make_directory( pushover_dir )
+    save([pushover_dir filesep 'node_analysis.mat'],'node') 
+    save([pushover_dir filesep 'element_TH.mat'],'element_TH')
+    save([pushover_dir filesep 'hinge_analysis.mat'],'hinge')
+    save([pushover_dir filesep 'analysis_options.mat'],'analysis')
 end
 
 end

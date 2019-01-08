@@ -1,4 +1,4 @@
-function [ model, element, element_TH, element_PM ] = fn_linear_capacity_and_c_factors( model, story, ele_prop_table, element, element_TH, analysis )
+function [ model, element, element_TH, element_PM, joint ] = fn_linear_capacity_and_c_factors( model, story, ele_prop_table, element, element_TH, analysis, joint_table )
 % Description: Main script that post process an ASCE 41 analysis
 
 % Created By: Dustin Cook
@@ -22,7 +22,7 @@ while percent_error > 0.01 % Iterate on c factors until change is less than 1%
     c1c2_old = c1c2;
 
     % Calculate Element Capacities
-    [ element, element_TH, element_PM ] = main_element_capacity( story, ele_prop_table, element, element_TH, analysis );
+    [ element, element_TH, element_PM, joint ] = main_element_capacity( story, ele_prop_table, element, element_TH, analysis, joint_table );
     vn_columns = element.Vn(strcmp(element.type,'column'));
     vn_progression(idx) = vn_columns(1);
 

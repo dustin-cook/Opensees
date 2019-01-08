@@ -12,9 +12,10 @@ function [ analysis ] = fn_analysis_options( analysis )
 
 %% Basic Defaults
 % Run Options
-analysis.run_opensees = 0; % 1 = Run opensees, 0 = use existing results
+analysis.run_opensees = 1; % 1 = Run opensees, 0 = use existing results
 analysis.asce_41_post_process = 1; % 1 = run asce 41 post process logic
 analysis.summit_SP = 0; % Write tcl files to be run on summit using OpenseesSP
+analysis.skip_2_outputs = 0; % Skip all the way to the plotters
 
 % Model Options
 analysis.stories_nonlinear = inf; % Default to all modeling all stories as nonlinear when doing NDP
@@ -36,7 +37,8 @@ analysis.pushover_drift = 0.05; % Drfit limit where the pushover will go till
 analysis.pushover_num_steps = 100; % Number of steps a pushover will take to get to the dirft limit
 
 % Visuals and Graphics
-analysis.plot_hinges = 1; % Plot hinge backnones
+analysis.element_plots = 1; % Plot hinge backnones
+analysis.plot_recordings = 0;
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 1; % Visual scale of the movie playback
 
@@ -52,7 +54,7 @@ elseif strcmp(analysis.proceedure,'NDP')
     analysis.nonlinear_list = [0, 1, 1, 1];
     analysis.dead_load_list = [1, 1, 1, 1];
     analysis.live_load_list = [1, 1, 1, 1];
-    analysis.case_list = {'NA', 'NA', 'Pushover', 'NA'};
+    analysis.case_list = {'NA', 'NA', 'NA', 'NA'};
 elseif strcmp(analysis.proceedure,'LDP') % Linear Test
     analysis.type_list = [1, 1]; % 1 = dynamic, 2 = pushover % 3 = static cyclic
     analysis.nonlinear_list = [0, 0]; % 0 = linear, 1 = IMK Rotational Hinge, 2 = strain hardening hinges

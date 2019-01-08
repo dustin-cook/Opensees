@@ -1,4 +1,4 @@
-function [ ] = fn_plot_backbone( ele, ele_props, output_dir, plot_name, plot_style, hinge_disp_to_plot, hinge_force_to_plot)
+function [ ] = fn_plot_backbone( ele, ele_props, output_dir, plot_name, plot_style, hinge_disp_to_plot, hinge_force_to_plot, line_color )
 % Plot the backbone curve from an ASCE 41 analysis in terms of normalized 
 % moment and rotation or drift and normalized shear force
 
@@ -21,7 +21,7 @@ if strcmp(ele.type,'beam') || strcmp(ele.type,'column') || (strcmp(ele.type,'wal
     n = 10;
     [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.Mn_pos, ele.Mn_neg, ele.Mp_pos, ele.Mp_neg, ele.length, ele_props.e, ele_props.iz, ele, n );
     if plot_style == 1
-        plot([0,rot_vec_pos],[0,moment_vec_pos/moment_vec_pos(1)],'k','LineWidth',2) % Don't need to worry about negative bending because this plot is normalized by Qy
+        plot([0,rot_vec_pos],[0,moment_vec_pos/moment_vec_pos(1)],'Color',line_color,'LineWidth',2) % Don't need to worry about negative bending because this plot is normalized by Qy
         xlabel('Total Rotation (rad)')
         ylabel('Q/Qy')
     elseif plot_style == 2
@@ -56,9 +56,9 @@ end
 
 % Format and save plot      
 if plot_style == 1
-    fn_format_and_save_plot( [output_dir filesep 'hinge_plots' filesep] , plot_name, 2 )
+    fn_format_and_save_plot( output_dir , plot_name, 2 )
 elseif plot_style == 2
-    fn_format_and_save_plot( [output_dir filesep 'hinge_plots' filesep] , plot_name, 1 )
+    fn_format_and_save_plot( output_dir , plot_name, 1 )
 end
 
 end

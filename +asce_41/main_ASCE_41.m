@@ -33,45 +33,47 @@ model = model_table(model_table.id == analysis.model_id,:);
 
 % Create Analysis Directory
 analysis.out_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure];
-if analysis.run_opensees % Don't clear the file if you don't want to run opensees
+if analysis.run_opensees && ~analysis.skip_2_outputs % Don't clear the file if you don't want to run opensees
     fn_make_directory( analysis.out_dir )
 end
 
-% Run through all the steps of the procedure
-for i = 1:length(analysis.type_list)
-    analysis.type = analysis.type_list(i);
-    analysis.nonlinear = analysis.nonlinear_list(i);
-    analysis.dead_load = analysis.dead_load_list(i);
-    analysis.live_load = analysis.live_load_list(i);
-    analysis.case = analysis.case_list{i};
-    disp(['Running ' analysis.proceedure ' step ' num2str(i) ' of ' num2str(length(analysis.type_list)) ' ...'])
-    
-    %% Build Model
-    disp('Building Model ...')
-    main_build_model( model, analysis, ele_prop_table )
-    
-    %% Run and Postprocess Opensees Analysis
-    disp('Running Opensees ...')
-    main_opensees_analysis( model, analysis )
+if ~analysis.skip_2_outputs % Don't skip to plotters
+    % Run through all the steps of the procedure
+    for i = 1:length(analysis.type_list)
+        analysis.type = analysis.type_list(i);
+        analysis.nonlinear = analysis.nonlinear_list(i);
+        analysis.dead_load = analysis.dead_load_list(i);
+        analysis.live_load = analysis.live_load_list(i);
+        analysis.case = analysis.case_list{i};
+        disp(['Running ' analysis.proceedure ' step ' num2str(i) ' of ' num2str(length(analysis.type_list)) ' ...'])
 
-    %% Postprocess ASCE 41 data
-    disp('Post Processing Via ASCE 41 ...')
-    main_ASCE_41_post_process( analysis, ele_prop_table )
+        %% Build Model
+        disp('Building Model ...')
+        main_build_model( model, analysis, ele_prop_table )
 
-    %% Analysis Checks
-    disp('Validating Analysis Results ...')
-    main_check_analysis( analysis, ele_prop_table )
-end
+        %% Run and Postprocess Opensees Analysis
+        disp('Running Opensees ...')
+        main_opensees_analysis( model, analysis )
 
-%% Combine Load Cases
-if strcmp(analysis.proceedure,'LDP')
-    main_combine_load_case( analysis );
+        %% Postprocess ASCE 41 data
+        disp('Post Processing Via ASCE 41 ...')
+        main_ASCE_41_post_process( analysis, ele_prop_table )
+
+        %% Analysis Checks
+        disp('Validating Analysis Results ...')
+        main_check_analysis( analysis, ele_prop_table, i )
+    end
+
+    %% Combine Load Cases
+    if strcmp(analysis.proceedure,'LDP')
+        main_combine_load_case( analysis )
+    end
 end
 
 %% Compile Results and Create Visuals
 disp('Plotting Analysis Results ...')
-main_plot_analysis_results( analysis, ele_prop_table )
-    
+main_plot_analysis_results( model, analysis, ele_prop_table )
+
 %% LaTeX Report Writer
 
 

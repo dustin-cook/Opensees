@@ -33,6 +33,8 @@ load([read_dir filesep 'element_analysis.mat'])
 load([read_dir filesep 'element_TH.mat'])
 load([read_dir filesep 'hinge_analysis.mat'])
 
+joint_table = readtable([analysis.out_dir filesep 'model_data' filesep 'mf_joint.csv'],'ReadVariableNames',true);
+
 %% Calculate Element Properties and Modify Analysis Results based on ASCE 41-17
 % Basic building or analysis properties
 [ model, element ] = fn_basic_analysis_properties( model, story, element );
@@ -43,13 +45,13 @@ if analysis.asce_41_post_process
 
     % Procedure Specific Analysis
     if strcmp(analysis.proceedure,'NDP') % Nonlinear Dynamic Proceedure
-        [ element, element_TH, element_PM ] = main_element_capacity( story, ele_prop_table, element, element_TH, analysis );
+        [ element, element_TH, element_PM, joint ] = main_element_capacity( story, ele_prop_table, element, element_TH, analysis, joint_table );
         [ element ] = main_hinge_properties( ele_prop_table, element );
         if analysis.nonlinear ~= 0 % Only for nonlinear runs
             [ hinge ] = fn_accept_hinge( element, hinge );
         end
     else % Linear Dynamic Proceedure and Test Proceedure (and all others defined so be careful)
-        [ model, element, element_TH, element_PM ] = fn_linear_capacity_and_c_factors( model, story, ele_prop_table, element, element_TH, analysis );
+        [ model, element, element_TH, element_PM, joint ] = fn_linear_capacity_and_c_factors( model, story, ele_prop_table, element, element_TH, analysis, joint_table );
         [ element ] = main_m_factors( ele_prop_table, element );
         [ element, ~ ] = fn_calc_dcr( element, element_TH, 'cp' );
     end
@@ -64,7 +66,9 @@ save([write_dir filesep 'story_analysis.mat'],'story')
 save([write_dir filesep 'element_analysis.mat'],'element')
 save([write_dir filesep 'element_TH.mat'],'element_TH')
 save([write_dir filesep 'hinge_analysis.mat'],'hinge')
+save([write_dir filesep 'joint_analysis.mat'],'joint')
 
+% Save load case info
 if ~strcmp(analysis.case,'NA')
     write_dir = [analysis.out_dir filesep analysis.case];
     fn_make_directory( write_dir )
