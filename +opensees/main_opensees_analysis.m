@@ -44,7 +44,7 @@ if analysis.run_opensees
         main_run_opensees( write_dir_opensees )
     end
     % Postprocess OS data
-    main_post_process_opensees( analysis, model, story, node, element, hinge, ground_motion, write_dir_opensees )
+    main_post_process_opensees( analysis, model, story, node, element, joint, hinge, ground_motion, write_dir_opensees )
 end
 
 %% Write Summit Batch File

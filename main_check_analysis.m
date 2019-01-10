@@ -1,4 +1,4 @@
-function [ ] = main_check_analysis( analysis, ele_prop_table, step )
+function [ ] = main_check_analysis( analysis, ele_prop_table, capacity, step )
 % Description: Checks proceedures and analyses are working as expected and
 % creates visuals. Check come from both a general modeling perpective as
 % well as specific checks perscribed in ASCE 41-17.
@@ -33,13 +33,19 @@ if analysis.element_plots && strcmp(analysis.proceedure,'NDP')
         
         prev_fig_file = [write_dir filesep plot_name '.fig'];
         if exist(prev_fig_file,'file')
-            openfig(prev_fig_file)
+            openfig(prev_fig_file);
             hold on
         end
         
         line_color = [1,1,1] - step/length(analysis.type_list);
         fn_plot_backbone( ele, ele_props, write_dir, plot_name, 1, 0, 0, line_color)
     end
+end
+
+%% Check Capacity Convergence
+if step == length(analysis.type_list)
+    capacity
+    plot([1,2,3,4],capacity)
 end
 
 %% Vertical Ground Motion Convergence

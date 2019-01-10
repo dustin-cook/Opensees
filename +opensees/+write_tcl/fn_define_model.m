@@ -171,11 +171,27 @@ for i = 1:height(element)
 end
 
 %% Define Joints as rigid
-fprintf(fileID,'uniaxialMaterial Elastic 1 999999999999999. \n'); % Rigid Elastic Material
-
 if height(joint) > 0
-    % %uniaxialMaterial Elastic $matTag $E
+    % Load in joint properties
+    if analysis.nonlinear ~= 0 % Nonlinear analysis
+        joint_analysis_temp = load([read_dir_analysis filesep 'joint_analysis.mat']);
+        joint_analysis = joint_analysis_temp.joint;
+    end
+    
+    fprintf(fileID,'uniaxialMaterial Elastic 1 999999999999999. \n'); % Rigid Elastic Material
+    
+    % GO through each joint
     for i = 1:height(joint)
+        % Define joint material
+        if analysis.nonlinear ~= 0 % Nonlinear 
+            [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', joint_analysis.Mn(i), joint_analysis.Mn(i), inf, inf, joint_analysis.h(i), joint_analysis.e(i), joint_analysis.iz(i), joint_analysis(i,:), NaN, 0.04 );
+            Ko = moment_vec_pos(1)/rot_vec_pos(1);
+            as_sping_pos = (moment_vec_pos(2)-moment_vec_pos(1))/(rot_vec_pos(2)-rot_vec_pos(1))/Ko;
+            as_sping_neg = (moment_vec_neg(2)-moment_vec_neg(1))/(rot_vec_neg(2)-rot_vec_neg(1))/Ko;
+            theta_pc = rot_vec_neg(3) - rot_vec_neg(2) + joint_analysis.c_hinge(i)*(rot_vec_neg(3) - rot_vec_neg(2))/(1-joint_analysis.c_hinge(i)); % theta pc defined all the way to zero where b defined to residual kink
+            % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
+            fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',joint.id(i)+10000, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc, theta_pc, joint_analysis.c_hinge(i), joint_analysis.c_hinge(i), 999, 999); % Keep residual strength forever
+        end
         if strcmp(dimension,'2D')
             if analysis.joint_model == 1 % Elastic beam column elements
                 % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
@@ -203,8 +219,13 @@ if height(joint) > 0
                 fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*10+5,joint.z_neg(i),40000+i);
                 fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*10+6,40000+i,joint.z_pos(i));
             elseif analysis.joint_model == 2  % Joint 3D
-                % element Joint3D %tag %Nx- %Nx+ %Ny- %Ny+ %Nz- %Nz+ %Nc %MatX %MatY %MatZ %LrgDspTag
-                fprintf(fileID,'element Joint3D %i %i %i %i %i %i %i %i 1 1 1 0 \n', 10000+i, joint.x_neg(i), joint.x_pos(i), joint.y_neg(i), joint.y_pos(i), joint.z_neg(i), joint.z_pos(i), 10000+i);
+                if analysis.nonlinear ~= 0 && analysis.joint_explicit % Nonlinear
+                    % element Joint3D %tag %Nx- %Nx+ %Ny- %Ny+ %Nz- %Nz+ %Nc %MatX %MatY %MatZ %LrgDspTag
+                    fprintf(fileID,'element Joint3D %i %i %i %i %i %i %i %i %i 1 1 0 \n', 10000+i, joint.x_neg(i), joint.x_pos(i), joint.y_neg(i), joint.y_pos(i), joint.z_neg(i), joint.z_pos(i), 10000+i, 10000+i); 
+                else % Linear Rigid
+                    % element Joint3D %tag %Nx- %Nx+ %Ny- %Ny+ %Nz- %Nz+ %Nc %MatX %MatY %MatZ %LrgDspTag
+                    fprintf(fileID,'element Joint3D %i %i %i %i %i %i %i %i 1 1 1 0 \n', 10000+i, joint.x_neg(i), joint.x_pos(i), joint.y_neg(i), joint.y_pos(i), joint.z_neg(i), joint.z_pos(i), 10000+i);
+                end
             end
         end
     end
@@ -253,7 +274,7 @@ if height(hinge) > 0
             if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column')  % IMK Rotational Hinge
                 % Load in backbone curve
                 hinge_props = element_analysis(element_analysis.id == hinge.element_id(i),:);
-                [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.Mn_pos, hinge_props.Mn_neg, hinge_props.Mp_pos, hinge_props.Mp_neg, ele.length, ele_props.e, ele_props.iz, hinge_props, analysis.hinge_stiff_mod );
+                [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.Mn_pos, hinge_props.Mn_neg, hinge_props.Mp_pos, hinge_props.Mp_neg, ele.length, ele_props.e, ele_props.iz, hinge_props, analysis.hinge_stiff_mod, 0.1 );
 
                 % Define IMK Parameters
                 Ko = moment_vec_pos(1)/rot_vec_pos(1);
@@ -291,16 +312,16 @@ if height(hinge) > 0
                     fprintf(fileID,'uniaxialMaterial MultiLinear %i %f %f %f %f %f %f %f %f %f %f \n',element.id(end) + 9000,disp_vec(1),force_vec(1),disp_vec(2),force_vec(2),disp_vec(3),force_vec(3),disp_vec(4),force_vec(4), 999, force_vec(4)); % continue hinge at residual strength
 
                     % uniaxialMaterial MinMax $matTag $otherTag <-min $minStrain> <-max $maxStrain>
-                    fprintf(fileID,'uniaxialMaterial MinMax %i %i -min %f -max %f \n',element.id(end)+90000,element.id(end) + 9000,-999,999); % Only reduce to zero strength at really high  displacements
+%                     fprintf(fileID,'uniaxialMaterial MinMax %i %i -min %f -max %f \n',element.id(end)+90000,element.id(end) + 9000,-999,999); % Only reduce to zero strength at really high  displacements
 
                     %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
                     if strcmp(ele.direction,'x')
-                        fprintf(fileID,'element zeroLength %i %i %i -mat %i 1 1 1 1 1 -dir 1 2 3 4 5 6\n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)+90000); % Element Id for Hinge
+                        fprintf(fileID,'element zeroLength %i %i %i -mat %i 1 1 1 1 1 -dir 1 2 3 4 5 6\n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)+9000); % Element Id for Hinge
+%                         fprintf(fileID,'equalDOF %i %i 1 2 \n',hinge.node_1(i),hinge.node_2(i));
                     elseif strcmp(ele.direction,'z')
-                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 %i 1 1 1 -dir 1 2 3 4 5 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)+90000); % Element Id for Hinge
+                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 %i 1 1 1 -dir 1 2 3 4 5 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)+9000); % Element Id for Hinge
+%                         fprintf(fileID,'equalDOF %i %i 1 2 \n',hinge.node_1(i),hinge.node_2(i));
                     end
-
-    %                 fprintf(fileID,'equalDOF 1 3 2 3 \n');
                 end
             end
         end

@@ -1,4 +1,3 @@
 id,story_group_id,element_group_id,description,direction,x_start,z_start,offset_start,offset_end,trib_wt
 1,1,1,simple frame,x,0,0,0,0,1
-1,1,1,simple frame,x,0,150,0,0,1
 1,1,1,simple frame,x,0,300,0,0,1

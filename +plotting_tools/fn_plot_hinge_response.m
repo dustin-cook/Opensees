@@ -23,14 +23,17 @@ for i = 1:height(hinge)
     % Grab Element Properties
     ele = element(element.id == hinge.element_id(i),:);
     ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
-
+    
+    % Define plot directory
+    hinge_plot_dir = [plot_dir filesep 'Hinge_Plots' filesep 'Story - ' num2str(ele.story)];
+    
     if strcmp(hinge.type(i),'rotational')
         if strcmp(ele.type,'column')
             hinge_name = ['Hinge_y_', num2str(node.y(node.id == hinge.node_1(i)))];
         elseif strcmp(ele.type,'beam')
             hinge_name = ['Hinge_x_', num2str(node.x(node.id == hinge.node_1(i)))];
         end
-        plot_name = ['element_' num2str(hinge.element_id(i)) ' - ' hinge_name ' Rotation Response'];
+        plot_name = [ele.type{1} '_' num2str(hinge.element_id(i)) ' - ' hinge_name ' - Rotation Response'];
         fn_plot_backbone( ele, ele_props, hinge_plot_dir, plot_name, 2, hinge.rotation_TH{i}, hinge.moment_TH{i})
 
 %         % Plot Hinge Rotation Time History
@@ -52,8 +55,8 @@ for i = 1:height(hinge)
 %         fn_format_and_save_plot( hinge_plot_dir, plot_name, 2 )
 
     elseif strcmp(hinge.type(i),'shear')
-        plot_name = ['Hinge ' num2str(i) ' Shear Response'];
-        fn_plot_backbone( ele, ele_props, ele, hinge_plot_dir, plot_name, 2, hinge.deformation_TH{i}, hinge.shear_TH{i})
+        plot_name = [ele.type{1} '_' num2str(hinge.element_id(i)) ' - Shear Response'];
+        fn_plot_backbone( ele, ele_props, hinge_plot_dir, plot_name, 2, hinge.deformation_TH{i}, hinge.shear_TH{i})
     end
 end
 end

@@ -117,7 +117,7 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         % Plot EDP Profiles
         fn_plot_edp_profiles( plot_dir, ground_motion.x.pga, model, story, target_disp_in.x, 'x', record_edp)
         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-            fn_plot_edp_profiles( plot_dir, ground_motion.x.pga, model, story, target_disp_in.z, 'z', record_edp )
+            fn_plot_edp_profiles( plot_dir, ground_motion.z.pga, model, story, target_disp_in.z, 'z', record_edp )
         end
 
         % Plot specific TH comparisons
@@ -129,7 +129,7 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         % Plot EDP Profiles
         fn_plot_edp_profiles( plot_dir, ground_motion.x.pga, model, story, target_disp_in.x, 'x' )
         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-            fn_plot_edp_profiles( plot_dir, ground_motion.x.pga, model, story, target_disp_in.z, 'z' )
+            fn_plot_edp_profiles( plot_dir, ground_motion.z.pga, model, story, target_disp_in.z, 'z' )
         end
 
         % Plot specific TH comparisons

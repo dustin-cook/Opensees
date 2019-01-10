@@ -19,7 +19,7 @@ import asce_41.*
 % For Beams and Columns and (walls controlled by flexure), plot rotational hinge
 if strcmp(ele.type,'beam') || strcmp(ele.type,'column') || (strcmp(ele.type,'wall') && strcmp(ele.critical_mode,'flexure'))
     n = 10;
-    [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.Mn_pos, ele.Mn_neg, ele.Mp_pos, ele.Mp_neg, ele.length, ele_props.e, ele_props.iz, ele, n );
+    [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.Mn_pos, ele.Mn_neg, ele.Mp_pos, ele.Mp_neg, ele.length, ele_props.e, ele_props.iz, ele, n, 0.1 );
     if plot_style == 1
         plot([0,rot_vec_pos],[0,moment_vec_pos/moment_vec_pos(1)],'Color',line_color,'LineWidth',2) % Don't need to worry about negative bending because this plot is normalized by Qy
         xlabel('Total Rotation (rad)')
@@ -28,8 +28,8 @@ if strcmp(ele.type,'beam') || strcmp(ele.type,'column') || (strcmp(ele.type,'wal
         hold on
         elastic_element_disp_pos = rot_vec_pos(1)*(n/(n+1)); % removes contribution from elastic beam/column. assumes n = 10;
         elastic_element_disp_neg = rot_vec_neg(1)*(n/(n+1)); % removes contribution from elastic beam/column. assumes n = 10;
-        plot([fliplr(-(rot_vec_neg-elastic_element_disp_neg)),0,(rot_vec_pos-elastic_element_disp_pos)],[fliplr(-moment_vec_neg),0,moment_vec_pos]/1000,'k','LineWidth',2,'DisplayName','ASCE 41 Backone') % Converted to K-in
-        plot(hinge_disp_to_plot,hinge_force_to_plot/1000,'b','LineWidth',1,'DisplayName','Analysis'); % transform from lb-in to kip-in
+        plot([fliplr(-(rot_vec_neg-elastic_element_disp_neg)),0,(rot_vec_pos-elastic_element_disp_pos)],[fliplr(-moment_vec_neg),0,moment_vec_pos]/1000,'k','LineWidth',1.5,'DisplayName','ASCE 41 Backone') % Converted to K-in
+        plot(hinge_disp_to_plot,hinge_force_to_plot/1000,'b','LineWidth',2,'DisplayName','Analysis'); % transform from lb-in to kip-in
         xlabel('Hinge Rotation (rad)')
         ylabel('Moment (k-in)')
         xlim([-max(rot_vec_neg)*1.25,max(rot_vec_pos)*1.25])
@@ -40,13 +40,13 @@ if strcmp(ele.type,'beam') || strcmp(ele.type,'column') || (strcmp(ele.type,'wal
 elseif strcmp(ele.type,'wall') && strcmp(ele.critical_mode,'shear')
     [ force_vec, disp_vec ] = fn_define_backbone_shear( ele.Vn, ele.length, ele_props.g, ele_props.av, ele );
     if plot_style == 1
-        plot([0,disp_vec/ele.length],[0,force_vec/force_vec(2)],'k','LineWidth',2)
+        plot([0,disp_vec/ele.length],[0,force_vec/force_vec(2)],'Color',line_color,'LineWidth',2)
         xlabel('Drift')
         ylabel('Q/Qy')
     elseif plot_style == 2
         hold on
-        plot([fliplr(-disp_vec),0,disp_vec],[fliplr(-force_vec),0,force_vec]/1000,'k','LineWidth',2,'DisplayName','ASCE 41 Backone') % transform from lbs to kips
-        plot(hinge_disp_to_plot,hinge_force_to_plot/1000,'b','LineWidth',1,'DisplayName','Analysis'); % transform from lbs to kips
+        plot([fliplr(-disp_vec),0,disp_vec],[fliplr(-force_vec),0,force_vec]/1000,'k','LineWidth',1.5,'DisplayName','ASCE 41 Backone') % transform from lbs to kips
+        plot(hinge_disp_to_plot,hinge_force_to_plot/1000,'b','LineWidth',2,'DisplayName','Analysis'); % transform from lbs to kips
         xlabel('Hinge Displacement (in)')
         ylabel('Shear Force (k)')
         xlim([-max(disp_vec)*1.25,max(disp_vec)*1.25])

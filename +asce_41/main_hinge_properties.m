@@ -1,4 +1,4 @@
-function [ element ] = main_hinge_properties( ele_prop_table, element )
+function [ element, joint ] = main_hinge_properties( ele_prop_table, element, joint )
 %UNTITLED4 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -6,7 +6,7 @@ function [ element ] = main_hinge_properties( ele_prop_table, element )
 import asce_41.*
 
 %% Go through each element and calculate the hinge properties
-for i = 1:length(element.id)
+for i = 1:height(element)
     ele = element(i,:);
     ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
     
@@ -33,6 +33,21 @@ for i = 1:length(element.id)
     element.io(i) = hinge.io;
     element.ls(i) = hinge.ls;
     element.cp(i) = hinge.cp;
+end
+
+%% Go through each joint and calculate the nonlinear properties
+for i = 1:height(joint)
+    jnt = joint(i,:);
+    
+    [ hinge ] = fn_joint_hinge( jnt );
+    
+    % save as hinge parameters in joint table
+    joint.a_hinge(i,1) = hinge.a_hinge;
+    joint.b_hinge(i,1) = hinge.b_hinge;
+    joint.c_hinge(i,1) = hinge.c_hinge;
+    joint.io(i,1) = hinge.io;
+    joint.ls(i,1) = hinge.ls;
+    joint.cp(i,1) = hinge.cp;
 end
 
 end

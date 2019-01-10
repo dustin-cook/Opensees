@@ -68,29 +68,29 @@ for s = 1:height(story)
 end
 
 %% For each node created go through as say whats connected in
-mf_id = 0;
-mf_joint.id = [];
+joint_id = 0;
+joint.id = [];
 for i = 1:length(node.id)
     eles_at_node = element.id(((element.node_1 == node.id(i)) | (element.node_2 == node.id(i))));
     if length(eles_at_node) > 1 && ~strcmp(element.type(element.id == eles_at_node(1)),'wall')
-        mf_id = mf_id + 1;
-        mf_joint.id(mf_id,1) = mf_id;
-        mf_joint.column_low(mf_id,1) = 0;
-        mf_joint.column_high(mf_id,1) = 0;
-        mf_joint.beam_left(mf_id,1) = 0;
-        mf_joint.beam_right(mf_id,1) = 0;
+        joint_id = joint_id + 1;
+        joint.id(joint_id,1) = joint_id;
+        joint.column_low(joint_id,1) = 0;
+        joint.column_high(joint_id,1) = 0;
+        joint.beam_left(joint_id,1) = 0;
+        joint.beam_right(joint_id,1) = 0;
         for e = 1:length(eles_at_node)
             if strcmp(element.type(element.id == eles_at_node(e)),'column')
                 if element.node_1(element.id == eles_at_node(e)) == node.id(i)
-                    mf_joint.column_high(mf_id,1) = eles_at_node(e);
+                    joint.column_high(joint_id,1) = eles_at_node(e);
                 elseif element.node_2(element.id == eles_at_node(e)) == node.id(i)
-                    mf_joint.column_low(mf_id,1) = eles_at_node(e);
+                    joint.column_low(joint_id,1) = eles_at_node(e);
                 end
             elseif strcmp(element.type(element.id == eles_at_node(e)),'beam')
                 if element.node_1(element.id == eles_at_node(e)) == node.id(i)
-                    mf_joint.beam_right(mf_id,1) = eles_at_node(e);
+                    joint.beam_right(joint_id,1) = eles_at_node(e);
                 elseif element.node_2(element.id == eles_at_node(e)) == node.id(i)
-                    mf_joint.beam_left(mf_id,1) = eles_at_node(e);
+                    joint.beam_left(joint_id,1) = eles_at_node(e);
                 end
             end
         end
@@ -123,14 +123,14 @@ end
 node.mass = node.dead_load/386;
 
 %% Assign Joints
-joint.id = [];
-joint.x_neg = [];
-joint.x_pos = [];
-joint.y_neg = [];
-joint.y_pos = [];
+% joint.id = [];
+% joint.x_neg = [];
+% joint.x_pos = [];
+% joint.y_neg = [];
+% joint.y_pos = [];
 if strcmp(model.dimension,'3D')
-    joint.z_neg = [];
-    joint.z_pos = [];
+%     joint.z_neg = [];
+%     joint.z_pos = [];
 end
 joint_id = 0;
 for s = 1:height(story)
@@ -220,7 +220,6 @@ for s = 1:height(story)
            
             % Define Joint
             joint_id = joint_id + 1;
-            joint.id(joint_id,1) = joint_id + 1000;
             joint.x_neg(joint_id,1) = new_node.id(1);
             joint.x_pos(joint_id,1) = new_node.id(2);
             joint.y_neg(joint_id,1) = new_node.id(3);
@@ -517,8 +516,6 @@ ele_table = struct2table(element);
 writetable(ele_table,[write_dir filesep 'element.csv'])
 joint_table = struct2table(joint);
 writetable(joint_table,[write_dir filesep 'joint.csv'])
-mf_joint_table = struct2table(mf_joint);
-writetable(mf_joint_table,[write_dir filesep 'mf_joint.csv'])
 hinge_table = struct2table(hinge);
 writetable(hinge_table,[write_dir filesep 'hinge.csv'])
 

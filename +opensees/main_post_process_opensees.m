@@ -1,4 +1,4 @@
-function [ ] = main_post_process_opensees( analysis, model, story, node, element, hinge, ground_motion, opensees_dir )
+function [ ] = main_post_process_opensees( analysis, model, story, node, element, joint, hinge, ground_motion, opensees_dir )
 % Main function that load raw opensees recorder data and transoforms it into something more readily usable 
 
 %% Import Packages
@@ -16,6 +16,17 @@ if analysis.type == 1 % dynamic analysis
         element_force_recorders = dlmread([opensees_dir filesep 'element_force.txt'],' ');
     end
     
+    % Load Hinge Data
+    if analysis.nonlinear ~= 0
+        if analysis.write_xml
+            [ hinge_deformation_TH ] = fn_xml_read([opensees_dir filesep 'hinge_deformation_all.xml']);
+            [ hinge_force_TH ] = fn_xml_read([opensees_dir filesep 'hinge_force_all.xml']);
+        else
+            hinge_deformation_TH = dlmread([opensees_dir filesep 'hinge_deformation_all.txt'],' ');
+            hinge_force_TH = dlmread([opensees_dir filesep 'hinge_force_all.txt'],' ');
+        end
+    end
+    
     % Define Time Step Vector from element force output
     time_step_vector = element_force_recorders(:,1)';
     
@@ -26,13 +37,33 @@ else % pushover analysis
     % Load element force data
     if analysis.write_xml
         [ element_force_recorders_x ] = fn_xml_read([opensees_dir filesep 'element_force_x.xml']);
+%         [ joint_force_recorders_x ] = fn_xml_read([opensees_dir filesep 'joint_force_x.xml']);
         if strcmp(model.dimension,'3D')
             [ element_force_recorders_z ] = fn_xml_read([opensees_dir filesep 'element_force_z.xml']);
+%             [ joint_force_recorders_z ] = fn_xml_read([opensees_dir filesep 'joint_force_z.xml']);
         end
     else
         element_force_recorders_x = dlmread([opensees_dir filesep 'element_forcee_x.txt'],' ');
         if strcmp(model.dimension,'3D')
             element_force_recorders_z = dlmread([opensees_dir filesep 'element_forcee_z.txt'],' ');
+        end
+    end
+    
+    if analysis.nonlinear ~= 0
+        if analysis.write_xml
+            [ hinge_deformation_TH_x ] = fn_xml_read([opensees_dir filesep 'hinge_deformation_x.xml']);
+            [ hinge_force_TH_x ] = fn_xml_read([opensees_dir filesep 'hinge_force_x.xml']);
+            if strcmp(model.dimension,'3D')
+                [ hinge_deformation_TH_z ] = fn_xml_read([opensees_dir filesep 'hinge_deformation_z.xml']);
+                [ hinge_force_TH_z ] = fn_xml_read([opensees_dir filesep 'hinge_force_z.xml']);
+            end
+        else
+            hinge_deformation_TH_x = dlmread([opensees_dir filesep 'hinge_deformation_x.txt'],' ');
+            hinge_force_TH_x = dlmread([opensees_dir filesep 'hinge_force_x.txt'],' ');
+            if strcmp(model.dimension,'3D')
+                hinge_deformation_TH_z = dlmread([opensees_dir filesep 'hinge_deformation_z.txt'],' ');
+                hinge_force_TH_z = dlmread([opensees_dir filesep 'hinge_force_z.txt'],' ');
+            end
         end
     end
     
@@ -43,6 +74,8 @@ else % pushover analysis
         dirs_ran = {'x'};
     end
 end
+
+% [ joint_force_recorders_all ] = fn_xml_read([opensees_dir filesep 'joint_force_all.xml']);
 
 %% Element Forces
 % Force component IDs
@@ -79,18 +112,28 @@ clear element_force_recorders
 
 %% Load hinge moment and rotation
 if analysis.nonlinear ~= 0
-    if analysis.write_xml
-        [ deformation_TH ] = fn_xml_read([opensees_dir filesep 'hinge_deformation_all.xml']);
-        [ force_TH ] = fn_xml_read([opensees_dir filesep 'hinge_force_all.xml']);
-    else
-        deformation_TH = dlmread([opensees_dir filesep 'hinge_deformation_all.txt'],' ');
-        force_TH = dlmread([opensees_dir filesep 'hinge_force_all.txt'],' ');
-    end
-    for i = 1:height(hinge)
-        hinge.deformation_TH{i} = deformation_TH(:,2*i-1+1)';
-        hinge.shear_TH{i} = -force_TH(:,2*i-1+1)';
-        hinge.rotation_TH{i} = deformation_TH(:,2*i+1)';
-        hinge.moment_TH{i} = -force_TH(:,2*i+1)'; % I think the forces here are coming in backward, but should triple check
+    if analysis.type == 1 % dynamic analysis
+        for i = 1:height(hinge)
+            hinge.deformation_TH{i} = hinge_deformation_TH(:,2*i-1+1)';
+            hinge.shear_TH{i} = -hinge_force_TH(:,2*i-1+1)';
+            hinge.rotation_TH{i} = hinge_deformation_TH(:,2*i+1)';
+            hinge.moment_TH{i} = -hinge_force_TH(:,2*i+1)'; % I think the forces here are coming in backward, but should triple check
+        end
+    else % pushover analysis
+        for i = 1:height(hinge)
+            element_direction = element.direction(element.id == hinge.id(i));
+            if strcmp(element_direction,'x')
+                hinge.deformation_TH{i} = hinge_deformation_TH_x(:,2*i-1+1)';
+                hinge.shear_TH{i} = -hinge_force_TH_x(:,2*i-1+1)';
+                hinge.rotation_TH{i} = hinge_deformation_TH_x(:,2*i+1)';
+                hinge.moment_TH{i} = -hinge_force_TH_x(:,2*i+1)'; % I think the forces here are coming in backward, but should triple check
+            else
+                hinge.deformation_TH{i} = hinge_deformation_TH_z(:,2*i-1+1)';
+                hinge.shear_TH{i} = -hinge_force_TH_z(:,2*i-1+1)';
+                hinge.rotation_TH{i} = hinge_deformation_TH_z(:,2*i+1)';
+                hinge.moment_TH{i} = -hinge_force_TH_z(:,2*i+1)'; % I think the forces here are coming in backward, but should triple check
+            end
+        end
     end
 end
 
@@ -181,6 +224,7 @@ end
 %% Save Specific Data
 save([opensees_dir filesep 'model_analysis.mat'],'model')
 save([opensees_dir filesep 'element_analysis.mat'],'element')
+save([opensees_dir filesep 'joint_analysis.mat'],'joint')
 save([opensees_dir filesep 'node_analysis.mat'],'node')
 save([opensees_dir filesep 'hinge_analysis.mat'],'hinge')
 save([opensees_dir filesep 'story_analysis.mat'],'story')

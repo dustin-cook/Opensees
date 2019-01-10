@@ -1,4 +1,4 @@
-function [ ] = main_ASCE_41_post_process( analysis, ele_prop_table )
+function [ capacity ] = main_ASCE_41_post_process( analysis, ele_prop_table )
 % Description: Main script that post process an ASCE 41 analysis
 
 % Created By: Dustin Cook
@@ -30,10 +30,12 @@ fn_make_directory( write_dir )
 load([read_dir filesep 'model_analysis.mat'])
 load([read_dir filesep 'story_analysis.mat'])
 load([read_dir filesep 'element_analysis.mat'])
+load([read_dir filesep 'joint_analysis.mat'])
 load([read_dir filesep 'element_TH.mat'])
 load([read_dir filesep 'hinge_analysis.mat'])
 
-joint_table = readtable([analysis.out_dir filesep 'model_data' filesep 'mf_joint.csv'],'ReadVariableNames',true);
+% mf_joint_table = readtable([analysis.out_dir filesep 'model_data' filesep 'mf_joint.csv'],'ReadVariableNames',true);
+% joint_table = readtable([analysis.out_dir filesep 'model_data' filesep 'joint.csv'],'ReadVariableNames',true);
 
 %% Calculate Element Properties and Modify Analysis Results based on ASCE 41-17
 % Basic building or analysis properties
@@ -45,13 +47,13 @@ if analysis.asce_41_post_process
 
     % Procedure Specific Analysis
     if strcmp(analysis.proceedure,'NDP') % Nonlinear Dynamic Proceedure
-        [ element, element_TH, element_PM, joint ] = main_element_capacity( story, ele_prop_table, element, element_TH, analysis, joint_table );
-        [ element ] = main_hinge_properties( ele_prop_table, element );
+        [ element, element_TH, element_PM, joint ] = main_element_capacity( story, ele_prop_table, element, element_TH, analysis, joint  );
+        [ element, joint ] = main_hinge_properties( ele_prop_table, element, joint );
         if analysis.nonlinear ~= 0 % Only for nonlinear runs
-            [ hinge ] = fn_accept_hinge( element, hinge );
+            [ hinge ] = fn_accept_hinge( element, hinge);
         end
     else % Linear Dynamic Proceedure and Test Proceedure (and all others defined so be careful)
-        [ model, element, element_TH, element_PM, joint ] = fn_linear_capacity_and_c_factors( model, story, ele_prop_table, element, element_TH, analysis, joint_table );
+        [ model, element, element_TH, element_PM, joint ] = fn_linear_capacity_and_c_factors( model, story, ele_prop_table, element, element_TH, analysis, joint );
         [ element ] = main_m_factors( ele_prop_table, element );
         [ element, ~ ] = fn_calc_dcr( element, element_TH, 'cp' );
     end
@@ -75,5 +77,8 @@ if ~strcmp(analysis.case,'NA')
     save([write_dir filesep 'story_analysis.mat'],'story')
     save([write_dir filesep 'element_analysis.mat'],'element')
 end
+
+% Save capacities to compare iterations
+capacity = element.capacity;
 end
 

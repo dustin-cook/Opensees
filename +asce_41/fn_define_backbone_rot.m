@@ -1,4 +1,4 @@
-function [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( type, Mn_pos, Mn_neg, Mp_pos, Mp_neg, length, e, iz, hinge_props, n )
+function [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( type, Mn_pos, Mn_neg, Mp_pos, Mp_neg, length, e, iz, hinge_props, n, strain_harden_ratio )
 % Takes points from ASCE 41-17 chapter 10 tables and Define backbone curve
 % as a vector of displacements and forces for both the positive and
 % negative directions. Units are based on the basic units that are input.
@@ -38,9 +38,13 @@ b_hinge = max([2e-6, hinge_props.b_hinge]);
 
 % Define stiffness of lumped plasticisty model based on Ibarra 2005
 k_mem = 6*e*iz/length;
-k_ele = ((n+1)/n)*k_mem; 
-k_spring = n*k_ele;
-
+if isnan(n) % Ignore Amplification
+    k_ele = k_mem; 
+    k_spring = k_ele;
+else
+    k_ele = ((n+1)/n)*k_mem; 
+    k_spring = n*k_ele;
+end
 % Select which stiffness to use for this backbone
 if strcmp(type,'full')
     k_elastic = k_mem;
@@ -49,8 +53,8 @@ elseif strcmp(type,'hinge')
 end
 
 % Define Post Yeild Strain Hardening Slope
-post_yeild_slope_pos = min([(Mp_pos-Mn_pos)/a_hinge,0.1*k_mem]);
-post_yeild_slope_neg = min([(Mp_neg-Mn_neg)/a_hinge,0.1*k_mem]);
+post_yeild_slope_pos = min([(Mp_pos-Mn_pos)/a_hinge,strain_harden_ratio*k_mem]);
+post_yeild_slope_neg = min([(Mp_neg-Mn_neg)/a_hinge,strain_harden_ratio*k_mem]);
 
 % Define Backbone Curves
 moment_vec_pos = [Mn_pos, post_yeild_slope_pos*a_hinge+Mn_pos,hinge_props.c_hinge*Mn_pos];

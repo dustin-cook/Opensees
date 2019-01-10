@@ -32,12 +32,13 @@ analysis.initial_timestep_factor = 1; % reduction from eq timestep to analysis t
 analysis.solution_algorithm = 1; % Run the opensees solution algorthm which will try different things 
 analysis.collapse_drift = 0.20; % stop analysis at this drift and say collapse
 analysis.joint_model = 2; % 1 = elastic elements, 2 = joint 3D
+analysis.joint_explicit = 0; % 1 = elastic elements, 2 = joint 3D
 analysis.write_xml = 1; % Write and read opensees out files as xml files (0 = .txt files)
 analysis.pushover_drift = 0.05; % Drfit limit where the pushover will go till
 analysis.pushover_num_steps = 100; % Number of steps a pushover will take to get to the dirft limit
 
 % Visuals and Graphics
-analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
+analysis.element_plots = 1; % Plot hinge backnones and other per element visualizations
 analysis.plot_recordings = 0; % Plot analysis results v recorded results
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 1; % Visual scale of the movie playback

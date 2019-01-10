@@ -4,7 +4,7 @@ function [ hinge ] = fn_beam_hinge( ele, ele_props )
 % Date Created: 7-1-18
 
 %% Import Packages
-import asce_41.*
+import asce_41.fn_filter_asce41_table
 
 % Load Beam Hinge Table 10-7 from ASCE 41-17
 hinge_table = readtable(['+asce_41' filesep 'beam_hinge.csv'],'ReadVariableNames',true);
