@@ -15,37 +15,45 @@ function [ ] = main_check_analysis( analysis, ele_prop_table, capacity, step )
 %% Initial Setup
 % Import Packages
 import plotting_tools.fn_plot_backbone
+import plotting_tools.fn_format_and_save_plot
 
 % Define Read and Write Directories
 read_dir = [analysis.out_dir filesep 'asce_41_data'];
-write_dir = [analysis.out_dir filesep 'validation_plots' filesep 'hinge_plots'];
+write_dir = [analysis.out_dir filesep 'validation_plots'];
 
 % Load Analysis Data
 load([read_dir filesep 'element_analysis.mat'])
 
 %% Plot Hinge Convergence
-if analysis.element_plots && strcmp(analysis.proceedure,'NDP')
+if analysis.element_plots && strcmp(analysis.proceedure,'NDP') && analysis.type == 2
     for i = 1:height(element)
 
         ele = element(i,:);
         ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
-        plot_name = ['element_' num2str(ele.id)];
+        plot_dir = [write_dir filesep 'hinge_plots' filesep 'Story - ' num2str(ele.story)];
+        plot_name = [ele.type{1} '_' num2str(ele.id)];
         
-        prev_fig_file = [write_dir filesep plot_name '.fig'];
+        prev_fig_file = [plot_dir filesep plot_name '.fig'];
         if exist(prev_fig_file,'file')
             openfig(prev_fig_file);
             hold on
         end
         
-        line_color = [1,1,1] - step/length(analysis.type_list);
-        fn_plot_backbone( ele, ele_props, write_dir, plot_name, 1, 0, 0, line_color)
+        line_color = [1,1,1] - step/(length(analysis.type_list)-1);
+        fn_plot_backbone( ele, ele_props, plot_dir, plot_name, 1, 0, 0, line_color)
     end
 end
 
 %% Check Capacity Convergence
-if step == length(analysis.type_list)
-    capacity
-    plot([1,2,3,4],capacity)
+if strcmp(analysis.case,'backbones')
+    relative_capacity = capacity(:,2:end) ./ capacity(:,1:(end-1));
+    iter_num = 2:(length(relative_capacity(1,:))+1);
+    plot(iter_num,relative_capacity)
+    ylim([0,2])
+    ylabel('Percent Change in Capacity')
+    xlabel('Iteration')
+    plot_name = 'Capacity Convergence';
+    fn_format_and_save_plot( write_dir, plot_name, 2 )
 end
 
 %% Vertical Ground Motion Convergence

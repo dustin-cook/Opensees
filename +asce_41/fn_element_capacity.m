@@ -64,23 +64,47 @@ else
         ele_PM.vector_P = [-ele.Pn_t, vector_P, ele.Pn_c];
         ele_PM.vector_M = [0, vector_M, 0];
         % Moment Capacity Time History
-        ele_TH.Mn_pos = interp1(vector_P,vector_M,ele_TH.P_TH_1);
+        load_history = ele_TH.P_TH_1;
+        load_history(load_history > max(vector_P)) = max(vector_P); % Keep the axial load history within the bounds of the PM diagram so that we don't get NaNs with the interp
+        load_history(load_history < min(vector_P)) = min(vector_P); % This shouldn't really matter unless I load a linear model too heavily
+        
+        load_history_linear = ele_TH.P_TH_linear;
+        load_history_linear(load_history_linear > max(vector_P)) = max(vector_P); % Keep the axial load history within the bounds of the PM diagram so that we don't get NaNs with the interp
+        load_history_linear(load_history_linear < min(vector_P)) = min(vector_P);
+        
+        ele_TH.Mn_pos = interp1(vector_P,vector_M,load_history);
         ele_TH.Mn_neg = ele_TH.Mn_pos; % assumes columns are the same in both directions
-        ele_TH.Mp_pos = interp1(vector_P,vector_Mp,ele_TH.P_TH_1);
+        ele_TH.Mp_pos = interp1(vector_P,vector_Mp,load_history);
         ele_TH.Mp_neg = ele_TH.Mn_pos; % assumes columns are the same in both directions
-        ele_TH.Mn_pos_linear = interp1(vector_P,vector_M,ele_TH.P_TH_linear);
+        ele_TH.Mn_pos_linear = interp1(vector_P,vector_M,load_history_linear);
         ele_TH.Mn_neg_linear = ele_TH.Mn_pos_linear; % assumes columns are the same in both directions
         % Moment Capcity
-        ele.Mn_pos = min(ele_TH.Mn_pos); % Best estimate moment is the minumum from the time history (most conservative)
-        ele.Mn_neg = min(ele_TH.Mn_pos);
-        ele.Mp_pos = min(ele_TH.Mn_pos);
-        ele.Mp_neg = min(ele_TH.Mn_pos);
+        [~, P_grav_idx] = min(abs(load_history-ele.P_grav));
+        ele.Mn_pos = ele_TH.Mn_pos(P_grav_idx); % Best estimate moment of moment capacity for analysis is just the average capacity from the time history
+        ele.Mn_neg = ele_TH.Mn_neg(P_grav_idx);
+        ele.Mp_pos = ele_TH.Mp_pos(P_grav_idx);
+        ele.Mp_neg = ele_TH.Mp_neg(P_grav_idx);
+        % Use Pgravity for now
+%         [ ~, ele.Mn_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, ele.P_grav, 0, 0 );
+%         [ ~, ele.Mp_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, ele.P_grav, 0, 0 );
+%         ele.Mn_neg = ele.Mn_pos;
+%         ele.Mp_neg = ele.Mp_pos;
     end
 end
 
 %% Shear Capacity
+% Shear check 10.3.4
+ele.effective_shear_rein_factor = 1;
+ele_depth = max(str2double(strsplit(strrep(strrep(ele_prop.As_d{1},']',''),'[',''))));
+if ele_prop.S > ele_depth
+    ele.effective_shear_rein_factor = 0; %Transverse Reinforcement Spaced too far apart. Transverse reinforcement is ineffective in resiting shear
+elseif ele_prop.S > ele_depth/2
+    ele.effective_shear_rein_factor = 2*(1-ele_prop.S/ele_depth); % Transverse Reinforcement Spaced too far apart. Reduce effectivenes of transverse reinforcement
+end
+eff_fyt_e = ele_prop.fy_e*ele.effective_shear_rein_factor;
+
 % Vye and Diplacement Ductility
-[ ele ] = fn_disp_ductility( ele, ele_prop, story );
+[ ele ] = fn_disp_ductility( ele, ele_prop, story, eff_fyt_e );
 
 % Shear capacity is not a function of time
 if strcmp(ele.type,'column')
@@ -93,10 +117,10 @@ if strcmp(ele.type,'column')
     
     % The yield displacement is the lateral displacement of the column, determined using the effective rigidities 
     % from Table 10-5, at a shear demand resulting in flexural yielding of the plastic hinges, VyE.
-    [ ele.Vn, ele.V0 ] = fn_shear_capacity( ele_prop.Av, ele_prop.fy_e, ele_prop.As_d, ele_prop.S, ele_prop.lambda, ele_prop.fc_e, ele_prop.a, ele_TH.M_TH_1, ele_TH.V_TH_1, ele.P_grav, ductility_factor );
+    [ ele.Vn, ele.V0 ] = fn_shear_capacity( ele_prop.Av, eff_fyt_e, ele_prop.As_d, ele_prop.S, ele_prop.lambda, ele_prop.fc_e, ele_prop.a, ele_TH.M_TH_1, ele_TH.V_TH_1, ele.P_grav, ductility_factor );
     ele.Vs = NaN;
 else
-    [ ~, ele.Vn, ele.Vs ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.Av, ele_prop.fy_e, ele_prop.S, ele_prop.lambda, ele_prop.a, ele_prop.hw, ele.type, ele_prop.As_d );
+    [ ~, ele.Vn, ele.Vs ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.Av, eff_fyt_e, ele_prop.S, ele_prop.lambda, ele_prop.a, ele_prop.hw, ele.type, ele_prop.As_d );
     ele.V0 = NaN;
 end 
 
@@ -122,6 +146,11 @@ if strcmp(ele.type,'wall')
         error('Wall has too much axial load to take lateral force, modify model')
     end
 end
+
+% % Check 10.3.3 (if not using timeshenko beams)
+% if ele.Vmax >= 6*sqrt(ele_prop.fc_e)*ele_prop.a
+%     error('Shear too digh for model assumptions. Use deformation that is 80% of the value from the analytical model')
+% end
 
 % End Function
 end

@@ -35,6 +35,7 @@ if analysis.type == 1 % Dynamic
     fprintf(fileID,'set ok [analyze 1 $dt $dt_min $dt_max] \n');
 elseif analysis.type == 2 % Pushover
     fprintf(fileID,'set step_size %f \n', step_length);
+    fprintf(fileID,'integrator DisplacementControl %i %i $step_size \n', control_node, control_dof);
     fprintf(fileID,'set ok [analyze 1] \n');
 end
 fprintf(fileID,'puts "analysis failure = $ok " \n');
@@ -84,26 +85,34 @@ fprintf(fileID,'puts $converge_tol_file $converge_tol_log \n');
 %% Check for singularity and collapse
 fprintf(fileID,'if {$ok == 0} { \n');
 % Define Displacement
-fprintf(fileID,'set node_at_floor_1 %i \n', first_story_node(1));
-fprintf(fileID,'set floor_displ_1 "[nodeDisp $node_at_floor_1 1]" \n');
-fprintf(fileID,'puts "First Story Disp = $floor_displ_1" \n');
-fprintf(fileID,'set height_floor_1 %f \n', story_ht(1));
-fprintf(fileID,'set floor_drift_1 [expr abs($floor_displ_1/$height_floor_1)] \n');
+if analysis.type == 2 % Pushover
+    fprintf(fileID,'set node_at_floor_1 %i \n', control_node);
+    fprintf(fileID,'set floor_displ_1 "[nodeDisp $node_at_floor_1 %i]" \n',control_dof);
+    fprintf(fileID,'puts "Control Node Disp = $floor_displ_1" \n');
+    fprintf(fileID,'set height_floor_1 %f \n', story_ht(1));
+    fprintf(fileID,'set floor_drift_1 [expr abs($floor_displ_1/$height_floor_1)] \n');
+elseif analysis.type == 1 % Dynamic
+    fprintf(fileID,'set node_at_floor_1 %i \n', first_story_node(1));
+    fprintf(fileID,'set floor_displ_1 "[nodeDisp $node_at_floor_1 1]" \n');
+    fprintf(fileID,'puts "First Story Disp = $floor_displ_1" \n');
+    fprintf(fileID,'set height_floor_1 %f \n', story_ht(1));
+    fprintf(fileID,'set floor_drift_1 [expr abs($floor_displ_1/$height_floor_1)] \n');
+end
 % Check for Singularity
 fprintf(fileID,'set check_QNAN_1 [string first QNAN $floor_displ_1 1] \n');
-fprintf(fileID,'puts "QNAN Check = $check_QNAN_1" \n');
+% fprintf(fileID,'puts "QNAN Check = $check_QNAN_1" \n');
 fprintf(fileID,'set check_IND_1 [string first IND $floor_displ_1 1] \n');
-fprintf(fileID,'puts "IND Check = $check_IND_1" \n');
+% fprintf(fileID,'puts "IND Check = $check_IND_1" \n');
 fprintf(fileID,'if {($floor_displ_1 > 1000000) || ($check_QNAN_1 != -1) || ($check_IND_1 != -1)} { \n');
 fprintf(fileID,'set singularity_check 1 \n');
 fprintf(fileID,'} \n');
-fprintf(fileID,'puts "Singularity = $singularity_check" \n');
+% fprintf(fileID,'puts "Singularity = $singularity_check" \n');
 % Check for Collapse
 if analysis.collapse_drift > 0
     fprintf(fileID,'if {$floor_drift_1 > %f} { \n', analysis.collapse_drift);
     fprintf(fileID,'set collapse_check 1 \n');
     fprintf(fileID,'} \n');
-    fprintf(fileID,'puts "Collapse = $collapse_check" \n');
+%     fprintf(fileID,'puts "Collapse = $collapse_check" \n');
 end
 fprintf(fileID,'} \n');
 fprintf(fileID,'} \n');

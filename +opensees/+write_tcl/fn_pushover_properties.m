@@ -8,7 +8,7 @@ if strcmp(analysis.pushover_direction,'x')
 elseif strcmp(analysis.pushover_direction,'z')
     control_dof = 3;
 end
-max_displacement = analysis.pushover_drift*(story.y_start(end)+story.story_ht(end));
+max_displacement = analysis.pushover_drift*sum(story.story_ht);
 step_size = max_displacement / analysis.pushover_num_steps;
         
 end

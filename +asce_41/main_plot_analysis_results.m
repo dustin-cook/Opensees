@@ -31,7 +31,9 @@ load([read_dir filesep 'hinge_analysis.mat'])
 load([read_dir filesep 'model_analysis.mat'])
 
 load([read_dir_opensees filesep 'node_analysis.mat']) % Could probably change these to read from model inputs instead of the opensses analysis
-load([read_dir_opensees filesep 'gm_data.mat'])
+if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this proceedure
+    load([read_dir_opensees filesep 'gm_data.mat'])
+end
 
 if analysis.asce_41_post_process
     load([read_dir filesep 'element_PM.mat']) % Maybe move this to where its needed
@@ -41,13 +43,17 @@ if analysis.plot_recordings
     load([pwd filesep 'ground_motions' filesep 'ICSB_recordings' filesep 'recorded_edp_profile.mat']);
 end
 
+if strcmp(analysis.proceedure,'NDP')
+    backbones = load([analysis.out_dir filesep 'backbones' filesep 'element_analysis.mat']);
+end
+
 %% Pushover Analysis
 if sum(analysis.type_list == 2) > 0 % Pushover was run as part of this proceedure
     pushover_read_dir = [analysis.out_dir filesep 'pushover'];
     % Plot Building Pushovers
-    fn_plot_pushover( pushover_read_dir, 'x' )
+    fn_plot_pushover( pushover_read_dir, 'x', story.story_dead_load )
     if strcmp(model.dimension,'3D')
-        fn_plot_pushover( pushover_read_dir, 'z' )
+        fn_plot_pushover( pushover_read_dir, 'z', story.story_dead_load  )
     end
     
     if analysis.element_plots
@@ -61,7 +67,7 @@ if sum(analysis.type_list == 2) > 0 % Pushover was run as part of this proceedur
         % Plot Hinge Response
         if pushover_analysis.analysis.nonlinear ~= 0 % Is the pushover nonlinear?
             pushover_hinge = load([pushover_read_dir filesep 'hinge_analysis.mat']);
-            fn_plot_hinge_response( pushover_read_dir, pushover_hinge.hinge, element, ele_prop_table, node )
+            fn_plot_hinge_response( pushover_read_dir, pushover_hinge.hinge, backbones.element, ele_prop_table, node )
         end
     end
 end
@@ -150,7 +156,7 @@ if analysis.element_plots
 
     % Plot Hinge Response
     load([read_dir filesep 'hinge_analysis.mat'])
-    fn_plot_hinge_response( plot_dir, hinge, element, ele_prop_table, node )
+    fn_plot_hinge_response( plot_dir, hinge, backbones.element, ele_prop_table, node )
 end
 
 end

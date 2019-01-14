@@ -25,7 +25,7 @@ else % Beams and Columns
     % Concrete Capacity
     if strcmp(type,'beam') % Beams
         Vc = 2*lambda*b*d_eff*sqrt(fc); 
-    elseif strcmp(type,'columns') % Columns
+    elseif strcmp(type,'column') % Columns
         Vc = 2*(1 + P/(2000*Ag))*lambda*b*d_eff*sqrt(fc); 
     end
 

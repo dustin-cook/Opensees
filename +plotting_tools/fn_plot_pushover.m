@@ -1,4 +1,4 @@
-function [ ] = fn_plot_pushover( read_dir, direction )
+function [ ] = fn_plot_pushover( read_dir, direction, seismic_wt )
 % Description: Fn to plot all things pushover
 
 % Created By: Dustin Cook
@@ -39,6 +39,15 @@ ylabel('Total Base Shear (k)')
 xlabel('Roof Displacement (in)')
 plot_dir = [read_dir filesep 'Pushover_Plots'];
 plot_name = ['Roof Pushover - ' direction];
+fn_format_and_save_plot( plot_dir, plot_name, 2 )
+
+% Plot Roof Disp Pushover Normalized by Building Weight
+v_ratio = base_shear/sum(seismic_wt);
+plot(roof_disp,v_ratio)
+ylabel('Base Shear / Seismic Weight')
+xlabel('Roof Displacement (in)')
+plot_dir = [read_dir filesep 'Pushover_Plots'];
+plot_name = ['Normalized Pushover - ' direction];
 fn_format_and_save_plot( plot_dir, plot_name, 2 )
 
 % Plot story Drift Pushover
