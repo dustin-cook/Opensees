@@ -43,8 +43,22 @@ if analysis.plot_recordings
     load([pwd filesep 'ground_motions' filesep 'ICSB_recordings' filesep 'recorded_edp_profile.mat']);
 end
 
-if strcmp(analysis.proceedure,'NDP')
+if sum(strcmp(analysis.case_list,'backbones')) > 0
     backbones = load([analysis.out_dir filesep 'backbones' filesep 'element_analysis.mat']);
+end
+
+%% Cyclic Analysis
+if sum(analysis.type_list == 3) > 0 % Cyclic was run as part of this proceedure
+    if analysis.element_plots
+        % Load Pushover Results
+        cyclic_read_dir = [analysis.out_dir filesep 'cyclic'];
+        cyclic_analysis = load([cyclic_read_dir filesep 'analysis_options.mat']);
+        if cyclic_analysis.analysis.nonlinear ~= 0 % Is the pushover nonlinear?
+            % Plot Hinge Response
+            cyclic_hinge = load([cyclic_read_dir filesep 'hinge_analysis.mat']);
+            fn_plot_hinge_response( cyclic_read_dir, cyclic_hinge.hinge, backbones.element, ele_prop_table, node )
+        end
+    end
 end
 
 %% Pushover Analysis
@@ -145,18 +159,16 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         end
 
     end
-    
 
-end
+    %% Plots Element results for both Dynamic analysis
+    if analysis.element_plots
+        % Plot PM Diagrams for each element
+        fn_plot_PM_response( plot_dir, element, element_TH, element_PM )
 
-%% Plots Element results for both Dynamic and Pushover analysis
-if analysis.element_plots
-    % Plot PM Diagrams for each element
-    fn_plot_PM_response( plot_dir, element, element_TH, element_PM )
-
-    % Plot Hinge Response
-    load([read_dir filesep 'hinge_analysis.mat'])
-    fn_plot_hinge_response( plot_dir, hinge, backbones.element, ele_prop_table, node )
+        % Plot Hinge Response
+        load([read_dir filesep 'hinge_analysis.mat'])
+        fn_plot_hinge_response( plot_dir, hinge, backbones.element, ele_prop_table, node )
+    end
 end
 
 end

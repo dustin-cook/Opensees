@@ -33,7 +33,7 @@ if analysis.type == 1 % dynamic analysis
     % Omit Y direction if ran
     dirs_ran = dirs_ran(~strcmp(dirs_ran,'y'));
 
-else % pushover analysis
+else % pushover analysis or Cyclic
     % Load element force data
     if analysis.write_xml
         [ element_force_recorders_x ] = fn_xml_read([opensees_dir filesep 'element_force_x.xml']);
@@ -114,24 +114,39 @@ clear element_force_recorders
 if analysis.nonlinear ~= 0
     if analysis.type == 1 % dynamic analysis
         for i = 1:height(hinge)
-            hinge.deformation_TH{i} = hinge_deformation_TH(:,2*i-1+1)';
-            hinge.shear_TH{i} = -hinge_force_TH(:,2*i-1+1)';
-            hinge.rotation_TH{i} = hinge_deformation_TH(:,2*i+1)';
-            hinge.moment_TH{i} = -hinge_force_TH(:,2*i+1)'; % I think the forces here are coming in backward, but should triple check
+            hinge.deformation_TH{i} = hinge_deformation_TH(:,i+1)';
+            if strcmp(hinge.type{i},'rotational')
+                if strcmp(element.direction(element.id == hinge.element_id(i)),'x')
+                    hinge.force_TH{i} = -hinge_force_TH(:,4*i+1)'; % I think the forces here are coming in backward, but should triple check
+                elseif strcmp(element.direction(element.id == hinge.element_id(i)),'z')
+                    hinge.force_TH{i} = -hinge_force_TH(:,4*i)';
+                end
+            elseif strcmp(hinge.type{i},'shear')
+                if strcmp(element.direction(element.id == hinge.element_id(i)),'x')
+                    hinge.force_TH{i} = -hinge_force_TH(:,4*i-2)';
+                elseif strcmp(element.direction(element.id == hinge.element_id(i)),'z')
+                    hinge.force_TH{i} = -hinge_force_TH(:,4*i-1)';
+                end
+            end
+%             hinge.shear_TH{i} = -hinge_force_TH(:,2*i-1+1)';
+%             hinge.rotation_TH{i} = hinge_deformation_TH(:,2*i+1)';
+%             hinge.moment_TH{i} = -hinge_force_TH(:,2*i+1)';
         end
     else % pushover analysis
         for i = 1:height(hinge)
-            element_direction = element.direction(element.id == hinge.id(i));
+            element_direction = element.direction(element.id == hinge.element_id(i));
             if strcmp(element_direction,'x')
-                hinge.deformation_TH{i} = hinge_deformation_TH_x(:,2*i-1+1)';
-                hinge.shear_TH{i} = -hinge_force_TH_x(:,2*i-1+1)';
-                hinge.rotation_TH{i} = hinge_deformation_TH_x(:,2*i+1)';
-                hinge.moment_TH{i} = -hinge_force_TH_x(:,2*i+1)'; % I think the forces here are coming in backward, but should triple check
+                hinge.deformation_TH{i} = hinge_deformation_TH_x(:,i+1)';
+                hinge.force_TH{i} = -hinge_force_TH_x(:,i*2+1)'; % I think the forces here are coming in backward, but should triple check
+%                 hinge.shear_TH{i} = -hinge_force_TH_x(:,2*i)';
+%                 hinge.rotation_TH{i} = hinge_deformation_TH_x(:,2*i+1)';
+%                 hinge.moment_TH{i} = -hinge_force_TH_x(:,2*i+1)'; 
             else
-                hinge.deformation_TH{i} = hinge_deformation_TH_z(:,2*i-1+1)';
-                hinge.shear_TH{i} = -hinge_force_TH_z(:,2*i-1+1)';
-                hinge.rotation_TH{i} = hinge_deformation_TH_z(:,2*i+1)';
-                hinge.moment_TH{i} = -hinge_force_TH_z(:,2*i+1)'; % I think the forces here are coming in backward, but should triple check
+                hinge.deformation_TH{i} = hinge_deformation_TH_z(:,i+1)';
+                hinge.force_TH{i} = -hinge_force_TH_z(:,i*2)'; % I think the forces here are coming in backward, but should triple check
+%                 hinge.shear_TH{i} = -hinge_force_TH_z(:,2*i)';
+%                 hinge.rotation_TH{i} = hinge_deformation_TH_z(:,2*i+1)';
+%                 hinge.moment_TH{i} = -hinge_force_TH_z(:,2*i+1)'; 
             end
         end
     end
@@ -238,6 +253,11 @@ elseif analysis.type == 2 % Pushover Analysis
     save([pushover_dir filesep 'element_TH.mat'],'element_TH')
     save([pushover_dir filesep 'hinge_analysis.mat'],'hinge')
     save([pushover_dir filesep 'analysis_options.mat'],'analysis')
+elseif analysis.type == 3 % Cyclic Analysis
+    cyclic_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure filesep 'cyclic'];
+    fn_make_directory( cyclic_dir )
+    save([cyclic_dir filesep 'hinge_analysis.mat'],'hinge')
+    save([cyclic_dir filesep 'analysis_options.mat'],'analysis')
 end
 
 end

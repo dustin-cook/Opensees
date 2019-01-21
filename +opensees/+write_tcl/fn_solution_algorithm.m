@@ -1,4 +1,4 @@
-function [ ] = fn_solution_algorithm( fileID, analysis, write_dir, analysis_length, step_length, first_story_node, story_ht, control_node, control_dof )
+function [ ] = fn_solution_algorithm( fileID, analysis, write_dir, analysis_length, step_length_raw, first_story_node, story_ht, control_node, control_dof )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -17,8 +17,30 @@ fprintf(fileID,'set converge_tol_file [open %s w] \n', log_file);
 convergence_file = [write_dir '/converge_file.txt'];
 fprintf(fileID,'set converge_file [open %s w] \n', convergence_file);
 
+%% Set up some extra loop functionality for running cyclic motions
+if analysis.type == 3
+    analysis_lengths_cyclic = analysis_length*analysis.cyclic_pushover_peak_drifts;
+    cycle_leg_vec = [1,-1,0];
+else
+    analysis_lengths_cyclic = analysis_length;
+    cycle_leg_vec = 1;
+end
+
+for i = 1:length(analysis_lengths_cyclic)
+for j = 1:length(cycle_leg_vec)
+    analysis_length = analysis_lengths_cyclic(i)*cycle_leg_vec(j);
+    if j == 2
+        step_length = -step_length_raw;
+        % While loop through each step of the ground motion
+        fprintf(fileID,'while {$ok == 0 && $currentStep > %f && $collapse_check == 0 && $singularity_check == 0} { \n',analysis_length);
+    else
+        step_length = step_length_raw;
+        % While loop through each step of the ground motion
+        fprintf(fileID,'while {$ok == 0 && $currentStep < %f && $collapse_check == 0 && $singularity_check == 0} { \n',analysis_length);
+    end
+
 %% While loop through each step of the ground motion
-fprintf(fileID,'while {$ok == 0 && $currentStep < %f && $collapse_check == 0 && $singularity_check == 0} { \n',analysis_length);
+% fprintf(fileID,'while {$ok == 0 && $currentStep < %f && $collapse_check == 0 && $singularity_check == 0} { \n',analysis_length);
 
 % Output current time progress
 fprintf(fileID,'puts "Progress: $currentStep out of %f" \n',analysis_length);
@@ -33,7 +55,7 @@ if analysis.type == 1 % Dynamic
     fprintf(fileID,'set dt_max %f \n', step_length);
     fprintf(fileID,'set dt_min [expr %f/($dt_reduce*100)] \n', step_length);
     fprintf(fileID,'set ok [analyze 1 $dt $dt_min $dt_max] \n');
-elseif analysis.type == 2 % Pushover
+elseif analysis.type == 2 || analysis.type == 3 % Pushover or Cyclic
     fprintf(fileID,'set step_size %f \n', step_length);
     fprintf(fileID,'integrator DisplacementControl %i %i $step_size \n', control_node, control_dof);
     fprintf(fileID,'set ok [analyze 1] \n');
@@ -61,7 +83,7 @@ for tol = 1:length(tolerance)
                 fprintf(fileID,'set step_reduce %f \n', step_reduction(t));
                 fprintf(fileID,'set dt [expr %f/$step_reduce] \n', step_length);
                 fprintf(fileID,'set ok [analyze 1 $dt] \n');
-            elseif analysis.type == 2 % Pushover
+            elseif analysis.type == 2 || analysis.type == 3 % Pushover or Static Cyclic
                 fprintf(fileID,'set step_size %f \n', step_length/step_reduction(t));
                 fprintf(fileID,'integrator DisplacementControl %i %i $step_size \n', control_node, control_dof);
                 fprintf(fileID,'set ok [analyze 1] \n');
@@ -74,7 +96,7 @@ end
 % Output time
 if analysis.type == 1 % Dynamic
     fprintf(fileID,'set currentStep [getTime] \n');
-elseif analysis.type == 2 % Pushover
+elseif analysis.type == 2 || analysis.type == 3 % Pushover or Cyclic
     fprintf(fileID,'set currentStep [expr $currentStep + $step_size] \n');
 end
 
@@ -85,7 +107,7 @@ fprintf(fileID,'puts $converge_tol_file $converge_tol_log \n');
 %% Check for singularity and collapse
 fprintf(fileID,'if {$ok == 0} { \n');
 % Define Displacement
-if analysis.type == 2 % Pushover
+if analysis.type == 2 || analysis.type == 3 % Pushover or Cyclic
     fprintf(fileID,'set node_at_floor_1 %i \n', control_node);
     fprintf(fileID,'set floor_displ_1 "[nodeDisp $node_at_floor_1 %i]" \n',control_dof);
     fprintf(fileID,'puts "Control Node Disp = $floor_displ_1" \n');
@@ -117,14 +139,19 @@ end
 fprintf(fileID,'} \n');
 fprintf(fileID,'} \n');
 
+end
+end
+
 %% Check if Model Fully Converged
-fprintf(fileID,'if {$currentStep > %f || $singularity_check == 1 || $collapse_check == 1} { \n',0.98*analysis_length); % 98 percent of the way through the analysis
-fprintf(fileID,'puts "Analysis Fully Converged" \n');
-fprintf(fileID,'puts $converge_file 1 \n');
-fprintf(fileID,'} else { \n');
-fprintf(fileID,'puts "Analysis NOT FULLY Converged" \n');
-fprintf(fileID,'puts $converge_file 0 \n');
-fprintf(fileID,'} \n');
+if analysis.type == 1 % Dynamic
+    fprintf(fileID,'if {$currentStep > %f || $singularity_check == 1 || $collapse_check == 1} { \n',0.98*analysis_length); % 98 percent of the way through the analysis
+    fprintf(fileID,'puts "Analysis Fully Converged" \n');
+    fprintf(fileID,'puts $converge_file 1 \n');
+    fprintf(fileID,'} else { \n');
+    fprintf(fileID,'puts "Analysis NOT FULLY Converged" \n');
+    fprintf(fileID,'puts $converge_file 0 \n');
+    fprintf(fileID,'} \n');
+end
 
 %% Close Log Files
 fprintf(fileID,'close $converge_tol_file \n');

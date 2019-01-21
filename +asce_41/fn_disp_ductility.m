@@ -16,8 +16,12 @@ import aci_318.fn_aci_shear_capacity
     [ ~, Vn, ~ ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.Av, eff_fyt_e, ele_prop.S, ele_prop.lambda, ele_prop.a, ele_prop.hw, ele.type, ele_prop.As_d, ele.P_grav );
     shear2use = min(ele.vye,Vn);
     yeild_disp = (shear2use*ele.length^3) / (12*ele_prop.e*ele_prop.iz);
-    if sum(strcmp((['max_disp_' ele.direction{1}]),story.Properties.VariableNames)) == 1
+    if sum(strcmp((['max_disp_' ele.direction{1}]),story.Properties.VariableNames)) == 1 && ele.story > 0
+        try
         max_disp_demand = story.(['max_disp_' ele.direction{1}])(ele.story); % Should update this to a diplacement demand specific to the element itself instead of just the story
+        catch
+            test = 5;
+        end
     else
         max_disp_demand = 0;
     end

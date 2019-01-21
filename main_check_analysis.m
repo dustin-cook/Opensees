@@ -45,7 +45,7 @@ if analysis.element_plots && strcmp(analysis.proceedure,'NDP') && analysis.type 
 end
 
 %% Check Capacity Convergence
-if strcmp(analysis.case,'backbones')
+if strcmp(analysis.case,'backbones') && strcmp(analysis.proceedure,'NDP')
     relative_capacity = capacity(:,2:end) ./ capacity(:,1:(end-1));
     iter_num = 2:(length(relative_capacity(1,:))+1);
     plot(iter_num,relative_capacity)

@@ -12,11 +12,7 @@ first_story_node = node.id(node.primary_story == 1);
 if analysis.run_eigen
     fn_eigen_analysis( write_dir, first_story_node', length(story.id), analysis, model_dimension)
 end
-if analysis.type == 1 || analysis.type == 2 % Dynamic or Pushover
-    fn_setup_analysis( write_dir, analysis, first_story_node, story )
-elseif analysis.type == 3 % Static Cyclic
-    fn_setup_static_cyclic_analysis( write_dir, analysis )
-end
+fn_setup_analysis( write_dir, analysis, first_story_node, story )
 fn_define_analysis( write_dir, ground_motion, first_story_node, story.story_ht, analysis, story )
 end
 

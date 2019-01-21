@@ -27,7 +27,7 @@ hinge = readtable([read_dir_model filesep 'hinge.csv'],'ReadVariableNames',true)
 if analysis.run_opensees
     % Define Number of Opensees runs to be performed
     pushover_directions = {'x', 'z'};
-    if analysis.type == 2 && strcmp(model.dimension,'3D') % 3D pushover
+    if (analysis.type == 2 || analysis.type == 3) && strcmp(model.dimension,'3D') % 3D pushover or cyclic
         num_OS_runs = 2;
     else
         num_OS_runs = 1;

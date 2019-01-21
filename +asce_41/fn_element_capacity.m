@@ -75,7 +75,7 @@ else
         ele_TH.Mn_pos = interp1(vector_P,vector_M,load_history);
         ele_TH.Mn_neg = ele_TH.Mn_pos; % assumes columns are the same in both directions
         ele_TH.Mp_pos = interp1(vector_P,vector_Mp,load_history);
-        ele_TH.Mp_neg = ele_TH.Mn_pos; % assumes columns are the same in both directions
+        ele_TH.Mp_neg = ele_TH.Mp_pos; % assumes columns are the same in both directions
         ele_TH.Mn_pos_linear = interp1(vector_P,vector_M,load_history_linear);
         ele_TH.Mn_neg_linear = ele_TH.Mn_pos_linear; % assumes columns are the same in both directions
         % Moment Capcity

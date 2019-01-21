@@ -49,7 +49,7 @@ if analysis.type == 1 % Dynamic Analysis
     
     % Define analysis type
     fprintf(fileID,'analysis Transient \n');
-elseif analysis.type == 2 % Pushover Analysis
+elseif analysis.type == 2 || analysis.type == 3 % Pushover or Cyclic Analysis
     % Define Each Load Step
     [ control_node, control_dof, ~, step_size ] = fn_pushover_properties( first_story_node, analysis, story );
     int_controller = ['DisplacementControl ' num2str(control_node) ' ' num2str(control_dof) ' ' num2str(step_size)]; 
