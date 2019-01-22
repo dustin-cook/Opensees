@@ -302,8 +302,9 @@ if height(hinge) > 0
                 if strcmp(dimension,'3D') % Input as rotational for now   
                     % Define Nonlinear Hinge in the weak direction
                     % uniaxialMaterial ElasticPP $matTag $E $epsyP <$epsyN $eps0>
-                    yeild_rot = moment_vec_pos(1)/Ko;
-                    fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end)+100000, Ko, yeild_rot);
+                    out_of_plane_K0 = (analysis.hinge_stiff_mod+1)*6*ele_props.e*ele_props.iy/ele.length;
+                    yeild_rot = moment_vec_pos(1)/Ko; % use the same yeild rotation as the primary direction
+                    fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end)+100000, out_of_plane_K0, yeild_rot);
 
                     fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',element.id(end), hinge.node_1(i), hinge.node_2(i), element.id(end)); % Element Id for Hinge
                     fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',element.id(end)+100000, hinge.node_1(i), hinge.node_2(i), element.id(end)+100000); % Element Id for Hinge
@@ -339,13 +340,24 @@ if height(hinge) > 0
                     % uniaxialMaterial MinMax $matTag $otherTag <-min $minStrain> <-max $maxStrain>
 %                     fprintf(fileID,'uniaxialMaterial MinMax %i %i -min %f -max %f \n',element.id(end)+90000,element.id(end) + 9000,-999,999); % Only reduce to zero strength at really high  displacements
 
+                    out_of_plane_K0 = (analysis.hinge_stiff_mod+1)*6*ele_props.e*ele_props.iy/ele.length;
+                    yeild_rot = force_vec(1)*ele.length/Ko; % use the same yeild rotation as the primary direction, but converted to flexure
+                            
                     %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
                     if strcmp(ele.direction,'x')
                         fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 1 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)+9000); % Element Id for Hinge
-                        fprintf(fileID,'equalDOF %i %i 2 3 4 5 6 \n',hinge.node_2(i),hinge.node_1(i));
+                        if strcmp(dimension,'3D') 
+                            fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end)+100000, out_of_plane_K0, yeild_rot);
+                            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',element.id(end)+100000, hinge.node_1(i), hinge.node_2(i), element.id(end)+100000); % Element Id for Hinge
+                            fprintf(fileID,'equalDOF %i %i 2 3 5 6 \n',hinge.node_2(i),hinge.node_1(i));
+                        end
                     elseif strcmp(ele.direction,'z')
                         fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 3 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)+9000); % Element Id for Hinge
-                        fprintf(fileID,'equalDOF %i %i 1 2 4 5 6 \n',hinge.node_2(i),hinge.node_1(i));
+                        if strcmp(dimension,'3D') 
+                            fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end)+100000, out_of_plane_K0, yeild_rot);
+                            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',element.id(end)+100000, hinge.node_1(i), hinge.node_2(i), element.id(end)+100000); % Element Id for Hinge
+                            fprintf(fileID,'equalDOF %i %i 1 2 4 5 \n',hinge.node_2(i),hinge.node_1(i));
+                        end
                     end
                 end
             end
