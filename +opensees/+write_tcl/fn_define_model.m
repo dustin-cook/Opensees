@@ -299,8 +299,17 @@ if height(hinge) > 0
 %                 fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end), Ko, yeild_rot);
 
                 %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
-                fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',element.id(end),hinge.node_1(i),hinge.node_2(i), element.id(end)); % Element Id for Hinge
-                fprintf(fileID,'equalDOF %i %i 1 2 3 4 5 \n',hinge.node_2(i),hinge.node_1(i));
+                if strcmp(dimension,'3D') % Input as rotational for now   
+                    % Define Nonlinear Hinge in the weak direction
+                    % uniaxialMaterial ElasticPP $matTag $E $epsyP <$epsyN $eps0>
+                    yeild_rot = moment_vec_pos(1)/Ko;
+                    fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end)+100000, Ko, yeild_rot);
+
+                    fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',element.id(end), hinge.node_1(i), hinge.node_2(i), element.id(end)); % Element Id for Hinge
+                    fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',element.id(end)+100000, hinge.node_1(i), hinge.node_2(i), element.id(end)+100000); % Element Id for Hinge
+                    fprintf(fileID,'equalDOF %i %i 1 2 3 5 \n', hinge.node_2(i), hinge.node_1(i));
+                else
+                end
             elseif strcmp(ele_props.type,'wall')
                 % Define Stiffness
                 elastic_shear_stiffness = ele_props.g*ele_props.av/ele.length;

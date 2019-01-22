@@ -52,7 +52,7 @@ if analysis.asce_41_post_process
         if analysis.nonlinear ~= 0 % Only for nonlinear runs
             [ hinge ] = fn_accept_hinge( element, hinge);
         end
-    elseif strcmp(analysis.proceedure,'NDP') % Linear Dynamic Proceedure and Test Proceedure (and all others defined so be careful)
+    elseif strcmp(analysis.proceedure,'LDP') % Linear Dynamic Proceedure and Test Proceedure (and all others defined so be careful)
         [ model, element, element_TH, element_PM, joint ] = fn_linear_capacity_and_c_factors( model, story, ele_prop_table, element, element_TH, analysis, joint );
         [ element ] = main_m_factors( ele_prop_table, element );
         [ element, ~ ] = fn_calc_dcr( element, element_TH, 'cp' );

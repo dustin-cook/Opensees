@@ -24,7 +24,6 @@ analysis.gm_seq_id = 7; % Maybe also make this part ot the defualts or model?
 
 %% Initial Setup
 import asce_41.main_ASCE_41
-import asce_41.fn_analysis_options
 
 %% Secondary Inputs
 [ analysis ] = fn_analysis_options( analysis );
