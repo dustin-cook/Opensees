@@ -2,8 +2,6 @@ function [ ] = fn_build_sdof( model, write_dir )
 % Funtion to build sdof element and node tables
 
 %% INITIAL SETUP
-% Import Packages
-import build_model.fn_define_hinge
 
 %% Build Story Table
 story.id = 1;
@@ -41,9 +39,12 @@ hinge.element_id = [];
 hinge.node_1 = [];
 hinge.node_2 = [];
 if model.nonlinear ~= 0
-    [ node, element, hinge ] = fn_define_hinge( hinge, element, node, 0, 0 );
-    element.Mn_pos = model.moment_capacity;
-    element.Mn_neg = model.moment_capacity;
+    % Define hinge at start of element
+    [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', 1, 1, 1, 'rotational' ); 
+        
+     % Moment Capcity per ACI
+    [ ~, element.Mn_pos ] = fn_aci_moment_capacity( 'pos', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0 ); % change to be based on the gravity load instead?
+    [ ~, element.Mn_neg ] = fn_aci_moment_capacity( 'neg', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0 );
 end
 
 %% Reformat outputs to table and write CSV's

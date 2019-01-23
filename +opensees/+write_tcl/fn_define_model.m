@@ -299,17 +299,20 @@ if height(hinge) > 0
 %                 fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end), Ko, yeild_rot);
 
                 %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
-                if strcmp(dimension,'3D') % Input as rotational for now   
+                fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',element.id(end), hinge.node_1(i), hinge.node_2(i), element.id(end)); % Element Id for Hinge
+        
+                if strcmp(dimension,'3D') && strcmp(ele_props.type,'column') % For 3D colums, do out of plane bending as well  
                     % Define Nonlinear Hinge in the weak direction
                     % uniaxialMaterial ElasticPP $matTag $E $epsyP <$epsyN $eps0>
                     out_of_plane_K0 = (analysis.hinge_stiff_mod+1)*6*ele_props.e*ele_props.iy/ele.length;
                     yeild_rot = moment_vec_pos(1)/Ko; % use the same yeild rotation as the primary direction
                     fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n', element.id(end)+100000, out_of_plane_K0, yeild_rot);
-
-                    fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',element.id(end), hinge.node_1(i), hinge.node_2(i), element.id(end)); % Element Id for Hinge
                     fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',element.id(end)+100000, hinge.node_1(i), hinge.node_2(i), element.id(end)+100000); % Element Id for Hinge
                     fprintf(fileID,'equalDOF %i %i 1 2 3 5 \n', hinge.node_2(i), hinge.node_1(i));
-                else
+                elseif strcmp(dimension,'3D')
+                    fprintf(fileID,'equalDOF %i %i 1 2 3 4 5 \n', hinge.node_2(i), hinge.node_1(i));
+                elseif strcmp(dimension,'2D')
+                    fprintf(fileID,'equalDOF %i %i 1 2 \n', hinge.node_2(i), hinge.node_1(i));
                 end
             elseif strcmp(ele_props.type,'wall')
                 % Define Stiffness
@@ -335,8 +338,13 @@ if height(hinge) > 0
                     [ force_vec, disp_vec ] = fn_define_backbone_shear( hinge_props.Vn, ele.length, ele_props.g, ele_props.av, hinge_props );
 
                     % uniaxialMaterial MultiLinear $matTag $u1 $f1 $u2 $f2 $u3 $f3 $u4 $f4 ...
-                    fprintf(fileID,'uniaxialMaterial MultiLinear %i %f %f %f %f %f %f %f %f %f %f \n',element.id(end) + 9000,disp_vec(1),force_vec(1),disp_vec(2),force_vec(2),disp_vec(3),force_vec(3),disp_vec(4),force_vec(4), 999, force_vec(4)); % continue hinge at residual strength
+%                     fprintf(fileID,'uniaxialMaterial MultiLinear %i %f %f %f %f %f %f %f %f %f %f \n',element.id(end) + 9000,disp_vec(1),force_vec(1),disp_vec(2),force_vec(2),disp_vec(3),force_vec(3),disp_vec(4),force_vec(4), 999, force_vec(4)); % continue hinge at residual strength
 
+                    K0 = force_vec(1)/disp_vec(1); % Have it go past the shear kink with the initial stiffness and check how far it goes in post process
+                    theta_pc = disp_vec(4) - disp_vec(3) + hinge_props.c_hinge*(disp_vec(4) - disp_vec(3))/(1-hinge_props.c_hinge); % theta pc defined all the way to zero where b defined to residual kink
+                   % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
+                    fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',element.id(end) + 9000, K0, 0, 0, force_vec(2), -force_vec(2), disp_vec(3)-disp_vec(2), disp_vec(3)-disp_vec(2), theta_pc, theta_pc, hinge_props.c_hinge, hinge_props.c_hinge, 9999999, 9999999); % Keep residual strength forever
+                   
                     % uniaxialMaterial MinMax $matTag $otherTag <-min $minStrain> <-max $maxStrain>
 %                     fprintf(fileID,'uniaxialMaterial MinMax %i %i -min %f -max %f \n',element.id(end)+90000,element.id(end) + 9000,-999,999); % Only reduce to zero strength at really high  displacements
 
