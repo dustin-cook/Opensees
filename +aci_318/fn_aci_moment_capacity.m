@@ -15,6 +15,9 @@ As_d = str2double(strsplit(strrep(strrep(As_d{1},'[',''),']',''),','));
 if strcmp(orientation,'neg')
     As = fliplr(As);
     As_d = h - fliplr(As_d);
+elseif strcmp(orientation,'oop') % out of plane bending
+    As = [sum(As)/2, sum(As)/2]; % Assume half the steel on each end
+    As_d = [3, h-3]; % Assume location is three inches from the sides
 end
 [ beta_1 ] = fn_beta_1( fc );
 

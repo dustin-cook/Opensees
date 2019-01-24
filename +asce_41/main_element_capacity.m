@@ -29,12 +29,14 @@ for i = 1:length(element.id)
     %% Caculate required development length and make sure there is enough
     [ ele.pass_aci_dev_length ] = fn_development_check( ele, ele_prop );
     
-    % Save data
+    % Save capcity for convergence check
     if strcmp(ele.type,'wall')
         ele.capacity = ele.Vn;
     else
         ele.capacity = ele.Mn_pos;
     end
+    
+    % Save data to main table
     ele_to_save(i,:) = ele;
 end
 

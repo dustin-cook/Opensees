@@ -1,4 +1,4 @@
-function [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( type, Mn_pos, Mn_neg, Mp_pos, Mp_neg, length, e, iz, hinge_props, n, strain_harden_ratio )
+function [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( type, Mn_pos, Mn_neg, Mp_pos, Mp_neg, length, e, iz, a_hinge, b_hinge, c_hinge, n, strain_harden_ratio )
 % Takes points from ASCE 41-17 chapter 10 tables and Define backbone curve
 % as a vector of displacements and forces for both the positive and
 % negative directions. Units are based on the basic units that are input.
@@ -28,13 +28,13 @@ function [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_defin
 
 %% Begin Method
 % reduce a_hinge by 5% if it is the same as b_hinge
-if (hinge_props.b_hinge-hinge_props.a_hinge) < 0.05*hinge_props.a_hinge
-    hinge_props.a_hinge = 0.95*hinge_props.a_hinge;
+if (b_hinge-a_hinge) < 0.05*a_hinge
+    a_hinge = 0.95*a_hinge;
 end
 
 % make sure a_hinge and b_hinge has some minor value
-a_hinge = max([1e-6, hinge_props.a_hinge]);
-b_hinge = max([2e-6, hinge_props.b_hinge]);
+a_hinge = max([1e-6, a_hinge]);
+b_hinge = max([2e-6, b_hinge]);
 
 % Define stiffness of lumped plasticisty model based on Ibarra 2005
 k_mem = 6*e*iz/length;
@@ -57,8 +57,8 @@ post_yeild_slope_pos = min([(Mp_pos-Mn_pos)/a_hinge,strain_harden_ratio*k_mem]);
 post_yeild_slope_neg = min([(Mp_neg-Mn_neg)/a_hinge,strain_harden_ratio*k_mem]);
 
 % Define Backbone Curves
-moment_vec_pos = [Mn_pos, post_yeild_slope_pos*a_hinge+Mn_pos,hinge_props.c_hinge*Mn_pos];
-moment_vec_neg = [Mn_neg, post_yeild_slope_neg*a_hinge+Mn_neg,hinge_props.c_hinge*Mn_neg];
+moment_vec_pos = [Mn_pos, post_yeild_slope_pos*a_hinge+Mn_pos,c_hinge*Mn_pos];
+moment_vec_neg = [Mn_neg, post_yeild_slope_neg*a_hinge+Mn_neg,c_hinge*Mn_neg];
 rot_vec_pos = Mn_pos/k_elastic + [0, a_hinge, b_hinge];
 rot_vec_neg = Mn_neg/k_elastic + [0, a_hinge, b_hinge];
 

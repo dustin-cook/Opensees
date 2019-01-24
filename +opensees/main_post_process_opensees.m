@@ -79,11 +79,11 @@ end
 
 %% Element Forces
 % Force component IDs
-comp_names = {'P_TH_1','V_TH_1','M_TH_1','M_TH_2'};
-num_comps = 4;
-comp_keys = [1,2,3,4];
+comp_names = {'P_TH_1','V_TH_1','V_TH_oop','M_TH_1','M_TH_2'};
+num_comps = 5;
+comp_keys = [1,2,3,4,5];
 
-%% Loop through elements and save data
+% Loop through elements and save data
 for i = 1:length(element.id)
     % Force Time Histories
     if analysis.type == 1 % dynamic analysis
@@ -104,6 +104,7 @@ for i = 1:length(element.id)
     element.Pmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH_1));
     element.Pmin(i) = min(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH_1));
     element.Vmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_1));
+    element.Vmax_oop(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_oop));
     element.Mmax(i) = max(abs([element_TH.(['ele_' num2str(element.id(i))]).M_TH_1,element_TH.(['ele_' num2str(element.id(i))]).M_TH_1]));
 end
     
@@ -116,37 +117,46 @@ if analysis.nonlinear ~= 0
         for i = 1:height(hinge)
             hinge.deformation_TH{i} = hinge_deformation_TH(:,i+1)';
             if strcmp(hinge.type{i},'rotational')
-                if strcmp(element.direction(element.id == hinge.element_id(i)),'x')
+                if strcmp(element.direction(element.id == hinge.element_id(i)),'x') && strcmp(hinge.direction(i),'oop')
+                    hinge.force_TH{i} = -hinge_force_TH(:,4*i)';
+                elseif strcmp(element.direction(element.id == hinge.element_id(i)),'x')
                     hinge.force_TH{i} = -hinge_force_TH(:,4*i+1)'; % I think the forces here are coming in backward, but should triple check
+                elseif strcmp(element.direction(element.id == hinge.element_id(i)),'z') && strcmp(hinge.direction(i),'oop')
+                    hinge.force_TH{i} = -hinge_force_TH(:,4*i+1)';
                 elseif strcmp(element.direction(element.id == hinge.element_id(i)),'z')
                     hinge.force_TH{i} = -hinge_force_TH(:,4*i)';
                 end
             elseif strcmp(hinge.type{i},'shear')
-                if strcmp(element.direction(element.id == hinge.element_id(i)),'x')
+                if strcmp(element.direction(element.id == hinge.element_id(i)),'x') && strcmp(hinge.direction(i),'oop')
+                    hinge.force_TH{i} = -hinge_force_TH(:,4*i-1)';
+                elseif strcmp(element.direction(element.id == hinge.element_id(i)),'x')
+                    hinge.force_TH{i} = -hinge_force_TH(:,4*i-2)';
+                elseif strcmp(element.direction(element.id == hinge.element_id(i)),'z') && strcmp(hinge.direction(i),'oop')
                     hinge.force_TH{i} = -hinge_force_TH(:,4*i-2)';
                 elseif strcmp(element.direction(element.id == hinge.element_id(i)),'z')
                     hinge.force_TH{i} = -hinge_force_TH(:,4*i-1)';
                 end
             end
-%             hinge.shear_TH{i} = -hinge_force_TH(:,2*i-1+1)';
-%             hinge.rotation_TH{i} = hinge_deformation_TH(:,2*i+1)';
-%             hinge.moment_TH{i} = -hinge_force_TH(:,2*i+1)';
         end
     else % pushover analysis
         for i = 1:height(hinge)
             element_direction = element.direction(element.id == hinge.element_id(i));
             if strcmp(element_direction,'x')
-                hinge.deformation_TH{i} = hinge_deformation_TH_x(:,i+1)';
-                hinge.force_TH{i} = -hinge_force_TH_x(:,i*2+1)'; % I think the forces here are coming in backward, but should triple check
-%                 hinge.shear_TH{i} = -hinge_force_TH_x(:,2*i)';
-%                 hinge.rotation_TH{i} = hinge_deformation_TH_x(:,2*i+1)';
-%                 hinge.moment_TH{i} = -hinge_force_TH_x(:,2*i+1)'; 
+                if strcmp(hinge.direction(i),'oop')
+                    hinge.deformation_TH{i} = hinge_deformation_TH_z(:,i+1)';
+                    hinge.force_TH{i} = -hinge_force_TH_z(:,i*2+1)'; % I think the forces here are coming in backward, but should triple check
+                else
+                    hinge.deformation_TH{i} = hinge_deformation_TH_x(:,i+1)';
+                    hinge.force_TH{i} = -hinge_force_TH_x(:,i*2+1)'; % I think the forces here are coming in backward, but should triple check
+                end
             else
-                hinge.deformation_TH{i} = hinge_deformation_TH_z(:,i+1)';
-                hinge.force_TH{i} = -hinge_force_TH_z(:,i*2)'; % I think the forces here are coming in backward, but should triple check
-%                 hinge.shear_TH{i} = -hinge_force_TH_z(:,2*i)';
-%                 hinge.rotation_TH{i} = hinge_deformation_TH_z(:,2*i+1)';
-%                 hinge.moment_TH{i} = -hinge_force_TH_z(:,2*i+1)'; 
+                if strcmp(hinge.direction(i),'oop')
+                    hinge.deformation_TH{i} = hinge_deformation_TH_x(:,i+1)';
+                    hinge.force_TH{i} = -hinge_force_TH_x(:,i*2+1)'; % I think the forces here are coming in backward, but should triple check
+                else
+                    hinge.deformation_TH{i} = hinge_deformation_TH_z(:,i+1)';
+                    hinge.force_TH{i} = -hinge_force_TH_z(:,i*2)'; % I think the forces here are coming in backward, but should triple check
+                end
             end
         end
     end

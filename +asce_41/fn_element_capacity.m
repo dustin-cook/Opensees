@@ -43,13 +43,17 @@ else
         % Moment Capcity per ACI (assume no axial loads for beams)
         [ ~, ele.Mn_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
         [ ~, ele.Mn_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
+        [ ~, ele.Mn_oop ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e, ele_prop.d, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
         [ ~, ele.Mp_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
         [ ~, ele.Mp_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
+        [ ~, ele.Mp_oop ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e*1.15, ele_prop.d, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, 0, 0 );
         % Moment Capacity Time History
         ele_TH.Mn_pos = ones(1,length(ele_TH.P_TH_1))*ele.Mn_pos;
         ele_TH.Mn_neg = ones(1,length(ele_TH.P_TH_1))*ele.Mn_neg;
+        ele_TH.Mn_oop = ones(1,length(ele_TH.P_TH_1))*ele.Mn_oop;
         ele_TH.Mp_pos = ones(1,length(ele_TH.P_TH_1))*ele.Mp_pos;
         ele_TH.Mp_neg = ones(1,length(ele_TH.P_TH_1))*ele.Mp_neg;
+        ele_TH.Mp_oop = ones(1,length(ele_TH.P_TH_1))*ele.Mp_oop;
         ele_TH.Mn_pos_linear = ele_TH.Mn_pos;
         ele_TH.Mn_neg_linear = ele_TH.Mn_neg;
         ele_PM = [];
@@ -59,6 +63,8 @@ else
         for i = 1:length(vector_P) % Currently Assumes Column has uniform strength in each directions (ie symmetric layout)
             [ ~, vector_M(i) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, vector_P(i), 0, 0 );
             [ ~, vector_Mp(i) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, 1.15*ele_prop.fy_e, ele_prop.Es, vector_P(i), 0, 0 );
+            [ ~, vector_M_oop(i) ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e, ele_prop.d, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, vector_P(i), 0, 0 );
+            [ ~, vector_Mp_oop(i) ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e, ele_prop.d, ele_prop.w, ele_prop.As, ele_prop.As_d, 1.15*ele_prop.fy_e, ele_prop.Es, vector_P(i), 0, 0 );
         end
         % Save PM Structure
         ele_PM.vector_P = [-ele.Pn_t, vector_P, ele.Pn_c];
@@ -74,21 +80,20 @@ else
         
         ele_TH.Mn_pos = interp1(vector_P,vector_M,load_history);
         ele_TH.Mn_neg = ele_TH.Mn_pos; % assumes columns are the same in both directions
+        ele_TH.Mn_oop = interp1(vector_P,vector_M_oop,load_history);
         ele_TH.Mp_pos = interp1(vector_P,vector_Mp,load_history);
         ele_TH.Mp_neg = ele_TH.Mp_pos; % assumes columns are the same in both directions
+        ele_TH.Mp_oop = interp1(vector_P,vector_Mp_oop,load_history);
         ele_TH.Mn_pos_linear = interp1(vector_P,vector_M,load_history_linear);
         ele_TH.Mn_neg_linear = ele_TH.Mn_pos_linear; % assumes columns are the same in both directions
         % Moment Capcity
         [~, P_grav_idx] = min(abs(load_history-ele.P_grav));
-        ele.Mn_pos = ele_TH.Mn_pos(P_grav_idx); % Best estimate moment of moment capacity for analysis is just the average capacity from the time history
+        ele.Mn_pos = ele_TH.Mn_pos(P_grav_idx); % Use Pgravity for now
         ele.Mn_neg = ele_TH.Mn_neg(P_grav_idx);
+        ele.Mn_oop = ele_TH.Mn_oop(P_grav_idx);
         ele.Mp_pos = ele_TH.Mp_pos(P_grav_idx);
         ele.Mp_neg = ele_TH.Mp_neg(P_grav_idx);
-        % Use Pgravity for now
-%         [ ~, ele.Mn_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, ele.P_grav, 0, 0 );
-%         [ ~, ele.Mp_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, ele.P_grav, 0, 0 );
-%         ele.Mn_neg = ele.Mn_pos;
-%         ele.Mp_neg = ele.Mp_pos;
+        ele.Mp_oop = ele_TH.Mp_oop(P_grav_idx);
     end
 end
 

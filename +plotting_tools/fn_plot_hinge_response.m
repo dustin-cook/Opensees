@@ -27,14 +27,23 @@ for i = 1:height(hinge)
     % Define plot directory
     hinge_plot_dir = [plot_dir filesep 'Hinge_Plots' filesep 'Story - ' num2str(ele.story)];
     
+    % Set critical mode variable
+    if strcmp(hinge.direction{i},'oop')
+        crit_mode = ele.critical_mode_oop;
+    else
+        crit_mode = ele.critical_mode;
+    end
+        
     if strcmp(hinge.type(i),'rotational')
         if strcmp(ele.type,'column')
-            hinge_name = ['Hinge_y_', num2str(node.y(node.id == hinge.node_1(i)))];
+            hinge_name = ['Hinge_y_', num2str(node.y(node.id == hinge.node_1(i))),'_',hinge.direction{i}];
         elseif strcmp(ele.type,'beam')
-            hinge_name = ['Hinge_x_', num2str(node.x(node.id == hinge.node_1(i)))];
+            hinge_name = ['Hinge_x_', num2str(node.x(node.id == hinge.node_1(i))),'_',hinge.direction{i}];
         end
         plot_name = [ele.type{1} '_' num2str(hinge.element_id(i)) ' - ' hinge_name ' - Rotation Response'];
-        fn_plot_backbone( ele, ele_props, hinge_plot_dir, plot_name, 2, hinge.deformation_TH{i}, hinge.force_TH{i})
+        
+
+        fn_plot_backbone( ele, ele_props, hinge_plot_dir, plot_name, 2, hinge.deformation_TH{i}, hinge.force_TH{i}, crit_mode, hinge.direction{i})
 
 %         % Plot Hinge Rotation Time History
 %         hold on
@@ -56,7 +65,7 @@ for i = 1:height(hinge)
 
     elseif strcmp(hinge.type(i),'shear')
         plot_name = [ele.type{1} '_' num2str(hinge.element_id(i)) ' - Shear Response'];
-        fn_plot_backbone( ele, ele_props, hinge_plot_dir, plot_name, 2, hinge.deformation_TH{i}, hinge.force_TH{i})
+        fn_plot_backbone( ele, ele_props, hinge_plot_dir, plot_name, 2, hinge.deformation_TH{i}, hinge.force_TH{i}, crit_mode, hinge.direction{i})
     end
 end
 end

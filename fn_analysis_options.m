@@ -65,7 +65,7 @@ elseif strcmp(analysis.proceedure,'NDP')
     analysis.dead_load_list = [1, 1, 1, 1];
     analysis.live_load_list = [1, 1, 1, 1];
     analysis.case_list = {'NA', 'NA', 'backbones', 'NA'};
-    analysis.pushover_drift_list = [0.001, 0.03, 0.03, NaN]; % Drift limit where the pushover will go till
+    analysis.pushover_drift_list = [0.001, 0.02, 0.02, NaN]; % Drift limit where the pushover will go till
 elseif strcmp(analysis.proceedure,'LDP') % Linear Test
     analysis.type_list = [1, 1]; % 1 = dynamic, 2 = pushover % 3 = static cyclic
     analysis.nonlinear_list = [0, 0]; % 0 = linear, 1 = IMK Rotational Hinge, 2 = strain hardening hinges

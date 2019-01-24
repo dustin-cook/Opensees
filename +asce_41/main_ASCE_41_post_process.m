@@ -50,7 +50,7 @@ if analysis.asce_41_post_process
         [ element, element_TH, element_PM, joint ] = main_element_capacity( story, ele_prop_table, element, element_TH, analysis, joint  );
         [ element, joint ] = main_hinge_properties( ele_prop_table, element, joint );
         if analysis.nonlinear ~= 0 % Only for nonlinear runs
-            [ hinge ] = fn_accept_hinge( element, hinge);
+            [ hinge ] = fn_accept_hinge( element, hinge );
         end
     elseif strcmp(analysis.proceedure,'LDP') % Linear Dynamic Proceedure and Test Proceedure (and all others defined so be careful)
         [ model, element, element_TH, element_PM, joint ] = fn_linear_capacity_and_c_factors( model, story, ele_prop_table, element, element_TH, analysis, joint );

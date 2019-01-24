@@ -40,7 +40,7 @@ if analysis.element_plots && strcmp(analysis.proceedure,'NDP') && analysis.type 
         end
         
         line_color = [1,1,1] - step/(length(analysis.type_list)-1);
-        fn_plot_backbone( ele, ele_props, plot_dir, plot_name, 1, 0, 0, line_color)
+        fn_plot_backbone( ele, ele_props, plot_dir, plot_name, 1, 0, 0, ele.critical_mode, 'primary', line_color)
     end
 end
 

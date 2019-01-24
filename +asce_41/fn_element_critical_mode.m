@@ -25,6 +25,13 @@ if strcmp(ele.type,'beam') || strcmp(ele.type,'column')
     else
         ele.critical_mode = {'shear'};
     end
+    
+    % OOP
+    if ele.Vn > ele.vye_oop % Assumes shear strength is the same for OOP
+        ele.critical_mode_oop = {'flexure'};
+    else
+        ele.critical_mode_oop = {'shear'};
+    end
 elseif strcmp(ele.type,'wall')
     % Start by checking the aspect ratio criteria as defiend by the
     % appendix of ASCE 41-17 (A10.7)
@@ -43,6 +50,9 @@ elseif strcmp(ele.type,'wall')
             ele.critical_mode = {'shear'};
         end
     end
+    
+    % OOP
+    ele.critical_mode_oop = {'flexure'}; % assumes wall out of plane is flexure controlled
 end
 
 % Check if shear deformations need to be considered

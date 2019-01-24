@@ -32,7 +32,7 @@ if analysis.type == 1
     if strcmp(dimension,'2D')
         fprintf(fileID,'recorder Element %s %s/element_force.%s -time -ele %s -dof 1 2 3 6 localForce \n', file_type, write_dir, file_ext, num2str(element.id'));
     else
-        fprintf(fileID,'recorder Element %s %s/element_force.%s -time -ele %s -dof 1 2 6 12 localForce \n', file_type, write_dir, file_ext, num2str(element.id'));
+        fprintf(fileID,'recorder Element %s %s/element_force.%s -time -ele %s -dof 1 2 3 6 12 localForce \n', file_type, write_dir, file_ext, num2str(element.id'));
     end
     
     % Hinges
@@ -50,12 +50,12 @@ elseif analysis.type == 2 || analysis.type == 3
         if strcmp(dimension,'2D')
             fprintf(fileID,'recorder Element %s %s/element_force_x.%s -time -ele %s -dof 1 2 3 6 localForce \n', file_type, write_dir, file_ext, num2str(element.id'));
         else
-            fprintf(fileID,'recorder Element %s %s/element_force_x.%s -time -ele %s -dof 1 2 6 12 localForce \n', file_type, write_dir, file_ext, num2str(element.id'));
+            fprintf(fileID,'recorder Element %s %s/element_force_x.%s -time -ele %s -dof 1 2 3 6 12 localForce \n', file_type, write_dir, file_ext, num2str(element.id'));
         end
     elseif strcmp(analysis.pushover_direction,'z')
         fprintf(fileID,'recorder Node %s %s/nodal_disp_z.%s -time -node %s -dof 3 disp \n', file_type, write_dir, file_ext, num2str(nodes));
         fprintf(fileID,'recorder Node %s %s/nodal_reaction_z.%s -time -node %s -dof 3 reaction \n', file_type, write_dir, file_ext, num2str(nodes));
-        fprintf(fileID,'recorder Element %s %s/element_force_z.%s -time -ele %s -dof 1 2 6 12 localForce \n', file_type, write_dir, file_ext, num2str(element.id'));
+        fprintf(fileID,'recorder Element %s %s/element_force_z.%s -time -ele %s -dof 1 2 3 6 12 localForce \n', file_type, write_dir, file_ext, num2str(element.id'));
     end
     
     % Hinges
