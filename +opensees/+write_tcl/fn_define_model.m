@@ -1,4 +1,4 @@
-function [ node ] = fn_define_model( write_dir, node, element, joint, hinge, analysis, dimension, story, read_dir_analysis )
+function [ node, joint_ele_ids ] = fn_define_model( write_dir, node, element, joint, hinge, analysis, dimension, story, read_dir_analysis )
 %UNTITLED6 Summary of this function goes here
 
 %% Import Tools
@@ -179,7 +179,7 @@ if height(joint) > 0
     end
     
     fprintf(fileID,'uniaxialMaterial Elastic 1 999999999999999. \n'); % Rigid Elastic Material
-    
+    joint_ele_ids = [];
     % GO through each joint
     for i = 1:height(joint)
         % Define joint material
@@ -195,6 +195,7 @@ if height(joint) > 0
         if strcmp(dimension,'2D')
             if analysis.joint_model == 1 % Elastic beam column elements
            
+                joint_ele_ids = [(1:4)+joint.id(i)*1000000,joint_ele_ids];
                 joint_center.x = node.x(node.id == joint.y_pos(i),:);
                 joint_center.y = node.y(node.id == joint.x_pos(i),:);
                 fprintf(fileID,'node %i %f %f \n',40000+i,joint_center.x,joint_center.y);
@@ -209,6 +210,7 @@ if height(joint) > 0
             end
         elseif strcmp(dimension,'3D')
             if analysis.joint_model == 1 % Elastic beam column elements
+                joint_ele_ids = [(1:6)+joint.id(i)*1000000,joint_ele_ids];
                 joint_center.x = node.x(node.id == joint.y_pos(i),:);
                 joint_center.y = node.y(node.id == joint.x_pos(i),:);
                 joint_center.z = node.z(node.id == joint.x_pos(i),:);

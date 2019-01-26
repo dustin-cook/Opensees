@@ -23,14 +23,14 @@ analysis.model_type = 2; % 1 = SDOF, 2 = MDOF (default)
 analysis.rigid_diaphram = 1; % Default the model to assume rigid diaphrams (0 = non-rigid assuption)
 
 % Opensees Analysis Options
-analysis.ground_motion_scale_factor = 1; % Scale the GM amplitude
+analysis.ground_motion_scale_factor = 1.0; % Scale the GM amplitude
 analysis.damping = 'rayleigh'; % rayleigh, modal, or simple
-analysis.damp_ratio = 0.05; % Analysis damping ration
+analysis.damp_ratio = 0.03; % Analysis damping ration
 analysis.hinge_stiff_mod = 10; % Scale up stiffnes of hinges for a lumped plasticiy model. n value from Ibarra paper.
 analysis.run_eigen = 1; % Run the eignen anlayis to get mode shapes and periods for the opensees analysis
 analysis.initial_timestep_factor = 1; % reduction from eq timestep to analysis timestep
 analysis.solution_algorithm = 1; % Run the opensees solution algorthm which will try different things 
-analysis.collapse_drift = 0.1; % stop analysis at this drift and say collapse
+analysis.collapse_drift = 0.06; % stop analysis at this drift and say collapse
 analysis.joint_model = 1; % 1 = rigid beam/column elements, 2 = joint 3D
 analysis.joint_explicit = 0; % 0 = rigid, 2 = model joint nonlinearity
 analysis.write_xml = 1; % Write and read opensees out files as xml files (0 = .txt files)
@@ -38,19 +38,19 @@ analysis.pushover_num_steps = 100; % Number of steps a pushover will take to get
 analysis.cyclic_pushover_peak_drifts = [0.4, 0.5, 0.6]; % Percent of the final Pushover drift of each cycle
 
 % Visuals and Graphics
-analysis.element_plots = 1; % Plot hinge backnones and other per element visualizations
+analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
 analysis.plot_recordings = 0; % Plot analysis results v recorded results
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 1; % Visual scale of the movie playback
 
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
-    analysis.type_list = [2, 3]; % just one linear dynamic analysis
-    analysis.nonlinear_list = [0, 1];
-    analysis.dead_load_list = [1, 1];
-    analysis.live_load_list = [1, 1];
-    analysis.case_list = {'NA','backbones'};
-    analysis.pushover_drift_list = [0.005, 0.02];
+    analysis.type_list = [1]; 
+    analysis.nonlinear_list = [0];
+    analysis.dead_load_list = [1];
+    analysis.live_load_list = [1];
+    analysis.case_list = {'NA'};
+    analysis.pushover_drift_list = [0.005];
 elseif strcmp(analysis.proceedure,'NDP')
 %     analysis.type_list = [2, 2, 2, 3, 2, 1]; % Linear Pushover then NL Pushover x 2 then 1 NL dynamic
 %     analysis.nonlinear_list = [0, 1, 1, 1, 1, 1];

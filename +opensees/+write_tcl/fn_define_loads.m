@@ -1,4 +1,4 @@
-function [ ground_motion ] = fn_define_loads( write_dir, analysis, node, dimension, story, element_ids )
+function [ ground_motion ] = fn_define_loads( write_dir, analysis, node, dimension, story, element_ids, joint_ele_ids )
 %UNTITLED8 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -144,8 +144,9 @@ else
     % Set Damping
     if strcmp(analysis.damping,'rayleigh')
         % region $regTag <-ele ($ele1 $ele2 ...)> <-eleOnly ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-eleOnlyRange $startEle $endEle> <-node ($node1 $node2 ...)> <-nodeOnly ($node1 $node2 ...)> <-nodeRange $startNode $endNode> <-nodeOnlyRange $startNode $endNode> <-node all> <-rayleigh $alphaM $betaK $betaKinit $betaKcomm>
-        % rayleigh $alphaM $betaK $betaKinit $betaKcomm
-        fprintf(fileID,'region 1 -eleOnly %s -rayleigh 0.0 0.0 $beta 0.0 \n', num2str(element_ids)); % Assign Stiffnes Proportional Damping to the elastic elements
+%         rayleigh $alphaM $betaK $betaKinit $betaKcomm
+%         fprintf(fileID,'rayleigh $alpha $beta 0.0 0.0 \n');
+        fprintf(fileID,'region 1 -eleOnly %s -rayleigh 0.0 $beta 0.0 0.0 \n', num2str([element_ids])); % Assign Stiffnes Proportional Damping to the elastic elements
         fprintf(fileID,'region 2 -nodeOnly %s -rayleigh $alpha 0.0 0.0 0.0 \n', num2str(node.id(node.mass > 0)')); % Assign Mass Proportional Damping to the whole model (only triggers where there is mass)
     elseif strcmp(analysis.damping,'modal')
             fprintf(fileID,'modalDamping %d \n',analysis.damp_ratio);
