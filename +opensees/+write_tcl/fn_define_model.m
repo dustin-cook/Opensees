@@ -170,7 +170,7 @@ for i = 1:height(element)
     end
 end
 
-%% Define Joints as rigid
+%% Define Joints
 if height(joint) > 0
     % Load in joint properties
     if analysis.nonlinear ~= 0 % Nonlinear analysis
@@ -183,27 +183,35 @@ if height(joint) > 0
     % GO through each joint
     for i = 1:height(joint)
         % Define joint material
-%         if analysis.nonlinear ~= 0 % Nonlinear 
-%             [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', joint_analysis.Mn(i), joint_analysis.Mn(i), inf, inf, joint_analysis.h(i), joint_analysis.e(i), joint_analysis.iz(i), joint_analysis(i,:), NaN, 0.04 );
-%             Ko = moment_vec_pos(1)/rot_vec_pos(1);
-%             as_sping_pos = (moment_vec_pos(2)-moment_vec_pos(1))/(rot_vec_pos(2)-rot_vec_pos(1))/Ko;
-%             as_sping_neg = (moment_vec_neg(2)-moment_vec_neg(1))/(rot_vec_neg(2)-rot_vec_neg(1))/Ko;
-%             theta_pc = rot_vec_neg(3) - rot_vec_neg(2) + joint_analysis.c_hinge(i)*(rot_vec_neg(3) - rot_vec_neg(2))/(1-joint_analysis.c_hinge(i)); % theta pc defined all the way to zero where b defined to residual kink
-%             % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
-%             fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',joint.id(i)+10000, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc, theta_pc, joint_analysis.c_hinge(i), joint_analysis.c_hinge(i), 999, 999); % Keep residual strength forever
-%         end
+        if analysis.nonlinear ~= 0 % Nonlinear 
+                                                                                                     % type, Mn_pos,             Mn_neg,               Mp_pos, Mp_neg, length,                       e,                    iz,    a_hinge,                   b_hinge,                  c_hinge,                    n, strain_harden_ratio
+            [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', joint_analysis.Mn(i), joint_analysis.Mn(i), inf, inf, joint_analysis.h(i), joint_analysis.e(i), joint_analysis.iz(i), joint_analysis.a_hinge(i), joint_analysis.b_hinge(i), joint_analysis.c_hinge(i), NaN, 0.04 );
+            Ko = 1000*moment_vec_pos(1)/rot_vec_pos(1);
+            as_sping_pos = (moment_vec_pos(2)-moment_vec_pos(1))/(rot_vec_pos(2)-rot_vec_pos(1))/Ko;
+            as_sping_neg = (moment_vec_neg(2)-moment_vec_neg(1))/(rot_vec_neg(2)-rot_vec_neg(1))/Ko;
+            theta_pc_pos = rot_vec_pos(3) - rot_vec_pos(2) + joint_analysis.c_hinge(i)*(rot_vec_pos(3) - rot_vec_pos(2))/(1-joint_analysis.c_hinge(i)); % theta pc defined all the way to zero where b defined to residual kink
+            theta_pc_neg = rot_vec_neg(3) - rot_vec_neg(2) + joint_analysis.c_hinge(i)*(rot_vec_neg(3) - rot_vec_neg(2))/(1-joint_analysis.c_hinge(i)); % theta pc defined all the way to zero where b defined to residual kink
+            % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
+            fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',joint.id(i)+10000, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, joint_analysis.c_hinge(i), joint_analysis.c_hinge(i), 0.999, 0.999); % Keep residual strength forever
+        else % Linear
+            fprintf(fileID,'uniaxialMaterial Elastic %i 999999999999999. \n',joint.id(i)+10000); % Rigid Elastic Material
+        end
         if strcmp(dimension,'2D')
             if analysis.joint_model == 1 % Elastic beam column elements
-           
                 joint_ele_ids = [(1:4)+joint.id(i)*1000000,joint_ele_ids];
                 joint_center.x = node.x(node.id == joint.y_pos(i),:);
                 joint_center.y = node.y(node.id == joint.x_pos(i),:);
                 fprintf(fileID,'node %i %f %f \n',40000+i,joint_center.x,joint_center.y);
+                fprintf(fileID,'node %i %f %f %f \n',50000+i,joint_center.x,joint_center.y,joint_center.z);
                 % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
                 fprintf(fileID,'element elasticBeamColumn %d %d %d 100000. 9999999999. 20000000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),40000+i);
                 fprintf(fileID,'element elasticBeamColumn %d %d %d 100000. 9999999999. 20000000. 2 \n',joint.id(i)*1000000+2,40000+i,joint.x_pos(i));
-                fprintf(fileID,'element elasticBeamColumn %d %d %d 100000. 9999999999. 20000000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),40000+i);
-                fprintf(fileID,'element elasticBeamColumn %d %d %d 100000. 9999999999. 20000000. 1 \n',joint.id(i)*1000000+4,40000+i,joint.y_pos(i));
+                fprintf(fileID,'element elasticBeamColumn %d %d %d 100000. 9999999999. 20000000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),50000+i);
+                fprintf(fileID,'element elasticBeamColumn %d %d %d 100000. 9999999999. 20000000. 1 \n',joint.id(i)*1000000+4,50000+i,joint.y_pos(i));
+                % Scissor Hinge
+                %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
+                fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n', joint.id(i)+10000, 40000+i, 50000+i, joint.id(i)+10000); % Currently assumes x direction joint
+                fprintf(fileID,'equalDOF %i %i 1 2 3 4 5 \n', 40000+i, 50000+i);
             elseif analysis.joint_model == 2  % Joint 2D
                 % element Joint2D $eleTag $Nd1 $Nd2 $Nd3 $Nd4 $NdC <$Mat1 $Mat2 $Mat3 $Mat4> $MatC $LrgDspTag
                 fprintf(fileID,'element Joint2D %i %i %i %i %i %i 1 0 \n', 10000+i, joint.y_pos(i), joint.x_neg(i), joint.y_neg(i), joint.x_pos(i), 10000+i);
@@ -215,21 +223,21 @@ if height(joint) > 0
                 joint_center.y = node.y(node.id == joint.x_pos(i),:);
                 joint_center.z = node.z(node.id == joint.x_pos(i),:);
                 fprintf(fileID,'node %i %f %f %f \n',40000+i,joint_center.x,joint_center.y,joint_center.z);
-                % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
+                fprintf(fileID,'node %i %f %f %f \n',50000+i,joint_center.x,joint_center.y,joint_center.z);
+                % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
                 fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),40000+i);
                 fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+2,40000+i,joint.x_pos(i));
-                fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),40000+i);
-                fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,40000+i,joint.y_pos(i));
-                fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*1000000+5,joint.z_neg(i),40000+i);
-                fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*1000000+6,40000+i,joint.z_pos(i));
+                fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),50000+i);
+                fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,50000+i,joint.y_pos(i));
+%                 fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*1000000+5,joint.z_neg(i),40000+i);
+%                 fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*1000000+6,40000+i,joint.z_pos(i));
+                % Scissor Hinge
+                %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
+                fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n', joint.id(i)+10000, 40000+i, 50000+i, joint.id(i)+10000); % Currently assumes x direction joint
+                fprintf(fileID,'equalDOF %i %i 1 2 3 4 5 \n', 40000+i, 50000+i);
             elseif analysis.joint_model == 2  % Joint 3D
-                if analysis.nonlinear ~= 0 && analysis.joint_explicit % Nonlinear
-                    % element Joint3D %tag %Nx- %Nx+ %Ny- %Ny+ %Nz- %Nz+ %Nc %MatX %MatY %MatZ %LrgDspTag
-                    fprintf(fileID,'element Joint3D %i %i %i %i %i %i %i %i %i 1 1 0 \n', 10000+i, joint.x_neg(i), joint.x_pos(i), joint.y_neg(i), joint.y_pos(i), joint.z_neg(i), joint.z_pos(i), 10000+i, 10000+i); 
-                else % Linear Rigid
-                    % element Joint3D %tag %Nx- %Nx+ %Ny- %Ny+ %Nz- %Nz+ %Nc %MatX %MatY %MatZ %LrgDspTag
-                    fprintf(fileID,'element Joint3D %i %i %i %i %i %i %i %i 1 1 1 0 \n', 10000+i, joint.x_neg(i), joint.x_pos(i), joint.y_neg(i), joint.y_pos(i), joint.z_neg(i), joint.z_pos(i), 10000+i);
-                end
+                % element Joint3D %tag %Nx- %Nx+ %Ny- %Ny+ %Nz- %Nz+ %Nc %MatX %MatY %MatZ %LrgDspTag
+                fprintf(fileID,'element Joint3D %i %i %i %i %i %i %i %i %i 1 1 0 \n', 10000+i, joint.x_neg(i), joint.x_pos(i), joint.y_neg(i), joint.y_pos(i), joint.z_neg(i), joint.z_pos(i), 10000+i, 10000+i); 
             end
         end
     end

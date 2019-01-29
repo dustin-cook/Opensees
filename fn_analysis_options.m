@@ -25,7 +25,7 @@ analysis.rigid_diaphram = 1; % Default the model to assume rigid diaphrams (0 = 
 % Opensees Analysis Options
 analysis.ground_motion_scale_factor = 1.0; % Scale the GM amplitude
 analysis.damping = 'rayleigh'; % rayleigh, modal, or simple
-analysis.damp_ratio = 0.03; % Analysis damping ration
+analysis.damp_ratio = 0.05; % Analysis damping ration
 analysis.hinge_stiff_mod = 10; % Scale up stiffnes of hinges for a lumped plasticiy model. n value from Ibarra paper.
 analysis.run_eigen = 1; % Run the eignen anlayis to get mode shapes and periods for the opensees analysis
 analysis.initial_timestep_factor = 1; % reduction from eq timestep to analysis timestep

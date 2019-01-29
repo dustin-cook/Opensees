@@ -185,15 +185,7 @@ for s = 1:height(story)
             joint_dim_z = max(col_d_z);
             
             % Define New Nodes
-            if strcmp(model.dimension,'2D')
-                new_node.id = [1;2;3] + node.id(end);
-                new_node.x = [node.x(n_id)-joint_dim_x/2;node.x(n_id)+joint_dim_x/2;node.x(n_id)];
-                new_node.y = [node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y];
-                new_node.z = [node.z(n_id);node.z(n_id);node.z(n_id)];
-                new_node.dead_load = [0; 0; 0];
-                new_node.live_load = [0; 0; 0];
-                new_node.mass = [0; 0; 0];
-            elseif strcmp(model.dimension,'3D')
+            if strcmp(model.dimension,'3D') && analysis.joint_model == 2 % Joint 3D Model
                 new_node.id = [1;2;3;4;5] + node.id(end);
                 new_node.x = [node.x(n_id)-joint_dim_x/2;node.x(n_id)+joint_dim_x/2;node.x(n_id);node.x(n_id);node.x(n_id)];
                 new_node.y = [node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y;node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y/2];
@@ -201,6 +193,14 @@ for s = 1:height(story)
                 new_node.dead_load = [0; 0; 0; 0; 0];
                 new_node.live_load = [0; 0; 0; 0; 0];
                 new_node.mass = [0; 0; 0; 0; 0];
+            else % 2D representaton of the joint in the X direction
+                new_node.id = [1;2;3] + node.id(end);
+                new_node.x = [node.x(n_id)-joint_dim_x/2;node.x(n_id)+joint_dim_x/2;node.x(n_id)];
+                new_node.y = [node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y];
+                new_node.z = [node.z(n_id);node.z(n_id);node.z(n_id)];
+                new_node.dead_load = [0; 0; 0];
+                new_node.live_load = [0; 0; 0];
+                new_node.mass = [0; 0; 0];
             end
             
             % Change elements to connect to new nodes
@@ -224,7 +224,7 @@ for s = 1:height(story)
             joint.x_pos(joint_id,1) = new_node.id(2);
             joint.y_neg(joint_id,1) = new_node.id(3);
             joint.y_pos(joint_id,1) = n_id;
-            if strcmp(model.dimension,'3D')
+            if strcmp(model.dimension,'3D') && analysis.joint_model == 2 % Joint 3D model
                 joint.z_neg(joint_id,1) = new_node.id(4);
                 joint.z_pos(joint_id,1) = new_node.id(5);
             end

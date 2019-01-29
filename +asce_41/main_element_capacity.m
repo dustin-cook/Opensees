@@ -89,7 +89,8 @@ for i =1:length(joint.id)
     jnt.h = mean([beam_left_props.d,beam_right_props.d]) ; % Average of the two beam heights
     
     % Calculate whether the joint has conforming or non conforming reinforcement
-    jnt.S = min([beam_left_props.S,beam_right_props.S,column_low_props.S,column_high_props.S]);
+%     jnt.S = min([beam_left_props.S,beam_right_props.S,column_low_props.S,column_high_props.S]);
+    jnt.S = 999; % Set to non conforming for ISCB
     h_c = mean([column_low_props.d,column_high_props.d]);
     if jnt.S <= h_c/2
         jnt.trans_rien = 'C';
@@ -112,7 +113,9 @@ for i =1:length(joint.id)
     jnt.Vj = jnt.lambda*jnt.gamma*sqrt(jnt.fc_e)*jnt.a;
     
     % Calculate Joint Moment Capacity
-    jnt.Mn = jnt.Vj*jnt.h/2; % Comes from figure 9.3 of Moehle book. I think assumes beam yeild though, therefore should check and modify. I think also assumes there is a column above and column inflection points are at the center of the column height.
+    L = mean([beam_left.length,beam_right.length])/2; % Length from inflection point of beam to the column centerline, approximated as half neam centerline span,
+    H = mean([column_low.length,column_high.length]); % Column Height measured bewteen column inflection points, approximated as the story height.
+    jnt.Mn = jnt.Vj*(L/((L-jnt.w/2)/(0.9*jnt.h) - L/H)); % Equation 2.1 of Hassan and Moehle 2012 (with toa*A taken as Vy)
     
     % Calculate Joint Shear Demand
     Vcol = max([column_high.Vmax,0]); % Shear from the column above
