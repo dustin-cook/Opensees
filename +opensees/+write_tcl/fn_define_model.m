@@ -183,7 +183,7 @@ if height(joint) > 0
     % GO through each joint
     for i = 1:height(joint)
         % Define joint material
-        if analysis.nonlinear ~= 0 % Nonlinear 
+        if analysis.nonlinear ~= 0 && analysis.joint_explicit == 1 % Nonlinear Joints
                                                                                                      % type, Mn_pos,             Mn_neg,               Mp_pos, Mp_neg, length,                       e,                    iz,    a_hinge,                   b_hinge,                  c_hinge,                    n, strain_harden_ratio
             [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', joint_analysis.Mn(i), joint_analysis.Mn(i), inf, inf, joint_analysis.h(i), joint_analysis.e(i), joint_analysis.iz(i), joint_analysis.a_hinge(i), joint_analysis.b_hinge(i), joint_analysis.c_hinge(i), NaN, 0.04 );
             Ko = 1000*moment_vec_pos(1)/rot_vec_pos(1);

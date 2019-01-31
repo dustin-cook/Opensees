@@ -105,17 +105,17 @@ node.dead_load = zeros(length(node.id),1);
 node.live_load = zeros(length(node.id),1);
 for e = 1:length(element.id)
     if strcmp(element.type{e},'wall')
-        node.dead_load(element.node_2(e)) = node.dead_load(element.node_2(e)) + element.dead_load(e);
-        node.live_load(element.node_2(e)) = node.live_load(element.node_2(e)) + element.live_load(e);
+        node.dead_load(node.id == element.node_2(e)) = node.dead_load(node.id == element.node_2(e)) + element.dead_load(e);
+        node.live_load(node.id == element.node_2(e)) = node.live_load(node.id == element.node_2(e)) + element.live_load(e);
 %         node.dead_load(element.node_3(e)) = node.dead_load(element.node_3(e)) + element.dead_load(e)/2;
 %         node.dead_load(element.node_4(e)) = node.dead_load(element.node_4(e)) + element.dead_load(e)/2;
 %         node.live_load(element.node_3(e)) = node.live_load(element.node_3(e)) + element.live_load(e)/2;
 %         node.live_load(element.node_4(e)) = node.live_load(element.node_4(e)) + element.live_load(e)/2;
     else
-        node.dead_load(element.node_1(e)) = node.dead_load(element.node_1(e)) + element.dead_load(e)/2;
-        node.dead_load(element.node_2(e)) = node.dead_load(element.node_2(e)) + element.dead_load(e)/2;
-        node.live_load(element.node_1(e)) = node.live_load(element.node_1(e)) + element.live_load(e)/2;
-        node.live_load(element.node_2(e)) = node.live_load(element.node_2(e)) + element.live_load(e)/2;
+        node.dead_load(node.id == element.node_1(e)) = node.dead_load(node.id == element.node_1(e)) + element.dead_load(e)/2;
+        node.dead_load(node.id == element.node_2(e)) = node.dead_load(node.id == element.node_2(e)) + element.dead_load(e)/2;
+        node.live_load(node.id == element.node_1(e)) = node.live_load(node.id == element.node_1(e)) + element.live_load(e)/2;
+        node.live_load(node.id == element.node_2(e)) = node.live_load(node.id == element.node_2(e)) + element.live_load(e)/2;
     end
 end
 
@@ -187,17 +187,17 @@ for s = 1:height(story)
             % Define New Nodes
             if strcmp(model.dimension,'3D') && analysis.joint_model == 2 % Joint 3D Model
                 new_node.id = [1;2;3;4;5] + node.id(end);
-                new_node.x = [node.x(n_id)-joint_dim_x/2;node.x(n_id)+joint_dim_x/2;node.x(n_id);node.x(n_id);node.x(n_id)];
-                new_node.y = [node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y;node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y/2];
-                new_node.z = [node.z(n_id);node.z(n_id);node.z(n_id);node.z(n_id)-joint_dim_z/2;node.z(n_id)+joint_dim_z/2]; 
+                new_node.x = [node.x(node.id == n_id)-joint_dim_x/2;node.x(node.id == n_id)+joint_dim_x/2;node.x(node.id == n_id);node.x(node.id == n_id);node.x(node.id == n_id)];
+                new_node.y = [node.y(node.id == n_id)-joint_dim_y/2;node.y(node.id == n_id)-joint_dim_y/2;node.y(node.id == n_id)-joint_dim_y;node.y(node.id == n_id)-joint_dim_y/2;node.y(node.id == n_id)-joint_dim_y/2];
+                new_node.z = [node.z(n_id);node.z(node.id == n_id);node.z(node.id == n_id);node.z(node.id == n_id)-joint_dim_z/2;node.z(node.id == n_id)+joint_dim_z/2]; 
                 new_node.dead_load = [0; 0; 0; 0; 0];
                 new_node.live_load = [0; 0; 0; 0; 0];
                 new_node.mass = [0; 0; 0; 0; 0];
             else % 2D representaton of the joint in the X direction
                 new_node.id = [1;2;3] + node.id(end);
-                new_node.x = [node.x(n_id)-joint_dim_x/2;node.x(n_id)+joint_dim_x/2;node.x(n_id)];
-                new_node.y = [node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y/2;node.y(n_id)-joint_dim_y];
-                new_node.z = [node.z(n_id);node.z(n_id);node.z(n_id)];
+                new_node.x = [node.x(node.id == n_id)-joint_dim_x/2;node.x(node.id == n_id)+joint_dim_x/2;node.x(node.id == n_id)];
+                new_node.y = [node.y(node.id == n_id)-joint_dim_y/2;node.y(node.id == n_id)-joint_dim_y/2;node.y(node.id == n_id)-joint_dim_y];
+                new_node.z = [node.z(node.id == n_id);node.z(node.id == n_id);node.z(node.id == n_id)];
                 new_node.dead_load = [0; 0; 0];
                 new_node.live_load = [0; 0; 0];
                 new_node.mass = [0; 0; 0];
@@ -307,22 +307,19 @@ end
 %% Define new nodes to connect rigid diaphram to
 node.on_slab = zeros(length(node.id),1);
 if analysis.rigid_diaphram
-    count = 0;
-    last_node = node.id(end);
     for s = 1:height(story)
         for i = 1:length(nodes_on_slab{s})
-            count = count + 1;
-            node_id = last_node + count;
-            node.id(node_id,:) = node_id;
-            node.x(node_id,:) = node.x(node.id == nodes_on_slab{s}(i),:);
-            node.y(node_id,:) = node.y(node.id == nodes_on_slab{s}(i),:);
-            node.z(node_id,:) = node.z(node.id == nodes_on_slab{s}(i),:);
-            node.dead_load(node_id,:) = 0;
-            node.live_load(node_id,:) = 0;
-            node.mass(node_id,:) = 0;
-            node.story(node_id,:) = 0;
-            node.primary_story(node_id,:) = 0;
-            node.on_slab(node_id,:) = s;
+            node_idx = length(node.id) + 1;
+            node.id(node_idx,:) = node.id(end) + 1;
+            node.x(node_idx,:) = node.x(node.id == nodes_on_slab{s}(i),:);
+            node.y(node_idx,:) = node.y(node.id == nodes_on_slab{s}(i),:);
+            node.z(node_idx,:) = node.z(node.id == nodes_on_slab{s}(i),:);
+            node.dead_load(node_idx,:) = 0;
+            node.live_load(node_idx,:) = 0;
+            node.mass(node_idx,:) = 0;
+            node.story(node_idx,:) = 0;
+            node.primary_story(node_idx,:) = 0;
+            node.on_slab(node_idx,:) = s;
         end
     end
 end
@@ -418,7 +415,7 @@ end
 %% Define Nodal Fixity
 node.fix = cell(length(node.id),1);
 node.fix(1:end) = {'[000000]'}; % All nodes
-foundation_nodes_id = node.id(node.y == 0);
+foundation_nodes_id = (node.y == 0);
 % foundation nodes
 if model.foundation == 1
     node.fix(foundation_nodes_id,:) = {'[111111]'}; % Fixed

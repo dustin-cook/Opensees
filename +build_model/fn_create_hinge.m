@@ -4,31 +4,33 @@ function [ node, element, hinge ] = fn_create_hinge( node, element, hinge, node_
 
 % Define new nodes to connect to springs
 new_node_id = node.id(end) + 1;
+new_node_idx = length(node.id) + 1;
 if strcmp(type,'foundation')
     old_node_id = ele_or_node_id;
 else
     old_node_id = element.(node_end)(ele_or_node_id);
 end
+old_node_idx = find(node.id == old_node_id);
 
 % Define new node properties
-node.id(new_node_id) = new_node_id;
-node.x(new_node_id) = node.x(old_node_id);
-node.y(new_node_id) = node.y(old_node_id);
-node.z(new_node_id) = node.z(old_node_id);
-node.dead_load(new_node_id) = 0;
-node.live_load(new_node_id) = 0;
-node.mass(new_node_id) = 0;
-node.story(new_node_id) = 0;
-node.primary_story(new_node_id) = 0;
-node.fix(new_node_id) = node.fix(old_node_id);
-node.on_slab(new_node_id) = 0;
+node.id(new_node_idx) = new_node_id;
+node.x(new_node_idx) = node.x(old_node_idx);
+node.y(new_node_idx) = node.y(old_node_idx);
+node.z(new_node_idx) = node.z(old_node_idx);
+node.dead_load(new_node_idx) = 0;
+node.live_load(new_node_idx) = 0;
+node.mass(new_node_idx) = 0;
+node.story(new_node_idx) = 0;
+node.primary_story(new_node_idx) = 0;
+node.fix(new_node_idx) = node.fix(old_node_idx);
+node.on_slab(new_node_idx) = 0;
 
 % Define fixity of foundation nodes
-if (sum(old_node_id == foundation_nodes_id) > 0)
+if foundation_nodes_id(old_node_idx)
     if strcmp(type,'foundation')
-        node.fix{new_node_id} = '[111111]';
+        node.fix{new_node_idx} = '[111111]';
     else
-        node.fix{new_node_id} = '[000000]';
+        node.fix{new_node_idx} = '[000000]';
     end
 end
 

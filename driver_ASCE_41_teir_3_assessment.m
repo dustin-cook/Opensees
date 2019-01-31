@@ -20,7 +20,7 @@ analysis.model_id = 6;
 analysis.proceedure = 'NDP'; % LDP or NDP or test
 analysis.accidental_torsion = 0;
 
-analysis.gm_seq_id = 6; % Maybe also make this part ot the defualts or model?
+analysis.gm_seq_id = 7; % Maybe also make this part ot the defualts or model?
 
 %% Initial Setup
 import asce_41.main_ASCE_41
