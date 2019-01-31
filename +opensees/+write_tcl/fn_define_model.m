@@ -173,8 +173,9 @@ end
 %% Define Joints
 if height(joint) > 0
     % Load in joint properties
-    if analysis.nonlinear ~= 0 % Nonlinear analysis
-        joint_analysis_temp = load([read_dir_analysis filesep 'joint_analysis.mat']);
+    joint_file = [read_dir_analysis filesep 'joint_analysis.mat'];
+    if isfile(joint_file)
+        joint_analysis_temp = load(joint_file);
         joint_analysis = joint_analysis_temp.joint;
     end
     
@@ -224,11 +225,38 @@ if height(joint) > 0
                 joint_center.z = node.z(node.id == joint.x_pos(i),:);
                 fprintf(fileID,'node %i %f %f %f \n',40000+i,joint_center.x,joint_center.y,joint_center.z);
                 fprintf(fileID,'node %i %f %f %f \n',50000+i,joint_center.x,joint_center.y,joint_center.z);
+
+                % Joint Fixity Condition
+                if exist('joint_analysis','var')
+                    joint_rigidity = joint_analysis.implicit_stiff(i);
+                else
+                    joint_rigidity = 3;
+                end
                 % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
-                fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),40000+i);
-                fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+2,40000+i,joint.x_pos(i));
-                fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),50000+i);
-                fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,50000+i,joint.y_pos(i));
+                % Primary Beam Offsets
+                if joint_rigidity == 1 % Column Offsets Rigid
+                    % Primary Beam Offsets
+                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),40000+i);
+                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+2,40000+i,joint.x_pos(i));
+                    % Column Offsets
+                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),50000+i);
+                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,50000+i,joint.y_pos(i));
+                elseif joint_rigidity == 2 % Beam Offsets Rigid
+                    % Primary Beam Offsets
+                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),40000+i);
+                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+2,40000+i,joint.x_pos(i));
+                    % Column Offsets
+                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),50000+i);
+                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,50000+i,joint.y_pos(i));
+                elseif joint_rigidity == 3 % Both Offsets are Half Rigid
+                    % Primary Beam Offsets
+                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),40000+i);
+                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+2,40000+i,joint.x_pos(i));
+                    % Column Offsets
+                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),50000+i);
+                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,50000+i,joint.y_pos(i));
+                end
+                % Out of plane beam offsets
 %                 fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*1000000+5,joint.z_neg(i),40000+i);
 %                 fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*1000000+6,40000+i,joint.z_pos(i));
                 % Scissor Hinge

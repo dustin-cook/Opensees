@@ -89,8 +89,7 @@ for i =1:length(joint.id)
     jnt.h = mean([beam_left_props.d,beam_right_props.d]) ; % Average of the two beam heights
     
     % Calculate whether the joint has conforming or non conforming reinforcement
-%     jnt.S = min([beam_left_props.S,beam_right_props.S,column_low_props.S,column_high_props.S]);
-    jnt.S = 999; % Set to non conforming for ISCB
+    jnt.S = 999; % Set to non conforming for ISCB (update this to be database driven)
     h_c = mean([column_low_props.d,column_high_props.d]);
     if jnt.S <= h_c/2
         jnt.trans_rien = 'C';
@@ -106,6 +105,15 @@ for i =1:length(joint.id)
     col_strength_2 = sum([column_low.Mn_neg,column_high.Mn_neg]); % case 2: negative bending for both columns
     jnt.column_strength = mean([col_strength_1,col_strength_2]); % Avearge of two cases
     jnt.col_bm_ratio = jnt.column_strength/jnt.beam_strength;
+
+    % Determine implicit joint sfiffness condition according to ASCE 41-17 10.4.2.2
+    if jnt.col_bm_ratio > 1.2
+        jnt.implicit_stiff = 1;
+    elseif jnt.col_bm_ratio < 0.8
+        jnt.implicit_stiff = 2;
+    else
+        jnt.implicit_stiff = 3;
+    end
     
     % Caclulate the Joint Shear Strength according to ASCE 41-17 eq 10-4
     gamma_table = readtable(['+asce_41' filesep 'table_10_12_joint_gamma.csv'],'ReadVariableNames',true);
@@ -122,7 +130,15 @@ for i =1:length(joint.id)
     Ts1 = max([beam_left.Mmax / (beam_left_props.d*0.75),0]);
     C2 = max([beam_right.Mmax / (beam_right_props.d*0.75),0]); % Assuming jd is 75% of d, rough assumption for now until I take this further, also need to consider both directions
     jnt.Vmax = Ts1 + C2 - Vcol; % From Moehle Book EQ 9.2 Assumes the same as above.
+
+    % Check if joint is expected to yeild
+    if jnt.Vmax > jnt.Vj
+        jnt.yield = 1;
+    else
+        jnt.yield = 0;
+    end
     
+    % Save joint data to table
     joint_to_save(i,:) = jnt;
 end
 
