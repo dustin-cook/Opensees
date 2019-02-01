@@ -174,7 +174,7 @@ end
 if height(joint) > 0
     % Load in joint properties
     joint_file = [read_dir_analysis filesep 'joint_analysis.mat'];
-    if isfile(joint_file)
+    if exist(joint_file,'file')
         joint_analysis_temp = load(joint_file);
         joint_analysis = joint_analysis_temp.joint;
     end
@@ -232,12 +232,29 @@ if height(joint) > 0
                 else
                     joint_rigidity = 3;
                 end
+                
+                % Grab element info
+                bm_left = element(element.id == joint.beam_left(i),:);
+                bm_right = element(element.id == joint.beam_right(i),:);
+                col_low = element(element.id == joint.column_low(i),:);
+                col_high = element(element.id == joint.column_high(i),:);
+                
                 % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
                 % Primary Beam Offsets
                 if joint_rigidity == 1 % Column Offsets Rigid
                     % Primary Beam Offsets
-                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),40000+i);
-                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+2,40000+i,joint.x_pos(i));
+                    if ~isempty(bm_left)
+                        ele_props = ele_props_table(ele_props_table.id == bm_left.ele_id(i),:);
+                        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',joint.id(i)*1000000+1,joint.x_neg(i),40000+i,ele_props.a,ele_props.e,ele_props.g,ele_props.j,Iy_ele,Iz_ele,2);
+                    else
+                        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),40000+i);
+                    end
+                    if ~isempty(bm_right)
+                        ele_props = ele_props_table(ele_props_table.id == bm_right.ele_id(i),:);
+                        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',joint.id(i)*1000000+2,40000+i,joint.x_pos(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,Iy_ele,Iz_ele,2);
+                    else
+                        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+2,40000+i,joint.x_pos(i));
+                    end
                     % Column Offsets
                     fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),50000+i);
                     fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,50000+i,joint.y_pos(i));
@@ -246,8 +263,18 @@ if height(joint) > 0
                     fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),40000+i);
                     fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+2,40000+i,joint.x_pos(i));
                     % Column Offsets
-                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),50000+i);
-                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,50000+i,joint.y_pos(i));
+                    if ~isempty(col_low)
+                        ele_props = ele_props_table(ele_props_table.id == col_low.ele_id(i),:);
+                        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',joint.id(i)*1000000+3,joint.y_neg(i),50000+i,ele_props.a,ele_props.e,ele_props.g,ele_props.j,Iy_ele,Iz_ele,2);
+                    else
+                        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),50000+i);
+                    end
+                    if ~isempty(col_high)
+                        ele_props = ele_props_table(ele_props_table.id == col_high.ele_id(i),:);
+                        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',joint.id(i)*1000000+4,50000+i,joint.y_pos(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,Iy_ele,Iz_ele,2);
+                    else
+                        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,50000+i,joint.y_pos(i));
+                    end
                 elseif joint_rigidity == 3 % Both Offsets are Half Rigid
                     % Primary Beam Offsets
                     fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),40000+i);

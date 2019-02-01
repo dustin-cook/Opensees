@@ -23,22 +23,22 @@ for e_idx = 1:height(element)
 
     % save props into hinge table
     if strcmp(ele.type,'wall') && strcmp(ele.critical_mode,'shear')
-        element.c_hinge(e_idx) = hinge_props.c_hinge;
-        element.d_hinge(e_idx) = hinge_props.d_hinge;
-        element.e_hinge(e_idx) = hinge_props.e_hinge;
-        element.f_hinge(e_idx) = hinge_props.f_hinge;
-        element.g_hinge(e_idx) = hinge_props.g_hinge;
+        element.c_hinge(e_idx,1) = hinge_props.c_hinge;
+        element.d_hinge(e_idx,1) = hinge_props.d_hinge;
+        element.e_hinge(e_idx,1) = hinge_props.e_hinge;
+        element.f_hinge(e_idx,1) = hinge_props.f_hinge;
+        element.g_hinge(e_idx,1) = hinge_props.g_hinge;
     else
-        element.a_hinge(e_idx) = hinge_props.a_hinge;
-        element.b_hinge(e_idx) = hinge_props.b_hinge;
-        element.c_hinge(e_idx) = hinge_props.c_hinge;
+        element.a_hinge(e_idx,1) = hinge_props.a_hinge;
+        element.b_hinge(e_idx,1) = hinge_props.b_hinge;
+        element.c_hinge(e_idx,1) = hinge_props.c_hinge;
     end
-    element.a_hinge_oop(e_idx) = hinge_props_oop.a_hinge;
-    element.b_hinge_oop(e_idx) = hinge_props_oop.b_hinge;
-    element.c_hinge_oop(e_idx) = hinge_props_oop.c_hinge;
-    element.io(e_idx) = hinge_props.io;
-    element.ls(e_idx) = hinge_props.ls;
-    element.cp(e_idx) = hinge_props.cp;
+    element.a_hinge_oop(e_idx,1) = hinge_props_oop.a_hinge;
+    element.b_hinge_oop(e_idx,1) = hinge_props_oop.b_hinge;
+    element.c_hinge_oop(e_idx,1) = hinge_props_oop.c_hinge;
+    element.io(e_idx,1) = hinge_props.io;
+    element.ls(e_idx,1) = hinge_props.ls;
+    element.cp(e_idx,1) = hinge_props.cp;
 
 
 %% Go through each joint and calculate the nonlinear properties
