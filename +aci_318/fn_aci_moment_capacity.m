@@ -17,7 +17,7 @@ if strcmp(orientation,'neg')
     As_d = h - fliplr(As_d);
 elseif strcmp(orientation,'oop') % out of plane bending
     As = [sum(As)/2, sum(As)/2]; % Assume half the steel on each end
-    As_d = [3, h-3]; % Assume location is three inches from the sides
+    As_d = [min(3,h/5), max(h-3,h-h/5)]; % Assume location is min of three inches or 1/5 width from the sides
 end
 [ beta_1 ] = fn_beta_1( fc );
 
@@ -33,7 +33,12 @@ while balance_found == 0
     y(count) = y_prev + step;
     y_prev = y(count);
     if y(count) >= h/2
-        error('Nuetral Axis of Concrete Section Not Found')
+        warning('Nuetral Axis of Concrete Section Not Found, Assume NA is as if there is no compression steel')
+        c = As(end)*fy/(beta_1*0.85*fc*b);
+        e_s = 0.003*(c-As_d(end))/c; % Positive = compression strain, negative = tension strain
+        fy_eff = fy - 0.85*fc; % Effective compresison steel stress which accounts for displaced concrete.
+        fs = max(min(e_s*Es,fy_eff),-fy); % Check both positive and negative yield stress
+        break
     end
     c = h/2-y(count);
     [ balance_eq(count), fs, e_s ] = fn_calulate_bending_balance( c, P, As, As_d, b, b_eff, slab_depth, fy, Es, fc, beta_1 );
@@ -47,7 +52,12 @@ while balance_found == 0
             y(count) = y_prev - step;
             y_prev = y(count);
             if count > 5000 + switch_index
-                error('Nuetral Axis of Concrete Section Not Found')
+                warning('Nuetral Axis of Concrete Section Not Found, Assume NA is as if there is no compression steel')
+                c = As(end)*fy/(beta_1*0.85*fc*b);
+                e_s = 0.003*(c-As_d)/c; % Positive = compression strain, negative = tension strain
+                fy_eff = fy - 0.85*fc; % Effective compresison steel stress which accounts for displaced concrete.
+                fs = max(min(e_s*Es,fy_eff),-fy); % Check both positive and negative yield stress
+                break
             end
             c = h/2-y(count);
             [ balance_eq(count), fs, e_s ] = fn_calulate_bending_balance( c, P, As, As_d, b, b_eff, slab_depth, fy, Es, fc, beta_1 );

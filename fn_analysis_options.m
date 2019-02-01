@@ -44,7 +44,7 @@ analysis.movie_scale = 1; % Visual scale of the movie playback
 
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
-    analysis.type_list = [1]; 
+    analysis.type_list = [2]; 
     analysis.nonlinear_list = [0];
     analysis.dead_load_list = [1];
     analysis.live_load_list = [1];

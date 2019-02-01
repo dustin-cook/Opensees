@@ -29,13 +29,17 @@ end
 if contains(ele_prop.description,'rigid')
     ele.Mn_pos = inf;
     ele.Mn_neg = inf;
+    ele.Mn_oop = inf;
     ele.Mp_pos = inf;
     ele.Mp_neg = inf;
+    ele.Mp_oop = inf;
     ele_PM = [];
     ele_TH.Mn_pos = inf;
     ele_TH.Mn_neg = inf;
+    ele_TH.Mn_oop = inf;
     ele_TH.Mp_pos = inf;
     ele_TH.Mp_neg = inf;
+    ele_TH.Mp_oop = inf;
     ele_TH.Mn_pos_linear = inf;
     ele_TH.Mn_neg_linear = inf;
 else
@@ -109,7 +113,11 @@ end
 eff_fyt_e = ele_prop.fy_e*ele.effective_shear_rein_factor;
 
 % Vye and Diplacement Ductility
+try
 [ ele ] = fn_disp_ductility( ele, ele_prop, story, eff_fyt_e );
+catch
+test = 5;
+end
 
 % Shear capacity is not a function of time
 if strcmp(ele.type,'column')
