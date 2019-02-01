@@ -41,7 +41,7 @@ if analysis.run_opensees
         [ node, ground_motion ] = main_write_tcl( model.dimension, write_dir_opensees, node, element, story, joint, hinge, analysis, read_dir_analysis );
 
         % Run Opensees
-        main_run_opensees( write_dir_opensees )
+        main_run_opensees( write_dir_opensees, analysis )
     end
     % Postprocess OS data
     main_post_process_opensees( analysis, model, story, node, element, joint, hinge, ground_motion, write_dir_opensees )

@@ -1,8 +1,12 @@
-function [ ] = main_run_opensees( opensees_dir )
+function [ ] = main_run_opensees( opensees_dir, analysis )
 % Function to trigger the command line to run opensees
 
 %% Run Opensees
-command = ['opensees ' opensees_dir filesep 'run_analysis.tcl'];
+if analysis.summit_SP
+    command = ['openseesSP ' opensees_dir filesep 'run_analysis.tcl'];
+else
+    command = ['opensees ' opensees_dir filesep 'run_analysis.tcl'];
+end
 [status,cmdout] = system(command,'-echo');
 
 % test for analysis failure and terminate Matlab
