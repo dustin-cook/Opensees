@@ -14,7 +14,7 @@ function [ analysis ] = fn_analysis_options( analysis )
 % Run Options
 analysis.run_opensees = 1; % 1 = Run opensees, 0 = use existing results
 analysis.asce_41_post_process = 1; % 1 = run asce 41 post process logic
-analysis.summit_SP = 1; % Write tcl files to be run on summit using OpenseesSP
+analysis.summit_SP = 0; % Write tcl files to be run on summit using OpenseesSP
 analysis.skip_2_outputs = 0; % Skip all the way to the plotters
 
 % Model Options

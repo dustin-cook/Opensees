@@ -3,7 +3,7 @@ function [ ] = main_run_opensees( opensees_dir, analysis )
 
 %% Run Opensees
 if analysis.summit_SP
-    command = ['openseesSP ' opensees_dir filesep 'run_analysis.tcl'];
+    command = ['/projects/duco1061/software/OpenSeesSP/bin/OpenSeesSP ' opensees_dir filesep 'run_analysis.tcl'];
 else
     command = ['opensees ' opensees_dir filesep 'run_analysis.tcl'];
 end

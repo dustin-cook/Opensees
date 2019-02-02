@@ -9,9 +9,10 @@ import asce_41.*
 for e_idx = 1:height(element)
     ele = element(e_idx,:);
     ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
-    
+    element.trans_rein_check{e_idx,1} = 'NA'; % Preallocate Transverse Reinforcement Compliance
+
     if strcmp(ele.type,'beam')
-        [ hinge_props ] = fn_beam_hinge( ele, ele_props );
+        [ hinge_props, element.trans_rein_check{e_idx,1} ] = fn_beam_hinge( ele, ele_props );
         hinge_props_oop = hinge_props;
     elseif strcmp(ele.type,'column')
         [ hinge_props ] = fn_col_hinge( ele, ele_props );
@@ -39,7 +40,7 @@ for e_idx = 1:height(element)
     element.io(e_idx,1) = hinge_props.io;
     element.ls(e_idx,1) = hinge_props.ls;
     element.cp(e_idx,1) = hinge_props.cp;
-
+end
 
 %% Go through each joint and calculate the nonlinear properties
 for j_idx = 1:height(joint)

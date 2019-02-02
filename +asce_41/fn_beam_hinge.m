@@ -1,4 +1,4 @@
-function [ hinge ] = fn_beam_hinge( ele, ele_props )
+function [ hinge, trans_rien ] = fn_beam_hinge( ele, ele_props )
 % Description: Find beam hinge properties based on Table 10-7 of ASCE 41-17
 % Created by: Dustin Cook
 % Date Created: 7-1-18
