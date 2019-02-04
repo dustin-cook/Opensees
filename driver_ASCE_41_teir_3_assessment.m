@@ -16,8 +16,8 @@ fclose('all');
 % Assumptions:
 
 %% User Inputs (Think about changing this to a file read and command line execution)
-analysis.model_id = 6;
-analysis.proceedure = 'test'; % LDP or NDP or test
+analysis.model_id = 11;
+analysis.proceedure = 'NDP'; % LDP or NDP or test
 analysis.accidental_torsion = 0;
 
 analysis.gm_seq_id = 7; % Maybe also make this part ot the defualts or model?
