@@ -16,7 +16,7 @@ fclose('all');
 % Assumptions:
 
 %% User Inputs (Think about changing this to a file read and command line execution)
-analysis.model_id = 11;
+analysis.model_id = 6;
 analysis.proceedure = 'NDP'; % LDP or NDP or test
 analysis.accidental_torsion = 0;
 
