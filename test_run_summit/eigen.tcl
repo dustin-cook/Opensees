@@ -1,6 +1,6 @@
 wipeAnalysis 
-recorder Node -xml outputs/simple_frame_3D/test/opensees_data/mode_shape_1.xml -dT 1.000000 -node 6001  6004 -dof 1 3 "eigen 1" 
-recorder Node -xml outputs/simple_frame_3D/test/opensees_data/mode_shape_2.xml -dT 1.000000 -node 6001  6004 -dof 1 3 "eigen 2" 
+recorder Node -xml test_run_summit/mode_shape_1.xml -dT 1.000000 -node 6001  6004 -dof 1 3 "eigen 1" 
+recorder Node -xml test_run_summit/mode_shape_2.xml -dT 1.000000 -node 6001  6004 -dof 1 3 "eigen 2" 
 set numModes 4 
 set lambda [eigen -fullGenLapack $numModes] 
 set T {}
@@ -8,7 +8,7 @@ set pi [expr 2.0*asin(1.0)]
 foreach lam $lambda {
 	lappend T [expr (2.0*$pi)/sqrt($lam)]
 }
-set period_file outputs/simple_frame_3D/test/opensees_data/period.txt 
+set period_file test_run_summit/period.txt 
 set Periods [open $period_file "w"] 
 foreach t $T { 
 	puts $Periods " $t" 

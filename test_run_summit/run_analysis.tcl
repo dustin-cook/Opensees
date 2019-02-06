@@ -1,4 +1,4 @@
-source outputs/simple_frame_3D/test/opensees_data/setup_analysis.tcl 
+source test_run_summit/setup_analysis.tcl 
 set singularity_check 0 
 set collapse_check 0 
 set currentStep [getTime] 
@@ -25,7 +25,7 @@ exit
 } 
 if {$ok == 0} { 
 puts "Analysis Complete!" 
-set time_step_file outputs/simple_frame_3D/test/opensees_data/final_time_step_reduction.txt 
+set time_step_file test_run_summit/final_time_step_reduction.txt 
 set TS [open $time_step_file "w"] 
 puts $TS " $dt_reduce" 
 close $TS 

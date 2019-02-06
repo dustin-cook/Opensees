@@ -1,8 +1,8 @@
 wipe 
-source outputs/simple_frame_3D/test/opensees_data/model.tcl 
-source outputs/simple_frame_3D/test/opensees_data/eigen.tcl 
-source outputs/simple_frame_3D/test/opensees_data/loads.tcl 
-source outputs/simple_frame_3D/test/opensees_data/recorders.tcl 
+source test_run_summit/model.tcl 
+source test_run_summit/eigen.tcl 
+source test_run_summit/loads.tcl 
+source test_run_summit/recorders.tcl 
 wipeAnalysis 
 constraints Transformation 
 numberer RCM 
