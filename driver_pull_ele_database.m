@@ -6,7 +6,7 @@ close all
 clc
 
 %% User inputs
-analysis_dir = ['outputs' filesep 'simple_frame_and_wall_3D' filesep 'test' filesep 'asce_41_data'];
+analysis_dir = ['outputs' filesep 'simple_frame_and_wall_3D' filesep 'NDP' filesep 'asce_41_data'];
 
 %% Import Packages
 import asce_41.fn_define_backbone_rot
