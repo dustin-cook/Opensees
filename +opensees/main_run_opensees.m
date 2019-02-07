@@ -3,7 +3,7 @@ function [ ] = main_run_opensees( opensees_dir, analysis )
 
 %% Run Opensees
 if analysis.summit
-    command = ['mpirun -np $SLURM_NTASKS /projects/duco1061/software/OpenSeesSP/bin/OpenSeesSP ' opensees_dir filesep 'run_analysis.tcl'];
+    command = ['mpirun -np 2 /projects/duco1061/software/OpenSeesSP/bin/OpenSeesSP ' opensees_dir filesep 'run_analysis.tcl'];
 elseif analysis.opensees_SP
     command = ['openseesSP ' opensees_dir filesep 'run_analysis.tcl'];
 else
