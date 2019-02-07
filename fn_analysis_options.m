@@ -18,7 +18,7 @@ analysis.opensees_SP = 1; % Use OpenseesSP
 analysis.skip_2_outputs = 0; % Skip all the way to the plotters
 
 % Model Options
-analysis.stories_nonlinear = inf; % Default to all modeling all stories as nonlinear when doing NDP
+analysis.stories_nonlinear = 1; % Default to all modeling all stories as nonlinear when doing NDP
 analysis.model_type = 2; % 1 = SDOF, 2 = MDOF (default)
 analysis.rigid_diaphram = 1; % Default the model to assume rigid diaphrams (0 = non-rigid assuption)
 
@@ -39,8 +39,8 @@ analysis.cyclic_pushover_peak_drifts = [0.4, 0.5, 0.6]; % Percent of the final P
 % Visuals and Graphics
 analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
 analysis.plot_recordings = 0; % Plot analysis results v recorded results
-analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
-analysis.movie_scale = 1; % Visual scale of the movie playback
+analysis.play_movie = 0; % Have opensees display a real time graphic of the building and analysis
+analysis.movie_scale = 0; % Visual scale of the movie playback
 
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
