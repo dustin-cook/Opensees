@@ -27,7 +27,7 @@ for i = 1:length(element.id)
     disp([num2str(i), ' out of ', num2str(length(element.id)) ' elements complete' ])
     
     %% Caculate required development length and make sure there is enough
-    [ ele.pass_aci_dev_length ] = fn_development_check( ele, ele_prop );
+    [ ele.pass_aci_dev_length, ele.ld_avail, ele.ld_req ] = fn_development_check( ele, ele_prop );
     
     % Save capcity for convergence check
     if strcmp(ele.type,'wall')
@@ -84,7 +84,7 @@ for i =1:length(joint.id)
     opt1 = mean([column_low_props.w,column_high_props.w]); % Average of the two columns widths
     opt2 = mean([beam_left_props.w,beam_right_props.w]) + jnt.d; % Average of the two beam widths
     opt3 = opt1; % Assumes beam axis frames to the center of the column axis
-    jnt.w = min([opt1,opt2,opt3]);
+    jnt.w = opt1; % Use column props
     jnt.a = jnt.w*jnt.d;
     jnt.h = mean([beam_left_props.d,beam_right_props.d]) ; % Average of the two beam heights
     
@@ -131,6 +131,12 @@ for i =1:length(joint.id)
     C2 = max([beam_right.Mmax / (beam_right_props.d*0.75),0]); % Assuming jd is 75% of d, rough assumption for now until I take this further, also need to consider both directions
     jnt.Vmax = Ts1 + C2 - Vcol; % From Moehle Book EQ 9.2 Assumes the same as above.
 
+    % Joint Drift
+    jnt.drift_x = column_low.drift_x;
+    if sum(strcmp('drift_z',column_low.Properties.VariableNames)) == 1
+        jnt.drift_z = column_low.drift_z;
+    end
+    
     % Check if joint is expected to yeild
     if jnt.Vmax > jnt.Vj
         jnt.yield = 1;

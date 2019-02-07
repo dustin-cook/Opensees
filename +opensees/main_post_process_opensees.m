@@ -244,6 +244,42 @@ for i = 1:length(dirs_ran)
             story.(['mode_shape_z']) = mode_shape_norm';
         end
     end
+    
+    %% Collect response info for each element
+    for e = 1:height(element)
+        element.(['disp_' dirs_ran{i}])(e,1) = node.(['max_disp_' dirs_ran{i}])(node.id == element.node_2(e)); % Taking the drift at the top of column or wall or the right side of beam
+        if element.story(e) == 1
+            element.(['drift_' dirs_ran{i}])(e,1) = element.(['disp_' dirs_ran{i}])(e)/story.story_ht(story.id == element.story(e));
+        else
+            nodes_at_story_below = node(node.story == (element.story(e)-1),:);
+            [~, closest_node_idx] = min(sqrt((nodes_at_story_below.x-node.x(node.id == element.node_2(e))).^2 + (nodes_at_story_below.z-node.z(node.id == element.node_2(e))).^2)); % Min pathagorean distance to the closest point
+            node_below = nodes_at_story_below(closest_node_idx,:);
+            element.(['drift_' dirs_ran{i}])(e,1) = abs(element.(['disp_' dirs_ran{i}])(e)-node_below.max_disp_x)/story.story_ht(story.id == element.story(e));
+        end
+        if analysis.nonlinear ~= 0 && analysis.type == 1 % nonlinear dynamic analysis
+            ele_hinges = hinge(hinge.element_id == element.id(e) & strcmp(hinge.direction,'primary'),:);
+            if ~isempty(ele_hinges)
+                if strcmp(ele_hinges.type{1},'rotational') && height(ele_hinges) == 2
+                    rot_1_TH = ele_hinges.deformation_TH{ele_hinges.node_1 == element.node_1(e) | ele_hinges.node_2 == element.node_1(e)};
+                    rot_2_TH = ele_hinges.deformation_TH{ele_hinges.node_1 == element.node_2(e) | ele_hinges.node_2 == element.node_2(e)};
+                    element.rot_1(e,1) = max(abs(rot_1_TH));
+                    if max(rot_1_TH) > abs(min(rot_1_TH))
+                        element.rot_1_dir{e,1} = 'pos';
+                    else
+                        element.rot_1_dir{e,1} = 'neg';
+                    end
+                    element.rot_2(e,1) = max(abs(rot_2_TH));
+                    if max(rot_2_TH) > abs(min(rot_2_TH))
+                        element.rot_2_dir{e,1} = 'pos';
+                    else
+                        element.rot_2_dir{e,1} = 'neg';
+                    end
+                elseif strcmp(ele_hinges.type{1},'shear') && height(ele_hinges) == 1
+                    element.shear_deform(e,1) = max(ele_hinges.deformation_TH{1});
+                end
+            end
+        end
+    end
 end
 
 %% Save Specific Data

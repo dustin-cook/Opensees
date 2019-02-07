@@ -1,4 +1,4 @@
-function [ pass_aci_dev_length ] = fn_development_check( ele, ele_prop )
+function [ pass_aci_dev_length, ld_avail, ld_req ] = fn_development_check( ele, ele_prop )
 %UNTITLED4 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -58,7 +58,7 @@ for i = 1:length(d_b)
     end
 
     %% Calculate Development Length According to ACI 318-14
-    [ l_d, l_dt, l_dt_raw, l_dht ] = fn_aci_development_length( ele_prop.fy_e, ele_prop.fc_e, ele_prop.Av, ele_prop.S, d_b(i), c_b, ele_prop.lambda, psi_t, psi_e, psi_s, psi_c, psi_r, psi_rc );
+    [ l_d(i), l_dt, l_dt_raw, l_dht ] = fn_aci_development_length( ele_prop.fy_e, ele_prop.fc_e, ele_prop.Av, ele_prop.S, d_b(i), c_b, ele_prop.lambda, psi_t, psi_e, psi_s, psi_c, psi_r, psi_rc );
 
     %% Calculate splice length
     [ l_s ] = fn_aci_splice_length( ele_prop.fy_e, ele_prop.fc_e, d_b(i), l_dt_raw );
@@ -67,7 +67,7 @@ for i = 1:length(d_b)
     if l_d_min == 999
         test1 = 1;
     else
-        test1 = l_d_min(i) >= l_d;
+        test1 = l_d_min(i) >= l_d(i);
     end
     if l_d_hook_min == 999
         test2 = 1;
@@ -105,6 +105,10 @@ if ele.DCR_raw_max_V < 1.0 % Should replace with My and Vy check
     pass_aci_dev_length = 1; % Not enough demand on memeber to be controlled by inadequate development length
 end
 
+% Save development length info for ATC 134 P-58 data collection
+[~, idx] = min(l_d_min - l_d);
+ld_avail = l_d_min(idx); % Use Min diff between avail and requred as representative value
+ld_req = l_d(idx);
 
 end
 
