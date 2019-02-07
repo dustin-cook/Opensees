@@ -1,0 +1,17 @@
+id,ele_type,building_name,member_id,joint_id_right,joint_id_left,mf_type,story,description,earthquake_name,units
+11,column,ICSB,c-1G1,j-1G1,grd,1,1,East-side exterior first story column,1979 Imperial Valley,1
+22,column,ICSB,c-1G2,j-1G2,grd,1,1,East-side interior first story column,1979 Imperial Valley,1
+9,column,ICSB,c-1F1,j-1F1,grd,1,1,Exterior frame first story column,1979 Imperial Valley,1
+20,column,ICSB,c-1F2,j-1F2,grd,1,1,Interior frame first story column,1979 Imperial Valley,1
+10,beam,ICSB,b-1FG1,j-1G1,j-1F1,1,1,East-side exterior first story beam,1979 Imperial Valley,1
+21,beam,ICSB,b-1FG2,j-1G2,j-1F2,1,1,East-side interior first story beam,1979 Imperial Valley,1
+8,beam,ICSB,b-1EF1,j-1F1,NA,1,1,Exterior frame first story beam,1979 Imperial Valley,1
+19,beam,ICSB,b-1EF2,j-1F2,NA,1,1,Interior frame first story beam,1979 Imperial Valley,1
+6,joint,ICSB,j-1G1,NA,NA,1,1,East-side exterior first story joint,1979 Imperial Valley,1
+12,joint,ICSB,j-1G2,NA,NA,1,1,East-side interior first story joint,1979 Imperial Valley,1
+5,joint,ICSB,j-1F1,NA,NA,1,1,Exterior frame first story joint,1979 Imperial Valley,1
+11,joint,ICSB,j-1F2,NA,NA,1,1,Interior frame first story joint,1979 Imperial Valley,1
+59,column,ICSB,c-2G1,NA,j-1G1,1,2,East-side exterior second story column,1979 Imperial Valley,1
+70,column,ICSB,c-2G2,NA,j-1G2,1,2,East-side interior second story column,1979 Imperial Valley,1
+57,column,ICSB,c-2F1,NA,j-1F1,1,2,Exterior frame second story column,1979 Imperial Valley,1
+68,column,ICSB,c-2F2,NA,j-1F2,1,2,Interior frame second story column,1979 Imperial Valley,1

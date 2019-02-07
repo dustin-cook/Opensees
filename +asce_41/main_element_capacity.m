@@ -27,7 +27,7 @@ for i = 1:length(element.id)
     disp([num2str(i), ' out of ', num2str(length(element.id)) ' elements complete' ])
     
     %% Caculate required development length and make sure there is enough
-    [ ele.pass_aci_dev_length ] = fn_development_check( ele, ele_prop );
+    [ ele.pass_aci_dev_length, ele.ld_avail, ele.ld_req ] = fn_development_check( ele, ele_prop );
     
     % Save capcity for convergence check
     if strcmp(ele.type,'wall')

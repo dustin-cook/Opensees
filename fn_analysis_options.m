@@ -20,15 +20,15 @@ analysis.skip_2_outputs = 0; % Skip all the way to the plotters
 % Model Options
 analysis.stories_nonlinear = inf; % Default to all modeling all stories as nonlinear when doing NDP
 analysis.model_type = 2; % 1 = SDOF, 2 = MDOF (default)
-analysis.rigid_diaphram = 0; % Default the model to assume rigid diaphrams (0 = non-rigid assuption)
+analysis.rigid_diaphram = 1; % Default the model to assume rigid diaphrams (0 = non-rigid assuption)
 
 % Opensees Analysis Options
-analysis.ground_motion_scale_factor = 1.0; % Scale the GM amplitude
+analysis.ground_motion_scale_factor = 2.5; % Scale the GM amplitude
 analysis.damping = 'rayleigh'; % rayleigh, modal, or simple
 analysis.hinge_stiff_mod = 10; % Scale up stiffnes of hinges for a lumped plasticiy model. n value from Ibarra paper.
 analysis.run_eigen = 1; % Run the eignen anlayis to get mode shapes and periods for the opensees analysis
 analysis.initial_timestep_factor = 1; % reduction from eq timestep to analysis timestep
-analysis.solution_algorithm = 0; % Run the opensees solution algorthm which will try different things 
+analysis.solution_algorithm = 1; % Run the opensees solution algorthm which will try different things 
 analysis.collapse_drift = 0.06; % stop analysis at this drift and say collapse
 analysis.joint_model = 1; % 1 = beam/column elements, 2 = joint 3D
 analysis.joint_explicit = 0; % 0 = rigid, 1 = model joint nonlinearity (could automate this based on first assessment of joints)
@@ -44,13 +44,13 @@ analysis.movie_scale = 1; % Visual scale of the movie playback
 
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
-    analysis.type_list = [1];
-    analysis.nonlinear_list = [0];
-    analysis.dead_load_list = [1];
-    analysis.live_load_list = [1];
-    analysis.case_list = {'NA'};
-    analysis.pushover_drift_list = [0.005];
-    analysis.damp_ratio = 0.05; % Analysis damping ratio
+    analysis.type_list = [2, 1];
+    analysis.nonlinear_list = [0, 1];
+    analysis.dead_load_list = [1, 1];
+    analysis.live_load_list = [1, 1];
+    analysis.case_list = {'NA','NA'};
+    analysis.pushover_drift_list = [0.005, 0];
+    analysis.damp_ratio = 0.03; % Analysis damping ratio
 elseif strcmp(analysis.proceedure,'NDP')
     analysis.type_list = [2, 2, 2, 3, 2, 1]; % Linear Pushover then NL Pushover x 2 then cyclic then pushover then dynamic
     analysis.nonlinear_list = [0, 1, 1, 1, 1, 1];

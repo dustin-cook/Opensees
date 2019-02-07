@@ -1,0 +1,6 @@
+id,element_type,building_name,member_id,joint_id_1,joint_id_2,system_type,story,description,earthquake_name,units
+3,column,test,c_1,grd,j_1,1,1,NA,1979 Imperial Valley,1
+11,column,test,c_2,j_1,NA,1,2,NA,1979 Imperial Valley,1
+2,beam,test,b_1,NA,j_1,1,1,NA,1979 Imperial Valley,1
+2,joint,test,j_1,grd,j-1F1,1,1,NA,1979 Imperial Valley,1
+7,wall,test,w_1,NA,NA,1,1,NA,1979 Imperial Valley,1

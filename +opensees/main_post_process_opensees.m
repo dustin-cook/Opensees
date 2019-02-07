@@ -260,8 +260,20 @@ for i = 1:length(dirs_ran)
             ele_hinges = hinge(hinge.element_id == element.id(e) & strcmp(hinge.direction,'primary'),:);
             if ~isempty(ele_hinges)
                 if strcmp(ele_hinges.type{1},'rotational') && height(ele_hinges) == 2
-                    element.rot_1(e,1) = max(ele_hinges.deformation_TH{ele_hinges.node_1 == element.node_1(e) | ele_hinges.node_2 == element.node_1(e)});
-                    element.rot_2(e,1) = max(ele_hinges.deformation_TH{ele_hinges.node_1 == element.node_2(e) | ele_hinges.node_2 == element.node_2(e)});
+                    rot_1_TH = ele_hinges.deformation_TH{ele_hinges.node_1 == element.node_1(e) | ele_hinges.node_2 == element.node_1(e)};
+                    rot_2_TH = ele_hinges.deformation_TH{ele_hinges.node_1 == element.node_2(e) | ele_hinges.node_2 == element.node_2(e)};
+                    element.rot_1(e,1) = max(abs(rot_1_TH));
+                    if max(rot_1_TH) > abs(min(rot_1_TH))
+                        element.rot_1_dir{e,1} = 'pos';
+                    else
+                        element.rot_1_dir{e,1} = 'neg';
+                    end
+                    element.rot_2(e,1) = max(abs(rot_2_TH));
+                    if max(rot_2_TH) > abs(min(rot_2_TH))
+                        element.rot_2_dir{e,1} = 'pos';
+                    else
+                        element.rot_2_dir{e,1} = 'neg';
+                    end
                 elseif strcmp(ele_hinges.type{1},'shear') && height(ele_hinges) == 1
                     element.shear_deform(e,1) = max(ele_hinges.deformation_TH{1});
                 end
