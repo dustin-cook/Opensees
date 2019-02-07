@@ -30,7 +30,11 @@ fprintf(fileID,'} \n');
 % Write Gravity System Analysis
 fprintf(fileID,'constraints Transformation \n');
 fprintf(fileID,'numberer RCM \n'); % renumber dof's to minimize band-width (optimization)
-fprintf(fileID,'system BandGeneral \n'); % how to store and solve the system of equations in the analysis
+if analysis.opensees_SP
+    fprintf(fileID,'system Mumps \n'); % Use Mumps for OpenseesSP
+else
+    fprintf(fileID,'system BandGeneral \n'); % how to store and solve the system of equations in the analysis
+end
 fprintf(fileID,'test NormDispIncr 1.0e-5 1000 \n');
 % fprintf(fileID,'test EnergyIncr 1.0e-6 50 \n'); % determine if convergence has been achieved at the end of an iteration step
 fprintf(fileID,'algorithm Linear \n');

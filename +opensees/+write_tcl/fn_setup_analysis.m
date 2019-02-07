@@ -30,7 +30,7 @@ fprintf(fileID,'constraints Transformation \n');
 fprintf(fileID,'numberer RCM \n');
 
 % Construct Linear Solver and linear SOE Objects
-if analysis.summit_SP
+if analysis.opensees_SP
     fprintf(fileID,'system Mumps \n'); % Use Mumps for OpenseesSP
 else
     fprintf(fileID,'system BandGeneral \n');

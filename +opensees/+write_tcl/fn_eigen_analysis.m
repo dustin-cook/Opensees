@@ -54,7 +54,7 @@ fprintf(fileID,'test EnergyIncr 1.0e-10 100 0 \n');
 fprintf(fileID,'algorithm KrylovNewton \n');
 fprintf(fileID,'numberer RCM \n');
 fprintf(fileID,'constraints Transformation \n');
-if analysis.summit_SP
+if analysis.opensees_SP
     fprintf(fileID,'system Mumps \n'); % Use Mumps for OpenseesSP
 else
     fprintf(fileID,'system ProfileSPD \n');
