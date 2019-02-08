@@ -254,7 +254,11 @@ for i = 1:length(dirs_ran)
             nodes_at_story_below = node(node.story == (element.story(e)-1),:);
             [~, closest_node_idx] = min(sqrt((nodes_at_story_below.x-node.x(node.id == element.node_2(e))).^2 + (nodes_at_story_below.z-node.z(node.id == element.node_2(e))).^2)); % Min pathagorean distance to the closest point
             node_below = nodes_at_story_below(closest_node_idx,:);
-            element.(['drift_' dirs_ran{i}])(e,1) = abs(element.(['disp_' dirs_ran{i}])(e)-node_below.max_disp_x)/story.story_ht(story.id == element.story(e));
+            try
+                element.(['drift_' dirs_ran{i}])(e,1) = abs(element.(['disp_' dirs_ran{i}])(e)-node_below.max_disp_x)/story.story_ht(story.id == element.story(e));
+            catch
+                test = 4;
+            end
         end
         if analysis.nonlinear ~= 0 && analysis.type == 1 % nonlinear dynamic analysis
             ele_hinges = hinge(hinge.element_id == element.id(e) & strcmp(hinge.direction,'primary'),:);

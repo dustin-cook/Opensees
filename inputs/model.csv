@@ -13,3 +13,4 @@ id,name,dimension,foundation,primary_node_offset,hazus_class_x,hazus_class_z,vs3
 12,ICBS_model_3D_pile,3D,2,71,C1,C2,217.3,D
 13,ICBS_model_3D_fixed_2,3D,1,71,C1,C2,217.3,D
 14,ICBS_model_3D_1_story,3D,1,71,C1,C2,217.3,D
+15,ICBS_model_5ew_exterior,2D,1,0,C1,NA,217.3,D

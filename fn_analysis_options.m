@@ -37,10 +37,10 @@ analysis.pushover_num_steps = 100; % Number of steps a pushover will take to get
 analysis.cyclic_pushover_peak_drifts = [0.4, 0.5, 0.6]; % Percent of the final Pushover drift of each cycle
 
 % Visuals and Graphics
-analysis.element_plots = 1; % Plot hinge backnones and other per element visualizations
-analysis.plot_recordings = 1; % Plot analysis results v recorded results
-analysis.play_movie = 0; % Have opensees display a real time graphic of the building and analysis
-analysis.movie_scale = 0; % Visual scale of the movie playback
+analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
+analysis.plot_recordings = 0; % Plot analysis results v recorded results
+analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
+analysis.movie_scale = 1; % Visual scale of the movie playback
 
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
@@ -49,7 +49,7 @@ if strcmp(analysis.proceedure,'test')
     analysis.dead_load_list = [1];
     analysis.live_load_list = [1];
     analysis.case_list = {'NA'};
-    analysis.pushover_drift_list = [0.005];
+    analysis.pushover_drift_list = [0.001];
     analysis.damp_ratio = 0.03; % Analysis damping ratio
 elseif strcmp(analysis.proceedure,'NDP')
 %     analysis.type_list = [2, 2, 2, 3, 2, 1]; % Linear Pushover then NL Pushover x 2 then cyclic then pushover then dynamic
