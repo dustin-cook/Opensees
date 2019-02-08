@@ -6,6 +6,11 @@ function [ hinge, trans_rien ] = fn_beam_hinge( ele, ele_props )
 %% Import Packages
 import asce_41.fn_filter_asce41_table
 
+% Define vars if they do not exist
+if sum(strcmp('Vmax',ele.Properties.VariableNames)) == 0
+    ele.Vmax = 0;
+end
+
 % Load Beam Hinge Table 10-7 from ASCE 41-17
 hinge_table = readtable(['+asce_41' filesep 'beam_hinge.csv'],'ReadVariableNames',true);
 hinge_table.id = []; % Omit id 

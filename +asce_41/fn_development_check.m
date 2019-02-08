@@ -101,7 +101,7 @@ end
 pass_aci_dev_length = min(pass_aci_dev_length);
 
 % ASCE 41-17 10.3.5 point 2 check on if max applied stress exceeds Fs
-if ele.DCR_raw_max_V < 1.0 % Should replace with My and Vy check
+if sum(strcmp('DCR_raw_max_V',ele.Properties.VariableNames)) == 1 && ele.DCR_raw_max_V < 1.0 % Should replace with My and Vy check
     pass_aci_dev_length = 1; % Not enough demand on memeber to be controlled by inadequate development length
 end
 

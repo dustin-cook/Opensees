@@ -45,7 +45,7 @@ analysis.movie_scale = 1; % Visual scale of the movie playback
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
     analysis.type_list = [1];
-    analysis.nonlinear_list = [0];
+    analysis.nonlinear_list = [1];
     analysis.dead_load_list = [1];
     analysis.live_load_list = [1];
     analysis.case_list = {'NA'};
@@ -60,12 +60,12 @@ elseif strcmp(analysis.proceedure,'NDP')
 %     analysis.pushover_drift_list = [0.001, 0.02, 0.02, 0.02, 0.02, NaN]; % Drift limit where the pushover will go till
     
     % Shorter for speed
-    analysis.type_list = [2, 2, 2, 1]; % Linear Pushover then NL Pushover x 2 then 1 NL dynamic
-    analysis.nonlinear_list = [0, 1, 1, 1];
-    analysis.dead_load_list = [1, 1, 1, 1];
-    analysis.live_load_list = [1, 1, 1, 1];
-    analysis.case_list = {'NA', 'NA', 'backbones', 'NA'};
-    analysis.pushover_drift_list = [0.001, 0.02, 0.02, NaN]; % Drift limit where the pushover will go till
+    analysis.type_list = [2, 2, 1]; % Linear Pushover then NL Pushover x 2 then 1 NL dynamic
+    analysis.nonlinear_list = [1, 1, 1];
+    analysis.dead_load_list = [1, 1, 1];
+    analysis.live_load_list = [1, 1, 1];
+    analysis.case_list = {'NA', 'backbones', 'NA'};
+    analysis.pushover_drift_list = [0.02, 0.02, NaN]; % Drift limit where the pushover will go till
 
     analysis.damp_ratio = 0.03; % Analysis damping ratio
 elseif strcmp(analysis.proceedure,'LDP') % Linear Test

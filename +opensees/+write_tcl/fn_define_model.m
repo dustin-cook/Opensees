@@ -373,8 +373,14 @@ end
 if height(hinge) > 0
     % Load linear element table
     if analysis.nonlinear ~= 0
-        element_analysis_temp = load([read_dir_analysis filesep 'element_analysis.mat']);
-        element_analysis = element_analysis_temp.element;
+        if exist([read_dir_analysis filesep 'element_analysis.mat'],'file')
+            element_analysis_temp = load([read_dir_analysis filesep 'element_analysis.mat']);
+            element_analysis = element_analysis_temp.element;
+        else
+            element_TH = [];
+            [ element_analysis, ~, ~, joint ] = main_element_capacity( story, ele_props_table, element, element_TH, analysis, joint  );
+            [ element_analysis, ~ ] = main_hinge_properties( ele_props_table, element_analysis, joint );
+        end
     end
     
     for i = 1:height(hinge)

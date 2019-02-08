@@ -20,10 +20,19 @@ for i = 1:length(element.id)
     ele = element(i,:);
     ele_id = ele.ele_id;
     ele_prop = ele_prop_table(ele_prop_table.id == ele_id,:);
-    ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
+    if isempty(element_TH)
+        ele_TH = [];
+    else
+        ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
+    end
     
     %% Calculate Element Capacties
-    [ ele, element_TH.(['ele_' num2str(element.id(i))]), element_PM.(['ele_' num2str(element.id(i))]) ] = fn_element_capacity( story, ele, ele_prop, ele_TH, analysis.nonlinear );
+    if isempty(ele_TH)
+        [ ele, ~, ~ ] = fn_element_capacity( story, ele, ele_prop, ele_TH, analysis.nonlinear );
+        element_PM = [];
+    else
+        [ ele, element_TH.(['ele_' num2str(element.id(i))]), element_PM.(['ele_' num2str(element.id(i))]) ] = fn_element_capacity( story, ele, ele_prop, ele_TH, analysis.nonlinear );
+    end
     disp([num2str(i), ' out of ', num2str(length(element.id)) ' elements complete' ])
     
     %% Caculate required development length and make sure there is enough
@@ -77,7 +86,11 @@ for i =1:length(joint.id)
     jnt.fc_e = mean([column_low_props.fc_e,column_high_props.fc_e]);
     jnt.e = mean([column_low_props.e,column_high_props.e]);
     jnt.iz = mean([column_low_props.iz,column_high_props.iz,beam_left_props.iz,beam_right_props.iz]);
-    jnt.Pmax = max([column_high.Pmax,0]);
+    if sum(strcmp('Pmax',column_high.Properties.VariableNames)) == 0
+        jnt.Pmax = 0;
+    else
+        jnt.Pmax = max([column_high.Pmax,0]);
+    end
     
     % Calculate the joint area according to ASCE 41-17 10.4.2.3.2
     jnt.d = mean([column_low_props.d,column_high_props.d]); % Average of the two columns depths
@@ -126,13 +139,22 @@ for i =1:length(joint.id)
     jnt.Mn = jnt.Vj*(L/((L-jnt.w/2)/(0.9*jnt.h) - L/H)); % Equation 2.1 of Hassan and Moehle 2012 (with toa*A taken as Vy)
     
     % Calculate Joint Shear Demand
-    Vcol = max([column_high.Vmax,0]); % Shear from the column above
-    Ts1 = max([beam_left.Mmax / (beam_left_props.d*0.75),0]);
-    C2 = max([beam_right.Mmax / (beam_right_props.d*0.75),0]); % Assuming jd is 75% of d, rough assumption for now until I take this further, also need to consider both directions
-    jnt.Vmax = Ts1 + C2 - Vcol; % From Moehle Book EQ 9.2 Assumes the same as above.
+    if sum(strcmp('Vmax',column_high.Properties.VariableNames)) == 0 % Use capacities when demands do not yet exist
+        Vcol = max([column_high.Vn,0]); % Shear from the column above
+        Ts1 = max([beam_left.Mn_pos / (beam_left_props.d*0.75),0]);
+        C2 = max([beam_right.Mn_pos / (beam_right_props.d*0.75),0]); % Assuming jd is 75% of d, rough assumption for now until I take this further, also need to consider both directions
+        jnt.Vmax = Ts1 + C2 - Vcol; % From Moehle Book EQ 9.2 Assumes the same as above.
+    else
+        Vcol = max([column_high.Vmax,0]); % Shear from the column above
+        Ts1 = max([beam_left.Mmax / (beam_left_props.d*0.75),0]);
+        C2 = max([beam_right.Mmax / (beam_right_props.d*0.75),0]); % Assuming jd is 75% of d, rough assumption for now until I take this further, also need to consider both directions
+        jnt.Vmax = Ts1 + C2 - Vcol; % From Moehle Book EQ 9.2 Assumes the same as above.
+    end
 
     % Joint Drift
-    jnt.drift_x = column_low.drift_x;
+    if sum(strcmp('drift_x',column_low.Properties.VariableNames)) == 1
+        jnt.drift_x = column_low.drift_x;
+    end
     if sum(strcmp('drift_z',column_low.Properties.VariableNames)) == 1
         jnt.drift_z = column_low.drift_z;
     end

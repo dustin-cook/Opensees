@@ -8,8 +8,11 @@ function [ hinge, rho_t ] = fn_col_hinge( ele, ele_props )
 
 
 %% Calculate terms
-p_ratio = ele.Pmax/(ele_props.a*ele_props.fc_e); % The higher the axial load the more conservative the hinge will be, therefore use max from EQ loading 
-
+if sum(strcmp('Pmax',ele.Properties.VariableNames)) == 1
+    p_ratio = ele.Pmax/(ele_props.a*ele_props.fc_e); % The higher the axial load the more conservative the hinge will be, therefore use max from EQ loading 
+else
+    p_ratio = 0;
+end
 v_ratio = max([ele.vye/ele.V0 , 0.2]);
 
 rho_t = ele_props.Av/(ele_props.w*ele_props.S);

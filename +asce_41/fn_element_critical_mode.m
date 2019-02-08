@@ -43,7 +43,11 @@ elseif strcmp(ele.type,'wall')
         ele.critical_mode = {'shear'};
     else
         % Based on Shear Span Ratio (as defined by Pugh, Lowes, Lehman)
-        shear_span_ratio = ele.Mmax/(ele.Vmax*ele_prop.d);
+        if sum(strcmp('Mmax',ele.Properties.VariableNames)) == 0
+            shear_span_ratio = 1;
+        else
+            shear_span_ratio = ele.Mmax/(ele.Vmax*ele_prop.d);
+        end
         if shear_span_ratio > 2
             ele.critical_mode = {'flexure'};
         else

@@ -24,6 +24,17 @@ function [ hinge ] = fn_wall_hinge( ele, ele_props, oop_tag )
 % Import Packages
 import asce_41.*
 
+% Define demands if they do not exist
+if sum(strcmp('Pmax',ele.Properties.VariableNames)) == 0
+    ele.Pmax = 0;
+end
+if sum(strcmp('Vmax',ele.Properties.VariableNames)) == 0
+    ele.Vmax = 0;
+end
+if sum(strcmp('Vmax_oop',ele.Properties.VariableNames)) == 0
+    ele.Vmax_oop = 0;
+end
+
 % Defined Critical Model
 if oop_tag
     critical_mode = ele.critical_mode_oop;
@@ -50,7 +61,7 @@ if strcmp(critical_mode,'flexure')
     if oop_tag
         v_ratio = ele.Vmax_oop / (ele_props.w*ele_props.d*sqrt(ele_props.fc_e));
     else
-        v_ratio = ele.Vmax_oop / (ele_props.w*ele_props.d*sqrt(ele_props.fc_e));
+        v_ratio = ele.Vmax / (ele_props.w*ele_props.d*sqrt(ele_props.fc_e));
     end
     [ hinge_filt ] = fn_filter_asce41_table( hinge_filt, v_ratio, 'v_ratio', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
 
