@@ -69,16 +69,17 @@ for tol = 1:length(tolerance)
     for t = 1:length(step_reduction)
 
         % Loop Through Algorithms
-        for a = 1:length(algorithm_typs)
+%         for a = 1:length(algorithm_typs)
             fprintf(fileID,'if {$ok != 0} { \n');
-            fprintf(fileID,'puts "analysis failed, try try tolerance = %f, step_length/%f, and algorithm = %s" \n', tolerance(tol), step_reduction(t), algorithm_typs{1});
+%             fprintf(fileID,'puts "analysis failed, try try tolerance = %f, step_length/%f, and algorithm = %s" \n', tolerance(tol), step_reduction(t), algorithm_typs{1});
+            fprintf(fileID,'puts "analysis failed, try try tolerance = %f, step_length/%f" \n', tolerance(tol), step_reduction(t));
             fprintf(fileID,'set tol %f \n', tolerance(tol));
             if tol <= 4
                 fprintf(fileID,'test NormDispIncr $tol %i \n', min_tolerance_steps);
             else
                 fprintf(fileID,'test NormDispIncr $tol %i \n', max_tolerance_steps);
             end
-            fprintf(fileID,'algorithm %s \n', algorithm_typs{1});
+%             fprintf(fileID,'algorithm %s \n', algorithm_typs{1});
             if analysis.type == 1 % Dynamic
                 fprintf(fileID,'set step_reduce %f \n', step_reduction(t));
                 fprintf(fileID,'set dt [expr %f/$step_reduce] \n', step_length);
@@ -89,7 +90,7 @@ for tol = 1:length(tolerance)
                 fprintf(fileID,'set ok [analyze 1] \n');
             end
             fprintf(fileID,'} \n');
-        end
+%         end
     end
 end
 

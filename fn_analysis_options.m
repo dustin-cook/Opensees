@@ -14,11 +14,11 @@ function [ analysis ] = fn_analysis_options( analysis )
 % Run Options
 analysis.run_opensees = 1; % 1 = Run opensees, 0 = use existing results
 analysis.asce_41_post_process = 1; % 1 = run asce 41 post process logic
-analysis.opensees_SP = 1; % Use OpenseesSP
+analysis.opensees_SP = 1; % 0 = Standard OpenSees; 1 = OpenseesSP
 analysis.skip_2_outputs = 0; % Skip all the way to the plotters
 
 % Model Options
-analysis.stories_nonlinear = 1; % Default to all modeling all stories as nonlinear when doing NDP
+analysis.stories_nonlinear = 2; % Default to all modeling all stories as nonlinear when doing NDP
 analysis.model_type = 2; % 1 = SDOF, 2 = MDOF (default)
 analysis.rigid_diaphram = 1; % Default the model to assume rigid diaphrams (0 = non-rigid assuption)
 
@@ -37,19 +37,19 @@ analysis.pushover_num_steps = 100; % Number of steps a pushover will take to get
 analysis.cyclic_pushover_peak_drifts = [0.4, 0.5, 0.6]; % Percent of the final Pushover drift of each cycle
 
 % Visuals and Graphics
-analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
-analysis.plot_recordings = 0; % Plot analysis results v recorded results
+analysis.element_plots = 1; % Plot hinge backnones and other per element visualizations
+analysis.plot_recordings = 1; % Plot analysis results v recorded results
 analysis.play_movie = 0; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 0; % Visual scale of the movie playback
 
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
-    analysis.type_list = [2, 1];
-    analysis.nonlinear_list = [0, 1];
-    analysis.dead_load_list = [1, 1];
-    analysis.live_load_list = [1, 1];
-    analysis.case_list = {'NA','NA'};
-    analysis.pushover_drift_list = [0.005, 0];
+    analysis.type_list = [1];
+    analysis.nonlinear_list = [0];
+    analysis.dead_load_list = [1];
+    analysis.live_load_list = [1];
+    analysis.case_list = {'NA'};
+    analysis.pushover_drift_list = [0.005];
     analysis.damp_ratio = 0.03; % Analysis damping ratio
 elseif strcmp(analysis.proceedure,'NDP')
 %     analysis.type_list = [2, 2, 2, 3, 2, 1]; % Linear Pushover then NL Pushover x 2 then cyclic then pushover then dynamic

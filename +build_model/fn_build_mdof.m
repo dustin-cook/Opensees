@@ -184,51 +184,49 @@ for s = 1:height(story)
             joint_dim_x = max(col_d_x);
             joint_dim_z = max(col_d_z);
             
-            % Define New Nodes
-            if strcmp(model.dimension,'3D') && analysis.joint_model == 2 % Joint 3D Model
-                new_node.id = [1;2;3;4;5] + node.id(end);
-                new_node.x = [node.x(node.id == n_id)-joint_dim_x/2;node.x(node.id == n_id)+joint_dim_x/2;node.x(node.id == n_id);node.x(node.id == n_id);node.x(node.id == n_id)];
-                new_node.y = [node.y(node.id == n_id)-joint_dim_y/2;node.y(node.id == n_id)-joint_dim_y/2;node.y(node.id == n_id)-joint_dim_y;node.y(node.id == n_id)-joint_dim_y/2;node.y(node.id == n_id)-joint_dim_y/2];
-                new_node.z = [node.z(n_id);node.z(node.id == n_id);node.z(node.id == n_id);node.z(node.id == n_id)-joint_dim_z/2;node.z(node.id == n_id)+joint_dim_z/2]; 
-                new_node.dead_load = [0; 0; 0; 0; 0];
-                new_node.live_load = [0; 0; 0; 0; 0];
-                new_node.mass = [0; 0; 0; 0; 0];
-            else % 2D representaton of the joint in the X direction
-                new_node.id = [1;2;3] + node.id(end);
-                new_node.x = [node.x(node.id == n_id)-joint_dim_x/2;node.x(node.id == n_id)+joint_dim_x/2;node.x(node.id == n_id)];
-                new_node.y = [node.y(node.id == n_id)-joint_dim_y/2;node.y(node.id == n_id)-joint_dim_y/2;node.y(node.id == n_id)-joint_dim_y];
-                new_node.z = [node.z(node.id == n_id);node.z(node.id == n_id);node.z(node.id == n_id)];
-                new_node.dead_load = [0; 0; 0];
-                new_node.live_load = [0; 0; 0];
-                new_node.mass = [0; 0; 0];
-            end
-            
-            % Change elements to connect to new nodes
-            if isfield(new_ele,'bm_x_neg') %&& element.ele_id(new_ele.bm_x_neg,1) ~= 16 && element.ele_id(new_ele.bm_x_neg,1) ~= 17
-                element.node_2(new_ele.bm_x_neg,1) = new_node.id(1);
-            end
-            if isfield(new_ele,'bm_x_pos') %&& element.ele_id(new_ele.bm_x_pos,1) ~= 16 && element.ele_id(new_ele.bm_x_pos,1) ~= 17
-                element.node_1(new_ele.bm_x_pos,1) = new_node.id(2);
-            end
-            if isfield(new_ele,'bm_z_neg')
-                element.node_2(new_ele.bm_z_neg,1) = new_node.id(4);
-            end
-            if isfield(new_ele,'bm_z_pos')
-                element.node_1(new_ele.bm_z_pos,1) = new_node.id(5);
-            end
-            element.node_2(new_ele.col_y,1) = new_node.id(3);
-           
-            % Define Joint
+            % Define Joints and joint Nodes for 2D representaton of the joint in the X direction Change elements to connect to new nodes
             joint_id = joint_id + 1;
-            joint.x_neg(joint_id,1) = new_node.id(1);
-            joint.x_pos(joint_id,1) = new_node.id(2);
-            joint.y_neg(joint_id,1) = new_node.id(3);
-            joint.y_pos(joint_id,1) = n_id;
-            if strcmp(model.dimension,'3D') && analysis.joint_model == 2 % Joint 3D model
-                joint.z_neg(joint_id,1) = new_node.id(4);
-                joint.z_pos(joint_id,1) = new_node.id(5);
+            joint_node_id =  1 + node.id(end);
+            new_node.id = joint_node_id;
+            new_node.x = [node.x(node.id == n_id)];
+            new_node.y = [node.y(node.id == n_id)-joint_dim_y];
+            new_node.z = [node.z(node.id == n_id)];
+            new_node.dead_load = [0];
+            new_node.live_load = [0];
+            new_node.mass = [0];
+            element.node_2(new_ele.col_y,1) = new_node.id(1); % This breaks the joint 3D option
+            joint.y_neg(joint_id,1) = new_node.id(1);
+            joint.y_pos(joint_id,1) = n_id;  
+
+            if isfield(new_ele,'bm_x_neg') %&& element.ele_id(new_ele.bm_x_neg,1) ~= 16 && element.ele_id(new_ele.bm_x_neg,1) ~= 17
+                joint_node_id =  joint_node_id + 1;
+                new_node.id = [new_node.id; joint_node_id];
+                new_node.x = [new_node.x; node.x(node.id == n_id)-joint_dim_x/2];
+                new_node.y = [new_node.y; node.y(node.id == n_id)-joint_dim_y/2];
+                new_node.z = [new_node.z; node.z(node.id == n_id);];
+                new_node.dead_load = [new_node.dead_load; 0];
+                new_node.live_load = [new_node.live_load; 0];
+                new_node.mass = [new_node.mass; 0];
+                element.node_2(new_ele.bm_x_neg,1) = new_node.id(end);
+                joint.x_neg(joint_id,1) = new_node.id(end);
+            else
+                joint.x_neg(joint_id,1) = 0;
             end
-%             joint.center(joint_id,1) = new_node.id(4);    
+
+            if isfield(new_ele,'bm_x_pos') %&& element.ele_id(new_ele.bm_x_pos,1) ~= 16 && element.ele_id(new_ele.bm_x_pos,1) ~= 17
+                joint_node_id =  joint_node_id + 1;
+                new_node.id = [new_node.id; joint_node_id];
+                new_node.x = [new_node.x; node.x(node.id == n_id)+joint_dim_x/2];
+                new_node.y = [new_node.y; node.y(node.id == n_id)-joint_dim_y/2];
+                new_node.z = [new_node.z; node.z(node.id == n_id)];
+                new_node.dead_load = [new_node.dead_load; 0];
+                new_node.live_load = [new_node.live_load; 0];
+                new_node.mass = [new_node.mass; 0];
+                element.node_1(new_ele.bm_x_pos,1) = new_node.id(end);
+                joint.x_pos(joint_id,1) = new_node.id(end);
+            else
+                joint.x_pos(joint_id,1) = new_node.id(end);
+            end           
             
             % Define Joint Classification according to ASCE 41-17 figure 10-3
             % ASSUMES THERE ARE NEVER ANY TRANSFER BEAMS (ie in the z
@@ -268,7 +266,7 @@ for ae = 1:height(additional_elements)
     element.trib_wt(ele_id,1) = 0;
     element.ele_id(ele_id,1) = ele.id;
     element.direction{ele_id,1} = additional_elements.direction{ae};
-    element.story(ele_id,1) = 0;
+    element.story(ele_id,1) = additional_elements.story(ae);
     element.type{ele_id,1} = ele.type;
     element.dead_load(ele_id,1) = 0;
     element.live_load(ele_id,1) = 0;

@@ -24,23 +24,24 @@ for i = 1:length(condition)
     %% Filter Based on Condition
     hinge_filt = hinge_table(hinge_table.condition == condition(i),:);
     
-    if condition(i) == 1 
-        %% Fitler Table based on Transverse Rienforcement 
-        if ele_props.S <= ele_props.d/3
-            if ele.disp_duct < 2
-                % Conforming Transverse Reinforcement
-                trans_rien = 'C';
-            elseif ele.Vs > 0.75*ele.Vmax
-                % Conforming Transverse Reinforcement
-                trans_rien = 'C'; 
-            else
-                % Non-conforming Transverse Reinforcement
-                trans_rien = 'NC';
-            end
+    % Calculate if the transverse reinforcement
+    if ele_props.S <= ele_props.d/3
+        if ele.disp_duct < 2
+            % Conforming Transverse Reinforcement
+            trans_rien = 'C';
+        elseif ele.Vs > 0.75*ele.Vmax
+            % Conforming Transverse Reinforcement
+            trans_rien = 'C'; 
         else
             % Non-conforming Transverse Reinforcement
             trans_rien = 'NC';
         end
+    else
+        % Non-conforming Transverse Reinforcement
+        trans_rien = 'NC';
+    end
+    if condition(i) == 1 
+        %% Fitler Table based on Transverse Rienforcement 
         hinge_filt = hinge_filt(strcmp(hinge_filt.trans_rien,trans_rien),:);
 
         %% Filter table based on row ratio
