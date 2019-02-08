@@ -11,7 +11,7 @@ hinge_id = 0;
 if analysis.nonlinear ~= 0
     % Define Hinges
     for i = 1:length(element.id)
-        if element.story(i) <= analysis.stories_nonlinear
+        if element.story(i) <= analysis.stories_nonlinear && ~element.rigid(i)
             if strcmp(element.type{i},'column') || strcmp(element.type{i},'beam') % For all columns and beams
                 % Define hinge at start of element
                 hinge_id = hinge_id+1;

@@ -15,6 +15,8 @@ end
 file_name = [write_dir filesep 'eigen.tcl'];
 fileID = fopen(file_name,'w');
 
+fprintf(fileID,'puts "Eigen Start" \n');
+
 % Initail Setup
 % Eigen analysis - 10.4 from "Dynamics of Structures" book by Anil Chopra - using equalDOF and very high Ib
 fprintf(fileID,'wipeAnalysis \n');		
@@ -33,7 +35,7 @@ else
         fprintf(fileID,'set numModes %i \n',min([6,num_stories]));
     end
 end
-fprintf(fileID,'set lambda [eigen -fullGenLapack $numModes] \n');
+fprintf(fileID,'set lambda [eigen $numModes] \n');
 fprintf(fileID,'set T {}\n');
 fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
 fprintf(fileID,'foreach lam $lambda {\n');
@@ -67,6 +69,8 @@ fprintf(fileID,'} \n');
 
 % Remove recorder
 fprintf(fileID,'remove recorders \n');
+
+fprintf(fileID,'puts "Eigen End" \n');
 
 % Close File
 fclose(fileID);

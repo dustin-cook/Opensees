@@ -15,6 +15,8 @@ end
 file_name = [write_dir, filesep 'recorders.tcl'];
 fileID = fopen(file_name,'w');
 
+fprintf(fileID,'puts "Defining Recorders ..." \n');
+
 %% Dynamic Recorders
 if analysis.type == 1 
     % Define Node recorders
@@ -89,6 +91,8 @@ if analysis.play_movie
     %     fprintf(fileID,'viewWindow -1000 1000 -1000 1000 \n');
     fprintf(fileID,'display 1 5 %f \n',analysis.movie_scale);
 end
+
+fprintf(fileID,'puts "Defining Recorders Complete" \n');
 
 % Close File
 fclose(fileID);

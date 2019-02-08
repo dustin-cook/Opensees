@@ -6,7 +6,7 @@ close all
 clc
 
 %% User inputs
-analysis_dir = ['outputs' filesep 'simple_frame_and_wall_3D' filesep 'test' filesep 'asce_41_data'];
+analysis_dir = ['outputs' filesep 'simple_frame_and_wall_3D' filesep 'NDP' filesep 'asce_41_data'];
 
 %% Import Packages
 import asce_41.fn_define_backbone_rot
@@ -178,7 +178,7 @@ for i = 1:height(walls)
         end 
         walls.shear_stress_ratio(i) = ele.Vmax/(ele_props.w*ele_props.d*sqrt(ele_props.fc_e));
         walls.confined_boundary(i) = 0; % Assume they are unconfined (doens't matter for shear controlled walls)
-        [ force_vec, disp_vec ] = fn_define_backbone_shear( ele.Vn, ele.length, ele_props.g, ele_props.av, ele );
+        [ force_vec, disp_vec ] = fn_define_backbone_shear( ele.Vn, ele.length, ele_props.g, ele_props.av, ele ); % Assumes walls are shear controlled, probably should check explicitly
         walls.K0(i) = (1/1000)*force_vec(1)/disp_vec(1);
         walls.Mn{i} = force_vec(2)*(1/1000);
         walls.Mp{i} = force_vec(3)*(1/1000);

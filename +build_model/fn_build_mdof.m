@@ -292,6 +292,17 @@ for e = 1:length(element.id)
     element.length(e,1) = sqrt( (ele_x_end-ele_x_start)^2 + (ele_y_end-ele_y_start)^2 + (ele_z_end-ele_z_start)^2 );
 end
 
+%% Define if elements are rigid or not
+for e = 1:length(element.id)
+    ele_props = ele_props_table(ele_props_table.id == element.ele_id(e),:);
+    if contains(ele_props.description,'rigid')
+        element.rigid(e,1) = 1;
+    else
+        element.rigid(e,1) = 0;
+    end
+        
+end
+
 %% Find first nodes in each story and Nodes on Slab
 node.story = zeros(length(node.id),1);
 node.primary_story = zeros(length(node.id),1);

@@ -18,7 +18,7 @@ analysis.opensees_SP = 1; % 0 = Standard OpenSees; 1 = OpenseesSP
 analysis.skip_2_outputs = 0; % Skip all the way to the plotters
 
 % Model Options
-analysis.stories_nonlinear = 2; % Default to all modeling all stories as nonlinear when doing NDP
+analysis.stories_nonlinear = inf; % Default to all modeling all stories as nonlinear when doing NDP
 analysis.model_type = 2; % 1 = SDOF, 2 = MDOF (default)
 analysis.rigid_diaphram = 1; % Default the model to assume rigid diaphrams (0 = non-rigid assuption)
 
@@ -44,12 +44,12 @@ analysis.movie_scale = 1; % Visual scale of the movie playback
 
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
-    analysis.type_list = [1];
+    analysis.type_list = [2];
     analysis.nonlinear_list = [1];
     analysis.dead_load_list = [1];
     analysis.live_load_list = [1];
     analysis.case_list = {'NA'};
-    analysis.pushover_drift_list = [0.001];
+    analysis.pushover_drift_list = [0.1];
     analysis.damp_ratio = 0.03; % Analysis damping ratio
 elseif strcmp(analysis.proceedure,'NDP')
 %     analysis.type_list = [2, 2, 2, 3, 2, 1]; % Linear Pushover then NL Pushover x 2 then cyclic then pushover then dynamic
@@ -65,7 +65,7 @@ elseif strcmp(analysis.proceedure,'NDP')
     analysis.dead_load_list = [1, 1, 1];
     analysis.live_load_list = [1, 1, 1];
     analysis.case_list = {'NA', 'backbones', 'NA'};
-    analysis.pushover_drift_list = [0.02, 0.02, NaN]; % Drift limit where the pushover will go till
+    analysis.pushover_drift_list = [0.02, 1.02, NaN]; % Drift limit where the pushover will go till
 
     analysis.damp_ratio = 0.03; % Analysis damping ratio
 elseif strcmp(analysis.proceedure,'LDP') % Linear Test

@@ -9,6 +9,8 @@ import asce_7.*
 file_name = [write_dir filesep 'loads.tcl'];
 fileID = fopen(file_name,'w');
 
+fprintf(fileID,'puts "Defining Loads ..." \n');
+
 %% Load ground motion data
 gm_seq_table = readtable(['inputs' filesep 'ground_motion_sequence.csv'],'ReadVariableNames',true);
 ground_motion_seq = gm_seq_table(gm_seq_table.id == analysis.gm_seq_id,:);
@@ -114,7 +116,9 @@ if analysis.type == 1
     end
 end
 
+
 % Define Damping based on eigen modes
+fprintf(fileID,'puts "Running Eigen and Defining Damping" \n');
 if  strcmp(analysis.damping,'simple')
     fprintf(fileID,'set lambda [eigen -fullGenLapack 1] \n');
     fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
@@ -125,7 +129,7 @@ if  strcmp(analysis.damping,'simple')
     fprintf(fileID,'set beta [expr %d/$omega] \n', analysis.damp_ratio);
     fprintf(fileID,'rayleigh $alpha 0.0 $beta 0.0 \n'); 
 else
-    fprintf(fileID,'set lambda [eigen -fullGenLapack %i] \n', 3);
+    fprintf(fileID,'set lambda [eigen %i] \n', 3);
     fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
     fprintf(fileID,'set i 0 \n');
     fprintf(fileID,'foreach lam $lambda {\n');
@@ -163,7 +167,7 @@ else
 end
 
 
-
+fprintf(fileID,'puts "Define Load Complete" \n');
 
 %% Close File
 fclose(fileID);

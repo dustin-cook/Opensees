@@ -11,6 +11,8 @@ ele_props_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames'
 file_name = [write_dir filesep 'model.tcl'];
 fileID = fopen(file_name,'w');
 
+fprintf(fileID,'puts "Building Model..." \n');
+
 %% Define the model (2 dimensions, 3 dof)
 if strcmp(dimension,'2D')
     fprintf(fileID,'model basic -ndm 2 -ndf 3 \n');
@@ -386,6 +388,9 @@ if height(hinge) > 0
     for i = 1:height(hinge)
         hin = hinge(i,:); 
         ele_hinge_id = element.id(end) + hin.id; % Element ID associated with this hinge
+        if ele_hinge_id == 419
+            test = 5;
+        end
         if strcmp(hin.type,'foundation')
             pile_rot_stiff = 881511412050; % Force-Displacement rotational Stiffness of Bundle of Piles
             pile_lat_stiff = 18138095; % Force-Displacement lateral Stiffness of Bundle of Piles
@@ -510,6 +515,8 @@ end
 
 % Print model to file 
 % fprintf(fileID,'print -file %s/model.txt \n',output_dir);
+
+fprintf(fileID,'puts "Model Build Complete" \n');
 
 % Close File
 fclose(fileID);

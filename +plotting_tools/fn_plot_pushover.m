@@ -32,20 +32,13 @@ end
 % Calculate roof disp
 roof_node = control_nodes(control_nodes.y == max(control_nodes.y),:);
 roof_disp = roof_node.(['disp_' direction '_TH']);
+roof_drift = roof_disp/roof_node.y;
 
-% Plot Roof Disp Pushover
-plot(roof_disp,base_shear/1000)
-ylabel('Total Base Shear (k)')
-xlabel('Roof Displacement (in)')
-plot_dir = [read_dir filesep 'Pushover_Plots'];
-plot_name = ['Roof Pushover - ' direction];
-fn_format_and_save_plot( plot_dir, plot_name, 2 )
-
-% Plot Roof Disp Pushover Normalized by Building Weight
+% Plot Roof Drift Pushover Normalized by Building Weight
 v_ratio = base_shear/sum(seismic_wt);
-plot(roof_disp,v_ratio)
+plot(roof_drift,v_ratio)
 ylabel('Base Shear / Seismic Weight')
-xlabel('Roof Displacement (in)')
+xlabel('Roof Drift')
 plot_dir = [read_dir filesep 'Pushover_Plots'];
 plot_name = ['Normalized Pushover - ' direction];
 fn_format_and_save_plot( plot_dir, plot_name, 2 )
@@ -62,7 +55,7 @@ for i = 1:height(control_nodes)
         rel_story_disp = story_disp(i,:) - story_disp(i-1,:);
         story_drift = rel_story_disp ./ (control_nodes.y(i) - control_nodes.y(i-1));
     end
-    plot(story_drift,base_shear/1000,'DisplayName',['Story - ' num2str(i)'])
+    plot(story_drift,base_shear/seismic_wt(i),'DisplayName',['Story - ' num2str(i)'])
 end
 ylabel('Total Base Shear (k)')
 xlabel('Story Drift (in)')
