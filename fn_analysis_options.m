@@ -65,7 +65,7 @@ elseif strcmp(analysis.proceedure,'NDP')
     analysis.dead_load_list = [1, 1, 1];
     analysis.live_load_list = [1, 1, 1];
     analysis.case_list = {'NA', 'backbones', 'NA'};
-    analysis.pushover_drift_list = [0.02, 1.02, NaN]; % Drift limit where the pushover will go till
+    analysis.pushover_drift_list = [0.015, 0.015, NaN]; % Drift limit where the pushover will go till
 
     analysis.damp_ratio = 0.03; % Analysis damping ratio
 elseif strcmp(analysis.proceedure,'LDP') % Linear Test

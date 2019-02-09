@@ -32,6 +32,7 @@ fprintf(fileID,'numberer RCM \n');
 % Construct Linear Solver and linear SOE Objects
 if analysis.opensees_SP
     fprintf(fileID,'system Mumps \n'); % Use Mumps for OpenseesSP
+%     fprintf(fileID,'system BandGeneral \n');
 else
     fprintf(fileID,'system BandGeneral \n');
 end
