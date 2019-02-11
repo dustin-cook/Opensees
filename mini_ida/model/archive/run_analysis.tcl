@@ -49,14 +49,6 @@ set dt [expr 0.010000/$step_reduce]
 set ok [analyze 1 $dt] 
 } 
 if {$ok != 0} { 
-puts "analysis failed, try try tolerance = 0.000010, step_length/100.000000" 
-set tol 0.000010 
-test NormDispIncr $tol 10 
-set step_reduce 100.000000 
-set dt [expr 0.010000/$step_reduce] 
-set ok [analyze 1 $dt] 
-} 
-if {$ok != 0} { 
 puts "analysis failed, try try tolerance = 0.000100, step_length/1.000000" 
 set tol 0.000100 
 test NormDispIncr $tol 10 
@@ -85,14 +77,6 @@ puts "analysis failed, try try tolerance = 0.000100, step_length/50.000000"
 set tol 0.000100 
 test NormDispIncr $tol 10 
 set step_reduce 50.000000 
-set dt [expr 0.010000/$step_reduce] 
-set ok [analyze 1 $dt] 
-} 
-if {$ok != 0} { 
-puts "analysis failed, try try tolerance = 0.000100, step_length/100.000000" 
-set tol 0.000100 
-test NormDispIncr $tol 10 
-set step_reduce 100.000000 
 set dt [expr 0.010000/$step_reduce] 
 set ok [analyze 1 $dt] 
 } 
@@ -129,14 +113,6 @@ set dt [expr 0.010000/$step_reduce]
 set ok [analyze 1 $dt] 
 } 
 if {$ok != 0} { 
-puts "analysis failed, try try tolerance = 0.001000, step_length/100.000000" 
-set tol 0.001000 
-test NormDispIncr $tol 10 
-set step_reduce 100.000000 
-set dt [expr 0.010000/$step_reduce] 
-set ok [analyze 1 $dt] 
-} 
-if {$ok != 0} { 
 puts "analysis failed, try try tolerance = 0.010000, step_length/1.000000" 
 set tol 0.010000 
 test NormDispIncr $tol 10 
@@ -165,14 +141,6 @@ puts "analysis failed, try try tolerance = 0.010000, step_length/50.000000"
 set tol 0.010000 
 test NormDispIncr $tol 10 
 set step_reduce 50.000000 
-set dt [expr 0.010000/$step_reduce] 
-set ok [analyze 1 $dt] 
-} 
-if {$ok != 0} { 
-puts "analysis failed, try try tolerance = 0.010000, step_length/100.000000" 
-set tol 0.010000 
-test NormDispIncr $tol 10 
-set step_reduce 100.000000 
 set dt [expr 0.010000/$step_reduce] 
 set ok [analyze 1 $dt] 
 } 
@@ -209,14 +177,6 @@ set dt [expr 0.010000/$step_reduce]
 set ok [analyze 1 $dt] 
 } 
 if {$ok != 0} { 
-puts "analysis failed, try try tolerance = 0.100000, step_length/100.000000" 
-set tol 0.100000 
-test NormDispIncr $tol 1000 
-set step_reduce 100.000000 
-set dt [expr 0.010000/$step_reduce] 
-set ok [analyze 1 $dt] 
-} 
-if {$ok != 0} { 
 puts "analysis failed, try try tolerance = 1.000000, step_length/1.000000" 
 set tol 1.000000 
 test NormDispIncr $tol 1000 
@@ -248,14 +208,6 @@ set step_reduce 50.000000
 set dt [expr 0.010000/$step_reduce] 
 set ok [analyze 1 $dt] 
 } 
-if {$ok != 0} { 
-puts "analysis failed, try try tolerance = 1.000000, step_length/100.000000" 
-set tol 1.000000 
-test NormDispIncr $tol 1000 
-set step_reduce 100.000000 
-set dt [expr 0.010000/$step_reduce] 
-set ok [analyze 1 $dt] 
-} 
 set currentStep [getTime] 
 set converge_tol_log "$currentStep $tol" 
 puts $converge_tol_file $converge_tol_log 
@@ -263,7 +215,7 @@ if {$ok == 0} {
 set node_at_floor_1 6001 
 set floor_displ_1 "[nodeDisp $node_at_floor_1 1]" 
 puts "First Story Disp = $floor_displ_1" 
-set height_floor_1 174.000000 
+set height_floor_1 120.000000 
 set floor_drift_1 [expr abs($floor_displ_1/$height_floor_1)] 
 set check_QNAN_1 [string first QNAN $floor_displ_1 1] 
 set check_IND_1 [string first IND $floor_displ_1 1] 

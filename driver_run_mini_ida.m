@@ -5,15 +5,15 @@ clc
 
 %% Initial Setup
 % Set Input Parameters
-scale_factors = [0.25 0.5 1.0 1.5 2.0 3.0];
+scale_factors = [0.2 0.4 0.6 0.8 1.0 1.2 1.4];
 
 % Sa Values
 sa_x_t1 = 0.35;
 sa_z_t1 = 0.88;
 
 % Load in Model Tables
-load('mini_ida/model_tables/node_analysis.mat')
-load('mini_ida/model_tables/story_analysis.mat')
+node = readtable('mini_ida/model_tables/node.csv','readVariableNames',true);
+story = readtable('mini_ida/model_tables/story.csv','readVariableNames',true);
 
 % Import packages
 import opensees.post_process.*
@@ -37,14 +37,14 @@ for i = 1:length(scale_factors)
     fclose(fileID);
 
     % Call Opensees
-    % command = ['/projects/duco1061/software/OpenSeesSP/bin/OpenSeesSP ' 'mini_ida' filesep 'model' filesep 'run_analysis.tcl'];
-    command = ['openseesSP ' 'mini_ida' filesep 'model' filesep 'run_analysis.tcl'];
+    command = ['/projects/duco1061/software/OpenSeesSP/bin/OpenSeesSP ' 'mini_ida' filesep 'model' filesep 'run_analysis.tcl'];
+%     command = ['openseesSP ' 'mini_ida' filesep 'model' filesep 'run_analysis.tcl'];
     [status,cmdout] = system(command,'-echo');
     
     % Grab displacements
     for n = 1:height(node)
            if node.record_disp(n)
-               [ node_disp_raw ] = fn_xml_read(['mini_ida' filesep 'model' filesep 'nodal_disp_' num2str(node.id(n)) '.xml']);
+               [ node_disp_raw ] = fn_xml_read(['mini_ida' filesep 'model' filesep 'outputs' filesep 'nodal_disp_' num2str(node.id(n)) '.xml']);
                node_disp_raw = node_disp_raw'; % flip to be node per row
                node.disp_x{n} = node_disp_raw(2,:); 
                node.max_disp_x(n) = max(abs(node_disp_raw(2,:)));
@@ -70,12 +70,12 @@ end
 plot(max_drift_x,sa_x)
 xlabel('Max Drift')
 ylabel('Sa(T_1) (g)')
-fn_format_and_save_plot( 'mini_ida', 'IDA Plot EW Frame Direction', 2 )
+fn_format_and_save_plot( ['mini_ida' filesep 'ida_results'], 'IDA Plot EW Frame Direction', 2 )
 
 plot(max_drift_z,sa_z)
 xlabel('Max Drift')
 ylabel('Sa(T_1) (g)')
-fn_format_and_save_plot( 'mini_ida', 'IDA Plot NS Wall Direction', 2 )
+fn_format_and_save_plot( ['mini_ida' filesep 'ida_results'], 'IDA Plot NS Wall Direction', 2 )
 
 % Save results as csv
 ida.sa_x = sa_x;
@@ -83,4 +83,4 @@ ida.sa_z = sa_z;
 ida.max_drift_x = max_drift_x;
 ida.max_drift_z = max_drift_z;
 ida_table = struct2table(ida);
-writetable(ida_table,['mini_ida' filesep 'ida_results.csv'])
+writetable(ida_table,['mini_ida' filesep 'ida_results' filesep 'ida_results.csv'])
