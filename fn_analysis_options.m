@@ -60,8 +60,8 @@ elseif strcmp(analysis.proceedure,'NDP')
     analysis.dead_load_list = [1, 1, 1, 1, 1];
     analysis.live_load_list = [1, 1, 1, 1, 1];
     analysis.case_list = {'NA', 'NA', 'NA', 'backbones', 'NA'};
-    analysis.pushover_drift_list_x = [0.0075, 0.0075, 0.0075, 0.0075, NaN]; % Drift limit where the pushover will go till
-    analysis.pushover_drift_list_z = [0.001, 0.00175, 0.00175, 0.00175, NaN]; % Drift limit where the pushover will go till
+    analysis.pushover_drift_list_x = [0.006, 0.006, 0.006, 0.006, NaN]; % Drift limit where the pushover will go till
+    analysis.pushover_drift_list_z = [0.001, 0.0015, 0.0015, 0.0015, NaN]; % Drift limit where the pushover will go till
     
     % Shorter for speed
 %     analysis.type_list = [2, 2, 1]; % Linear Pushover then NL Pushover x 2 then 1 NL dynamic

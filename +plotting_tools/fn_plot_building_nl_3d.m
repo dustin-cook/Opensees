@@ -34,6 +34,7 @@ for i = 1:length(element.id)
             if type_filter(i)
                 count = count + 1;
                 ele(count,:) = element(i,:);
+                ele_new.id(count) = ele.id(count);
                 ele_new.old_node_1(count) = ele.node_1(count);
                 ele_new.old_node_2(count) = ele.node_2(count);
                 ele_new.node_1(count) = count*2-1;
@@ -64,48 +65,69 @@ else
     x = new_node.x;
 end
 y = new_node.y;
-H = plot(G,'XData',x,'YData',y);
+H = plot(G,'XData',x,'YData',y,'NodeLabel',{});
 
 %% Highlight Performance
 % Highlight elemets that pass IO
-element_list = hinge.element_id(hinge.accept == 1);
-for i = 1:length(element_list)
-    if (sum(ele.id == element_list(i))>0)
-        s_break_3 = ele_new.node_1(ele.id == element_list(i));
-        t_break_3 = ele_new.node_2(ele.id == element_list(i));
-        highlight(H,s_break_3,t_break_3,'EdgeColor','g','LineWidth',2)
+for e = 1:length(ele_new.id)
+    hinges = hinge(hinge.element_id == ele_new.id(e) & strcmp(hinge.direction,'primary'),:);
+    for h = 1:height(hinges)
+        hinge_new_node_1 = ele_new.node_1(ele_new.old_node_1 == hinges.node_1(h) | ele_new.old_node_1 == hinges.node_2(h));
+        hinge_new_node_2 = ele_new.node_2(ele_new.old_node_2 == hinges.node_1(h) | ele_new.old_node_1 == hinges.node_2(h));
+        hinge_new_node = max([hinge_new_node_1, hinge_new_node_1]);
+        
+        if hinges.accept(h) == 2
+            highlight(H,hinge_new_node) 
+            highlight(H,hinge_new_node,'NodeColor','g') % Highlight elemets that fail IO
+        elseif hinges.accept(h) == 3
+            highlight(H,hinge_new_node)
+            highlight(H,hinge_new_node,'NodeColor','y') % Highlight elemets that fail LS
+        elseif hinges.accept(h) == 4
+            highlight(H,hinge_new_node)
+            highlight(H,hinge_new_node,'NodeColor','r') % Highlight elemets that fail CP
+        end
     end
 end
 
-% Highlight elemets that pass LS
-element_list = hinge.element_id(hinge.accept == 2);
-for i = 1:length(element_list)
-    if (sum(ele.id == element_list(i))>0)
-        s_break_3 = ele_new.node_1(ele.id == element_list(i));
-        t_break_3 = ele_new.node_2(ele.id == element_list(i));
-        highlight(H,s_break_3,t_break_3,'EdgeColor','b','LineWidth',2)
-    end
-end
 
-% Highlight elemets that pass CP
-element_list = hinge.element_id(hinge.accept == 3);
-for i = 1:length(element_list)
-    if (sum(ele.id == element_list(i))>0)
-        s_break_3 = ele_new.node_1(ele.id == element_list(i));
-        t_break_3 = ele_new.node_2(ele.id == element_list(i));
-        highlight(H,s_break_3,t_break_3,'EdgeColor','y','LineWidth',2)
-    end
-end
-
-% Highlight elemets that fail all
-element_list = hinge.element_id(hinge.accept == 4);
-for i = 1:length(element_list)
-    if (sum(ele.id == element_list(i))>0)
-        s_break_3 = ele_new.node_1(ele.id == element_list(i));
-        t_break_3 = ele_new.node_2(ele.id == element_list(i));
-        highlight(H,s_break_3,t_break_3,'EdgeColor','r','LineWidth',2)
-    end
-end
+% element_list = hinge.element_id(hinge.accept == 1);
+% for i = 1:length(element_list)
+%     if (sum(ele.id == element_list(i))>0)
+%         s_break_3 = ele_new.node_1(ele.id == element_list(i));
+%         t_break_3 = ele_new.node_2(ele.id == element_list(i));
+%         highlight(H,s_break_3,t_break_3,'EdgeColor','g','LineWidth',2)
+%     end
+% end
+% 
+% % Highlight elemets that pass LS
+% element_list = hinge.element_id(hinge.accept == 2);
+% for i = 1:length(element_list)
+%     if (sum(ele.id == element_list(i))>0)
+%         s_break_3 = ele_new.node_1(ele.id == element_list(i));
+%         t_break_3 = ele_new.node_2(ele.id == element_list(i));
+%         highlight(H,s_break_3,t_break_3,'EdgeColor','b','LineWidth',2)
+%     end
+% end
+% 
+% % Highlight elemets that pass CP
+% element_list = hinge.element_id(hinge.accept == 3);
+% for i = 1:length(element_list)
+%     if (sum(ele.id == element_list(i))>0)
+%         s_break_3 = ele_new.node_1(ele.id == element_list(i));
+%         t_break_3 = ele_new.node_2(ele.id == element_list(i));
+%         highlight(H,s_break_3,t_break_3,'EdgeColor','y','LineWidth',2)
+%     end
+% end
+% 
+% % Highlight elemets that fail all
+% element_list = hinge.element_id(hinge.accept == 4);
+% for i = 1:length(element_list)
+%     if (sum(ele.id == element_list(i))>0)
+%         s_break_3 = ele_new.node_1(ele.id == element_list(i));
+%         t_break_3 = ele_new.node_2(ele.id == element_list(i));
+%         highlight(H,s_break_3,t_break_3,'EdgeColor','r','LineWidth',2)
+%     end
+% end
 
 %% Format and save plot
 xlabel('Base (ft)')
