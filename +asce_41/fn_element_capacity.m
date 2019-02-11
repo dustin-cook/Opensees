@@ -174,11 +174,11 @@ if sum(strcmp('Pmax',ele.Properties.VariableNames)) == 1
     if strcmp(ele.type,'wall')
         % For walls controlled by shear, if axial loads are too high
         if strcmp(ele.critical_mode,'shear') && ele.Pmax > 0.15*ele_prop.a*ele_prop.fc_e % ASCE 41-17 table 10-20 note b
-            error('Wall is force controlled, too much axial load')
+            warning('Wall is force controlled, too much axial load')
         end
         % Are the axial loads too high for lateral resistance
         if ele.Pmax > 0.35*ele.Pn_c 
-            error('Wall has too much axial load to take lateral force, modify model')
+            warning('Wall has too much axial load to take lateral force, modify model')
         end
     end
 end
