@@ -56,7 +56,7 @@ if sum(analysis.type_list == 3) > 0 % Cyclic was run as part of this proceedure
         if cyclic_analysis.analysis.nonlinear ~= 0 % Is the pushover nonlinear?
             % Plot Hinge Response
             cyclic_hinge = load([cyclic_read_dir filesep 'hinge_analysis.mat']);
-            fn_plot_hinge_response( cyclic_read_dir, cyclic_hinge.hinge, backbones.element, ele_prop_table, node )
+            fn_plot_hinge_response( cyclic_read_dir, cyclic_hinge.hinge, backbones.element, ele_prop_table, node, analysis.hinge_stories_2_plot )
         end
     end
 end
@@ -64,24 +64,24 @@ end
 %% Pushover Analysis
 if sum(analysis.type_list == 2) > 0 % Pushover was run as part of this proceedure
     pushover_read_dir = [analysis.out_dir filesep 'pushover'];
+    pushover_analysis = load([pushover_read_dir filesep 'analysis_options.mat']);
     % Plot Building Pushovers
-    fn_plot_pushover( pushover_read_dir, 'x', story.story_dead_load )
+    fn_plot_pushover( pushover_read_dir, 'x', story.story_dead_load, pushover_analysis.analysis.base_shear_x )
     if strcmp(model.dimension,'3D')
-        fn_plot_pushover( pushover_read_dir, 'z', story.story_dead_load  )
+        fn_plot_pushover( pushover_read_dir, 'z', story.story_dead_load, pushover_analysis.analysis.base_shear_z )
     end
     
     if analysis.element_plots
         % Load Pushover Results
         pushover_TH = load([pushover_read_dir filesep 'element_TH.mat']);
-        pushover_analysis = load([pushover_read_dir filesep 'analysis_options.mat']);
 
         % Plot PM Diagrams for each element
-        fn_plot_PM_response( pushover_read_dir, element, pushover_TH.element_TH, element_PM )
+        fn_plot_PM_response( pushover_read_dir, element, pushover_TH.element_TH, element_PM, analysis.hinge_stories_2_plot )
 
         % Plot Hinge Response
         if pushover_analysis.analysis.nonlinear ~= 0 % Is the pushover nonlinear?
             pushover_hinge = load([pushover_read_dir filesep 'hinge_analysis.mat']);
-            fn_plot_hinge_response( pushover_read_dir, pushover_hinge.hinge, backbones.element, ele_prop_table, node )
+            fn_plot_hinge_response( pushover_read_dir, pushover_hinge.hinge, backbones.element, ele_prop_table, node, analysis.hinge_stories_2_plot )
         end
     end
 end
@@ -163,11 +163,11 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     %% Plots Element results for both Dynamic analysis
     if analysis.element_plots
         % Plot PM Diagrams for each element
-        fn_plot_PM_response( plot_dir, element, element_TH, element_PM )
+        fn_plot_PM_response( plot_dir, element, element_TH, element_PM, analysis.hinge_stories_2_plot )
 
         % Plot Hinge Response
         load([read_dir filesep 'hinge_analysis.mat'])
-        fn_plot_hinge_response( plot_dir, hinge, backbones.element, ele_prop_table, node )
+        fn_plot_hinge_response( plot_dir, hinge, backbones.element, ele_prop_table, node, analysis.hinge_stories_2_plot )
     end
 end
 

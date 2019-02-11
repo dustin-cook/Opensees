@@ -27,20 +27,21 @@ load([read_dir filesep 'element_analysis.mat'])
 %% Plot Hinge Convergence
 if analysis.element_plots && strcmp(analysis.proceedure,'NDP') && analysis.type == 2
     for i = 1:height(element)
-
         ele = element(i,:);
-        ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
-        plot_dir = [write_dir filesep 'hinge_plots' filesep 'Story - ' num2str(ele.story)];
-        plot_name = [ele.type{1} '_' num2str(ele.id)];
-        
-        prev_fig_file = [plot_dir filesep plot_name '.fig'];
-        if exist(prev_fig_file,'file')
-            openfig(prev_fig_file);
-            hold on
+        if ele.story <= analysis.hinge_stories_2_plot
+            ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
+            plot_dir = [write_dir filesep 'hinge_plots' filesep 'Story - ' num2str(ele.story)];
+            plot_name = [ele.type{1} '_' num2str(ele.id)];
+
+            prev_fig_file = [plot_dir filesep plot_name '.fig'];
+            if exist(prev_fig_file,'file')
+                openfig(prev_fig_file);
+                hold on
+            end
+
+            line_color = [1,1,1] - step/(length(analysis.type_list)-1);
+            fn_plot_backbone( ele, ele_props, plot_dir, plot_name, 1, 0, 0, ele.critical_mode, 'primary', line_color)
         end
-        
-        line_color = [1,1,1] - step/(length(analysis.type_list)-1);
-        fn_plot_backbone( ele, ele_props, plot_dir, plot_name, 1, 0, 0, ele.critical_mode, 'primary', line_color)
     end
 end
 

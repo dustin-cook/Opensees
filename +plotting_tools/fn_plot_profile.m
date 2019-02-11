@@ -24,7 +24,7 @@ if ~isnan(target_disp)
 end
 
 xlim([0,plot_max])
-ylim([0,max(story_ids)])
+ylim([min(story_ids),max(story_ids)])
 fn_format_and_save_plot( plot_dir, plot_name, 1 )
 
 end

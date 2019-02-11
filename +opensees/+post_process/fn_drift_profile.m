@@ -4,23 +4,28 @@ function [ max_drift_profile ] = fn_drift_profile( disp, story, node )
 
 max_drift_profile = zeros(length(story.id),1);
 for i = 1:length(story.id)
-    nodal_drifts_x = [];
-    max_nodal_drifts = [];
+    nodes_this_story = node(node.story == i,:);
     if i == 1
-        nodal_drifts_x = disp(node.story == i,:)/story.story_ht(i);
-        max_nodal_drifts = max(abs(nodal_drifts_x),[],2);
-        max_drift_profile(i) = max(max_nodal_drifts);
-    else
-        nodes_below = node(node.story == i-1,:);
-        count = 0;
-        for j = 1:length(nodes_below.id)
-            node_this_story = (node.story == i & node.x == nodes_below.x(j) & node.z == nodes_below.z(j));
-            if sum(node_this_story) > 0
-                count = count +1;
-                nodal_drifts_x(count,:) = (disp(node_this_story,:) - disp(node.id == nodes_below.id(j),:))/story.story_ht(i);
+        for n = 1:height(nodes_this_story)
+            if nodes_this_story.record_disp(n)
+                nodal_drifts_TH = disp{node.id == nodes_this_story.id(n)}/story.story_ht(i);
+                max_nodal_drifts(n) = max(abs(nodal_drifts_TH));
+            else
+                max_nodal_drifts(n) = NaN;
             end
         end
-        max_nodal_drifts = max(abs(nodal_drifts_x),[],2);
+        max_drift_profile(i) = max(max_nodal_drifts);
+    else
+        for n = 1:height(nodes_this_story)
+            node_below = node(node.story == i-1 & node.x == nodes_this_story.x(n) & node.z == nodes_this_story.z(n),:);
+            if ~isempty(node_below) && nodes_this_story.record_disp(n)
+                nodal_drifts_TH = (disp{node.id == nodes_this_story.id(n)} - disp{node.id == node_below.id})/story.story_ht(i);
+                max_nodal_drifts(n) = max(abs(nodal_drifts_TH));
+            else
+                max_nodal_drifts(n) = NaN;
+            end
+            
+        end
         max_drift_profile(i) = max(max_nodal_drifts);
     end
 end

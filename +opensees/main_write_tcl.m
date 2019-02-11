@@ -1,4 +1,4 @@
-function [ node, ground_motion ] = main_write_tcl( model_dimension, write_dir, node, element, story, joint, hinge, analysis, read_dir_analysis )
+function [ node, ground_motion, hinge ] = main_write_tcl( model_dimension, write_dir, node, element, story, joint, hinge, analysis, read_dir_analysis )
 % Function to write TCL files for Opensees
 
 %% Initial Setup
@@ -6,7 +6,7 @@ import opensees.write_tcl.*
 
 %% Build Scripts
 [ node, joint_ele_ids ] = fn_define_model( write_dir, node, element, joint, hinge, analysis, model_dimension, story, read_dir_analysis );
-fn_define_recorders( write_dir, model_dimension, node.id', element, joint, hinge, analysis )
+[ hinge ] = fn_define_recorders( write_dir, model_dimension, node, element, joint, hinge, analysis );
 [ground_motion] = fn_define_loads( write_dir, analysis, node, model_dimension, story, element.id', joint_ele_ids);
 first_story_node = node.id(node.primary_story == 1);
 if analysis.run_eigen

@@ -18,6 +18,8 @@ if isfield(node,'x') && isfield(node,'y') && isfield(node,'z')
         else
             node.mass(node_table_index,1) = 0;
         end
+        node.record_disp(node_table_index,1) = 0;
+        node.record_accel(node_table_index,1) =  0;
         idx = node_table_index;
     else % Existing Node
         idx = start_node_check;
@@ -30,6 +32,8 @@ else % First Node
     node.dead_load(1,1) = 0;
     node.live_load(1,1) = 0;
     node.mass(1,1) = 0;
+    node.record_disp(1,1) = 0;
+    node.record_accel(1,1) =  0;
     idx = 1;
 end
 

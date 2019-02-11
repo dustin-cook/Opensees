@@ -1,4 +1,4 @@
-function [ ] = fn_plot_pushover( read_dir, direction, seismic_wt )
+function [ ] = fn_plot_pushover( read_dir, direction, seismic_wt, base_shear )
 % Description: Fn to plot all things pushover
 
 % Created By: Dustin Cook
@@ -22,16 +22,9 @@ load([read_dir filesep 'node_analysis.mat'])
 control_nodes = node(node.primary_story == 1,:);
 base_nodes = node(node.y == 0,:);
 
-% Calulate base shear
-if height(base_nodes) == 1
-    base_shear = abs(base_nodes.(['reaction_' direction '_TH']));
-else
-    base_shear = abs(sum(base_nodes.(['reaction_' direction '_TH'])));
-end
-
 % Calculate roof disp
 roof_node = control_nodes(control_nodes.y == max(control_nodes.y),:);
-roof_disp = roof_node.(['disp_' direction '_TH']);
+roof_disp = roof_node.(['disp_' direction '_TH']){1};
 roof_drift = roof_disp/roof_node.y;
 
 % Plot Roof Drift Pushover Normalized by Building Weight
@@ -47,7 +40,7 @@ fn_format_and_save_plot( plot_dir, plot_name, 2 )
 hold on
 for i = 1:height(control_nodes)
     story_node = control_nodes(i,:);
-    story_disp(i,:) = story_node.(['disp_' direction '_TH']);
+    story_disp(i,:) = story_node.(['disp_' direction '_TH']){1};
     if i == 1
         rel_story_disp = story_disp;
         story_drift = rel_story_disp ./ story_node.y;

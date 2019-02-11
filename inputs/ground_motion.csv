@@ -6,3 +6,6 @@ id,eq_dir,eq_dt,eq_length,eq_name,pga
 5,ground_motions/ICSB_1979,0.01,2500,chan_11_accel_short.tcl,0.2896
 6,ground_motions/ICSB_1979,0.01,2500,chan_12_accel_short.tcl,0.1777
 7,ground_motions/example,0.005,2201,EQ_1001_E.tcl,
+8,ground_motions/ICSB_1979,0.01,1500,chan_13_accel_15.tcl,0.3314
+9,ground_motions/ICSB_1979,0.01,1500,chan_11_accel_15.tcl,0.2896
+10,ground_motions/ICSB_1979,0.01,1500,chan_12_accel_15.tcl,0.1777

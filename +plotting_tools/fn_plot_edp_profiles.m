@@ -37,7 +37,7 @@ else
     fn_plot_profile( [0; story.(['max_disp_' direction])], [0;story.id], edp_plot_dir, ['Displacement Profile ' direction], 'Displacement (in)', 10, target_disp_in, model.num_stories)
 end
 % Drift
-fn_plot_profile( story.(['max_drift_' direction]), story.id, edp_plot_dir, ['Drift Profile ' direction], 'SDR', 0.05, NaN, model.num_stories )
+fn_plot_profile( story.(['max_drift_' direction]), story.id, edp_plot_dir, ['Drift Profile ' direction], 'IDR', 0.05, NaN, model.num_stories )
 
 end
 

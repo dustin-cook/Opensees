@@ -24,28 +24,30 @@ joint = readtable([read_dir_model filesep 'joint.csv'],'ReadVariableNames',true)
 hinge = readtable([read_dir_model filesep 'hinge.csv'],'ReadVariableNames',true);
 
 %% Run Opensees
-if analysis.run_opensees
-    % Define Number of Opensees runs to be performed
-    pushover_directions = {'x', 'z'};
-    if (analysis.type == 2 || analysis.type == 3) && strcmp(model.dimension,'3D') % 3D pushover or cyclic
-        num_OS_runs = 2;
-    else
-        num_OS_runs = 1;
-    end
 
-    for i = 1:num_OS_runs
-        % Define inputs for this run
-        analysis.pushover_direction = pushover_directions{i};
+% Define Number of Opensees runs to be performed
+pushover_directions = {'x', 'z'};
+if (analysis.type == 2 || analysis.type == 3) && strcmp(model.dimension,'3D') % 3D pushover or cyclic
+    num_OS_runs = 2;
+else
+    num_OS_runs = 1;
+end
 
-        % Write TCL files
-        [ node, ground_motion ] = main_write_tcl( model.dimension, write_dir_opensees, node, element, story, joint, hinge, analysis, read_dir_analysis );
+for i = 1:num_OS_runs
+    % Define inputs for this run
+    analysis.pushover_direction = pushover_directions{i};
 
-        % Run Opensees
+    % Write TCL files
+    [ node, ground_motion, hinge ] = main_write_tcl( model.dimension, write_dir_opensees, node, element, story, joint, hinge, analysis, read_dir_analysis );
+
+     % Run Opensees
+    if analysis.run_opensees
         main_run_opensees( write_dir_opensees, analysis )
     end
-    % Postprocess OS data
-    main_post_process_opensees( analysis, model, story, node, element, joint, hinge, ground_motion, write_dir_opensees )
 end
+
+% Postprocess OS data
+main_post_process_opensees( analysis, model, story, node, element, joint, hinge, ground_motion, write_dir_opensees )
 
 %% Write Summit Batch File
 if analysis.summit

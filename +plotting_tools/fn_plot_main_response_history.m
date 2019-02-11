@@ -35,12 +35,12 @@ if exist('record_edp','var')
     node_second_center = node(node.x == center_x & node.z == center_z & node.story == 2,:);
     node_roof_center = node(node.x == center_x & node.z == center_z & node.story == 6,:);
 
-    fn_plot_response_history( node_ground.(disp_tag), eq_analysis_timespace, eq, eq_dt, rh_plot_dir, ['Ground Displacemnet ' direction ' (in)'], 15, record_edp.disp_TH_ground.(direction)  )
-    fn_plot_response_history( node_ground.(accel_tag), eq_analysis_timespace, eq, eq_dt, rh_plot_dir, ['Ground Acceleration ' direction ' (g)'], 15, record_edp.accel_TH_ground.(direction) )
-    fn_plot_response_history( node_second_center.(disp_tag), eq_analysis_timespace, eq, eq_dt, rh_plot_dir, ['Second Floor Displacemnet Center ' direction ' (in)'], 15, record_edp.disp_TH_second.(direction) )
-    fn_plot_response_history( node_second_center.(accel_tag), eq_analysis_timespace, eq, eq_dt, rh_plot_dir, ['Second Floor Acceleration Center ' direction ' (g)'], 15, record_edp.accel_TH_second.(direction) )
-    fn_plot_response_history( node_roof_center.(disp_tag), eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Displacemnet Center ' direction ' (in)'], 15, record_edp.disp_TH_roof.(direction) )
-    fn_plot_response_history( node_roof_center.(accel_tag), eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Acceleration Center ' direction ' (g)'], 15, record_edp.accel_TH_roof.(direction))
+    fn_plot_response_history( node_ground.(disp_tag){1}, eq_analysis_timespace, eq, eq_dt, rh_plot_dir, ['Ground Displacemnet ' direction ' (in)'], 15, record_edp.disp_TH_ground.(direction)  )
+    fn_plot_response_history( node_ground.(accel_tag){1}, eq_analysis_timespace, eq, eq_dt, rh_plot_dir, ['Ground Acceleration ' direction ' (g)'], 15, record_edp.accel_TH_ground.(direction) )
+    fn_plot_response_history( node_second_center.(disp_tag){1}, eq_analysis_timespace, eq, eq_dt, rh_plot_dir, ['Second Floor Displacemnet Center ' direction ' (in)'], 15, record_edp.disp_TH_second.(direction) )
+    fn_plot_response_history( node_second_center.(accel_tag){1}, eq_analysis_timespace, eq, eq_dt, rh_plot_dir, ['Second Floor Acceleration Center ' direction ' (g)'], 15, record_edp.accel_TH_second.(direction) )
+    fn_plot_response_history( node_roof_center.(disp_tag){1}, eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Displacemnet Center ' direction ' (in)'], 15, record_edp.disp_TH_roof.(direction) )
+    fn_plot_response_history( node_roof_center.(accel_tag){1}, eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Acceleration Center ' direction ' (g)'], 15, record_edp.accel_TH_roof.(direction))
 else
     roof_nodes = node(node.y == max(node.y),:);
     mid_x = (max(roof_nodes.x) - min(roof_nodes.x)) / 2;
@@ -50,8 +50,8 @@ else
     end
     [~, idx] = min(hyp_dist);
     node_roof_center = roof_nodes(idx,:);
-    fn_plot_response_history( node_roof_center.(disp_tag), eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Displacemnet Center ' direction ' (in)'], 15 )
-    fn_plot_response_history( node_roof_center.(accel_tag), eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Acceleration Center ' direction ' (g)'], 15 )
+    fn_plot_response_history( node_roof_center.(disp_tag){1}, eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Displacemnet Center ' direction ' (in)'], 15 )
+    fn_plot_response_history( node_roof_center.(accel_tag){1}, eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Acceleration Center ' direction ' (g)'], 15 )
 end
 end
 

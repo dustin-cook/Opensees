@@ -7,7 +7,11 @@ min_tolerance_steps = 10;
 max_tolerance_steps = 1000;
 
 % Set loop factors
-step_reduction = [1,10,20,50,100];
+if analysis.type == 1 % Dynamic
+    step_reduction = [1,10,20,50];
+else
+    step_reduction = [1,10,20,100,500];
+end
 algorithm_typs = {'NewtonLineSearch', 'Newton -initial', 'Newton'};
 tolerance = [1e-5, 1e-4 0.001, 0.01, 0.1, 1];
 

@@ -45,7 +45,8 @@ if ~analysis.skip_2_outputs % Don't skip to plotters
         analysis.dead_load = analysis.dead_load_list(i);
         analysis.live_load = analysis.live_load_list(i);
         analysis.case = analysis.case_list{i};
-        analysis.pushover_drift = analysis.pushover_drift_list(i);
+        analysis.pushover_drift_x = analysis.pushover_drift_list_x(i);
+        analysis.pushover_drift_z = analysis.pushover_drift_list_z(i);
         disp(['Running ' analysis.proceedure ' step ' num2str(i) ' of ' num2str(length(analysis.type_list)) ' ...'])
 
         %% Build Model
