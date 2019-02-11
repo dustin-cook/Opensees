@@ -19,6 +19,10 @@ story = readtable('mini_ida/model_tables/story.csv','readVariableNames',true);
 import opensees.post_process.*
 import plotting_tools.*
 
+% make folders
+mkdir('mini_ida/model/outputs')
+mkdir('mini_ida/ida_results')
+
 %% Run Opensees Model
 for i = 1:length(scale_factors)
     % Change EQ Scale factor
