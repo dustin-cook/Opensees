@@ -110,9 +110,9 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
             end
         elseif strcmp(analysis.proceedure,'NDP') % Nonlinear Procedures
             %% Plot Hinge accpetance
-%             fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Interior Frame', plot_dir, 'int_frame' )
-%             fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Exterior Frame', plot_dir, 'ext_frame' )
-%             fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Wall Frame', plot_dir, 'east_wall' )
+            fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Interior Frame', plot_dir, 'int_frame' )
+            fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Exterior Frame', plot_dir, 'ext_frame' )
+            fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Wall Frame', plot_dir, 'east_wall' )
 %             fn_plot_building_nl( hinge, element, node, 'Acceptance Plot', plot_dir)
         end
         

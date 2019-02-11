@@ -74,7 +74,7 @@ for e = 1:length(ele_new.id)
     for h = 1:height(hinges)
         hinge_new_node_1 = ele_new.node_1(ele_new.old_node_1 == hinges.node_1(h) | ele_new.old_node_1 == hinges.node_2(h));
         hinge_new_node_2 = ele_new.node_2(ele_new.old_node_2 == hinges.node_1(h) | ele_new.old_node_1 == hinges.node_2(h));
-        hinge_new_node = max([hinge_new_node_1, hinge_new_node_1]);
+        hinge_new_node = max([hinge_new_node_1, hinge_new_node_2]);
         
         if hinges.accept(h) == 2
             highlight(H,hinge_new_node) 

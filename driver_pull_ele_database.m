@@ -6,17 +6,18 @@ close all
 clc
 
 %% User inputs
-analysis_dir = ['outputs' filesep 'simple_frame_and_wall_3D' filesep 'NDP' filesep 'asce_41_data'];
+analysis_dir = ['outputs' filesep 'ICBS_model_3D_fixed' filesep 'NDP' filesep 'asce_41_data'];
 
 %% Import Packages
 import asce_41.fn_define_backbone_rot
 import asce_41.fn_define_backbone_shear
 
 %% Load Inputs
-ele_inputs = readtable('element_collection_key_simple.csv','ReadVariableNames',true);
+ele_inputs = readtable('element_collection_key.csv','ReadVariableNames',true);
 ele_props_table = readtable('inputs/element.csv','ReadVariableNames',true);
 load([analysis_dir filesep 'joint_analysis.mat'])
 load([analysis_dir filesep 'element_analysis.mat'])
+load([analysis_dir filesep 'story_analysis.mat'])
 load(['ground_motions' filesep 'ICSB_recordings' filesep 'recorded_edp_profile.mat'])
 
 % Formulate Beam Table
@@ -24,6 +25,7 @@ beams = ele_inputs(strcmp(ele_inputs.element_type,'beam'),:);
 for i = 1:height(beams)
     ele = element(element.id == beams.id(i),:);
     if ~isempty(ele)
+        this_story = story(story.id == ele.story,:);
         ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
         beams.ld_req(i) = ele.ld_req;
         beams.ld_avail{i} = ele.ld_avail;
@@ -59,7 +61,8 @@ for i = 1:height(beams)
         else   
             beams.condition(i) = 1;
         end 
-        beams.max_story_drift_analysis(i) = ele.(['drift_' ele.direction{1}]);
+        beams.max_story_drift_analysis(i) = this_story.(['max_drift_' ele.direction{1}]); % Need to fix elment story drift read such that it does not come in as NaN
+%         beams.max_story_drift_analysis(i) = ele.(['drift_' ele.direction{1}]);
         if sum(strcmp('rot_1',ele.Properties.VariableNames)) > 0
             beams.max_element_rotation_or_drift_1(i) = ele.rot_1;
         end
@@ -82,6 +85,7 @@ columns = ele_inputs(strcmp(ele_inputs.element_type,'column'),:);
 for i = 1:height(columns)
     ele = element(element.id == columns.id(i),:);
     if ~isempty(ele)
+        this_story = story(story.id == ele.story,:);
         ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
         columns.fc_e(i) = (1/1000)*ele_props.fc_e;
         columns.fy_e(i) = (1/1000)*ele_props.fy_e;
@@ -103,7 +107,8 @@ for i = 1:height(columns)
         else   
             columns.condition(i) = 1;
         end 
-        columns.max_story_drift_analysis(i) = ele.(['drift_' ele.direction{1}]);
+        columns.max_story_drift_analysis(i) = this_story.(['max_drift_' ele.direction{1}]);
+%         columns.max_story_drift_analysis(i) = ele.(['drift_' ele.direction{1}]);
         if sum(strcmp('rot_1',ele.Properties.VariableNames)) > 0
             columns.max_element_rotation_or_drift_1(i) = ele.rot_1;
         end
@@ -129,7 +134,7 @@ for i = 1:height(joints)
     jnt = joint(joint.id == joints.id(i),:);
 %     ele = element(element.id == joints.id(i),:);
 %     ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
-    if ~isempty(ele)
+    if ~isempty(jnt)
         joints.axial_load_ratio(i) = jnt.Pmax/(jnt.a*jnt.fc_e);
         joints.shear_ratio(i) = jnt.Vmax/jnt.Vj;
         joints.scwb(i) = jnt.col_bm_ratio;
@@ -138,7 +143,7 @@ for i = 1:height(joints)
         else
             joints.trans_rein(i) = 1; 
         end
-        [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', jnt.Mn(i), jnt.Mn(i), inf, inf, jnt.h(i), jnt.e(i), jnt.iz(i), jnt.a_hinge(i), jnt.b_hinge(i), jnt.c_hinge(i), NaN, 0.04 );
+        [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', jnt.Mn, jnt.Mn, inf, inf, jnt.h, jnt.e, jnt.iz, jnt.a_hinge, jnt.b_hinge, jnt.c_hinge, NaN, 0.04 );
         joints.K0(i) = (1/1000)*1000*moment_vec_pos(1)/rot_vec_pos(1);
         joints.Mn{i} = moment_vec_pos(1)*(1/1000);
         joints.Mp{i} = moment_vec_pos(2)*(1/1000);
@@ -167,6 +172,7 @@ walls.joint_id_2 = [];
 for i = 1:height(walls)
     ele = element(element.id == walls.id(i),:);
     if ~isempty(ele)
+        this_story = story(story.id == ele.story,:);
         ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
         As = sum(str2double(strsplit(strrep(strrep(ele_props.As{1},']',''),'[',''))))/2; % Assume 1/2 tensiona and 1/2 compression just like in wall hinge selection
         As_prime = As;
@@ -206,7 +212,15 @@ for i = 1:height(walls)
 end
 
 % Save Data
-writetable(beams,[analysis_dir filesep 'raw_beams_database.csv'])
-writetable(columns,[analysis_dir filesep 'raw_columns_database.csv'])
-writetable(joints,[analysis_dir filesep 'raw_joints_database.csv'])
-writetable(walls,[analysis_dir filesep 'raw_walls_database.csv'])
+if ~isempty(beams)
+    writetable(beams,[analysis_dir filesep 'raw_beams_database.csv'])
+end
+if ~isempty(columns)
+    writetable(columns,[analysis_dir filesep 'raw_columns_database.csv'])
+end
+if ~isempty(joints)
+    writetable(joints,[analysis_dir filesep 'raw_joints_database.csv'])
+end
+if ~isempty(walls)
+    writetable(walls,[analysis_dir filesep 'raw_walls_database.csv'])
+end
