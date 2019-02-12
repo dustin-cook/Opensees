@@ -1,7 +1,3 @@
-wipe 
-source mini_ida/model/model.tcl 
-source mini_ida/model/loads.tcl 
-source mini_ida/model/recorders.tcl 
 wipeAnalysis 
 constraints Transformation 
 numberer RCM 
