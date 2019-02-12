@@ -6,6 +6,7 @@ clc
 %% Initial Setup
 % Set Input Parameters
 scale_factors = [0.3 0.5 0.7];
+name = '1';
 
 % Sa Values
 sa_x_t1 = 0.35;
@@ -74,12 +75,12 @@ end
 plot(max_drift_x,sa_x)
 xlabel('Max Drift')
 ylabel('Sa(T_1) (g)')
-fn_format_and_save_plot( ['mini_ida' filesep 'ida_results'], 'IDA Plot EW Frame Direction', 2 )
+fn_format_and_save_plot( ['mini_ida' filesep 'ida_results'], ['IDA Plot EW Frame Direction' name], 2 )
 
 plot(max_drift_z,sa_z)
 xlabel('Max Drift')
 ylabel('Sa(T_1) (g)')
-fn_format_and_save_plot( ['mini_ida' filesep 'ida_results'], 'IDA Plot NS Wall Direction', 2 )
+fn_format_and_save_plot( ['mini_ida' filesep 'ida_results'], ['IDA Plot NS Wall Direction' name], 2 )
 
 % Save results as csv
 ida.sa_x = sa_x;
@@ -87,4 +88,4 @@ ida.sa_z = sa_z;
 ida.max_drift_x = max_drift_x;
 ida.max_drift_z = max_drift_z;
 ida_table = struct2table(ida);
-writetable(ida_table,['mini_ida' filesep 'ida_results' filesep 'ida_results.csv'])
+writetable(ida_table,['mini_ida' filesep 'ida_results' filesep 'ida_results_' name '.csv'])
