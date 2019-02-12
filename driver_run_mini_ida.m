@@ -5,8 +5,8 @@ clc
 
 %% Initial Setup
 % Set Input Parameters
-scale_factors = [0.3 0.5 0.7];
-name = '1';
+scale_factors = [0.9];
+name = '2';
 
 % Sa Values
 sa_x_t1 = 0.35;
