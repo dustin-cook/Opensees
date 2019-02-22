@@ -41,18 +41,11 @@ for i = 1:height(beams)
         beams.hinge_splices(i) = 0;
         beams.K0(i) = (1/1000)*6*ele_props.e*ele_props.iz/ele.length;
         if strcmp(ele.rot_1_dir,'pos')
-            beams.Mn_1{i} = (1/1000)*ele.Mn_pos;
-            beams.Mp_1{i} = (1/1000)*ele.Mp_pos;
+            beams.Mn{i} = (1/1000)*ele.Mn_pos;
+            beams.Mp{i} = (1/1000)*ele.Mp_pos;
         elseif strcmp(ele.rot_1_dir,'neg')
-            beams.Mn_1{i} = (1/1000)*ele.Mn_neg;
-            beams.Mp_1{i} = (1/1000)*ele.Mp_neg;
-        end
-        if strcmp(ele.rot_2_dir,'pos')
-            beams.Mn_2{i} = (1/1000)*ele.Mn_pos;
-            beams.Mp_2{i} = (1/1000)*ele.Mp_pos;
-        elseif strcmp(ele.rot_2_dir,'neg')
-            beams.Mn_2{i} = (1/1000)*ele.Mn_neg;
-            beams.Mp_2{i} = (1/1000)*ele.Mp_neg;
+            beams.Mn{i} = (1/1000)*ele.Mn_neg;
+            beams.Mp{i} = (1/1000)*ele.Mp_neg;
         end
         if ele.pass_aci_dev_length == 0
             beams.condition(i) = 3;
