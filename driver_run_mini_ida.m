@@ -5,8 +5,8 @@ clc
 
 %% Initial Setup
 % Set Input Parameters
-scale_factors = [0.9];
-name = 'scale_9';
+scale_factors = [1.1];
+name = 'scale_11';
 
 % Sa Values
 sa_x_t1 = 0.35;
@@ -65,8 +65,8 @@ for i = 1:length(scale_factors)
     fclose(fileID);
 
     % Call Opensees
-    command = ['/projects/duco1061/software/OpenSeesSP/bin/OpenSeesSP ' 'mini_ida' filesep 'model' filesep 'master_run_analysis_' name '.tcl'];
-%     command = ['openseesSP ' 'mini_ida' filesep 'model' filesep 'master_run_analysis_' name '.tcl'];
+%     command = ['/projects/duco1061/software/OpenSeesSP/bin/OpenSeesSP ' 'mini_ida' filesep 'model' filesep 'master_run_analysis_' name '.tcl'];
+    command = ['openseesSP ' 'mini_ida' filesep 'model' filesep 'master_run_analysis_' name '.tcl'];
     [status,cmdout] = system(command,'-echo');
     
     % Grab displacements

@@ -41,6 +41,13 @@ if exist('record_edp','var')
     fn_plot_response_history( node_second_center.(accel_tag){1}, eq_analysis_timespace, eq, eq_dt, rh_plot_dir, ['Second Floor Acceleration Center ' direction ' (g)'], 15, record_edp.accel_TH_second.(direction) )
     fn_plot_response_history( node_roof_center.(disp_tag){1}, eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Displacemnet Center ' direction ' (in)'], 15, record_edp.disp_TH_roof.(direction) )
     fn_plot_response_history( node_roof_center.(accel_tag){1}, eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Acceleration Center ' direction ' (g)'], 15, record_edp.accel_TH_roof.(direction))
+    if strcmp(direction,'z')
+        fn_plot_response_history( node_roof_east.(disp_tag){1}, eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Displacemnet East ' direction ' (in)'], 15, record_edp.disp_TH_roof_east.(direction) )
+        % Torsional Response
+        relative_torsional_displacement = node_roof_east.disp_z_TH{1} - node_roof_center.disp_z_TH{1};
+        record_torsional_displacement = record_edp.disp_TH_roof_east.z - record_edp.disp_TH_roof.z;
+        fn_plot_response_history( relative_torsional_displacement, eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Relative Torsional Displacemnet (in)'], 15, record_torsional_displacement)
+    end
 else
     roof_nodes = node(node.y == max(node.y),:);
     mid_x = (max(roof_nodes.x) - min(roof_nodes.x)) / 2;

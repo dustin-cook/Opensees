@@ -49,21 +49,21 @@ if ~analysis.skip_2_outputs % Don't skip to plotters
         analysis.pushover_drift_z = analysis.pushover_drift_list_z(i);
         disp(['Running ' analysis.proceedure ' step ' num2str(i) ' of ' num2str(length(analysis.type_list)) ' ...'])
 
-        %% Build Model
-        disp('Building Model ...')
-        main_build_model( model, analysis, ele_prop_table )
-
-        %% Run and Postprocess Opensees Analysis
-        disp('Running Opensees ...')
-        main_opensees_analysis( model, analysis )
-
+%         %% Build Model
+%         disp('Building Model ...')
+%         main_build_model( model, analysis, ele_prop_table )
+% 
+%         %% Run and Postprocess Opensees Analysis
+%         disp('Running Opensees ...')
+%         main_opensees_analysis( model, analysis )
+% 
         %% Postprocess ASCE 41 data
         disp('Post Processing Via ASCE 41 ...')
         [ capacity(:,i) ] = main_ASCE_41_post_process( analysis, ele_prop_table );
 
         %% Analysis Checks
         disp('Validating Analysis Results ...')
-        main_check_analysis( analysis, ele_prop_table, capacity, i )
+        main_check_analysis( analysis, ele_prop_table, 1, i )
     end
 
     %% Combine Load Cases

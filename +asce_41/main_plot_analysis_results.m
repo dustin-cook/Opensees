@@ -160,14 +160,14 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
 
     end
 
-    %% Plots Element results for both Dynamic analysis
+    %% Plots Element results for Dynamic analysis
     if analysis.element_plots
         % Plot PM Diagrams for each element
         fn_plot_PM_response( plot_dir, element, element_TH, element_PM, analysis.hinge_stories_2_plot )
 
         % Plot Hinge Response
         load([read_dir filesep 'hinge_analysis.mat'])
-        fn_plot_hinge_response( plot_dir, hinge, backbones.element, ele_prop_table, node, analysis.hinge_stories_2_plot )
+        fn_plot_hinge_response( plot_dir, hinge, backbones.element, ele_prop_table, node, analysis.hinge_stories_2_plot, eq_analysis_timespace )
     end
 end
 
