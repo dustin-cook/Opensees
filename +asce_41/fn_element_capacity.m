@@ -11,6 +11,9 @@ ele_PM = [];
 if sum(strcmp('P_grav',ele.Properties.VariableNames)) == 0
     ele.P_grav = 0;
 end
+if sum(strcmp('Pmax',ele.Properties.VariableNames)) == 0
+    ele.Pmax = ele.P_grav;
+end
 
 %% Calc Axial Capacity
 % Axial Compression Capacity per ACI (use lower bound strength since assuming axial is force controlled)
@@ -102,13 +105,13 @@ else
             ele_TH.Mn_pos_linear = interp1(vector_P,vector_M,load_history_linear);
             ele_TH.Mn_neg_linear = ele_TH.Mn_pos_linear; % assumes columns are the same in both directions
             % Moment Capcity
-            [~, P_grav_idx] = min(abs(load_history-ele.P_grav));
-            ele.Mn_pos = ele_TH.Mn_pos(P_grav_idx); % Use Pgravity for now
-            ele.Mn_neg = ele_TH.Mn_neg(P_grav_idx);
-            ele.Mn_oop = ele_TH.Mn_oop(P_grav_idx);
-            ele.Mp_pos = ele_TH.Mp_pos(P_grav_idx);
-            ele.Mp_neg = ele_TH.Mp_neg(P_grav_idx);
-            ele.Mp_oop = ele_TH.Mp_oop(P_grav_idx);
+            [~, P_max_idx] = min(abs(load_history-ele.Pmax));
+            ele.Mn_pos = ele_TH.Mn_pos(P_max_idx); % Use Maximum axial from analysis
+            ele.Mn_neg = ele_TH.Mn_neg(P_max_idx);
+            ele.Mn_oop = ele_TH.Mn_oop(P_max_idx);
+            ele.Mp_pos = ele_TH.Mp_pos(P_max_idx);
+            ele.Mp_neg = ele_TH.Mp_neg(P_max_idx);
+            ele.Mp_oop = ele_TH.Mp_oop(P_max_idx);
         else
             [ ~, ele.Mn_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
             [ ~, ele.Mn_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
@@ -156,7 +159,9 @@ else
     ele.V0 = NaN;
 end 
 
-% Shear capacity time history is uniform
+% Shear capacity time history is uniform (this is not quite correct since
+% shear capacity depends on Axial load for columns (through ductility
+% factor)) However, only used to calculate dcrs for linear analysis.
 if ~isempty(ele_TH)
     ele_TH.Vn = ones(1,length(ele_TH.P_TH_1))*ele.Vn;
 end
@@ -168,6 +173,20 @@ end
 
 % Determine Flexure v Shear Critical
 [ ele ] = fn_element_critical_mode( ele, ele_prop );
+
+% If Shear controlled, reduce Mn for beams and columns and joints
+% Ignoring time history capacity modifications (may only affect linear)
+if strcmp(ele.critical_mode,'shear') && ~strcmp(ele.type,'wall')
+    ele.Mn_pos = ele.Mn_pos*ele.Vn/ele.vye;
+    ele.Mn_neg = ele.Mn_neg*ele.Vn/ele.vye;
+    ele.Mp_pos = ele.Mp_pos*ele.Vn/ele.vye;
+    ele.Mp_neg = ele.Mp_neg*ele.Vn/ele.vye;
+end
+
+if strcmp(ele.critical_mode_oop,'shear') && ~strcmp(ele.type,'wall')
+    ele.Mn_oop = ele.Mn_oop*ele.Vn/ele.vye_oop;
+    ele.Mp_oop = ele.Mp_oop*ele.Vn/ele.vye_oop;
+end
 
 % Wall Checks
 if sum(strcmp('Pmax',ele.Properties.VariableNames)) == 1

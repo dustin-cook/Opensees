@@ -56,7 +56,7 @@ elseif strcmp(ele.type,'wall')
     end
     
     % OOP
-    ele.critical_mode_oop = {'flexure'}; % assumes wall out of plane is flexure controlled
+    ele.critical_mode_oop = {'flexure'}; % assumes wall out-of-plane are flexure controlled
 end
 
 % Check if shear deformations need to be considered

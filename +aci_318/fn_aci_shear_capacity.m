@@ -24,9 +24,9 @@ else % Beams and Columns
 
     % Concrete Capacity
     if strcmp(type,'beam') % Beams
-        Vc = 2*lambda*b*d_eff*sqrt(fc); 
+        Vc = 2*lambda*b*d_eff*sqrt(fc); %eq 22.5.5.1 in ACI 318-14
     elseif strcmp(type,'column') % Columns
-        Vc = 2*(1 + P/(2000*Ag))*lambda*b*d_eff*sqrt(fc); 
+        Vc = 2*(1 + P/(2000*Ag))*lambda*b*d_eff*sqrt(fc); %eq 22.5.6.1 in ACI 318-14, Nu is the Axial force coresponding to the V (so time based), taken as max axial for now.
     end
 
     % Reinforcement Capacity
