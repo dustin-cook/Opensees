@@ -20,9 +20,9 @@ import asce_41.*
 if strcmp(ele.type,'beam') || strcmp(ele.type,'column') || (strcmp(ele.type,'wall') && strcmp(crit_mode,'flexure'))
     n = 10;
     if strcmp(hin_dir,'oop')
-        [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.Mn_oop, ele.Mn_oop, ele.Mp_oop, ele.Mp_oop, ele.length, ele_props.e, ele_props.iy, ele.a_hinge_oop, ele.b_hinge_oop, ele.c_hinge_oop, n, 0.1 );
+        [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.Mn_oop, ele.Mn_oop, ele.Mp_oop, ele.Mp_oop, ele.length, ele_props.e, ele_props.iy, ele.a_hinge_oop, ele.b_hinge_oop, ele.c_hinge_oop, n, 0.1, ele.critical_mode_oop );
     else
-        [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.Mn_pos, ele.Mn_neg, ele.Mp_pos, ele.Mp_neg, ele.length, ele_props.e, ele_props.iz, ele.a_hinge, ele.b_hinge, ele.c_hinge, n, 0.1 );
+        [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.Mn_pos, ele.Mn_neg, ele.Mp_pos, ele.Mp_neg, ele.length, ele_props.e, ele_props.iz, ele.a_hinge, ele.b_hinge, ele.c_hinge, n, 0.1, ele.critical_mode );
     end
     if plot_style == 1
         plot([0,rot_vec_pos],[0,moment_vec_pos/moment_vec_pos(1)],'Color',line_color,'LineWidth',2) % Don't need to worry about negative bending because this plot is normalized by Qy

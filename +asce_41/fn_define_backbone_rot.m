@@ -1,4 +1,4 @@
-function [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( type, Mn_pos, Mn_neg, Mp_pos, Mp_neg, length, e, iz, a_hinge, b_hinge, c_hinge, n, strain_harden_ratio )
+function [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( type, Mn_pos, Mn_neg, Mp_pos, Mp_neg, length, e, iz, a_hinge, b_hinge, c_hinge, n, strain_harden_ratio, critical_mode )
 % Takes points from ASCE 41-17 chapter 10 tables and Define backbone curve
 % as a vector of displacements and forces for both the positive and
 % negative directions. Units are based on the basic units that are input.
@@ -35,6 +35,11 @@ end
 % make sure a_hinge and b_hinge has some minor value
 a_hinge = max([1e-6, a_hinge]);
 b_hinge = max([2e-6, b_hinge]);
+
+% If shear controls, make it so the backbone cannot harden
+if strcmp(critical_mode,'shear')
+    strain_harden_ratio = 0;
+end
 
 % Define stiffness of lumped plasticisty model based on Ibarra 2005
 k_mem = 6*e*iz/length;

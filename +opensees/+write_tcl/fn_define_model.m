@@ -188,7 +188,7 @@ if height(joint) > 0
         % Define joint material
         if analysis.nonlinear ~= 0 && analysis.joint_explicit == 1 % Nonlinear Joints
                                                                                                      % type, Mn_pos,             Mn_neg,               Mp_pos, Mp_neg, length,                       e,                    iz,    a_hinge,                   b_hinge,                  c_hinge,                    n, strain_harden_ratio
-            [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', joint_analysis.Mn(i), joint_analysis.Mn(i), inf, inf, joint_analysis.h(i), joint_analysis.e(i), joint_analysis.iz(i), joint_analysis.a_hinge(i), joint_analysis.b_hinge(i), joint_analysis.c_hinge(i), NaN, 0.04 );
+            [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', joint_analysis.Mn(i), joint_analysis.Mn(i), inf, inf, joint_analysis.h(i), joint_analysis.e(i), joint_analysis.iz(i), joint_analysis.a_hinge(i), joint_analysis.b_hinge(i), joint_analysis.c_hinge(i), NaN, 0.04, 'shear' );
             Ko = 1000*moment_vec_pos(1)/rot_vec_pos(1);
             as_sping_pos = (moment_vec_pos(2)-moment_vec_pos(1))/(rot_vec_pos(2)-rot_vec_pos(1))/Ko;
             as_sping_neg = (moment_vec_neg(2)-moment_vec_neg(1))/(rot_vec_neg(2)-rot_vec_neg(1))/Ko;
@@ -412,9 +412,9 @@ if height(hinge) > 0
             if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column')  % IMK Rotational Hinge
                 % Define backbone curve
                 if strcmp(hin.direction,'primary')
-                    [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.Mn_pos, hinge_props.Mn_neg, hinge_props.Mp_pos, hinge_props.Mp_neg, ele.length, ele_props.e, ele_props.iz, hinge_props.a_hinge, hinge_props.b_hinge, hinge_props.c_hinge, analysis.hinge_stiff_mod, 0.1 );
+                    [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.Mn_pos, hinge_props.Mn_neg, hinge_props.Mp_pos, hinge_props.Mp_neg, ele.length, ele_props.e, ele_props.iz, hinge_props.a_hinge, hinge_props.b_hinge, hinge_props.c_hinge, analysis.hinge_stiff_mod, 0.1, hinge_props.critical_mode );
                 elseif strcmp(hin.direction,'oop')
-                    [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.Mn_oop, hinge_props.Mn_oop, hinge_props.Mp_oop, hinge_props.Mp_oop, ele.length, ele_props.e, ele_props.iy, hinge_props.a_hinge_oop, hinge_props.b_hinge_oop, hinge_props.c_hinge_oop, analysis.hinge_stiff_mod, 0.1 );
+                    [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.Mn_oop, hinge_props.Mn_oop, hinge_props.Mp_oop, hinge_props.Mp_oop, ele.length, ele_props.e, ele_props.iy, hinge_props.a_hinge_oop, hinge_props.b_hinge_oop, hinge_props.c_hinge_oop, analysis.hinge_stiff_mod, 0.1, hinge_props.critical_mode_oop );
                 end
 
                 % Define IMK Parameters
@@ -473,7 +473,7 @@ if height(hinge) > 0
                         % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
                         fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, K0, 0, 0, force_vec(2), -force_vec(2), theta_p, theta_p, theta_pc, theta_pc, hinge_props.c_hinge, hinge_props.c_hinge, 9999999, 9999999); % Keep residual strength forever
                     elseif strcmp(hin.direction,'oop')
-                        [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.Mn_oop, hinge_props.Mn_oop, hinge_props.Mp_oop, hinge_props.Mp_oop, ele.length, ele_props.e, ele_props.iy, hinge_props.a_hinge_oop, hinge_props.b_hinge_oop, hinge_props.c_hinge_oop, analysis.hinge_stiff_mod, 0.1 );
+                        [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.Mn_oop, hinge_props.Mn_oop, hinge_props.Mp_oop, hinge_props.Mp_oop, ele.length, ele_props.e, ele_props.iy, hinge_props.a_hinge_oop, hinge_props.b_hinge_oop, hinge_props.c_hinge_oop, analysis.hinge_stiff_mod, 0.1, hinge_props.critical_mode_oop );
                         Ko = moment_vec_pos(1)/rot_vec_pos(1);
                         as_sping_pos = (moment_vec_pos(2)-moment_vec_pos(1))/(rot_vec_pos(2)-rot_vec_pos(1))/Ko;
                         as_sping_neg = (moment_vec_neg(2)-moment_vec_neg(1))/(rot_vec_neg(2)-rot_vec_neg(1))/Ko;

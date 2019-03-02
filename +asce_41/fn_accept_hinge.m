@@ -9,7 +9,11 @@ import asce_41.fn_define_backbone_rot
 for i = 1:length(hinge.id)
     ele = element(element.id == hinge.element_id(i),:);
     ele_prop = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
-    [ ~, ~, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', ele.Mn_pos, ele.Mn_neg, ele.Mp_pos, ele.Mp_neg, ele.length, ele_prop.e, ele_prop.iz, ele.a_hinge, ele.b_hinge, ele.c_hinge, 10, 0.1 );
+    if strcmp(hinge.direction{i},'oop')
+        [ ~, ~, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', ele.Mn_oop, ele.Mn_oop, ele.Mp_oop, ele.Mp_oop, ele.length, ele_prop.e, ele_prop.iz, ele.a_hinge_oop, ele.b_hinge_oop, ele.c_hinge_oop, 10, 0.1, ele.critical_mode_oop );
+    elseif strcmp(hinge.direction{i},'primary')
+        [ ~, ~, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', ele.Mn_pos, ele.Mn_neg, ele.Mp_pos, ele.Mp_neg, ele.length, ele_prop.e, ele_prop.iz, ele.a_hinge, ele.b_hinge, ele.c_hinge, 10, 0.1, ele.critical_mode );
+    end
     if abs(min(hinge.deformation_TH{i})) > abs(max(hinge.deformation_TH{i}))
         max_hinge_deform = max(abs(hinge.deformation_TH{i})) - rot_vec_neg(1); % Negative bending
     else

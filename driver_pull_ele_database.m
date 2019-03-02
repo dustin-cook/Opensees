@@ -136,7 +136,7 @@ for i = 1:height(joints)
         else
             joints.trans_rein(i) = 1; 
         end
-        [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', jnt.Mn, jnt.Mn, inf, inf, jnt.h, jnt.e, jnt.iz, jnt.a_hinge, jnt.b_hinge, jnt.c_hinge, NaN, 0.04 );
+        [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', jnt.Mn, jnt.Mn, inf, inf, jnt.h, jnt.e, jnt.iz, jnt.a_hinge, jnt.b_hinge, jnt.c_hinge, NaN, 0.04, 'shear' );
         joints.K0(i) = (1/1000)*1000*moment_vec_pos(1)/rot_vec_pos(1);
         joints.Mn{i} = moment_vec_pos(1)*(1/1000);
         joints.Mp{i} = moment_vec_pos(2)*(1/1000);
