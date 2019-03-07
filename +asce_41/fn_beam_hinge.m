@@ -60,7 +60,7 @@ for i = 1:length(condition)
         end
     elseif condition(i) == 2 || condition(i) == 3
         %% Filter table based on S
-        [ hinge_filt ] = fn_filter_asce41_table( hinge_filt, ele_props.S, 's', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
+        [ hinge_filt ] = fn_filter_asce41_table( hinge_filt, ele_props.(['S_' num2str(ele_side)]), 's', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
     end
 
     %% Double Check only 1 row of the hinge table remains
