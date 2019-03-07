@@ -54,6 +54,7 @@ for i = 1:2 % Calc properiteis on each side of the element
             ele_TH.(['Mp_oop_' num2str(i)]) = inf;
             ele_TH.(['Mn_pos_linear_' num2str(i)]) = inf;
             ele_TH.(['Mn_neg_linear_' num2str(i)]) = inf;
+            ele.P_max_idx = 0;
         end
     else
         if strcmp(ele.type,'beam') % beams
