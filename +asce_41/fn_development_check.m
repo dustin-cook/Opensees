@@ -36,7 +36,7 @@ for i = 1:length(d_b)
     else
         psi_s = 0.8; % for no. 6 bars or less
     end
-    if strcmp(ele_prop.type,'beam') && (ele_prop.d - As_d(i)) > 12
+    if strcmp(ele_prop.type,'beam') && (ele_prop.h - As_d(i)) > 12
         psi_t = 1.3; % for top bars in members deeper than 12 in
     else
         psi_t = 1.0;
@@ -50,16 +50,22 @@ for i = 1:length(d_b)
     end
     psi_r = 1.0; % Assume not enough confinement reinforcing for now
 
-    % Table 25.4.9.3
-    if ele_prop.S <= 4
-        psi_rc = 0.75; % transverse reinformcent spacing less than 4"
-    else
-        psi_rc = 1.0; % transverse reinformcent spacing greater than 4"
+    for j = 1:2 % Each end of the member
+        % Table 25.4.9.3
+        if ele_prop.(['S_' num2str(j)]) <= 4
+            psi_rc = 0.75; % transverse reinformcent spacing less than 4"
+        else
+            psi_rc = 1.0; % transverse reinformcent spacing greater than 4"
+        end
+
+        %% Calculate Development Length According to ACI 318-14
+        [ temp_l_d(j), temp_l_dt(j), temp_l_dt_raw(j), temp_l_dht(j) ] = fn_aci_development_length( ele_prop.fy_e, ele_prop.fc_e, ele_prop.(['Av_' num2str(j)]), ele_prop.(['S_' num2str(j)]), d_b(i), c_b, ele_prop.lambda, psi_t, psi_e, psi_s, psi_c, psi_r, psi_rc );
     end
-
-    %% Calculate Development Length According to ACI 318-14
-    [ l_d(i), l_dt, l_dt_raw, l_dht ] = fn_aci_development_length( ele_prop.fy_e, ele_prop.fc_e, ele_prop.Av, ele_prop.S, d_b(i), c_b, ele_prop.lambda, psi_t, psi_e, psi_s, psi_c, psi_r, psi_rc );
-
+    l_d(i) = max(temp_l_d);
+    l_dt = max(temp_l_dt);
+    l_dt_raw = max(temp_l_dt_raw);
+    l_dht = max(temp_l_dht);
+    
     %% Calculate splice length
     [ l_s ] = fn_aci_splice_length( ele_prop.fy_e, ele_prop.fc_e, d_b(i), l_dt_raw );
 

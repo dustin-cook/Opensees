@@ -386,11 +386,9 @@ if height(hinge) > 0
     end
     
     for i = 1:height(hinge)
-        hin = hinge(i,:); 
+        hin = hinge(i,:);
+        ele_side = num2str(hin.ele_side);
         ele_hinge_id = element.id(end) + hin.id; % Element ID associated with this hinge
-        if ele_hinge_id == 419
-            test = 5;
-        end
         if strcmp(hin.type,'foundation')
             pile_rot_stiff = 881511412050; % Force-Displacement rotational Stiffness of Bundle of Piles
             pile_lat_stiff = 18138095; % Force-Displacement lateral Stiffness of Bundle of Piles
@@ -412,19 +410,24 @@ if height(hinge) > 0
             if strcmp(ele_props.type,'beam') || strcmp(ele_props.type,'column')  % IMK Rotational Hinge
                 % Define backbone curve
                 if strcmp(hin.direction,'primary')
-                    [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.Mn_pos, hinge_props.Mn_neg, hinge_props.Mp_pos, hinge_props.Mp_neg, ele.length, ele_props.e, ele_props.iz, hinge_props.a_hinge, hinge_props.b_hinge, hinge_props.c_hinge, analysis.hinge_stiff_mod, 0.1, hinge_props.critical_mode );
+                    [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.(['Mn_pos_' ele_side]), hinge_props.(['Mn_neg_' ele_side]), hinge_props.(['Mp_pos_' ele_side]), hinge_props.(['Mp_neg_' ele_side]), ele.length, ele_props.e, ele_props.iz, hinge_props.(['a_hinge_' ele_side]), hinge_props.(['b_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), analysis.hinge_stiff_mod, 0.1, hinge_props.(['critical_mode_' ele_side]) );
                 elseif strcmp(hin.direction,'oop')
-                    [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.Mn_oop, hinge_props.Mn_oop, hinge_props.Mp_oop, hinge_props.Mp_oop, ele.length, ele_props.e, ele_props.iy, hinge_props.a_hinge_oop, hinge_props.b_hinge_oop, hinge_props.c_hinge_oop, analysis.hinge_stiff_mod, 0.1, hinge_props.critical_mode_oop );
+                    [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.(['Mn_oop_' ele_side]), hinge_props.(['Mn_oop_' ele_side]), hinge_props.(['Mp_oop_' ele_side]), hinge_props.(['Mp_oop_' ele_side]), ele.length, ele_props.e, ele_props.iy, hinge_props.(['a_hinge_oop_' ele_side]), hinge_props.(['b_hinge_oop_' ele_side]), hinge_props.(['c_hinge_oop_' ele_side]), analysis.hinge_stiff_mod, 0.1, hinge_props.(['critical_mode_oop_' ele_side]) );
                 end
 
                 % Define IMK Parameters
                 Ko = moment_vec_pos(1)/rot_vec_pos(1);
                 as_sping_pos = (moment_vec_pos(2)-moment_vec_pos(1))/(rot_vec_pos(2)-rot_vec_pos(1))/Ko;
                 as_sping_neg = (moment_vec_neg(2)-moment_vec_neg(1))/(rot_vec_neg(2)-rot_vec_neg(1))/Ko;
-                theta_pc_pos = rot_vec_pos(3) - rot_vec_pos(2) + hinge_props.c_hinge*(rot_vec_pos(3) - rot_vec_pos(2))/(1-hinge_props.c_hinge); % theta pc defined all the way to zero where b defined to residual kink
-                theta_pc_neg = rot_vec_neg(3) - rot_vec_neg(2) + hinge_props.c_hinge*(rot_vec_neg(3) - rot_vec_neg(2))/(1-hinge_props.c_hinge); % theta pc defined all the way to zero where b defined to residual kink
+                theta_pc_pos = rot_vec_pos(3) - rot_vec_pos(2) + hinge_props.(['c_hinge_' ele_side])*(rot_vec_pos(3) - rot_vec_pos(2))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
+                theta_pc_neg = rot_vec_neg(3) - rot_vec_neg(2) + hinge_props.(['c_hinge_' ele_side])*(rot_vec_neg(3) - rot_vec_neg(2))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
+                if analysis.type == 1 % Dynamic
+                    end_rot = 0.999999; % Keep residual strength forever
+                else
+                    end_rot = rot_vec_pos(end);
+                end
                 % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
-                fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, hinge_props.c_hinge, hinge_props.c_hinge, 0.9999999, 0.9999999); % Keep residual strength forever
+                fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_rot, end_rot);
         
                 % Create Zero Length Element (Currently does not work for 2D)
                 %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
@@ -466,21 +469,31 @@ if height(hinge) > 0
                 elseif analysis.nonlinear == 1 % Nonlinear 
                     % Define backbone coordinates and IMK Hinges
                     if strcmp(hin.direction,'primary')
-                        [ force_vec, disp_vec ] = fn_define_backbone_shear( hinge_props.Vn, ele.length, ele_props.g, ele_props.av, hinge_props );
+                        [ force_vec, disp_vec ] = fn_define_backbone_shear( hinge_props.(['Vn_' ele_side]), ele.length, ele_props.g, ele_props.av, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['d_hinge_' ele_side]), hinge_props.(['e_hinge_' ele_side]), hinge_props.(['f_hinge_' ele_side]), hinge_props.(['g_hinge_' ele_side])  );
                         K0 = force_vec(1)/disp_vec(1); % Have it go past the shear kink with the initial stiffness and check how far it goes in post process
                         theta_p = disp_vec(3)-force_vec(2)/K0; % Correct theta P based initial elastic stiffness
-                        theta_pc = disp_vec(4) - disp_vec(3) + hinge_props.c_hinge*(disp_vec(4) - disp_vec(3))/(1-hinge_props.c_hinge); % theta pc defined all the way to zero where b defined to residual kink
+                        theta_pc = disp_vec(4) - disp_vec(3) + hinge_props.(['c_hinge_' ele_side])*(disp_vec(4) - disp_vec(3))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
+                        if analysis.type == 1 % Dynamic
+                            end_disp = 999; % Keep residual strength forever
+                        else
+                            end_disp = disp_vec(end);
+                        end
                         % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
-                        fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, K0, 0, 0, force_vec(2), -force_vec(2), theta_p, theta_p, theta_pc, theta_pc, hinge_props.c_hinge, hinge_props.c_hinge, 9999999, 9999999); % Keep residual strength forever
+                        fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, K0, 0, 0, force_vec(2), -force_vec(2), theta_p, theta_p, theta_pc, theta_pc, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_disp, end_disp); % Keep residual strength forever
                     elseif strcmp(hin.direction,'oop')
-                        [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.Mn_oop, hinge_props.Mn_oop, hinge_props.Mp_oop, hinge_props.Mp_oop, ele.length, ele_props.e, ele_props.iy, hinge_props.a_hinge_oop, hinge_props.b_hinge_oop, hinge_props.c_hinge_oop, analysis.hinge_stiff_mod, 0.1, hinge_props.critical_mode_oop );
+                        [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.(['Mn_oop_' ele_side]), hinge_props.(['Mn_oop_' ele_side]), hinge_props.(['Mp_oop_' ele_side]), hinge_props.(['Mp_oop_' ele_side]), ele.length, ele_props.e, ele_props.iy, hinge_props.(['a_hinge_oop_' ele_side]), hinge_props.(['b_hinge_oop_' ele_side]), hinge_props.(['c_hinge_oop_' ele_side]), analysis.hinge_stiff_mod, 0.1, hinge_props.(['critical_mode_oop_' ele_side]) );
                         Ko = moment_vec_pos(1)/rot_vec_pos(1);
                         as_sping_pos = (moment_vec_pos(2)-moment_vec_pos(1))/(rot_vec_pos(2)-rot_vec_pos(1))/Ko;
                         as_sping_neg = (moment_vec_neg(2)-moment_vec_neg(1))/(rot_vec_neg(2)-rot_vec_neg(1))/Ko;
-                        theta_pc_pos = rot_vec_pos(3) - rot_vec_pos(2) + hinge_props.c_hinge*(rot_vec_pos(3) - rot_vec_pos(2))/(1-hinge_props.c_hinge); % theta pc defined all the way to zero where b defined to residual kink
-                        theta_pc_neg = rot_vec_neg(3) - rot_vec_neg(2) + hinge_props.c_hinge*(rot_vec_neg(3) - rot_vec_neg(2))/(1-hinge_props.c_hinge); % theta pc defined all the way to zero where b defined to residual kink
+                        theta_pc_pos = rot_vec_pos(3) - rot_vec_pos(2) + hinge_props.(['c_hinge_' ele_side])*(rot_vec_pos(3) - rot_vec_pos(2))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
+                        theta_pc_neg = rot_vec_neg(3) - rot_vec_neg(2) + hinge_props.(['c_hinge_' ele_side])*(rot_vec_neg(3) - rot_vec_neg(2))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
+                        if analysis.type == 1 % Dynamic
+                            end_rot = 0.999999;  % Keep residual strength forever
+                        else
+                            end_rot = rot_vec_pos(end);
+                        end
                         % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
-                        fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, hinge_props.c_hinge, hinge_props.c_hinge, 0.9999999, 0.9999999); % Keep residual strength forever
+                        fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_rot, end_rot); % Keep residual strength forever
                     end       
 
                     % Create Zero Length Element (Currently does not work for 2D)

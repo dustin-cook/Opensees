@@ -1,4 +1,4 @@
-function [ force_vec, disp_vec ] = fn_define_backbone_shear( Vn, length, g, av, hinge_props )
+function [ force_vec, disp_vec ] = fn_define_backbone_shear( Vn, length, g, av, c_hinge, d_hinge, e_hinge, f_hinge, g_hinge )
 % Takes points from ASCE 41-17 chapter 10 tables and Define backbone curve
 % as a vector of displacements and forces for both the positive and
 % negative directions. Units are based on the basic units that are input.
@@ -29,17 +29,17 @@ function [ force_vec, disp_vec ] = fn_define_backbone_shear( Vn, length, g, av, 
 elastic_stiffness = g*av/length;
 
 % Define Force vector
-f1 = hinge_props.f_hinge*Vn;
+f1 = f_hinge*Vn;
 f2 = Vn;
 f3 = Vn + 1e-6; % add neglibable amount to aid with interpolation
-f4 = Vn*hinge_props.c_hinge;
+f4 = Vn*c_hinge;
 force_vec = [f1,f2,f3,f4];
 
 % Define Displacement Vector
 u1 = f1/elastic_stiffness; 
-u2 = (hinge_props.g_hinge/100)*length; % change to percent and displacemnt
-u3 = (hinge_props.d_hinge/100)*length;
-u4 = (hinge_props.e_hinge/100)*length;
+u2 = (g_hinge/100)*length; % change to percent and displacemnt
+u3 = (d_hinge/100)*length;
+u4 = (e_hinge/100)*length;
 disp_vec = [u1,u2,u3,u4];
 
 end

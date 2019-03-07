@@ -1,4 +1,4 @@
-function [ ] = main_check_analysis( analysis, ele_prop_table, capacity, step )
+function [ ] = main_check_analysis( analysis, ele_prop_table, capacity, torsion, step )
 % Description: Checks proceedures and analyses are working as expected and
 % creates visuals. Check come from both a general modeling perpective as
 % well as specific checks perscribed in ASCE 41-17.
@@ -23,6 +23,16 @@ write_dir = [analysis.out_dir filesep 'validation_plots'];
 
 % Load Analysis Data
 load([read_dir filesep 'element_analysis.mat'])
+load([read_dir filesep 'joint_analysis.mat'])
+load([read_dir filesep 'story_analysis.mat'])
+
+% Define Analysis Checklist File
+file_name = [analysis.out_dir filesep 'analysis_checklist.txt'];
+if step == 1
+    fileID = fopen(file_name,'w');
+else
+    fileID = fopen(file_name,'a');
+end
 
 %% Plot Hinge Convergence
 if analysis.element_plots && strcmp(analysis.proceedure,'NDP') && analysis.type == 2
@@ -40,7 +50,7 @@ if analysis.element_plots && strcmp(analysis.proceedure,'NDP') && analysis.type 
             end
 
             line_color = [1,1,1] - step/(length(analysis.type_list)-1);
-            fn_plot_backbone( ele, ele_props, plot_dir, plot_name, 1, 0, 0, ele.critical_mode, 'primary', line_color)
+            fn_plot_backbone( ele, '1', ele_props, plot_dir, plot_name, 1, 0, 0, ele.critical_mode_1, 'primary', line_color)
         end
     end
 end
@@ -57,11 +67,24 @@ if strcmp(analysis.case,'backbones') && strcmp(analysis.proceedure,'NDP')
     fn_format_and_save_plot( write_dir, plot_name, 2 )
 end
 
+%% Joint Shear Demand is Less than Capacity
+if strcmp(analysis.proceedure,'NDP') && analysis.type == 1 && analysis.nonlinear == 1
+    joint_shear_ratio = joint.Vmax ./ joint.Vj;
+    fprintf(fileID,'Max Joint Shear Ratio =  %f\n',max(joint_shear_ratio));
+end
+
+%% Walls do not yeild
+if strcmp(analysis.proceedure,'NDP') && analysis.type == 1 && analysis.nonlinear == 1
+    walls = element(strcmp(element.type,'wall'),:);
+    wall_shear_ratio = walls.Vmax ./ (walls.f_hinge_1 .* walls.Vn_1);
+    fprintf(fileID,'Max Wall Shear Ratio =  %f of first yield (f-value)\n',max(wall_shear_ratio));
+end
+
 %% Vertical Ground Motion Convergence
 
 
 %% Torsion
-% If the displacement multiplier ? caused by actual plus accidental 
+% If the displacement multiplier eta caused by actual plus accidental 
 % torsion at any level exceeds 1.5, two-dimensional models shall not be 
 % permitted and three-dimensional models that account for the spatial 
 % distribution of mass and stiffness shall be used.
@@ -69,9 +92,28 @@ end
 % Increased forces and displacements caused by accidental torsion need not 
 % be considered if either of the following conditions apply: (a) the 
 % accidental torsional moment is less than 25% of the actual torsional 
-% moment, or (b) the ratio of the displacement multiplier ? caused by the 
+% moment, or (b) the ratio of the displacement multiplier eta caused by the 
 % actual plus accidental torsion and the displacement multiplier caused by 
 % actual torsion is less than 1.1 at every floor.
+
+if strcmp(analysis.case,'torsion_check') && analysis.type == 1
+    % Case b check
+    eta_ratio_x = torsion{step}.x./torsion{step-1}.x;
+    eta_ratio_z = torsion{step}.z./torsion{step-1}.z;
+    max_eta_ratio = max([eta_ratio_x; eta_ratio_z]);
+    fprintf(fileID,'Max Accidental Torsion Effect = %f of Actual Torsion (f-value)\n',max_eta_ratio);
+    
+    % 2D applicability check
+    max_eta = max([torsion{step}.x;torsion{step}.z]);
+    if max_eta > 1.5 
+        fprintf(fileID,'2D models are not allowed: Max Accidental and Actual Torsion Factor = %f \n',max_eta);
+    end
+end
+
+
+
+% Close File
+fclose(fileID);
 
 end
 

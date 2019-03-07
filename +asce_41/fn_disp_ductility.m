@@ -1,4 +1,4 @@
-function [ ele ] = fn_disp_ductility( ele, ele_prop, story, eff_fyt_e )
+function [ disp_duct, vye, vye_oop ] = fn_disp_ductility( Mn_pos, Mn_neg, Mn_oop, ele, ele_prop, story, eff_fyt_e, Av, S )
 %% Import Packages
 import aci_318.fn_vye
 import aci_318.fn_aci_shear_capacity
@@ -12,17 +12,17 @@ import aci_318.fn_aci_shear_capacity
 
 %%% THIS ASSUMES THE COLUMNS IS FEXURALLY YIELDING ACCORDING TO C10.4.2.3.
 %%% SHOULD CHECK THIS.
-    [ ele.vye ] = fn_vye( ele.type, ele.Mn_pos, ele.Mn_neg, ele.length, ele.gravity_load );
-    [ ele.vye_oop ] = fn_vye( ele.type, ele.Mn_oop, ele.Mn_oop, ele.length, ele.gravity_load );
-    [ ~, Vn, ~ ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.Av, eff_fyt_e, ele_prop.S, ele_prop.lambda, ele_prop.a, ele_prop.hw, ele.type, ele_prop.As_d, ele.Pmax );
-    shear2use = min(ele.vye,Vn);
+    [ vye ] = fn_vye( ele.type, Mn_pos, Mn_neg, ele.length, ele.gravity_load );
+    [ vye_oop ] = fn_vye( ele.type, Mn_oop, Mn_oop, ele.length, ele.gravity_load );
+    [ ~, Vn, ~ ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.h, Av, eff_fyt_e, S, ele_prop.lambda, ele_prop.a, ele_prop.hw, ele.type, ele_prop.d_eff, ele.Pmax );
+    shear2use = min(vye,Vn);
     yeild_disp = (shear2use*ele.length^3) / (12*ele_prop.e*ele_prop.iz);
     if sum(strcmp((['max_disp_' ele.direction{1}]),story.Properties.VariableNames)) == 1 && ele.story > 0
         max_disp_demand = story.(['max_disp_' ele.direction{1}])(ele.story); % Should update this to a diplacement demand specific to the element itself instead of just the story
     else
         max_disp_demand = 0;
     end
-    ele.disp_duct = max_disp_demand / yeild_disp;
+    disp_duct = max_disp_demand / yeild_disp;
 %     ele_to_save(i,:) = ele;
 % % end
 % 

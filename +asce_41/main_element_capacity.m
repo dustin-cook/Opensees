@@ -38,11 +38,12 @@ for i = 1:length(element.id)
     %% Caculate required development length and make sure there is enough
     [ ele.pass_aci_dev_length, ele.ld_avail, ele.ld_req ] = fn_development_check( ele, ele_prop );
     
-    % Save capcity for convergence check
+    % Save capcity for convergence check (just use onesided capacity for
+    % now)
     if strcmp(ele.type,'wall')
-        ele.capacity = ele.Vn;
+        ele.capacity = ele.Vn_1;
     else
-        ele.capacity = ele.Mn_pos;
+        ele.capacity = ele.Mn_pos_1;
     end
     
     % Save data to main table
@@ -93,17 +94,17 @@ for i =1:length(joint.id)
     end
     
     % Calculate the joint area according to ASCE 41-17 10.4.2.3.2
-    jnt.d = mean([column_low_props.d,column_high_props.d]); % Average of the two columns depths
+    jnt.h = mean([column_low_props.h,column_high_props.h]); % Average of the two columns depths
     opt1 = mean([column_low_props.w,column_high_props.w]); % Average of the two columns widths
-    opt2 = mean([beam_left_props.w,beam_right_props.w]) + jnt.d; % Average of the two beam widths
+    opt2 = mean([beam_left_props.w,beam_right_props.w]) + jnt.h; % Average of the two beam widths
     opt3 = opt1; % Assumes beam axis frames to the center of the column axis
     jnt.w = opt1; % Use column props
-    jnt.a = jnt.w*jnt.d;
-    jnt.h = mean([beam_left_props.d,beam_right_props.d]) ; % Average of the two beam heights
+    jnt.a = jnt.w*jnt.h;
+    jnt.height = mean([beam_left_props.h,beam_right_props.h]) ; % Average of the two beam heights
     
     % Calculate whether the joint has conforming or non conforming reinforcement
     jnt.S = 999; % Set to non conforming for ISCB (update this to be database driven)
-    h_c = mean([column_low_props.d,column_high_props.d]);
+    h_c = mean([column_low_props.h,column_high_props.h]);
     if jnt.S <= h_c/2
         jnt.trans_rien = 'C';
     else
@@ -111,11 +112,11 @@ for i =1:length(joint.id)
     end
     
     % Calculate SCWB ratio
-    beam_strength_1 = sum([beam_left.Mn_pos,beam_right.Mn_neg]); % case 1: 1 pos and 1 neg bending
-    beam_strength_2 = sum([beam_left.Mn_neg,beam_right.Mn_pos]); % case 2: 1 pos and 1 neg bending the other way
+    beam_strength_1 = sum([beam_left.Mn_pos_2,beam_right.Mn_neg_1]); % case 1: 1 pos and 1 neg bending
+    beam_strength_2 = sum([beam_left.Mn_neg_2,beam_right.Mn_pos_1]); % case 2: 1 pos and 1 neg bending the other way
     jnt.beam_strength = mean([beam_strength_1,beam_strength_2]); % Average of two cases
-    col_strength_1 = sum([column_low.Mn_pos,column_high.Mn_pos]); % case 1: positive bending for both columns
-    col_strength_2 = sum([column_low.Mn_neg,column_high.Mn_neg]); % case 2: negative bending for both columns
+    col_strength_1 = sum([column_low.Mn_pos_2,column_high.Mn_pos_1]); % case 1: positive bending for both columns
+    col_strength_2 = sum([column_low.Mn_neg_2,column_high.Mn_neg_1]); % case 2: negative bending for both columns
     jnt.column_strength = mean([col_strength_1,col_strength_2]); % Avearge of two cases
     jnt.col_bm_ratio = jnt.column_strength/jnt.beam_strength;
 
@@ -136,18 +137,18 @@ for i =1:length(joint.id)
     % Calculate Joint Moment Capacity
     L = mean([beam_left.length,beam_right.length])/2; % Length from inflection point of beam to the column centerline, approximated as half neam centerline span,
     H = mean([column_low.length,column_high.length]); % Column Height measured bewteen column inflection points, approximated as the story height.
-    jnt.Mn = jnt.Vj*(L/((L-jnt.w/2)/(0.9*jnt.h) - L/H)); % Equation 2.1 of Hassan and Moehle 2012 (with toa*A taken as Vy)
+    jnt.Mn = jnt.Vj*(L/((L-jnt.w/2)/(0.9*jnt.height) - L/H)); % Equation 2.1 of Hassan and Moehle 2012 (with toa*A taken as Vy)
     
     % Calculate Joint Shear Demand
     if sum(strcmp('Vmax',column_high.Properties.VariableNames)) == 0 % Use capacities when demands do not yet exist
-        Vcol = max([column_high.Vn,0]); % Shear from the column above
-        Ts1 = max([beam_left.Mn_pos / (beam_left_props.d*0.75),0]);
-        C2 = max([beam_right.Mn_pos / (beam_right_props.d*0.75),0]); % Assuming jd is 75% of d, rough assumption for now until I take this further, also need to consider both directions
+        Vcol = max([column_high.Vn_1,0]); % Shear from the column above
+        Ts1 = max([beam_left.Mn_pos_2 / (beam_left_props.d_eff),0]);
+        C2 = max([beam_right.Mn_pos_1 / (beam_right_props.d_eff),0]); % Assuming jd is 75% of d, rough assumption for now until I take this further, also need to consider both directions
         jnt.Vmax = Ts1 + C2 - Vcol; % From Moehle Book EQ 9.2 Assumes the same as above.
     else
         Vcol = max([column_high.Vmax,0]); % Shear from the column above
-        Ts1 = max([beam_left.Mmax / (beam_left_props.d*0.75),0]);
-        C2 = max([beam_right.Mmax / (beam_right_props.d*0.75),0]); % Assuming jd is 75% of d, rough assumption for now until I take this further, also need to consider both directions
+        Ts1 = max([beam_left.Mmax / (beam_left_props.d_eff),0]);
+        C2 = max([beam_right.Mmax / (beam_right_props.d_eff),0]); % Assuming jd is 75% of d, rough assumption for now until I take this further, also need to consider both directions
         jnt.Vmax = Ts1 + C2 - Vcol; % From Moehle Book EQ 9.2 Assumes the same as above.
     end
 

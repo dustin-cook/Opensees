@@ -36,176 +36,178 @@ if ~isempty(ele_TH)
     end
 end
 
-%% Calc Moment Capacity
-if contains(ele_prop.description,'rigid')
-    ele.Mn_pos = inf;
-    ele.Mn_neg = inf;
-    ele.Mn_oop = inf;
-    ele.Mp_pos = inf;
-    ele.Mp_neg = inf;
-    ele.Mp_oop = inf;
-    if ~isempty(ele_TH)
-        ele_TH.Mn_pos = inf;
-        ele_TH.Mn_neg = inf;
-        ele_TH.Mn_oop = inf;
-        ele_TH.Mp_pos = inf;
-        ele_TH.Mp_neg = inf;
-        ele_TH.Mp_oop = inf;
-        ele_TH.Mn_pos_linear = inf;
-        ele_TH.Mn_neg_linear = inf;
-    end
-else
-    if strcmp(ele.type,'beam') % beams
-        % Moment Capcity per ACI (assume no axial loads for beams)
-        [ ~, ele.Mn_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
-        [ ~, ele.Mn_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
-        [ ~, ele.Mn_oop ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e, ele_prop.d, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
-        [ ~, ele.Mp_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
-        [ ~, ele.Mp_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
-        [ ~, ele.Mp_oop ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e*1.15, ele_prop.d, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, 0, 0 );
-        % Moment Capacity Time History
+for i = 1:2 % Calc properiteis on each side of the element
+    %% Calc Moment Capacity
+    if contains(ele_prop.description,'rigid')
+        ele.(['Mn_pos_' num2str(i)]) = inf;
+        ele.(['Mn_neg_' num2str(i)]) = inf;
+        ele.(['Mn_oop_' num2str(i)]) = inf;
+        ele.(['Mp_pos_' num2str(i)]) = inf;
+        ele.(['Mp_neg_' num2str(i)]) = inf;
+        ele.(['Mp_oop_' num2str(i)]) = inf;
         if ~isempty(ele_TH)
-            ele_TH.Mn_pos = ones(1,length(ele_TH.P_TH_1))*ele.Mn_pos;
-            ele_TH.Mn_neg = ones(1,length(ele_TH.P_TH_1))*ele.Mn_neg;
-            ele_TH.Mn_oop = ones(1,length(ele_TH.P_TH_1))*ele.Mn_oop;
-            ele_TH.Mp_pos = ones(1,length(ele_TH.P_TH_1))*ele.Mp_pos;
-            ele_TH.Mp_neg = ones(1,length(ele_TH.P_TH_1))*ele.Mp_neg;
-            ele_TH.Mp_oop = ones(1,length(ele_TH.P_TH_1))*ele.Mp_oop;
-            ele_TH.Mn_pos_linear = ele_TH.Mn_pos;
-            ele_TH.Mn_neg_linear = ele_TH.Mn_neg;
+            ele_TH.(['Mn_pos_' num2str(i)]) = inf;
+            ele_TH.(['Mn_neg_' num2str(i)]) = inf;
+            ele_TH.(['Mn_oop_' num2str(i)]) = inf;
+            ele_TH.(['Mp_pos_' num2str(i)]) = inf;
+            ele_TH.(['Mp_neg_' num2str(i)]) = inf;
+            ele_TH.(['Mp_oop_' num2str(i)]) = inf;
+            ele_TH.(['Mn_pos_linear_' num2str(i)]) = inf;
+            ele_TH.(['Mn_neg_linear_' num2str(i)]) = inf;
         end
-    else % columns and walls
-        % PM Interactions
-        if ~isempty(ele_TH)
-            vector_P = linspace(-0.9*ele.Pn_t,ele.Pn_c,25); % axial force range
-            for i = 1:length(vector_P) % Currently Assumes Column has uniform strength in each directions (ie symmetric layout)
-                [ ~, vector_M(i) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, vector_P(i), 0, 0 );
-                [ ~, vector_Mp(i) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, 1.15*ele_prop.fy_e, ele_prop.Es, vector_P(i), 0, 0 );
-                [ ~, vector_M_oop(i) ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e, ele_prop.d, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, vector_P(i), 0, 0 );
-                [ ~, vector_Mp_oop(i) ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e, ele_prop.d, ele_prop.w, ele_prop.As, ele_prop.As_d, 1.15*ele_prop.fy_e, ele_prop.Es, vector_P(i), 0, 0 );
-            end
-            % Save PM Structure
-            ele_PM.vector_P = [-ele.Pn_t, vector_P, ele.Pn_c];
-            ele_PM.vector_M = [0, vector_M, 0];
-            % Moment Capacity Time History
-            load_history = ele_TH.P_TH_1;
-            load_history(load_history > max(vector_P)) = max(vector_P); % Keep the axial load history within the bounds of the PM diagram so that we don't get NaNs with the interp
-            load_history(load_history < min(vector_P)) = min(vector_P); % This shouldn't really matter unless I load a linear model too heavily
-
-            load_history_linear = ele_TH.P_TH_linear;
-            load_history_linear(load_history_linear > max(vector_P)) = max(vector_P); % Keep the axial load history within the bounds of the PM diagram so that we don't get NaNs with the interp
-            load_history_linear(load_history_linear < min(vector_P)) = min(vector_P);
-
-            ele_TH.Mn_pos = interp1(vector_P,vector_M,load_history);
-            ele_TH.Mn_neg = ele_TH.Mn_pos; % assumes columns are the same in both directions
-            ele_TH.Mn_oop = interp1(vector_P,vector_M_oop,load_history);
-            ele_TH.Mp_pos = interp1(vector_P,vector_Mp,load_history);
-            ele_TH.Mp_neg = ele_TH.Mp_pos; % assumes columns are the same in both directions
-            ele_TH.Mp_oop = interp1(vector_P,vector_Mp_oop,load_history);
-            ele_TH.Mn_pos_linear = interp1(vector_P,vector_M,load_history_linear);
-            ele_TH.Mn_neg_linear = ele_TH.Mn_pos_linear; % assumes columns are the same in both directions
-            % Moment Capcity
-            [~, P_max_idx] = min(abs(load_history-ele.Pmax));
-            ele.Mn_pos = ele_TH.Mn_pos(P_max_idx); % Use Maximum axial from analysis
-            ele.Mn_neg = ele_TH.Mn_neg(P_max_idx);
-            ele.Mn_oop = ele_TH.Mn_oop(P_max_idx);
-            ele.Mp_pos = ele_TH.Mp_pos(P_max_idx);
-            ele.Mp_neg = ele_TH.Mp_neg(P_max_idx);
-            ele.Mp_oop = ele_TH.Mp_oop(P_max_idx);
-        else
-            [ ~, ele.Mn_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
-            [ ~, ele.Mn_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
-            [ ~, ele.Mn_oop ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e, ele_prop.d, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
-            [ ~, ele.Mp_pos ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, 0, 0 );
-            [ ~, ele.Mp_neg ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.d, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, 0, 0 );
-            [ ~, ele.Mp_oop ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e*1.15, ele_prop.d, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, 0, 0 );
-        end
-    end
-end
-
-%% Shear Capacity
-% Shear check 10.3.4
-ele.effective_shear_rein_factor = 1;
-ele_depth = max(str2double(strsplit(strrep(strrep(ele_prop.As_d{1},']',''),'[',''))));
-if ele_prop.S > ele_depth
-    ele.effective_shear_rein_factor = 0; %Transverse Reinforcement Spaced too far apart. Transverse reinforcement is ineffective in resiting shear
-elseif ele_prop.S > ele_depth/2
-    ele.effective_shear_rein_factor = 2*(1-ele_prop.S/ele_depth); % Transverse Reinforcement Spaced too far apart. Reduce effectivenes of transverse reinforcement
-end
-eff_fyt_e = ele_prop.fy_e*ele.effective_shear_rein_factor;
-
-% Vye and Diplacement Ductility
-[ ele ] = fn_disp_ductility( ele, ele_prop, story, eff_fyt_e );
-
-% Shear capacity is not a function of time
-if strcmp(ele.type,'column')
-    % Determine Ductility Factors
-    if nonlinear % for nonlinear use the displacement ductility
-        ductility_factor = ele.disp_duct; 
-    else % for linear use max DCR
-        ductility_factor = ele.DCR_raw_max_V; 
-    end
-    
-    % The yield displacement is the lateral displacement of the column, determined using the effective rigidities 
-    % from Table 10-5, at a shear demand resulting in flexural yielding of the plastic hinges, VyE.
-    if isempty(ele_TH)
-        [ ele.Vn, ele.V0 ] = fn_shear_capacity( ele_prop.Av, eff_fyt_e, ele_prop.As_d, ele_prop.S, ele_prop.lambda, ele_prop.fc_e, ele_prop.a, 1, 1, ele.P_grav, ductility_factor );
     else
-        [ ele.Vn, ele.V0 ] = fn_shear_capacity( ele_prop.Av, eff_fyt_e, ele_prop.As_d, ele_prop.S, ele_prop.lambda, ele_prop.fc_e, ele_prop.a, ele_TH.M_TH_1, ele_TH.V_TH_1, ele.P_grav, ductility_factor );
-    end
-    ele.Vs = NaN;
-else
-    [ ~, ele.Vn, ele.Vs ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.d, ele_prop.Av, eff_fyt_e, ele_prop.S, ele_prop.lambda, ele_prop.a, ele_prop.hw, ele.type, ele_prop.As_d );
-    ele.V0 = NaN;
-end 
+        if strcmp(ele.type,'beam') % beams
+            % Moment Capcity per ACI (assume no axial loads for beams)
+            [ ~, ele.(['Mn_pos_' num2str(i)]) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
+            [ ~, ele.(['Mn_neg_' num2str(i)]) ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
+            [ ~, ele.(['Mn_oop_' num2str(i)]) ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e, ele_prop.h, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
+            [ ~, ele.(['Mp_pos_' num2str(i)]) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
+            [ ~, ele.(['Mp_neg_' num2str(i)]) ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
+            [ ~, ele.(['Mp_oop_' num2str(i)]) ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e*1.15, ele_prop.h, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, 0, 0 );
+            % Moment Capacity Time History
+            if ~isempty(ele_TH)
+                ele_TH.(['Mn_pos_' num2str(i)]) = ones(1,length(ele_TH.P_TH_1))*ele.(['Mn_pos_' num2str(i)]);
+                ele_TH.(['Mn_neg_' num2str(i)]) = ones(1,length(ele_TH.P_TH_1))*ele.(['Mn_neg_' num2str(i)]);
+                ele_TH.(['Mn_oop_' num2str(i)]) = ones(1,length(ele_TH.P_TH_1))*ele.(['Mn_oop_' num2str(i)]);
+                ele_TH.(['Mp_pos_' num2str(i)]) = ones(1,length(ele_TH.P_TH_1))*ele.(['Mp_pos_' num2str(i)]);
+                ele_TH.(['Mp_neg_' num2str(i)]) = ones(1,length(ele_TH.P_TH_1))*ele.(['Mp_neg_' num2str(i)]);
+                ele_TH.(['Mp_oop_' num2str(i)]) = ones(1,length(ele_TH.P_TH_1))*ele.(['Mp_oop_' num2str(i)]);
+                ele_TH.(['Mn_pos_linear_' num2str(i)]) = ele_TH.(['Mn_pos_' num2str(i)]);
+                ele_TH.(['Mn_neg_linear_' num2str(i)]) = ele_TH.(['Mn_neg_' num2str(i)]);
+                ele.P_max_idx = 0;
+            end
+        else % columns and walls
+            % PM Interactions
+            if ~isempty(ele_TH)
+                vector_P = linspace(-0.9*ele.Pn_t,ele.Pn_c,25); % axial force range
+                for j = 1:length(vector_P) % Currently Assumes Column has uniform strength in each directions (ie symmetric layout)
+                    [ ~, vector_M(j) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, vector_P(j), 0, 0 );
+                    [ ~, vector_Mp(j) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, 1.15*ele_prop.fy_e, ele_prop.Es, vector_P(j), 0, 0 );
+                    [ ~, vector_M_oop(j) ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e, ele_prop.h, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, vector_P(j), 0, 0 );
+                    [ ~, vector_Mp_oop(j) ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e, ele_prop.h, ele_prop.w, ele_prop.As, ele_prop.As_d, 1.15*ele_prop.fy_e, ele_prop.Es, vector_P(j), 0, 0 );
+                end
+                % Save PM Structure
+                ele_PM.(['vector_P_' num2str(i)]) = [-ele.Pn_t, vector_P, ele.Pn_c];
+                ele_PM.(['vector_M_' num2str(i)]) = [0, vector_M, 0];
+                % Moment Capacity Time History
+                load_history = ele_TH.P_TH_1;
+                load_history(load_history > max(vector_P)) = max(vector_P); % Keep the axial load history within the bounds of the PM diagram so that we don't get NaNs with the interp
+                load_history(load_history < min(vector_P)) = min(vector_P); % This shouldn't really matter unless I load a linear model too heavily
 
-% Shear capacity time history is uniform (this is not quite correct since
-% shear capacity depends on Axial load for columns (through ductility
-% factor)) However, only used to calculate dcrs for linear analysis.
-if ~isempty(ele_TH)
-    ele_TH.Vn = ones(1,length(ele_TH.P_TH_1))*ele.Vn;
-end
+                load_history_linear = ele_TH.P_TH_linear;
+                load_history_linear(load_history_linear > max(vector_P)) = max(vector_P); % Keep the axial load history within the bounds of the PM diagram so that we don't get NaNs with the interp
+                load_history_linear(load_history_linear < min(vector_P)) = min(vector_P);
 
-
-%% Perform Checks
-% Balanced Moment Capcity and Reinforcement Ratio
-[ ele.row_bal ] = fn_balanced_moment( ele_prop.fc_e, ele_prop.fy_e );
-
-% Determine Flexure v Shear Critical
-[ ele ] = fn_element_critical_mode( ele, ele_prop );
-
-% If Shear controlled, reduce Mn for beams and columns and joints
-% Ignoring time history capacity modifications (may only affect linear)
-if strcmp(ele.critical_mode,'shear') && ~strcmp(ele.type,'wall')
-    ele.Mn_pos = ele.Mn_pos*ele.Vn/ele.vye;
-    ele.Mn_neg = ele.Mn_neg*ele.Vn/ele.vye;
-    ele.Mp_pos = ele.Mp_pos*ele.Vn/ele.vye;
-    ele.Mp_neg = ele.Mp_neg*ele.Vn/ele.vye;
-end
-
-if strcmp(ele.critical_mode_oop,'shear') && ~strcmp(ele.type,'wall')
-    ele.Mn_oop = ele.Mn_oop*ele.Vn/ele.vye_oop;
-    ele.Mp_oop = ele.Mp_oop*ele.Vn/ele.vye_oop;
-end
-
-% Wall Checks
-if sum(strcmp('Pmax',ele.Properties.VariableNames)) == 1
-    if strcmp(ele.type,'wall')
-        % For walls controlled by shear, if axial loads are too high
-        if strcmp(ele.critical_mode,'shear') && ele.Pmax > 0.15*ele_prop.a*ele_prop.fc_e % ASCE 41-17 table 10-20 note b
-            warning('Wall is force controlled, too much axial load')
+                ele_TH.(['Mn_pos_' num2str(i)]) = interp1(vector_P,vector_M,load_history);
+                ele_TH.(['Mn_neg_' num2str(i)]) = ele_TH.(['Mn_pos_' num2str(i)]); % assumes columns are the same in both directions
+                ele_TH.(['Mn_oop_' num2str(i)]) = interp1(vector_P,vector_M_oop,load_history);
+                ele_TH.(['Mp_pos_' num2str(i)]) = interp1(vector_P,vector_Mp,load_history);
+                ele_TH.(['Mp_neg_' num2str(i)]) = ele_TH.(['Mp_pos_' num2str(i)]); % assumes columns are the same in both directions
+                ele_TH.(['Mp_oop_' num2str(i)]) = interp1(vector_P,vector_Mp_oop,load_history);
+                ele_TH.(['Mn_pos_linear_' num2str(i)]) = interp1(vector_P,vector_M,load_history_linear);
+                ele_TH.(['Mn_neg_linear_' num2str(i)]) = ele_TH.(['Mn_pos_linear_' num2str(i)]); % assumes columns are the same in both directions
+                % Moment Capcity
+                [~, ele.P_max_idx] = min(abs(load_history-ele.Pmax));
+                ele.(['Mn_pos_' num2str(i)]) = ele_TH.(['Mn_pos_' num2str(i)])(ele.P_max_idx); % Use Maximum axial from analysis
+                ele.(['Mn_neg_' num2str(i)]) = ele_TH.(['Mn_neg_' num2str(i)])(ele.P_max_idx);
+                ele.(['Mn_oop_' num2str(i)]) = ele_TH.(['Mn_oop_' num2str(i)])(ele.P_max_idx);
+                ele.(['Mp_pos_' num2str(i)]) = ele_TH.(['Mp_pos_' num2str(i)])(ele.P_max_idx);
+                ele.(['Mp_neg_' num2str(i)]) = ele_TH.(['Mp_neg_' num2str(i)])(ele.P_max_idx);
+                ele.(['Mp_oop_' num2str(i)]) = ele_TH.(['Mp_oop_' num2str(i)])(ele.P_max_idx);
+            else
+                [ ~, ele.(['Mn_pos_' num2str(i)]) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
+                [ ~, ele.(['Mn_neg_' num2str(i)]) ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
+                [ ~, ele.(['Mn_oop_' num2str(i)]) ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e, ele_prop.h, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
+                [ ~, ele.(['Mp_pos_' num2str(i)]) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, 0, 0 );
+                [ ~, ele.(['Mp_neg_' num2str(i)]) ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, 0, 0 );
+                [ ~, ele.(['Mp_oop_' num2str(i)]) ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e*1.15, ele_prop.h, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, 0, 0 );
+            end
         end
-        % Are the axial loads too high for lateral resistance
-        if ele.Pmax > 0.35*ele.Pn_c 
-            warning('Wall has too much axial load to take lateral force, modify model')
+    end
+
+    %% Shear Capacity
+    % Shear check 10.3.4
+    if ele_prop.(['S_' num2str(i)]) > ele_prop.d_eff
+        ele.(['effective_shear_rein_factor_' num2str(i)]) = 0; %Transverse Reinforcement Spaced too far apart. Transverse reinforcement is ineffective in resiting shear
+    elseif ele_prop.(['S_' num2str(i)]) > ele_prop.d_eff/2
+        ele.(['effective_shear_rein_factor_' num2str(i)]) = 2*(1-ele_prop.(['S_' num2str(i)])/ele_prop.d_eff); % Transverse Reinforcement Spaced too far apart. Reduce effectivenes of transverse reinforcement
+    else
+        ele.(['effective_shear_rein_factor_' num2str(i)]) = 1;
+    end
+    eff_fyt_e = ele_prop.fy_e*ele.(['effective_shear_rein_factor_' num2str(i)]);
+
+    % Vye and Diplacement Ductility
+    [  ele.(['disp_duct_' num2str(i)]), ele.(['vye_' num2str(i)]), ele.(['vye_oop_' num2str(i)]) ] = fn_disp_ductility( ele.(['Mn_pos_' num2str(i)]), ele.(['Mn_neg_' num2str(i)]), ele.(['Mn_oop_' num2str(i)]), ele, ele_prop, story, eff_fyt_e, ele_prop.(['Av_' num2str(i)]), ele_prop.(['S_' num2str(i)]));
+
+    % Shear capacity is not a function of time
+    if strcmp(ele.type,'column')
+        % Determine Ductility Factors
+        if nonlinear % for nonlinear use the displacement ductility
+            ductility_factor = ele.(['disp_duct_' num2str(i)]); 
+        else % for linear use max DCR
+            ductility_factor = ele.DCR_raw_max_V; 
+        end
+
+        % The yield displacement is the lateral displacement of the column, determined using the effective rigidities 
+        % from Table 10-5, at a shear demand resulting in flexural yielding of the plastic hinges, VyE.
+        if isempty(ele_TH)
+            [ ele.(['Vn_' num2str(i)]), ele.(['V0_' num2str(i)]) ] = fn_shear_capacity( ele_prop.(['Av_' num2str(i)]), eff_fyt_e, ele_prop.d_eff, ele_prop.(['S_' num2str(i)]), ele_prop.lambda, ele_prop.fc_e, ele_prop.a, 1, 1, ele.P_grav, ductility_factor );
+        else
+            [ ele.(['Vn_' num2str(i)]), ele.(['V0_' num2str(i)]) ] = fn_shear_capacity( ele_prop.(['Av_' num2str(i)]), eff_fyt_e, ele_prop.d_eff, ele_prop.(['S_' num2str(i)]), ele_prop.lambda, ele_prop.fc_e, ele_prop.a, ele_TH.M_TH_1, ele_TH.V_TH_1, ele.P_grav, ductility_factor );
+        end
+        ele.(['Vs_' num2str(i)]) = NaN;
+    else
+        [ ~, ele.(['Vn_' num2str(i)]), ele.(['Vs_' num2str(i)]) ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.(['Av_' num2str(i)]), eff_fyt_e, ele_prop.(['S_' num2str(i)]), ele_prop.lambda, ele_prop.a, ele_prop.hw, ele.type, ele_prop.d_eff );
+        ele.(['V0_' num2str(i)]) = NaN;
+    end 
+
+    % Shear capacity time history is uniform (this is not quite correct since
+    % shear capacity depends on Axial load for columns (through ductility
+    % factor)) However, only used to calculate dcrs for linear analysis.
+    if ~isempty(ele_TH)
+        ele_TH.(['Vn_' num2str(i)]) = ones(1,length(ele_TH.P_TH_1))*ele.(['Vn_' num2str(i)]);
+    end
+
+    %% Perform Checks
+    % Balanced Moment Capcity and Reinforcement Ratio
+    [ ele.row_bal ] = fn_balanced_moment( ele_prop.fc_e, ele_prop.fy_e );
+
+    % Determine Flexure v Shear Critical
+    [ ele.(['critical_mode_' num2str(i)]) , ele.(['critical_mode_oop_' num2str(i)]), ele.model_shear_deform  ] = fn_element_critical_mode( ele, ele_prop, ele.(['Vn_' num2str(i)]), ele.(['vye_' num2str(i)]), ele.(['vye_oop_' num2str(i)]) );
+
+    % If Shear controlled, reduce Mn for beams and columns and joints
+    % Ignoring time history capacity modifications (may only affect linear)
+    if strcmp(ele.(['critical_mode_' num2str(i)]),'shear') && ~strcmp(ele.type,'wall')
+        ele.(['Mn_pos_' num2str(i)]) = ele.(['Mn_pos_' num2str(i)])*ele.(['Vn_' num2str(i)])/ele.(['vye_' num2str(i)]);
+        ele.(['Mn_neg_' num2str(i)]) = ele.(['Mn_neg_' num2str(i)])*ele.(['Vn_' num2str(i)])/ele.(['vye_' num2str(i)]);
+        ele.(['Mp_pos_' num2str(i)]) = ele.(['Mp_pos_' num2str(i)])*ele.(['Vn_' num2str(i)])/ele.(['vye_' num2str(i)]);
+        ele.(['Mp_neg_' num2str(i)]) = ele.(['Mp_neg_' num2str(i)])*ele.(['Vn_' num2str(i)])/ele.(['vye_' num2str(i)]);
+    end
+
+    if strcmp(ele.(['critical_mode_oop_' num2str(i)]),'shear') && ~strcmp(ele.type,'wall')
+        ele.(['Mn_oop_' num2str(i)]) = ele.(['Mn_oop_' num2str(i)])*ele.(['Vn_' num2str(i)])/ele.(['vye_oop_' num2str(i)]);
+        ele.(['Mp_oop_' num2str(i)]) = ele.(['Mp_oop_' num2str(i)])*ele.(['Vn_' num2str(i)])/ele.(['vye_oop_' num2str(i)]);
+    end
+
+    % Wall Checks
+    if sum(strcmp('Pmax',ele.Properties.VariableNames)) == 1
+        if strcmp(ele.type,'wall')
+            % For walls controlled by shear, if axial loads are too high
+            if strcmp(ele.(['critical_mode_' num2str(i)]),'shear') && ele.Pmax > 0.15*ele_prop.a*ele_prop.fc_e % ASCE 41-17 table 10-20 note b
+                warning('Wall is force controlled, too much axial load')
+            end
+            % Are the axial loads too high for lateral resistance
+            if ele.Pmax > 0.35*ele.Pn_c 
+                warning('Wall has too much axial load to take lateral force, modify model')
+            end
         end
     end
-end
 
-% % Check 10.3.3 (if not using timeshenko beams)
-% if ele.Vmax >= 6*sqrt(ele_prop.fc_e)*ele_prop.a
-%     error('Shear too digh for model assumptions. Use deformation that is 80% of the value from the analytical model')
-% end
+    % % Check 10.3.3 (if not using timeshenko beams)
+    % if ele.Vmax >= 6*sqrt(ele_prop.fc_e)*ele_prop.a
+    %     error('Shear too High for model assumptions. Use deformation that is 80% of the value from the analytical model')
+    % end
+end
 
 % End Function
 end

@@ -23,7 +23,7 @@ for i = 1:length(condition)
     
     if condition(i) == 1
         % Filter table for transverse reinforcement
-        if ele_props.S <= ele_props.d/3
+        if ele_props.S <= ele_props.d_eff/3
             if ele.DCR_raw_max_all < 2
                 % Conforming Transverse Reinforcement
                 trans_rien = 'C';
@@ -45,7 +45,7 @@ for i = 1:length(condition)
         [ m_factor ] = fn_filter_asce41_table( m_factor, row_ratio, 'row_ratio', {'m_io','m_ls','m_cp'} );
 
         % Filter table based on V/bw*d*sqrt(f'ce)
-        v_ratio = ele.Vmax/(ele_props.w*ele_props.d*sqrt(ele_props.fc_e)); % NEED TO FIGURE OUT WHAT VcolOE is and UPDATE THIS
+        v_ratio = ele.Vmax/(ele_props.w*ele_props.d_eff*sqrt(ele_props.fc_e)); % NEED TO FIGURE OUT WHAT VcolOE is and UPDATE THIS
         [ m_factor ] = fn_filter_asce41_table( m_factor, v_ratio, 'v_ratio', {'m_io','m_ls','m_cp'} );
     elseif condition(i) == 2 || condition(i) == 3
         %% Filter table based on S

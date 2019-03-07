@@ -1,4 +1,4 @@
-function [ capacity ] = main_ASCE_41_post_process( analysis, ele_prop_table )
+function [ capacity, torsion ] = main_ASCE_41_post_process( analysis, ele_prop_table )
 % Description: Main script that post process an ASCE 41 analysis
 
 % Created By: Dustin Cook
@@ -39,7 +39,7 @@ load([read_dir filesep 'hinge_analysis.mat'])
 
 %% Calculate Element Properties and Modify Analysis Results based on ASCE 41-17
 % Basic building or analysis properties
-[ model, element ] = fn_basic_analysis_properties( model, story, element );
+[ model, element, torsion ] = fn_basic_analysis_properties( model, story, element );
 
 if analysis.asce_41_post_process
     % Torsion Check and Amplification

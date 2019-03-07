@@ -16,12 +16,11 @@ fclose('all');
 % Assumptions:
 
 %% User Inputs (Think about changing this to a file read and command line execution)
-analysis.model_id = 6;
+analysis.model_id = 11;
 analysis.proceedure = 'NDP'; % LDP or NDP or test
-analysis.accidental_torsion = 0;
 analysis.summit = 0; % Write tcl files to be run on summit and change location of opensees call
 
-analysis.gm_seq_id = 10; % Maybe also make this part ot the defualts or model?
+analysis.gm_seq_id = 3; % Maybe also make this part ot the defualts or model?
 
 %% Initial Setup
 import asce_41.main_ASCE_41

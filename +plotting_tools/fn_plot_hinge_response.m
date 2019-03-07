@@ -22,6 +22,7 @@ hinge_plot_dir = [plot_dir filesep 'Hinge_Plots'];
 for i = 1:height(hinge)
     % Grab Element Properties
     ele = element(element.id == hinge.element_id(i),:);
+    ele_side = num2str(hinge.ele_side(i));
     if ele.story <= stories2plot
         ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
 
@@ -30,9 +31,9 @@ for i = 1:height(hinge)
 
         % Set critical mode variable
         if strcmp(hinge.direction{i},'oop')
-            crit_mode = ele.critical_mode_oop;
+            crit_mode = ele.(['critical_mode_oop_' ele_side]);
         else
-            crit_mode = ele.critical_mode;
+            crit_mode = ele.(['critical_mode_' ele_side]);
         end
 
         if strcmp(hinge.type(i),'rotational')
@@ -44,7 +45,7 @@ for i = 1:height(hinge)
             plot_name = [ele.type{1} '_' num2str(hinge.element_id(i)) ' - ' hinge_name ' - Rotation Response'];
 
 
-            fn_plot_backbone( ele, ele_props, hinge_plot_dir, plot_name, 2, hinge.deformation_TH{i}, hinge.force_TH{i}, crit_mode, hinge.direction{i})
+            fn_plot_backbone( ele, ele_side, ele_props, hinge_plot_dir, plot_name, 2, hinge.deformation_TH{i}, hinge.force_TH{i}, crit_mode, hinge.direction{i})
 
     %         % Plot Hinge Rotation Time History
     %         hold on
@@ -66,7 +67,7 @@ for i = 1:height(hinge)
 
         elseif strcmp(hinge.type(i),'shear')
             plot_name = [ele.type{1} '_' num2str(hinge.element_id(i)) ' - Shear Response'];
-            fn_plot_backbone( ele, ele_props, hinge_plot_dir, plot_name, 2, hinge.deformation_TH{i}, hinge.force_TH{i}, crit_mode, hinge.direction{i})
+            fn_plot_backbone( ele, ele_side, ele_props, hinge_plot_dir, plot_name, 2, hinge.deformation_TH{i}, hinge.force_TH{i}, crit_mode, hinge.direction{i})
         end
     end
 end

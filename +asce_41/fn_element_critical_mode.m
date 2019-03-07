@@ -1,4 +1,4 @@
-function [ ele ] = fn_element_critical_mode( ele, ele_prop )
+function [ critical_mode, critical_mode_oop, model_shear_deform ] = fn_element_critical_mode( ele, ele_prop, Vn, vye, vye_oop )
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -20,43 +20,43 @@ function [ ele ] = fn_element_critical_mode( ele, ele_prop )
 %% Determine Controlling Factors
 % Method 2 - From ACI / Based on Stiffness Matrix
 if strcmp(ele.type,'beam') || strcmp(ele.type,'column')
-    if ele.Vn > ele.vye
-        ele.critical_mode = {'flexure'};
+    if Vn > vye
+        critical_mode = {'flexure'};
     else
-        ele.critical_mode = {'shear'};
+        critical_mode = {'shear'};
     end
     
     % OOP
-    if ele.Vn > ele.vye_oop % Assumes shear strength is the same for OOP
-        ele.critical_mode_oop = {'flexure'};
+    if Vn > vye_oop % Assumes shear strength is the same for OOP
+        critical_mode_oop = {'flexure'};
     else
-        ele.critical_mode_oop = {'shear'};
+        critical_mode_oop = {'shear'};
     end
 elseif strcmp(ele.type,'wall')
     % Start by checking the aspect ratio criteria as defiend by the
     % appendix of ASCE 41-17 (A10.7)
-    aspect_ratio = ele.length/ele_prop.d;
+    aspect_ratio = ele.length/ele_prop.h;
     
     if aspect_ratio > 3
-        ele.critical_mode = {'flexure'};
+        critical_mode = {'flexure'};
     elseif aspect_ratio < 1.5
-        ele.critical_mode = {'shear'};
+        critical_mode = {'shear'};
     else
         % Based on Shear Span Ratio (as defined by Pugh, Lowes, Lehman)
         if sum(strcmp('Mmax',ele.Properties.VariableNames)) == 0
             shear_span_ratio = 1;
         else
-            shear_span_ratio = ele.Mmax/(ele.Vmax*ele_prop.d);
+            shear_span_ratio = ele.Mmax/(ele.Vmax*ele_prop.h);
         end
         if shear_span_ratio > 2
-            ele.critical_mode = {'flexure'};
+            critical_mode = {'flexure'};
         else
-            ele.critical_mode = {'shear'};
+            critical_mode = {'shear'};
         end
     end
     
     % OOP
-    ele.critical_mode_oop = {'flexure'}; % assumes wall out-of-plane are flexure controlled
+    critical_mode_oop = {'flexure'}; % assumes wall out-of-plane are flexure controlled
 end
 
 % Check if shear deformations need to be considered
@@ -64,9 +64,9 @@ flexural_delta = (1*ele.length^3)/(12*ele_prop.e*ele_prop.iz); % assume a unit l
 shear_delta = 1*ele.length/(ele_prop.g*ele_prop.av); % assume a unit lateral force
 
 if shear_delta > 0.1*flexural_delta
-    ele.model_shear_deform = true;
+    model_shear_deform = true;
 else
-    ele.model_shear_deform = false;
+    model_shear_deform = false;
 end
 
 
