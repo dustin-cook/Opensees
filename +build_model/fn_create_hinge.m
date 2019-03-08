@@ -1,4 +1,4 @@
-function [ node, element, hinge ] = fn_create_hinge( node, element, hinge, node_end, ele_or_node_id, hinge_id, foundation_nodes_id, type, direction )
+function [ node, element, hinge ] = fn_create_hinge( node, element, hinge, node_end, ele_or_node_id, hinge_id, foundation_nodes_id, type, direction, ele_side )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -45,6 +45,7 @@ end
 hinge.id(hinge_id,1) = hinge_id;
 hinge.type{hinge_id,1} = type;
 hinge.direction{hinge_id,1} = direction;
+hinge.ele_side{hinge_id,1} = ele_side;
 hinge.node_1(hinge_id,1) = new_node_id;
 hinge.node_2(hinge_id,1) = old_node_id;
 if strcmp(type,'foundation')

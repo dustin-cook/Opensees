@@ -1,4 +1,4 @@
-function [ hinge, trans_rien ] = fn_beam_hinge( ele, ele_props )
+function [ hinge, trans_rien ] = fn_beam_hinge( ele, ele_props, ele_side )
 % Description: Find beam hinge properties based on Table 10-7 of ASCE 41-17
 % Created by: Dustin Cook
 % Date Created: 7-1-18
@@ -16,9 +16,9 @@ hinge_table = readtable(['+asce_41' filesep 'beam_hinge.csv'],'ReadVariableNames
 hinge_table.id = []; % Omit id 
 
 %% Calculate condition
-if strcmp(ele.critical_mode,'flexure')
+if strcmp(ele.(['critical_mode_' num2str(ele_side)]),'flexure')
     condition(1) = 1; 
-elseif strcmp(ele.critical_mode,'shear')
+elseif strcmp(ele.(['critical_mode_' num2str(ele_side)]),'shear')
     condition(1) = 2; 
 end
 if ele.pass_aci_dev_length == 0 % Controlled by inadequate development (assuming no embedment issues)
@@ -30,11 +30,11 @@ for i = 1:length(condition)
     hinge_filt = hinge_table(hinge_table.condition == condition(i),:);
     
     % Calculate if the transverse reinforcement
-    if ele_props.S <= ele_props.d/3
-        if ele.disp_duct < 2
+    if ele_props.(['S_' num2str(ele_side)]) <= ele_props.d_eff/3
+        if ele.(['disp_duct_' num2str(ele_side)]) < 2
             % Conforming Transverse Reinforcement
             trans_rien = 'C';
-        elseif ele.Vs > 0.75*ele.Vmax
+        elseif ele.(['Vs_' num2str(ele_side)]) > 0.75*ele.Vmax
             % Conforming Transverse Reinforcement
             trans_rien = 'C'; 
         else
@@ -55,12 +55,12 @@ for i = 1:length(condition)
 
         %% Filter table based on V/bd*sqrt(fc)
         if sum(isnan(hinge_filt.v_ratio)) == 0
-            v_ratio = ele.Vmax/(ele_props.w*ele_props.d*sqrt(ele_props.fc_e));
+            v_ratio = ele.Vmax/(ele_props.w*ele_props.d_eff*sqrt(ele_props.fc_e));
             [ hinge_filt ] = fn_filter_asce41_table( hinge_filt, v_ratio, 'v_ratio', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
         end
     elseif condition(i) == 2 || condition(i) == 3
         %% Filter table based on S
-        [ hinge_filt ] = fn_filter_asce41_table( hinge_filt, ele_props.S, 's', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
+        [ hinge_filt ] = fn_filter_asce41_table( hinge_filt, ele_props.(['S_' num2str(ele_side)]), 's', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
     end
 
     %% Double Check only 1 row of the hinge table remains

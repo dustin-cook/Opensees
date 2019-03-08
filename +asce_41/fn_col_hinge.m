@@ -1,4 +1,4 @@
-function [ hinge, rho_t ] = fn_col_hinge( ele, ele_props )
+function [ hinge, rho_t ] = fn_col_hinge( ele, ele_props, ele_side )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -13,11 +13,11 @@ if sum(strcmp('Pmax',ele.Properties.VariableNames)) == 1
 else
     p_ratio = 0;
 end
-v_ratio = max([ele.vye/ele.V0 , 0.2]);
+v_ratio = max([ele.(['vye_' num2str(ele_side)])/ele.(['V0_' num2str(ele_side)]) , 0.2]);
 
-rho_t = ele_props.Av/(ele_props.w*ele_props.S);
+rho_t = ele_props.(['Av_' num2str(ele_side)])/(ele_props.w*ele_props.(['S_' num2str(ele_side)]));
 As_tot = sum(str2num(strrep(strrep(ele_props.As{1},']',''),'[','')));
-row_l = As_tot/(ele_props.w*ele_props.d);
+row_l = As_tot/(ele_props.w*ele_props.d_eff);
 if rho_t < 0.0005
     error('Equations in table not valid: not enough transverse reinforcement')
 end

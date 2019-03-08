@@ -1,8 +1,18 @@
 function [ ] = main_post_process_opensees( analysis, model, story, node, element, joint, hinge, ground_motion, opensees_dir )
 % Main function that load raw opensees recorder data and transoforms it into something more readily usable 
 
-%% Import Packages
+%% Initial Setup
+% Import Packages
 import opensees.post_process.*
+
+% Make Ouput Directories 
+if analysis.type == 2 % Pushover Analysis
+    pushover_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure filesep 'pushover'];
+    fn_make_directory( pushover_dir )
+elseif analysis.type == 3 % Cyclic Analysis
+    cyclic_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure filesep 'cyclic'];
+    fn_make_directory( cyclic_dir )
+end
 
 %% Load in Analysis data
 if analysis.type == 1 % dynamic analysis
@@ -117,8 +127,6 @@ end
 %% Save Element Time History
 save([opensees_dir filesep 'element_TH.mat'],'element_TH')
 if analysis.type == 2 % Pushover Analysis
-    pushover_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure filesep 'pushover'];
-    fn_make_directory( pushover_dir )
     save([pushover_dir filesep 'element_TH.mat'],'element_TH')
 end
 
@@ -288,6 +296,7 @@ for i = 1:length(dirs_ran)
     % EDP Profiles
     [ story.(['max_disp_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' dirs_ran{i}]), story, node, 0 );
     [ story.(['ave_disp_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' dirs_ran{i}]), story, node, 1 );
+    story.(['torsional_factor_' dirs_ran{i}]) = story.(['max_disp_' dirs_ran{i}]) ./ story.(['ave_disp_' dirs_ran{i}]);
     if analysis.type == 1 % Dynamic Analysis
         [ story.(['max_accel_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' dirs_ran{i} '_abs']), story, node, 0 );
     end
@@ -368,14 +377,10 @@ save([opensees_dir filesep 'story_analysis.mat'],'story')
 if analysis.type == 1 % Dynamic Analysis
     save([opensees_dir filesep 'gm_data.mat'],'eq','dirs_ran','ground_motion','eq_analysis_timespace','eq_analysis')
 elseif analysis.type == 2 % Pushover Analysis
-    pushover_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure filesep 'pushover'];
-    fn_make_directory( pushover_dir )
     save([pushover_dir filesep 'node_analysis.mat'],'node') 
     save([pushover_dir filesep 'hinge_analysis.mat'],'hinge')
     save([pushover_dir filesep 'analysis_options.mat'],'analysis')
 elseif analysis.type == 3 % Cyclic Analysis
-    cyclic_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure filesep 'cyclic'];
-    fn_make_directory( cyclic_dir )
     save([cyclic_dir filesep 'hinge_analysis.mat'],'hinge')
     save([cyclic_dir filesep 'analysis_options.mat'],'analysis')
 end

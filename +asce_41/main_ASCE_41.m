@@ -47,6 +47,8 @@ if ~analysis.skip_2_outputs % Don't skip to plotters
         analysis.case = analysis.case_list{i};
         analysis.pushover_drift_x = analysis.pushover_drift_list_x(i);
         analysis.pushover_drift_z = analysis.pushover_drift_list_z(i);
+        analysis.accidental_torsion = analysis.accidental_torsion_list(i);
+        analysis.damp_ratio = analysis.damp_ratio_list(i);
         disp(['Running ' analysis.proceedure ' step ' num2str(i) ' of ' num2str(length(analysis.type_list)) ' ...'])
 
 %         %% Build Model
@@ -59,11 +61,11 @@ if ~analysis.skip_2_outputs % Don't skip to plotters
 % 
         %% Postprocess ASCE 41 data
         disp('Post Processing Via ASCE 41 ...')
-        [ capacity(:,i) ] = main_ASCE_41_post_process( analysis, ele_prop_table );
+        [ capacity(:,i), torsion{i} ] = main_ASCE_41_post_process( analysis, ele_prop_table );
 
         %% Analysis Checks
         disp('Validating Analysis Results ...')
-        main_check_analysis( analysis, ele_prop_table, 1, i )
+        main_check_analysis( analysis, ele_prop_table, capacity, torsion, i )
     end
 
     %% Combine Load Cases

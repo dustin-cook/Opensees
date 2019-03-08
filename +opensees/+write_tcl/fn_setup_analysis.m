@@ -46,7 +46,8 @@ fprintf(fileID,'algorithm KrylovNewton \n');
 
 if analysis.type == 1 % Dynamic Analysis
     % Define Each Load Step
-    fprintf(fileID,'integrator Newmark 0.5 0.25 \n');
+%     fprintf(fileID,'integrator Newmark 0.5 0.25 \n');
+    fprintf(fileID,'integrator HHT 0.95 \n');
     
     % Define analysis type
     fprintf(fileID,'analysis Transient \n');

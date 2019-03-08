@@ -1,4 +1,4 @@
-function [ hinge ] = fn_wall_hinge( ele, ele_props, oop_tag )
+function [ hinge ] = fn_wall_hinge( ele, ele_props, oop_tag, ele_side )
 % Description: Find wall hinge properties based on Table 10-19 of ASCE 41-17
 % Created by: Dustin Cook
 % Date Created: 9-21-18
@@ -37,9 +37,9 @@ end
 
 % Defined Critical Model
 if oop_tag
-    critical_mode = ele.critical_mode_oop;
+    critical_mode = ele.(['critical_mode_oop_' num2str(ele_side)]);
 else
-    critical_mode = ele.critical_mode;
+    critical_mode = ele.(['critical_mode_' num2str(ele_side)]);
 end
 
 %% Load Wall Hinge Table 10-19 from ASCE 41-17
@@ -54,14 +54,14 @@ if strcmp(critical_mode,'flexure')
     %% Filter table based on strength term
     As = sum(str2double(strsplit(strrep(strrep(ele_props.As{1},']',''),'[',''))))/2;
     As_prime = As;
-    strength_term = ((As - As_prime)*ele_props.fy_e + abs(ele.Pmax)) / (ele_props.w*ele_props.d*ele_props.fc_e); % The bigger the Axial load the more consertvative the hinge is, therefore the max axial load from the analysis is used.
+    strength_term = ((As - As_prime)*ele_props.fy_e + abs(ele.Pmax)) / (ele_props.w*ele_props.h*ele_props.fc_e); % The bigger the Axial load the more consertvative the hinge is, therefore the max axial load from the analysis is used.
     [ hinge_filt ] = fn_filter_asce41_table( hinge_filt, strength_term, 'strength_term', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
 
     %% Filter table based on V ratio
     if oop_tag
-        v_ratio = ele.Vmax_oop / (ele_props.w*ele_props.d*sqrt(ele_props.fc_e));
+        v_ratio = ele.Vmax_oop / (ele_props.w*ele_props.h*sqrt(ele_props.fc_e));
     else
-        v_ratio = ele.Vmax / (ele_props.w*ele_props.d*sqrt(ele_props.fc_e));
+        v_ratio = ele.Vmax / (ele_props.w*ele_props.h*sqrt(ele_props.fc_e));
     end
     [ hinge_filt ] = fn_filter_asce41_table( hinge_filt, v_ratio, 'v_ratio', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
 
@@ -80,7 +80,7 @@ elseif strcmp(critical_mode,'shear')
     %% Filter table based on strength term
     As = sum(str2double(strsplit(strrep(strrep(ele_props.As{1},']',''),'[',''))))/2;
     As_prime = As;
-    strength_term = ((As - As_prime)*ele_props.fy_e + abs(ele.Pmax)) / (ele_props.w*ele_props.d*ele_props.fc_e); % The bigger the Axial load the more consertvative the hinge is, therefore the max axial load from the analysis is used.
+    strength_term = ((As - As_prime)*ele_props.fy_e + abs(ele.Pmax)) / (ele_props.w*ele_props.h*ele_props.fc_e); % The bigger the Axial load the more consertvative the hinge is, therefore the max axial load from the analysis is used.
     if strength_term <= 0.05
         hinge_filt = hinge_table(strcmp(hinge_table.strength_term,'<=0.05'),:);
     else

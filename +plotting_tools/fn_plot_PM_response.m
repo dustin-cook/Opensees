@@ -24,7 +24,7 @@ for i = 1:length(element.id)
             ele_PM = element_PM.(['ele_' num2str(element.id(i))]);
 
             hold on
-            plot(ele_PM.vector_M/1000,ele_PM.vector_P/1000,'k','LineWidth',2)
+            plot(ele_PM.vector_M_1/1000,ele_PM.vector_P_1/1000,'k','LineWidth',2) % Only plotting at the bottom hinge for now
             plot(abs(ele_TH.M_TH_1)/1000,ele_TH.P_TH_1/1000,'b','LineWidth',0.75)
             ylabel('Axial (k)')
             xlabel('Moment (k-in)')
