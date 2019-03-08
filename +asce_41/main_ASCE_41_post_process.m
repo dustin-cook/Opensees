@@ -42,9 +42,6 @@ load([read_dir filesep 'hinge_analysis.mat'])
 [ model, element, torsion ] = fn_basic_analysis_properties( model, story, element );
 
 if analysis.asce_41_post_process
-    % Torsion Check and Amplification
-    fn_torsional_amplification( story, element ) % NEED TO UPDATE
-
     % Procedure Specific Analysis
     if strcmp(analysis.proceedure,'NDP') % Nonlinear Dynamic Proceedure
         [ element, element_TH, element_PM, joint ] = main_element_capacity( story, ele_prop_table, element, element_TH, analysis, joint  );
@@ -53,6 +50,7 @@ if analysis.asce_41_post_process
             [ hinge ] = fn_accept_hinge( element, ele_prop_table, hinge );
         end
     elseif strcmp(analysis.proceedure,'LDP') % Linear Dynamic Proceedure and Test Proceedure (and all others defined so be careful)
+        fn_torsional_amplification( story, element ) % Torsion check (will throw errors if triggered, need to update)
         [ model, element, element_TH, element_PM, joint ] = fn_linear_capacity_and_c_factors( model, story, ele_prop_table, element, element_TH, analysis, joint );
         [ element ] = main_m_factors( ele_prop_table, element );
         [ element, ~ ] = fn_calc_dcr( element, element_TH, 'cp' );

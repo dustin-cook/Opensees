@@ -101,7 +101,7 @@ if strcmp(analysis.case,'torsion_check') && analysis.type == 1
     eta_ratio_x = torsion{step}.x./torsion{step-1}.x;
     eta_ratio_z = torsion{step}.z./torsion{step-1}.z;
     max_eta_ratio = max([eta_ratio_x; eta_ratio_z]);
-    fprintf(fileID,'Max Accidental Torsion Effect = %f of Actual Torsion (f-value)\n',max_eta_ratio);
+    fprintf(fileID,'Max Accidental Torsion Effect = %f of Actual Torsion \n',max_eta_ratio);
     
     % 2D applicability check
     max_eta = max([torsion{step}.x;torsion{step}.z]);
