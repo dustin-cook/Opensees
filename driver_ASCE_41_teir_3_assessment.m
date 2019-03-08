@@ -20,7 +20,7 @@ analysis.model_id = 11;
 analysis.proceedure = 'NDP'; % LDP or NDP or test
 analysis.summit = 1; % Write tcl files to be run on summit and change location of opensees call
 
-analysis.gm_seq_id = 3; % Maybe also make this part ot the defualts or model?
+analysis.gm_seq_id = 12; % Maybe also make this part ot the defualts or model?
 
 %% Initial Setup
 import asce_41.main_ASCE_41

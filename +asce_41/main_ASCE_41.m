@@ -51,14 +51,14 @@ if ~analysis.skip_2_outputs % Don't skip to plotters
         analysis.damp_ratio = analysis.damp_ratio_list(i);
         disp(['Running ' analysis.proceedure ' step ' num2str(i) ' of ' num2str(length(analysis.type_list)) ' ...'])
 
-%         %% Build Model
-%         disp('Building Model ...')
-%         main_build_model( model, analysis, ele_prop_table )
-% 
-%         %% Run and Postprocess Opensees Analysis
-%         disp('Running Opensees ...')
-%         main_opensees_analysis( model, analysis )
-% 
+        %% Build Model
+        disp('Building Model ...')
+        main_build_model( model, analysis, ele_prop_table )
+
+        %% Run and Postprocess Opensees Analysis
+        disp('Running Opensees ...')
+        main_opensees_analysis( model, analysis )
+
         %% Postprocess ASCE 41 data
         disp('Post Processing Via ASCE 41 ...')
         [ capacity(:,i), torsion{i} ] = main_ASCE_41_post_process( analysis, ele_prop_table );
