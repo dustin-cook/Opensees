@@ -226,13 +226,18 @@ for i = 1:length(dirs_ran)
                if strcmp(dirs_ran{i},'x')
                    node.(['disp_' dirs_ran{i} '_TH']){n} = node_disp_raw(2,:); 
                    node.(['max_disp_' dirs_ran{i}])(n) = max(abs(node_disp_raw(2,:)));
+                   end_of_motion = 5/ground_motion.(dirs_ran{i}).eq_dt;
+                   node.(['residual_disp_' dirs_ran{i}])(n) = abs(mean(node_disp_raw(2,(end-end_of_motion):end)));
                else
                    node.(['disp_' dirs_ran{i} '_TH']){n} = node_disp_raw(3,:);  
                    node.(['max_disp_' dirs_ran{i}])(n) = max(abs(node_disp_raw(3,:)));
+                   end_of_motion = 5/ground_motion.(dirs_ran{i}).eq_dt;
+                   node.(['residual_disp_' dirs_ran{i}])(n) = abs(mean(node_disp_raw(3,(end-end_of_motion):end)));
                end   
            else
                node.(['disp_' dirs_ran{i} '_TH']){n} = [];
                node.(['max_disp_' dirs_ran{i}])(n) = NaN;
+               node.(['residual_disp_' dirs_ran{i}])(n) = NaN;
            end
 
            if node.record_accel(n)
@@ -282,10 +287,12 @@ for i = 1:length(dirs_ran)
                    node_disp_raw = dlmread([opensees_dir filesep 'nodal_disp_' dirs_ran{i} '_' num2str(node.id(n)) '.txt'],' ')';
                end
                    node.(['disp_' dirs_ran{i} '_TH']){n} = node_disp_raw(2,:); 
-                   node.(['max_disp_' dirs_ran{i}])(n) = max(abs(node_disp_raw(2,:)));                
+                   node.(['max_disp_' dirs_ran{i}])(n) = max(abs(node_disp_raw(2,:)));
+                   node.(['residual_disp_' dirs_ran{i}])(n) = NaN;
            else
                node.(['disp_' dirs_ran{i} '_TH']){n} = [];
                node.(['max_disp_' dirs_ran{i}])(n) = NaN;
+               node.(['residual_disp_' dirs_ran{i}])(n) = NaN;
            end       
         end
        
@@ -296,6 +303,7 @@ for i = 1:length(dirs_ran)
     % EDP Profiles
     [ story.(['max_disp_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' dirs_ran{i}]), story, node, 0 );
     [ story.(['ave_disp_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' dirs_ran{i}]), story, node, 1 );
+    [ story.(['residual_disp_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['residual_disp_' dirs_ran{i}]), story, node, 1 );
     story.(['torsional_factor_' dirs_ran{i}]) = story.(['max_disp_' dirs_ran{i}]) ./ story.(['ave_disp_' dirs_ran{i}]);
     if analysis.type == 1 % Dynamic Analysis
         [ story.(['max_accel_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' dirs_ran{i} '_abs']), story, node, 0 );

@@ -168,7 +168,42 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         load([read_dir filesep 'hinge_analysis.mat'])
         fn_plot_hinge_response( plot_dir, hinge, backbones.element, ele_prop_table, node, analysis.hinge_stories_2_plot, eq_analysis_timespace )
     end
+    
+    %% Compile outputs table and write csv file
+    idx = 0;
+    if analysis.plot_recordings
+        for i = 1:length(dirs_ran)
+            idx = idx + 1;
+            outputs.type{idx,:} = ['Record-' dirs_ran{i}];
+            outputs.period(idx,:) = NaN; % Maybe figures out a way to do this automaticly
+            outputs.max_roof_drift(idx,:) = record_edp.max_disp.(dirs_ran{i})(end) / sum(story.story_ht);
+            rel_disp = record_edp.max_disp.(dirs_ran{i})(2:end) - record_edp.max_disp.(dirs_ran{i})(1:(end-1));
+            outputs.max_drift(idx,:) = max( rel_disp(1:height(story)) ./ story.story_ht);
+            end_of_record = 5/ground_motion.(dirs_ran{i}).eq_dt;
+            roof_disp_TH = record_edp.disp_TH_roof.(dirs_ran{i});
+            outputs.residual_drift(idx,:) = abs(mean(roof_disp_TH((end-end_of_record):end))) / sum(story.story_ht);
+            outputs.max_base_shear(idx,:) = ground_motion.(dirs_ran{i}).pga;
+            outputs.max_roof_accel(idx,:) = record_edp.max_accel.(dirs_ran{i})(end);    
+        end
+    end
+    
+    for i = 1:length(dirs_ran)
+        idx = idx + 1;
+        outputs.type{idx,:} = ['Analysis-' dirs_ran{i}];
+        outputs.period(idx,:) = model.(['T1_' dirs_ran{i}]);
+        outputs.max_roof_drift(idx,:) = story.(['max_disp_' dirs_ran{i}])(end) / sum(story.story_ht);
+        outputs.max_drift(idx,:) = max(story.(['max_drift_' dirs_ran{i}]));
+        outputs.residual_drift(idx,:) = story.(['residual_disp_' dirs_ran{i}])(end) / sum(story.story_ht);
+        outputs.max_base_shear(idx,:) = ground_motion.(dirs_ran{i}).pga;
+        outputs.max_roof_accel(idx,:) = story.(['max_accel_' dirs_ran{i}])(end);
+    end
+    
+    % Save as csv
+    outputs_table = struct2table(outputs);
+    writetable(outputs_table,[analysis.out_dir filesep 'analysis_summary.csv'])
 end
+
+
 
 end
 

@@ -38,23 +38,23 @@ analysis.cyclic_pushover_peak_drifts = [0.4, 0.5, 0.6]; % Percent of the final P
 analysis.hinge_group_length = 10;
 
 % Visuals and Graphics
-analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
-analysis.plot_recordings = 0; % Plot analysis results v recorded results
+analysis.element_plots = 1; % Plot hinge backnones and other per element visualizations
+analysis.plot_recordings = 1; % Plot analysis results v recorded results
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 1; % Visual scale of the movie playback
 analysis.hinge_stories_2_plot = 2;
 
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
-    analysis.type_list = [2, 1];
-    analysis.nonlinear_list = [1, 1];
-    analysis.dead_load_list = [1, 1];
-    analysis.live_load_list = [1, 1];
-    analysis.case_list = {'NA', 'NA'};
-    analysis.pushover_drift_list_x = [0.02, NaN];
-    analysis.pushover_drift_list_z = [0.02, NaN];
-    analysis.accidental_torsion_list = [0, 0];
-    analysis.damp_ratio_list = [0.05, 0.05]; % Analysis damping ratio
+    analysis.type_list = [1];
+    analysis.nonlinear_list = [0];
+    analysis.dead_load_list = [1];
+    analysis.live_load_list = [1];
+    analysis.case_list = {'NA'};
+    analysis.pushover_drift_list_x = [NaN];
+    analysis.pushover_drift_list_z = [NaN];
+    analysis.accidental_torsion_list = [0];
+    analysis.damp_ratio_list = [0.05]; % Analysis damping ratio
     
 elseif strcmp(analysis.proceedure,'torsion')
     analysis.type_list = [1, 1];
