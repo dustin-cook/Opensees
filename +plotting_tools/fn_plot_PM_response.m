@@ -1,4 +1,4 @@
-function [ ] = fn_plot_PM_response( plot_dir, element, element_TH, element_PM, stories_2_plot )
+function [ ] = fn_plot_PM_response( plot_dir, read_dir, element, stories_2_plot )
 % Description: Fn to plot PM interaction diagrams along with column
 % response.
 
@@ -19,9 +19,9 @@ import plotting_tools.fn_format_and_save_plot
 for i = 1:length(element.id)
     ele = element(i,:);
     if ele.story <= stories_2_plot
-        ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
+        load([read_dir filesep 'element_TH_' num2str(ele.id) '.mat'])
         if strcmp(element.type{i},'column')
-            ele_PM = element_PM.(['ele_' num2str(element.id(i))]);
+            load([read_dir filesep 'element_PM_' num2str(ele.id) '.mat'])
 
             hold on
             plot(ele_PM.vector_M_1/1000,ele_PM.vector_P_1/1000,'k','LineWidth',2) % Only plotting at the bottom hinge for now

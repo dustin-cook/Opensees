@@ -1,4 +1,4 @@
-function [ element, element_TH, element_PM, joint ] = main_element_capacity( story, ele_prop_table, element, element_TH, analysis, joint )
+function [ element, joint ] = main_element_capacity( story, ele_prop_table, element, analysis, joint, read_dir, write_dir )
 % Description: Main script that calculates the strength of each element in 
 % the model according to ASCE 41 
 
@@ -20,18 +20,22 @@ for i = 1:length(element.id)
     ele = element(i,:);
     ele_id = ele.ele_id;
     ele_prop = ele_prop_table(ele_prop_table.id == ele_id,:);
-    if isempty(element_TH)
+    TH_file = [read_dir filesep 'element_TH_' num2str(ele.id) '.mat'];
+    if ~exist(TH_file,'file')
         ele_TH = [];
     else
-        ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
+        load(TH_file)
     end
     
     %% Calculate Element Capacties
     if isempty(ele_TH)
         [ ele, ~, ~ ] = fn_element_capacity( story, ele, ele_prop, ele_TH, analysis.nonlinear );
-        element_PM = [];
+        ele_PM = [];
     else
-        [ ele, element_TH.(['ele_' num2str(element.id(i))]), element_PM.(['ele_' num2str(element.id(i))]) ] = fn_element_capacity( story, ele, ele_prop, ele_TH, analysis.nonlinear );
+        [ ele, ele_TH, ele_PM ] = fn_element_capacity( story, ele, ele_prop, ele_TH, analysis.nonlinear );
+        % Save time histories and clear data
+        save([write_dir filesep 'element_TH_' num2str(ele.id) '.mat'],'ele_TH')
+        save([write_dir filesep 'element_PM_' num2str(ele.id) '.mat'],'ele_PM')
     end
     disp([num2str(i), ' out of ', num2str(length(element.id)) ' elements complete' ])
     

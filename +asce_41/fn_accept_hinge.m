@@ -1,4 +1,4 @@
-function [ hinge ] = fn_accept_hinge( element, ele_prop_table, hinge )
+function [ hinge ] = fn_accept_hinge( element, ele_prop_table, hinge, read_dir )
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -6,19 +6,20 @@ function [ hinge ] = fn_accept_hinge( element, ele_prop_table, hinge )
 import asce_41.fn_define_backbone_rot
 
 %% Begin Method
-for i = 1:length(hinge.id)
+for i = 1:height(hinge)
     ele_side = num2str(hinge.ele_side(i));
     ele = element(element.id == hinge.element_id(i),:);
     ele_prop = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
+    load([read_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'])
     if strcmp(hinge.direction{i},'oop')
         [ ~, ~, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', ele.(['Mn_oop_' ele_side]), ele.(['Mn_oop_' ele_side]), ele.(['Mp_oop_' ele_side]), ele.(['Mp_oop_' ele_side]), ele.length, ele_prop.e, ele_prop.iz, ele.(['a_hinge_oop_' ele_side]), ele.(['b_hinge_oop_' ele_side]), ele.(['c_hinge_oop_' ele_side]), 10, 0.1, ele.(['critical_mode_oop_' ele_side]) );
     elseif strcmp(hinge.direction{i},'primary')
         [ ~, ~, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', ele.(['Mn_pos_' ele_side]), ele.(['Mn_neg_' ele_side]), ele.(['Mp_pos_' ele_side]), ele.(['Mp_neg_' ele_side]), ele.length, ele_prop.e, ele_prop.iz, ele.(['a_hinge_' ele_side]), ele.(['b_hinge_' ele_side]), ele.(['c_hinge_' ele_side]), 10, 0.1, ele.(['critical_mode_' ele_side]) );
     end
-    if abs(min(hinge.deformation_TH{i})) > abs(max(hinge.deformation_TH{i}))
-        max_hinge_deform = max(abs(hinge.deformation_TH{i})) - rot_vec_neg(1); % Negative bending
+    if abs(min(hin_TH.deformation_TH)) > abs(max(hin_TH.deformation_TH))
+        max_hinge_deform = max(abs(hin_TH.deformation_TH)) - rot_vec_neg(1); % Negative bending
     else
-        max_hinge_deform = max(abs(hinge.deformation_TH{i})) - rot_vec_pos(1); % Positive Bending
+        max_hinge_deform = max(abs(hin_TH.deformation_TH)) - rot_vec_pos(1); % Positive Bending
     end
     if  max_hinge_deform <= ele.(['io_' ele_side])
         hinge.accept(i) = 1; % Passes IO

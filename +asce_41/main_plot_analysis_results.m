@@ -25,7 +25,6 @@ fn_make_directory( plot_dir )
 
 % Load Analysis Data
 load([read_dir filesep 'element_analysis.mat'])
-load([read_dir filesep 'element_TH.mat']);
 load([read_dir filesep 'story_analysis.mat'])
 load([read_dir filesep 'hinge_analysis.mat'])
 load([read_dir filesep 'model_analysis.mat'])
@@ -35,15 +34,11 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     load([read_dir_opensees filesep 'gm_data.mat'])
 end
 
-if analysis.asce_41_post_process
-    load([read_dir filesep 'element_PM.mat']) % Maybe move this to where its needed
-end
-
 if analysis.plot_recordings
     load([pwd filesep 'ground_motions' filesep 'ICSB_recordings' filesep 'recorded_edp_profile.mat']);
 end
 
-if sum(strcmp(analysis.case_list,'backbones')) > 0
+if exist([analysis.out_dir filesep 'backbones'],'dir')
     backbones = load([analysis.out_dir filesep 'backbones' filesep 'element_analysis.mat']);
 end
 
@@ -53,10 +48,10 @@ if sum(analysis.type_list == 3) > 0 % Cyclic was run as part of this proceedure
         % Load Pushover Results
         cyclic_read_dir = [analysis.out_dir filesep 'cyclic'];
         cyclic_analysis = load([cyclic_read_dir filesep 'analysis_options.mat']);
-        if cyclic_analysis.analysis.nonlinear ~= 0 % Is the pushover nonlinear?
+        if cyclic_analysis.analysis.nonlinear ~= 0 && exist('backbones','var') % Is the pushover nonlinear?
             % Plot Hinge Response
             cyclic_hinge = load([cyclic_read_dir filesep 'hinge_analysis.mat']);
-            fn_plot_hinge_response( cyclic_read_dir, cyclic_hinge.hinge, backbones.element, ele_prop_table, node, analysis.hinge_stories_2_plot )
+            fn_plot_hinge_response( cyclic_read_dir, cyclic_read_dir, cyclic_hinge.hinge, backbones.element, ele_prop_table, node, analysis.hinge_stories_2_plot )
         end
     end
 end
@@ -72,16 +67,13 @@ if sum(analysis.type_list == 2) > 0 % Pushover was run as part of this proceedur
     end
     
     if analysis.element_plots
-        % Load Pushover Results
-        pushover_TH = load([pushover_read_dir filesep 'element_TH.mat']);
-
         % Plot PM Diagrams for each element
-        fn_plot_PM_response( pushover_read_dir, element, pushover_TH.element_TH, element_PM, analysis.hinge_stories_2_plot )
+        fn_plot_PM_response( pushover_read_dir, pushover_read_dir, element, analysis.hinge_stories_2_plot )
 
         % Plot Hinge Response
-        if pushover_analysis.analysis.nonlinear ~= 0 % Is the pushover nonlinear?
+        if pushover_analysis.analysis.nonlinear ~= 0 && exist('backbones','var') % Is the pushover nonlinear?
             pushover_hinge = load([pushover_read_dir filesep 'hinge_analysis.mat']);
-            fn_plot_hinge_response( pushover_read_dir, pushover_hinge.hinge, backbones.element, ele_prop_table, node, analysis.hinge_stories_2_plot )
+            fn_plot_hinge_response( pushover_read_dir, pushover_read_dir, pushover_hinge.hinge, backbones.element, ele_prop_table, node, analysis.hinge_stories_2_plot )
         end
     end
 end
@@ -110,9 +102,9 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
             end
         elseif strcmp(analysis.proceedure,'NDP') % Nonlinear Procedures
             %% Plot Hinge accpetance
-            fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Interior Frame', plot_dir, 'int_frame' )
-            fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Exterior Frame', plot_dir, 'ext_frame' )
-            fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Wall Frame', plot_dir, 'east_wall' )
+%             fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Interior Frame', plot_dir, 'int_frame' )
+%             fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Exterior Frame', plot_dir, 'ext_frame' )
+%             fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Wall Frame', plot_dir, 'east_wall' )
         end
         
         %% ASCE 41 Target Displacement
@@ -140,9 +132,9 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         end
 
         % Plot specific TH comparisons
-        fn_plot_main_response_history( plot_dir, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x', record_edp )
+        fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x', record_edp )
         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-            fn_plot_main_response_history( plot_dir, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z', record_edp )
+            fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z', record_edp )
         end
     else
         % Plot EDP Profiles
@@ -152,9 +144,9 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         end
 
         % Plot specific TH comparisons
-        fn_plot_main_response_history( plot_dir, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x' )
+        fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x' )
         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-            fn_plot_main_response_history( plot_dir, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z' )
+            fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z' )
         end
 
     end
@@ -162,11 +154,13 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     %% Plots Element results for Dynamic analysis
     if analysis.element_plots
         % Plot PM Diagrams for each element
-        fn_plot_PM_response( plot_dir, element, element_TH, element_PM, analysis.hinge_stories_2_plot )
+        fn_plot_PM_response( plot_dir, read_dir, element, analysis.hinge_stories_2_plot )
 
         % Plot Hinge Response
-        load([read_dir filesep 'hinge_analysis.mat'])
-        fn_plot_hinge_response( plot_dir, hinge, backbones.element, ele_prop_table, node, analysis.hinge_stories_2_plot, eq_analysis_timespace )
+        if exist('backbones','var')
+            load([read_dir filesep 'hinge_analysis.mat'])
+            fn_plot_hinge_response( plot_dir, read_dir_opensees, hinge, backbones.element, ele_prop_table, node, analysis.hinge_stories_2_plot, eq_analysis_timespace )
+        end
     end
     
     %% Compile outputs table and write csv file

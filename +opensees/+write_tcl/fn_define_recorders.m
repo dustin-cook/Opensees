@@ -1,4 +1,4 @@
-function [ hinge ] = fn_define_recorders( write_dir, dimension, node, element, joint, hinge, analysis )
+function [ ] = fn_define_recorders( write_dir, dimension, node, element, joint, hinge, analysis, hinge_grouping )
 %UNTITLED7 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -67,14 +67,8 @@ if analysis.type == 1
     
     % Hinges
     if analysis.nonlinear ~= 0 && ~isempty(hinge)
-        hinge.group = zeros(height(hinge),1);
-        hinge_grouping = 1:analysis.hinge_group_length:(height(hinge)+1);
-        if hinge_grouping(end) < (height(hinge)+1)
-            hinge_grouping = [hinge_grouping, height(hinge)+1];
-        end
         for i = 1:(length(hinge_grouping)-1)
             group_range = hinge.id >= hinge_grouping(i) & hinge.id < hinge_grouping(i+1);
-            hinge.group(group_range) = i;
             hinge_ids = element.id(end) + hinge.id(group_range);
             fprintf(fileID,'recorder Element %s %s/hinge_force_group_%s.%s -time -ele %s -dof 1 3 4 6 force \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));
             fprintf(fileID,'recorder Element %s %s/hinge_deformation_group_%s.%s -time -ele %s deformation \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));
@@ -118,14 +112,8 @@ elseif analysis.type == 2 || analysis.type == 3
     
     % Hinges
     if analysis.nonlinear ~= 0 && ~isempty(hinge)
-        hinge.group = zeros(height(hinge),1);
-        hinge_grouping = 1:analysis.hinge_group_length:(height(hinge)+1);
-        if hinge_grouping(end) < (height(hinge)+1)
-            hinge_grouping = [hinge_grouping, height(hinge)+1];
-        end
         for i = 1:(length(hinge_grouping)-1)
             group_range = hinge.id >= hinge_grouping(i) & hinge.id < hinge_grouping(i+1);
-            hinge.group(group_range) = i;
             hinge_ids = element.id(end) + hinge.id(group_range);
             if strcmp(analysis.pushover_direction,'x')
                 fprintf(fileID,'recorder Element %s %s/hinge_force_x_group_%s.%s -time -ele %s -dof 1 6 force \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));

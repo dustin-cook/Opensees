@@ -12,7 +12,7 @@ function [ analysis ] = fn_analysis_options( analysis )
 
 %% Basic Defaults
 % Run Options
-analysis.run_opensees = 1; % 1 = Run opensees, 0 = use existing results
+analysis.run_opensees = 0; % 1 = Run opensees, 0 = use existing results
 analysis.asce_41_post_process = 1; % 1 = run asce 41 post process logic
 analysis.opensees_SP = 1; % 0 = Standard OpenSees; 1 = OpenseesSP
 analysis.skip_2_outputs = 0; % Skip all the way to the plotters
@@ -79,15 +79,26 @@ elseif strcmp(analysis.proceedure,'NDP')
 %     analysis.damp_ratio_list = [0.03, 0.03, 0.03, 0.03, 0.03]; % Analysis damping ratio
     
     % Shorter for speed
-    analysis.type_list = [2, 2, 1]; % Linear Pushover then NL Pushover x 2 then 1 NL dynamic
-    analysis.nonlinear_list = [1, 1, 1];
-    analysis.dead_load_list = [1, 1, 1];
-    analysis.live_load_list = [1, 1, 1];
-    analysis.case_list = {'NA', 'backbones', 'NA'};
-    analysis.pushover_drift_list_x = [0.006, 0.006, NaN]; % Drift limit where the pushover will go till
-    analysis.pushover_drift_list_z = [0.001 0.0015, NaN];
-    analysis.accidental_torsion_list = [0, 0, 0];
-    analysis.damp_ratio_list = [0.03, 0.03, 0.03]; % Analysis damping ratio
+%     analysis.type_list = [2, 2, 1]; % Linear Pushover then NL Pushover x 2 then 1 NL dynamic
+%     analysis.nonlinear_list = [1, 1, 1];
+%     analysis.dead_load_list = [1, 1, 1];
+%     analysis.live_load_list = [1, 1, 1];
+%     analysis.case_list = {'NA', 'backbones', 'NA'};
+%     analysis.pushover_drift_list_x = [0.006, 0.006, NaN]; % Drift limit where the pushover will go till
+%     analysis.pushover_drift_list_z = [0.001 0.0015, NaN];
+%     analysis.accidental_torsion_list = [0, 0, 0];
+%     analysis.damp_ratio_list = [0.03, 0.03, 0.03]; % Analysis damping ratio
+    
+    % Just to run summit results
+    analysis.type_list = [1]; % Linear Pushover then NL Pushover x 2 then 1 NL dynamic
+    analysis.nonlinear_list = [1];
+    analysis.dead_load_list = [1];
+    analysis.live_load_list = [1];
+    analysis.case_list = {'NA'};
+    analysis.pushover_drift_list_x = [NaN]; % Drift limit where the pushover will go till
+    analysis.pushover_drift_list_z = [NaN];
+    analysis.accidental_torsion_list = [0];
+    analysis.damp_ratio_list = [0.03]; % Analysis damping ratio
     
 elseif strcmp(analysis.proceedure,'LDP') % Linear Test
     analysis.type_list = [1, 1]; % 1 = dynamic, 2 = pushover % 3 = static cyclic

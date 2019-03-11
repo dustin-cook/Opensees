@@ -37,11 +37,38 @@ for i = 1:num_OS_runs
     % Define inputs for this run
     analysis.pushover_direction = pushover_directions{i};
 
-    % Write TCL files
-    [ node, ground_motion, hinge ] = main_write_tcl( model.dimension, write_dir_opensees, node, element, story, joint, hinge, analysis, read_dir_analysis );
-
-     % Run Opensees
+    % Load ground motion data
+    gm_seq_table = readtable(['inputs' filesep 'ground_motion_sequence.csv'],'ReadVariableNames',true);
+    ground_motion_seq = gm_seq_table(gm_seq_table.id == analysis.gm_seq_id,:);
+    ground_motion_table = readtable(['inputs' filesep 'ground_motion.csv'],'ReadVariableNames',true);
+    if ground_motion_seq.eq_id_x ~= 0
+        ground_motion.x = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_x,:);
+    end
+    if ground_motion_seq.eq_id_z ~= 0
+        ground_motion.z = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_z,:);
+    end
+    if ground_motion_seq.eq_id_y ~= 0
+        ground_motion.y = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_y,:);
+    end
+    
+    % Define Hinge Group
+    if analysis.nonlinear ~= 0 && ~isempty(hinge)
+        hinge.group = zeros(height(hinge),1);
+        hinge_grouping = 1:analysis.hinge_group_length:(height(hinge)+1);
+        if hinge_grouping(end) < (height(hinge)+1)
+            hinge_grouping = [hinge_grouping, height(hinge)+1];
+        end
+        for hg = 1:(length(hinge_grouping)-1)
+            group_range = hinge.id >= hinge_grouping(hg) & hinge.id < hinge_grouping(hg+1);
+            hinge.group(group_range) = hg;
+        end
+    end
+    
     if analysis.run_opensees
+        % Write TCL files
+        main_write_tcl( model.dimension, write_dir_opensees, node, element, story, joint, hinge, analysis, read_dir_analysis, ground_motion, hinge_grouping );
+
+        % Run Opensees
         main_run_opensees( write_dir_opensees, analysis )
     end
 end

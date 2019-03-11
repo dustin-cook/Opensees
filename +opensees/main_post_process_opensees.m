@@ -125,9 +125,12 @@ for i = 1:length(element.id)
 end
   
 %% Save Element Time History
-save([opensees_dir filesep 'element_TH.mat'],'element_TH')
-if analysis.type == 2 % Pushover Analysis
-    save([pushover_dir filesep 'element_TH.mat'],'element_TH')
+for i = 1:height(element)
+    ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
+    save([opensees_dir filesep 'element_TH_' num2str(element.id(i)) '.mat'],'ele_TH')
+    if analysis.type == 2 % Pushover Analysis
+        save([pushover_dir filesep 'element_TH_' num2str(element.id(i)) '.mat'],'ele_TH')
+    end
 end
 
 % clear raw opesees data
@@ -140,26 +143,26 @@ clear element_TH
 if analysis.nonlinear ~= 0
     if analysis.type == 1 % dynamic analysis
         for i = 1:height(hinge)
-            hinge.deformation_TH{i} = hinge_deformation_TH.(['hinge_' num2str(hinge.id(i))])';
+            hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH.(['hinge_' num2str(hinge.id(i))])';
             if strcmp(hinge.type{i},'rotational')
                 if strcmp(element.direction(element.id == hinge.element_id(i)),'x') && strcmp(hinge.direction(i),'oop')
-                    hinge.force_TH{i} = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(:,3)';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).force_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(:,3)';
                 elseif strcmp(element.direction(element.id == hinge.element_id(i)),'x')
-                    hinge.force_TH{i} = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(:,4)'; % I think the forces here are coming in backward, but should triple check
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).force_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(:,4)'; % I think the forces here are coming in backward, but should triple check
                 elseif strcmp(element.direction(element.id == hinge.element_id(i)),'z') && strcmp(hinge.direction(i),'oop')
-                    hinge.force_TH{i} = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(:,4)';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).force_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(:,4)';
                 elseif strcmp(element.direction(element.id == hinge.element_id(i)),'z')
-                    hinge.force_TH{i} = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(:,3)';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).force_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(:,3)';
                 end
             elseif strcmp(hinge.type{i},'shear')
                 if strcmp(element.direction(element.id == hinge.element_id(i)),'x') && strcmp(hinge.direction(i),'oop')
-                    hinge.force_TH{i} = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(:,2)';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).force_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(:,2)';
                 elseif strcmp(element.direction(element.id == hinge.element_id(i)),'x')
-                    hinge.force_TH{i} = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(:,1)';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).force_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(:,1)';
                 elseif strcmp(element.direction(element.id == hinge.element_id(i)),'z') && strcmp(hinge.direction(i),'oop')
-                    hinge.force_TH{i} = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(:,1)';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).force_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(:,1)';
                 elseif strcmp(element.direction(element.id == hinge.element_id(i)),'z')
-                    hinge.force_TH{i} = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(:,2)';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).force_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(:,2)';
                 end
             end
         end
@@ -170,23 +173,23 @@ if analysis.nonlinear ~= 0
             element_direction = element.direction(element.id == hinge.element_id(i));
             if strcmp(element_direction,'x')
                 if strcmp(hinge.direction(i),'oop')
-                    hinge.deformation_TH{i} = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])';
-                    hinge.force_TH{i} = -hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(:,2)'; % I think the forces here are coming in backward, but should triple check
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).force_TH = -hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(:,2)'; % I think the forces here are coming in backward, but should triple check
                 else
-                    hinge.deformation_TH{i} = hinge_deformation_TH_x.(['hinge_' num2str(hinge.id(i))])';
-                    hinge.force_TH{i} = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(:,2)'; % I think the forces here are coming in backward, but should triple check
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_x.(['hinge_' num2str(hinge.id(i))])';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).force_TH = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(:,2)'; % I think the forces here are coming in backward, but should triple check
                 end
             else
                 if strcmp(hinge.direction(i),'oop')
-                    hinge.deformation_TH{i} = hinge_deformation_TH_x.(['hinge_' num2str(hinge.id(i))])';
-                    hinge.force_TH{i} = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(:,2)'; % I think the forces here are coming in backward, but should triple check
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_x.(['hinge_' num2str(hinge.id(i))])';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).force_TH = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(:,2)'; % I think the forces here are coming in backward, but should triple check
                 else
-                    hinge.deformation_TH{i} = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])';
-                    hinge.force_TH{i} = -hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(:,1)'; % I think the forces here are coming in backward, but should triple check
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).force_TH = -hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(:,1)'; % I think the forces here are coming in backward, but should triple check
                 end
             end
         end
-    end
+    end   
 end
 
 % clear raw opesees data
@@ -196,6 +199,7 @@ clear hinge_deformation_TH_z
 clear hinge_force_TH
 clear hinge_force_TH_z
 clear hinge_force_TH_x
+
 
 %% Calculate Nodal Displacments, Accels, Reactions and Eigen values and vectors
 if analysis.type == 1 % dynamic analysis
@@ -224,18 +228,18 @@ for i = 1:length(dirs_ran)
                    node_disp_raw = dlmread([opensees_dir filesep 'nodal_disp_' num2str(node.id(n)) '.txt'],' ')';
                end
                if strcmp(dirs_ran{i},'x')
-                   node.(['disp_' dirs_ran{i} '_TH']){n} = node_disp_raw(2,:); 
+                   node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2,:); 
                    node.(['max_disp_' dirs_ran{i}])(n) = max(abs(node_disp_raw(2,:)));
                    end_of_motion = 5/ground_motion.(dirs_ran{i}).eq_dt;
                    node.(['residual_disp_' dirs_ran{i}])(n) = abs(mean(node_disp_raw(2,(end-end_of_motion):end)));
                else
-                   node.(['disp_' dirs_ran{i} '_TH']){n} = node_disp_raw(3,:);  
+                   node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(3,:);  
                    node.(['max_disp_' dirs_ran{i}])(n) = max(abs(node_disp_raw(3,:)));
                    end_of_motion = 5/ground_motion.(dirs_ran{i}).eq_dt;
                    node.(['residual_disp_' dirs_ran{i}])(n) = abs(mean(node_disp_raw(3,(end-end_of_motion):end)));
                end   
            else
-               node.(['disp_' dirs_ran{i} '_TH']){n} = [];
+               node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' dirs_ran{i} '_TH']) = [];
                node.(['max_disp_' dirs_ran{i}])(n) = NaN;
                node.(['residual_disp_' dirs_ran{i}])(n) = NaN;
            end
@@ -260,19 +264,19 @@ for i = 1:length(dirs_ran)
               end
            
                if strcmp(dirs_ran{i},'x')
-                    node.(['accel_' dirs_ran{i} '_rel_TH']){n} = node_accel_raw(2,:)/386; % Convert to G  
-                    node.(['accel_' dirs_ran{i} '_abs_TH']){n} = node_accel_raw(2,:)/386 + eq_analysis.(dirs_ran{i});
+                    node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_rel_TH']) = node_accel_raw(2,:)/386; % Convert to G  
+                    node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_abs_TH']) = node_accel_raw(2,:)/386 + eq_analysis.(dirs_ran{i});
                     node.(['max_accel_' dirs_ran{i} '_rel'])(n) = max(abs(node_accel_raw(2,:)/386));
                     node.(['max_accel_' dirs_ran{i} '_abs'])(n) = max(abs(node_accel_raw(2,:)/386 + eq_analysis.(dirs_ran{i})));
                else
-                    node.(['accel_' dirs_ran{i} '_rel_TH']){n} = node_accel_raw(3,:)/386; % Convert to G
-                    node.(['accel_' dirs_ran{i} '_abs_TH']){n} = node_accel_raw(3,:)/386 + eq_analysis.(dirs_ran{i});
+                    node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_rel_TH']) = node_accel_raw(3,:)/386; % Convert to G
+                    node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_abs_TH']) = node_accel_raw(3,:)/386 + eq_analysis.(dirs_ran{i});
                     node.(['max_accel_' dirs_ran{i} '_rel'])(n) = max(abs(node_accel_raw(3,:)/386));
                     node.(['max_accel_' dirs_ran{i} '_abs'])(n) = max(abs(node_accel_raw(3,:)/386 + eq_analysis.(dirs_ran{i})));
                end 
            else
-               node.(['accel_' dirs_ran{i} '_rel_TH']){n} = [];
-               node.(['accel_' dirs_ran{i} '_abs_TH']){n} = [];
+               node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_rel_TH']) = [];
+               node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_abs_TH']) = [];
                node.(['max_accel_' dirs_ran{i} '_rel'])(n) = NaN;
                node.(['max_accel_' dirs_ran{i} '_abs'])(n) = NaN;
            end
@@ -286,11 +290,11 @@ for i = 1:length(dirs_ran)
                else
                    node_disp_raw = dlmread([opensees_dir filesep 'nodal_disp_' dirs_ran{i} '_' num2str(node.id(n)) '.txt'],' ')';
                end
-                   node.(['disp_' dirs_ran{i} '_TH']){n} = node_disp_raw(2,:); 
+                   node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2,:); 
                    node.(['max_disp_' dirs_ran{i}])(n) = max(abs(node_disp_raw(2,:)));
                    node.(['residual_disp_' dirs_ran{i}])(n) = NaN;
            else
-               node.(['disp_' dirs_ran{i} '_TH']){n} = [];
+               node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' dirs_ran{i} '_TH']) = [];
                node.(['max_disp_' dirs_ran{i}])(n) = NaN;
                node.(['residual_disp_' dirs_ran{i}])(n) = NaN;
            end       
@@ -308,7 +312,7 @@ for i = 1:length(dirs_ran)
     if analysis.type == 1 % Dynamic Analysis
         [ story.(['max_accel_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' dirs_ran{i} '_abs']), story, node, 0 );
     end
-    [ story.(['max_drift_' dirs_ran{i}]) ] = fn_drift_profile( node.(['disp_' dirs_ran{i} '_TH']), story, node );
+    [ story.(['max_drift_' dirs_ran{i}]) ] = fn_drift_profile( node_TH, story, node, dirs_ran{i} );
     
     % Load Mode shape data and period
     if analysis.run_eigen
@@ -353,8 +357,10 @@ for i = 1:length(dirs_ran)
             ele_hinges = hinge(hinge.element_id == element.id(e) & strcmp(hinge.direction,'primary'),:);
             if ~isempty(ele_hinges)
                 if strcmp(ele_hinges.type{1},'rotational') && height(ele_hinges) == 2
-                    rot_1_TH = ele_hinges.deformation_TH{ele_hinges.node_1 == element.node_1(e) | ele_hinges.node_2 == element.node_1(e)};
-                    rot_2_TH = ele_hinges.deformation_TH{ele_hinges.node_1 == element.node_2(e) | ele_hinges.node_2 == element.node_2(e)};
+                    ele_hinge_TH_1 = hinge_TH.(['hinge_' num2str(ele_hinges.id(1))]);
+                    ele_hinge_TH_2 = hinge_TH.(['hinge_' num2str(ele_hinges.id(2))]);
+                    rot_1_TH = ele_hinge_TH_1.deformation_TH;
+                    rot_2_TH = ele_hinge_TH_2.deformation_TH;
                     element.rot_1(e,1) = max(abs(rot_1_TH));
                     if max(rot_1_TH) > abs(min(rot_1_TH))
                         element.rot_1_dir{e,1} = 'pos';
@@ -368,7 +374,8 @@ for i = 1:length(dirs_ran)
                         element.rot_2_dir{e,1} = 'neg';
                     end
                 elseif strcmp(ele_hinges.type{1},'shear') && height(ele_hinges) == 1
-                    element.shear_deform(e,1) = max(ele_hinges.deformation_TH{1});
+                    ele_hinge_TH = hinge_TH.(['hinge_' num2str(ele_hinges.id(1))]);
+                    element.shear_deform(e,1) = max(ele_hinge_TH.deformation_TH);
                 end
             end
         end
@@ -391,6 +398,23 @@ elseif analysis.type == 2 % Pushover Analysis
 elseif analysis.type == 3 % Cyclic Analysis
     save([cyclic_dir filesep 'hinge_analysis.mat'],'hinge')
     save([cyclic_dir filesep 'analysis_options.mat'],'analysis')
+end
+
+% Save Time History Data
+for i = 1:height(node)
+    nd_TH = node_TH.(['node_' num2str(node.id(i)) '_TH']);
+    save([opensees_dir filesep 'node_TH_' num2str(node.id(i)) '.mat'],'nd_TH')
+    if analysis.type == 2 % Pushover Analysis
+        save([pushover_dir filesep 'node_TH_' num2str(node.id(i)) '.mat'],'nd_TH')
+    end
+end
+
+for i = 1:height(hinge)
+    hin_TH = hinge_TH.(['hinge_' num2str(hinge.id(i))]);
+    save([opensees_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'hin_TH')
+    if analysis.type == 2 % Pushover Analysis
+        save([pushover_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'hin_TH')
+    end
 end
 
 end

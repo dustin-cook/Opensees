@@ -1,4 +1,4 @@
-function [ model, element, element_TH, element_PM, joint ] = fn_linear_capacity_and_c_factors( model, story, ele_prop_table, element, element_TH, analysis, joint_table )
+function [ model, element, joint ] = fn_linear_capacity_and_c_factors( model, story, ele_prop_table, element, analysis, joint_table, read_dir, write_dir )
 % Description: Main script that post process an ASCE 41 analysis
 
 % Created By: Dustin Cook
@@ -17,14 +17,14 @@ import asce_41.main_element_capacity
 
 %% Calculation of C factors
 % Calculate Element Capacities
-[ element, element_TH, ~, ~ ] = main_element_capacity( story, ele_prop_table, element, element_TH, analysis, joint_table );
+[ element, ~ ] = main_element_capacity( story, ele_prop_table, element, analysis, joint_table, read_dir, write_dir );
 
 % Default C1 and C2 Factors to 1.0
 element.c1 = ones(height(element),1);
 element.c2 = ones(height(element),1);
 
 % Calculate the DCR
-[ element, model.DCR_raw_max ] = fn_calc_dcr( element, element_TH, 'NA' );
+[ element, model.DCR_raw_max ] = fn_calc_dcr( element, 'NA', read_dir );
 
 % Caclulate C1 and C2 Factors (Uses equation C7-3 for U-strength, and therefore doesn't need to iterate. However, I think it only applies to LSP)
 for i = 1:height(element)
@@ -34,7 +34,7 @@ end
 
 %% Amplify Final Element Forces and Displacements
 % Calculate Element Capacities again
-[ element, element_TH, element_PM, joint ] = main_element_capacity( story, ele_prop_table, element, element_TH, analysis, joint_table );
+[ element, joint ] = main_element_capacity( story, ele_prop_table, element, analysis, joint_table, read_dir, write_dir );
 
 % Forces
 element.Pmax = element.Pmax.*element.c1.*element.c2;

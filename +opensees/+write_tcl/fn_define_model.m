@@ -1,4 +1,4 @@
-function [ node, joint_ele_ids ] = fn_define_model( write_dir, node, element, joint, hinge, analysis, dimension, story, read_dir_analysis )
+function [ joint_ele_ids ] = fn_define_model( write_dir, node, element, joint, hinge, analysis, dimension, story, read_dir_analysis )
 %UNTITLED6 Summary of this function goes here
 
 %% Import Tools
@@ -379,8 +379,7 @@ if height(hinge) > 0
             element_analysis_temp = load([read_dir_analysis filesep 'element_analysis.mat']);
             element_analysis = element_analysis_temp.element;
         else
-            element_TH = [];
-            [ element_analysis, ~, ~, joint ] = main_element_capacity( story, ele_props_table, element, element_TH, analysis, joint  );
+            [ element_analysis, joint ] = main_element_capacity( story, ele_props_table, element, analysis, joint, read_dir_analysis );
             [ element_analysis, ~ ] = main_hinge_properties( ele_props_table, element_analysis, joint );
         end
     end

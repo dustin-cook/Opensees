@@ -1,4 +1,4 @@
-function [ element, DCR_raw_max ] = fn_calc_dcr( element, element_TH, perform_level )
+function [ element, DCR_raw_max ] = fn_calc_dcr( element, perform_level, read_dir )
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -13,8 +13,8 @@ DCR_V_raw_TH = ones(length(element.id),length(element_TH.ele_1.V_TH_1));
 DCR_M_raw_TH_1 = ones(length(element.id),length(element_TH.ele_1.M_TH_1));
 DCR_M_raw_TH_2 = ones(length(element.id),length(element_TH.ele_1.M_TH_2));
 
-for i = 1:length(element.id)
-    ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
+for i = 1:height(element)
+    load([read_dir filesep 'element_TH_' num2str(element.id(i)) '.mat'])
 
     %% Calculate raw DCRs (multipled by C factors)
     DCR_P_raw_TH(i,:) = element.c1(i) * element.c2(i) * ele_TH.P_TH_1 ./ ele_TH.Pn;

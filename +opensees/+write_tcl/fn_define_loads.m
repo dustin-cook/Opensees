@@ -1,4 +1,4 @@
-function [ ground_motion ] = fn_define_loads( write_dir, analysis, node, dimension, story, element_ids, joint_ele_ids )
+function [ ] = fn_define_loads( write_dir, analysis, node, dimension, story, element_ids, joint_ele_ids, ground_motion )
 %UNTITLED8 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -10,11 +10,6 @@ file_name = [write_dir filesep 'loads.tcl'];
 fileID = fopen(file_name,'w');
 
 fprintf(fileID,'puts "Defining Loads ..." \n');
-
-%% Load ground motion data
-gm_seq_table = readtable(['inputs' filesep 'ground_motion_sequence.csv'],'ReadVariableNames',true);
-ground_motion_seq = gm_seq_table(gm_seq_table.id == analysis.gm_seq_id,:);
-ground_motion_table = readtable(['inputs' filesep 'ground_motion.csv'],'ReadVariableNames',true);
 
 %% Define Gravity Loads (node id, axial, shear, moment)
 fprintf(fileID,'pattern Plain 1 Linear {  \n');
@@ -87,32 +82,28 @@ if analysis.type == 2 || analysis.type == 3
 end
 
 %% Dynamic Analysis
-ground_motion = [];
 if analysis.type == 1
     scale_factor = 386*analysis.ground_motion_scale_factor; % g's to in per s times scale factor
     % Define Seismic Excitation Load
     % timeSeries Path $tag -dt $dt -filePath $filePath <-factor $cFactor> <-useLast> <-prependZero> <-startTime $tStart>
     % pattern UniformExcitation $patternTag $dir -accel $tsTag <-vel0 $vel0> <-fact $cFactor>
-    if ground_motion_seq.eq_id_x ~= 0
-        ground_motion.x = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_x,:);
+    if isfield(ground_motion,'x')
         fprintf(fileID,'set dt %f \n',ground_motion.x.eq_dt);
         fprintf(fileID,'puts "EQ X dt = $dt" \n');
         fprintf(fileID,'timeSeries Path 1 -dt $dt -filePath %s/%s -factor %f \n', ground_motion.x.eq_dir{1}, ground_motion.x.eq_name{1}, scale_factor);
-        fprintf(fileID,'pattern UniformExcitation 3 1 -accel 1 -fact %f \n',ground_motion_seq.x_ratio); 
+        fprintf(fileID,'pattern UniformExcitation 3 1 -accel 1 -fact 1 \n'); 
     end
-    if ground_motion_seq.eq_id_z ~= 0
-        ground_motion.z = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_z,:);
+    if isfield(ground_motion,'z')
         fprintf(fileID,'set dt %f \n',ground_motion.z.eq_dt);
         fprintf(fileID,'puts "EQ Z dt = $dt" \n');
         fprintf(fileID,'timeSeries Path 2 -dt $dt -filePath %s/%s -factor %f \n', ground_motion.z.eq_dir{1}, ground_motion.z.eq_name{1}, scale_factor);
-        fprintf(fileID,'pattern UniformExcitation 4 3 -accel 2 -fact %f \n',ground_motion_seq.z_ratio); 
+        fprintf(fileID,'pattern UniformExcitation 4 3 -accel 2 -fact 1 \n'); 
     end
-    if ground_motion_seq.eq_id_y ~= 0
-        ground_motion.y = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_y,:);
-        fprintf(fileID,'set dt %f \n',ground_motion.z.eq_dt);
+    if isfield(ground_motion,'y')
+        fprintf(fileID,'set dt %f \n',ground_motion.y.eq_dt);
         fprintf(fileID,'puts "EQ Y dt = $dt" \n');
         fprintf(fileID,'timeSeries Path 3 -dt $dt -filePath %s/%s -factor %f \n', ground_motion.y.eq_dir{1}, ground_motion.y.eq_name{1}, scale_factor);
-        fprintf(fileID,'pattern UniformExcitation 5 2 -accel 3 -fact %f \n',ground_motion_seq.y_ratio); 
+        fprintf(fileID,'pattern UniformExcitation 5 2 -accel 3 -fact 1 \n'); 
     end
 end
 
