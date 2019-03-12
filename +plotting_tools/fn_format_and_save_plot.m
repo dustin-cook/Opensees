@@ -1,4 +1,4 @@
-function [ ] = fn_format_and_save_plot( plot_dir, plot_name, plot_ops )
+function [ ] = fn_format_and_save_plot( plot_dir, plot_name, plot_ops, save_and_close )
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -26,12 +26,16 @@ elseif plot_ops == 5 % Default settings
     box on
 end
 
-% Save and close plot
+% Set Font
 set(gca,'FontSize',15)
-savefig([plot_dir, filesep, plot_name '.fig'])
-saveas(gcf, [plot_dir, filesep, plot_name '.png'])
 hold off
-close
+
+% Save and Close
+if ~exist('save_and_close','var') || save_and_close == 1
+    savefig([plot_dir, filesep, plot_name '.fig'])
+    saveas(gcf, [plot_dir, filesep, plot_name '.png'])
+    close
+end
 
 end
 

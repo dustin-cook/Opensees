@@ -102,9 +102,18 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
             end
         elseif strcmp(analysis.proceedure,'NDP') % Nonlinear Procedures
             %% Plot Hinge accpetance
-%             fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Interior Frame', plot_dir, 'int_frame' )
-%             fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Exterior Frame', plot_dir, 'ext_frame' )
-%             fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Wall Frame', plot_dir, 'east_wall' )
+            % Elevation
+            fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Interior Frame', plot_dir, 'int_frame' )
+            fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Exterior Frame', plot_dir, 'ext_frame' )
+            fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Wall Frame', plot_dir, 'east_wall' )
+
+            % Plan View
+            fn_plot_plan_view( hinge, element, node, 'Story 1 Columns', plot_dir )
+            
+            %% Plot Element Scatter
+            fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
+            fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
+            fn_plot_element_scatter( element, 'wall', story, hinge, plot_dir )
         end
         
         %% ASCE 41 Target Displacement

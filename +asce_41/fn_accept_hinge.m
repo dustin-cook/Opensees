@@ -13,23 +13,42 @@ for i = 1:height(hinge)
     load([read_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'])
     if strcmp(hinge.direction{i},'oop')
         [ ~, ~, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', ele.(['Mn_oop_' ele_side]), ele.(['Mn_oop_' ele_side]), ele.(['Mp_oop_' ele_side]), ele.(['Mp_oop_' ele_side]), ele.length, ele_prop.e, ele_prop.iz, ele.(['a_hinge_oop_' ele_side]), ele.(['b_hinge_oop_' ele_side]), ele.(['c_hinge_oop_' ele_side]), 10, 0.1, ele.(['critical_mode_oop_' ele_side]) );
+        [ ~, ~, ele_rot_vec_pos, ele_rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.(['Mn_oop_' ele_side]), ele.(['Mn_oop_' ele_side]), ele.(['Mp_oop_' ele_side]), ele.(['Mp_oop_' ele_side]), ele.length, ele_prop.e, ele_prop.iz, ele.(['a_hinge_oop_' ele_side]), ele.(['b_hinge_oop_' ele_side]), ele.(['c_hinge_oop_' ele_side]), 10, 0.1, ele.(['critical_mode_oop_' ele_side]) );
     elseif strcmp(hinge.direction{i},'primary')
         [ ~, ~, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', ele.(['Mn_pos_' ele_side]), ele.(['Mn_neg_' ele_side]), ele.(['Mp_pos_' ele_side]), ele.(['Mp_neg_' ele_side]), ele.length, ele_prop.e, ele_prop.iz, ele.(['a_hinge_' ele_side]), ele.(['b_hinge_' ele_side]), ele.(['c_hinge_' ele_side]), 10, 0.1, ele.(['critical_mode_' ele_side]) );
+        [ ~, ~, ele_rot_vec_pos, ele_rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.(['Mn_pos_' ele_side]), ele.(['Mn_neg_' ele_side]), ele.(['Mp_pos_' ele_side]), ele.(['Mp_neg_' ele_side]), ele.length, ele_prop.e, ele_prop.iz, ele.(['a_hinge_' ele_side]), ele.(['b_hinge_' ele_side]), ele.(['c_hinge_' ele_side]), 10, 0.1, ele.(['critical_mode_' ele_side]) );
     end
     if abs(min(hin_TH.deformation_TH)) > abs(max(hin_TH.deformation_TH))
-        max_hinge_deform = max(abs(hin_TH.deformation_TH)) - rot_vec_neg(1); % Negative bending
+        max_elastic_hinge_deform = rot_vec_neg(1); % Negative bending
+        max_elastic_ele_deform = ele_rot_vec_neg(1);
     else
-        max_hinge_deform = max(abs(hin_TH.deformation_TH)) - rot_vec_pos(1); % Positive Bending
+        max_elastic_hinge_deform = rot_vec_pos(1); % Positive bending
+        max_elastic_ele_deform = ele_rot_vec_pos(1);
     end
-    if  max_hinge_deform <= ele.(['io_' ele_side])
+    max_plastic_deform = max([max(abs(hin_TH.deformation_TH)) - max_elastic_hinge_deform,0]); 
+    max_hinge_deform = max(abs(hin_TH.deformation_TH));
+    if max_plastic_deform == 0
+        max_ele_deform = max_hinge_deform*(max_elastic_ele_deform/max_elastic_hinge_deform); % Not Yeilding, deform is the max hinge deform times the ratio of elastic to hinge yeild point
+    else
+        max_ele_deform = max_plastic_deform + max_elastic_ele_deform; % If yielding take the plastic deform and add it to the element max elastic deform
+    end
+
+    
+    % calculate which acceptance criteria it passes
+    if  max_plastic_deform <= ele.(['io_' ele_side])
         hinge.accept(i) = 1; % Passes IO
-    elseif max_hinge_deform <= ele.(['ls_' ele_side])
+    elseif max_plastic_deform <= ele.(['ls_' ele_side])
         hinge.accept(i) = 2; % Passes LS
-    elseif max_hinge_deform <= ele.(['cp_' ele_side])
+    elseif max_plastic_deform <= ele.(['cp_' ele_side])
         hinge.accept(i) = 3; % Passes CP
     else
         hinge.accept(i) = 4; % Fails all performance levels
     end
+    
+    % calculate the ratio of the a nd b values
+    hinge.a_ratio(i) = max_ele_deform/(ele.(['a_hinge_' ele_side]) + max_elastic_ele_deform);
+    hinge.b_ratio(i) = max_ele_deform/(ele.(['b_hinge_' ele_side]) + max_elastic_ele_deform);
+    hinge.V_ratio(i) = ele.Vmax/ele.(['Vn_' ele_side]);
 end
 
 end

@@ -3,18 +3,35 @@ close all
 clc
 
 %% Load in data
-NS_building = dlmread('chan_11_accel.tcl','\n');
-EW_building = dlmread('chan_13_accel.tcl','\n');
-NS_ground = dlmread('gm_ns_free_field.tcl','\n');
-EW_ground = dlmread('gm_ew_free_field.tcl','\n');
+% Time signal
+gm_NS_bld = dlmread('chan_11_accel.tcl','\n');
+gm_EW_bld = dlmread('chan_13_accel.tcl','\n');
+gm_NS_grd = dlmread('gm_ns_free_field.tcl','\n');
+gm_EW_grd = dlmread('gm_ew_free_field.tcl','\n');
 
-n = size(NS_ground,2)/2;
-time = (1:length(EW_ground))*0.01;
-freq = 1 ./ time;%0:79/(2*n*dt);
+% Spectra
+spectra_NS_bld = readtable('spectra_chan_11_accel.csv','ReadVariableNames',true);
+spectra_EW_bld = readtable('spectra_chan_13_accel.csv','ReadVariableNames',true);
+spectra_NS_grd = readtable('spectra_ns.csv','ReadVariableNames',true);
+spectra_EW_grd = readtable('spectra_ew.csv','ReadVariableNames',true);
 
+%% Define Inputs
+n = size(gm_EW_grd,2);
+dt = 0.01;
+time = (0:length(gm_EW_grd)-1)*dt;
+Fs = 1/dt;
+freq = Fs*(0:(n/2))/n;
+period = 1./freq;
 
 %% use FFT to convert signal to frequency domain
-spectra_raw = fft(EW_ground);
-spectra = abs(real(spectra_raw))/n;
+fft_spectra_raw = fft(gm_EW_grd);
+P2 = abs(fft_spectra_raw/n);
+P1 = P2(1:n/2+1);
+P1(2:end-1) = 2*P1(2:end-1);
 
-plot(freq,spectra)
+P1_scale = P1*max(abs(gm_EW_grd))/P1(1);
+
+hold on
+plot(period,P1)
+plot(spectra_EW_grd.period,spectra_EW_grd.psa_1)
+xlim([0,5])
