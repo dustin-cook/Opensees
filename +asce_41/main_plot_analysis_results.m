@@ -79,58 +79,51 @@ if sum(analysis.type_list == 2) > 0 % Pushover was run as part of this proceedur
 end
 
 %% Dynamic Analysis
-if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this proceedure
-    if analysis.asce_41_post_process    
-        %% ASCE 41 Acceptance Plots
-        if strcmp(analysis.proceedure,'LDP') % Linear Procedures
-            %% Plot DCR
-            plot_variable = {'all', 'M', 'V', 'P'};
-            frame_lines = {'ext', 'int'};
-            if strcmp(model.dimension,'3D')% for 3D linear analysis
-                for i = 1:length(plot_variable)
-                    for j = 1:length(frame_lines)
-                        fn_plot_building( element.(['DCR_max_' plot_variable{i}]), element, node, ['DCR_view_' plot_variable{i} '_' frame_lines{j}], plot_dir, '3D', 'linear', frame_lines{j} )
-                        fn_plot_building( element.(['DCR_raw_max_' plot_variable{i}]), element, node, ['DCR_view_' plot_variable{i} '_' frame_lines{j} '_raw'], plot_dir, '3D', 'raw', frame_lines{j} )
-                    end
-                end
-
-            else
-                for i = 1:length(plot_variable)
-                    fn_plot_building_2D( element.(['DCR_max_' plot_variable{i}]), element, node, ['DCR_view_' plot_variable{i}], plot_dir,  'linear' )
-                    fn_plot_building_2D( element.(['DCR_raw_max_' plot_variable{i}]), element, node, ['DCR_view_' plot_variable{i} '_raw'], plot_dir,  'raw' )
+if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this proceedure 
+    %% ASCE 41 Acceptance Plots
+    if strcmp(analysis.proceedure,'LDP') % Linear Procedures
+        %% Plot DCR
+        plot_variable = {'all', 'M', 'V', 'P'};
+        frame_lines = {'ext', 'int'};
+        if strcmp(model.dimension,'3D')% for 3D linear analysis
+            for i = 1:length(plot_variable)
+                for j = 1:length(frame_lines)
+                    fn_plot_building( element.(['DCR_max_' plot_variable{i}]), element, node, ['DCR_view_' plot_variable{i} '_' frame_lines{j}], plot_dir, '3D', 'linear', frame_lines{j} )
+                    fn_plot_building( element.(['DCR_raw_max_' plot_variable{i}]), element, node, ['DCR_view_' plot_variable{i} '_' frame_lines{j} '_raw'], plot_dir, '3D', 'raw', frame_lines{j} )
                 end
             end
-        elseif strcmp(analysis.proceedure,'NDP') % Nonlinear Procedures
-            %% Plot Hinge accpetance
-            % Elevation
-            fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Interior Frame', plot_dir, 'int_frame' )
-            fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Exterior Frame', plot_dir, 'ext_frame' )
-            fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Wall Frame', plot_dir, 'east_wall' )
 
-            % Plan View
-            fn_plot_plan_view( hinge, element, node, 'Story 1 Columns', plot_dir )
-            
-            %% Plot Element Scatter
-            fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
-            fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
-            fn_plot_element_scatter( element, 'wall', story, hinge, plot_dir )
+        else
+            for i = 1:length(plot_variable)
+                fn_plot_building_2D( element.(['DCR_max_' plot_variable{i}]), element, node, ['DCR_view_' plot_variable{i}], plot_dir,  'linear' )
+                fn_plot_building_2D( element.(['DCR_raw_max_' plot_variable{i}]), element, node, ['DCR_view_' plot_variable{i} '_raw'], plot_dir,  'raw' )
+            end
         end
-        
-        %% ASCE 41 Target Displacement
-        [ target_disp_in.x ] = fn_spectra_and_target_displ( model, story, ground_motion, 'x' );
-        if strcmp(model.dimension,'3D')
-            if isfield(ground_motion,'z')
-                [ target_disp_in.z ] = fn_spectra_and_target_displ( model, story, ground_motion, 'z' );
-            else
-              target_disp_in.z = NaN;
-            end
-        end        
-    else
-        target_disp_in.x = NaN;
-        if strcmp(model.dimension,'3D')
-            target_disp_in.z = NaN;
-        end 
+    elseif strcmp(analysis.proceedure,'NDP') % Nonlinear Procedures
+        %% Plot Hinge accpetance
+        % Elevation
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Interior Frame', plot_dir, 'int_frame' )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Exterior Frame', plot_dir, 'ext_frame' )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Wall Frame', plot_dir, 'east_wall' )
+
+        % Plan View
+        fn_plot_plan_view( hinge, element, node, 'Story 1 Columns', plot_dir )
+
+        %% Plot Element Scatter
+        fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
+        fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
+        fn_plot_element_scatter( element, 'wall', story, hinge, plot_dir )
     end
+
+    %% ASCE 41 Target Displacement
+    [ target_disp_in.x ] = fn_spectra_and_target_displ( model, story, ground_motion, 'x' );
+    if strcmp(model.dimension,'3D')
+        if isfield(ground_motion,'z')
+            [ target_disp_in.z ] = fn_spectra_and_target_displ( model, story, ground_motion, 'z' );
+        else
+          target_disp_in.z = NaN;
+        end
+    end        
 
     %% Load in Recordings to compare with EDPs and Time Histories
     if analysis.plot_recordings

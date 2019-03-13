@@ -16,7 +16,7 @@ function [ ] = fn_plot_element_scatter( element, ele_type, story, hinge, write_d
 import plotting_tools.fn_format_and_save_plot
 
 % Define Plot Dir
-plot_dir = [write_dir filesep 'Scatter_Plots'];
+plot_dir = [write_dir filesep 'Scatter Plots'];
 
 %% Begin Method
 for s = 1:height(story)
@@ -29,7 +29,7 @@ for s = 1:height(story)
     prim_hin = hins(strcmp(hins.direction,'primary'),:);
     if ~isempty(prim_hin)
         side_1 = prim_hin(prim_hin.ele_side == 1,:);
-        side_2 = prim_hin(prim_hin.ele_side == 1,:);
+        side_2 = prim_hin(prim_hin.ele_side == 2,:);
         plot_name = ['Primary - ' 'Story - ' num2str(s) ' - ' ele_type];
 
         % A Ratio

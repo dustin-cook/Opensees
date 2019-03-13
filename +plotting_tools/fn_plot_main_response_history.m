@@ -51,6 +51,7 @@ if exist('record_edp','var')
     fn_plot_response_history( roof_center_id_TH.nd_TH.(accel_tag), eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Acceleration Center ' direction ' (g)'], 30, record_edp.accel_TH_roof.(direction))
     if strcmp(direction,'z')
         fn_plot_response_history( roof_east_id_TH.nd_TH.(disp_tag), eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Displacement East ' direction ' (in)'], 30, record_edp.disp_TH_roof_east.(direction) )
+        fn_plot_response_history( roof_east_id_TH.nd_TH.(accel_tag), eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Acceleration East ' direction ' (g)'], 30, record_edp.accel_TH_roof_east.(direction) )
         % Torsional Response
         relative_torsional_displacement = roof_east_id_TH.nd_TH.disp_z_TH - roof_center_id_TH.nd_TH.disp_z_TH;
         record_torsional_displacement = record_edp.disp_TH_roof_east.z - record_edp.disp_TH_roof.z;

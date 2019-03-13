@@ -24,13 +24,13 @@ subplot(2,2,1)
 hold on
 rectangle('Position',[min(node_2_use.x),min(node_2_use.z),r_width,r_height],'FaceColor',[0.85 0.85 0.85],'EdgeColor',[0.5,0.5,0.5])
 set(gca,'XTick',[],'YTick',[])
-xlim([min(node_2_use.x),max(node_2_use.x)])
-ylim([min(node_2_use.z),max(node_2_use.z)])
+xlim([min(node_2_use.x)-r_width*0.05,max(node_2_use.x)+r_width*0.05])
+ylim([min(node_2_use.z)-r_height*0.05,max(node_2_use.z)+r_height*0.05])
 
 % Plot Column Highlight
 c = hinge_2_use.a_ratio;
 caxis([0,1.2])
-scatter(node_2_use.x,node_2_use.z,500,c,'s','fiiled');
+scatter(node_2_use.x,node_2_use.z,400,c,'s','fiiled');
 colorbar
 set(gca,'FontSize',15)
 axis off
@@ -41,13 +41,13 @@ subplot(2,2,2)
 hold on
 rectangle('Position',[min(node_2_use.x),min(node_2_use.z),r_width,r_height],'FaceColor',[0.85 0.85 0.85],'EdgeColor',[0.5,0.5,0.5])
 set(gca,'XTick',[],'YTick',[])
-xlim([min(node_2_use.x),max(node_2_use.x)])
-ylim([min(node_2_use.z),max(node_2_use.z)])
+xlim([min(node_2_use.x)-r_width*0.05,max(node_2_use.x)+r_width*0.05])
+ylim([min(node_2_use.z)-r_height*0.05,max(node_2_use.z)+r_height*0.05])
 
 % Plot Column Highlight
 c = hinge_2_use.b_ratio;
 caxis([0,1.2])
-scatter(node_2_use.x,node_2_use.z,500,c,'s','fiiled');
+scatter(node_2_use.x,node_2_use.z,400,c,'s','fiiled');
 colorbar
 set(gca,'FontSize',15)
 axis off
@@ -58,13 +58,13 @@ subplot(2,2,3)
 hold on
 rectangle('Position',[min(node_2_use.x),min(node_2_use.z),r_width,r_height],'FaceColor',[0.85 0.85 0.85],'EdgeColor',[0.5,0.5,0.5])
 set(gca,'XTick',[],'YTick',[])
-xlim([min(node_2_use.x),max(node_2_use.x)])
-ylim([min(node_2_use.z),max(node_2_use.z)])
+xlim([min(node_2_use.x)-r_width*0.05,max(node_2_use.x)+r_width*0.05])
+ylim([min(node_2_use.z)-r_height*0.05,max(node_2_use.z)+r_height*0.05])
 
 % Plot Column Highlight
 c = hinge_2_use.V_ratio;
 caxis([0,1.2])
-scatter(node_2_use.x,node_2_use.z,500,c,'s','fiiled');
+scatter(node_2_use.x,node_2_use.z,400,c,'s','fiiled');
 colorbar
 axis off
 title('Max(V)/Vn')

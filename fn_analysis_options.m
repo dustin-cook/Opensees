@@ -13,9 +13,9 @@ function [ analysis ] = fn_analysis_options( analysis )
 %% Basic Defaults
 % Run Options
 analysis.run_opensees = 0; % 1 = Run opensees, 0 = use existing results
-analysis.asce_41_post_process = 1; % 1 = run asce 41 post process logic
+analysis.asce_41_post_process = 0; % 1 = run asce 41 post process logic
 analysis.opensees_SP = 1; % 0 = Standard OpenSees; 1 = OpenseesSP
-analysis.skip_2_outputs = 0; % Skip all the way to the plotters
+analysis.skip_2_outputs = 1; % Skip all the way to the plotters
 
 % Model Options
 analysis.stories_nonlinear = inf; % Default to all modeling all stories as nonlinear when doing NDP
