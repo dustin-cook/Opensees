@@ -83,7 +83,7 @@ end
 
 %% Dynamic Analysis
 if analysis.type == 1
-    scale_factor = 386*analysis.ground_motion_scale_factor; % g's to in per s times scale factor
+    scale_factor = 386;%*analysis.ground_motion_scale_factor; % g's to in per s times scale factor
     % Define Seismic Excitation Load
     % timeSeries Path $tag -dt $dt -filePath $filePath <-factor $cFactor> <-useLast> <-prependZero> <-startTime $tStart>
     % pattern UniformExcitation $patternTag $dir -accel $tsTag <-vel0 $vel0> <-fact $cFactor>
@@ -91,19 +91,19 @@ if analysis.type == 1
         fprintf(fileID,'set dt %f \n',ground_motion.x.eq_dt);
         fprintf(fileID,'puts "EQ X dt = $dt" \n');
         fprintf(fileID,'timeSeries Path 1 -dt $dt -filePath %s/%s -factor %f \n', ground_motion.x.eq_dir{1}, ground_motion.x.eq_name{1}, scale_factor);
-        fprintf(fileID,'pattern UniformExcitation 3 1 -accel 1 -fact 1 \n'); 
+        fprintf(fileID,'pattern UniformExcitation 3 1 -accel 1 -fact %f \n',analysis.ground_motion_scale_factor); 
     end
     if isfield(ground_motion,'z')
         fprintf(fileID,'set dt %f \n',ground_motion.z.eq_dt);
         fprintf(fileID,'puts "EQ Z dt = $dt" \n');
         fprintf(fileID,'timeSeries Path 2 -dt $dt -filePath %s/%s -factor %f \n', ground_motion.z.eq_dir{1}, ground_motion.z.eq_name{1}, scale_factor);
-        fprintf(fileID,'pattern UniformExcitation 4 3 -accel 2 -fact 1 \n'); 
+        fprintf(fileID,'pattern UniformExcitation 4 3 -accel 2 -fact %f \n',analysis.ground_motion_scale_factor); 
     end
     if isfield(ground_motion,'y')
         fprintf(fileID,'set dt %f \n',ground_motion.y.eq_dt);
         fprintf(fileID,'puts "EQ Y dt = $dt" \n');
         fprintf(fileID,'timeSeries Path 3 -dt $dt -filePath %s/%s -factor %f \n', ground_motion.y.eq_dir{1}, ground_motion.y.eq_name{1}, scale_factor);
-        fprintf(fileID,'pattern UniformExcitation 5 2 -accel 3 -fact 1 \n'); 
+        fprintf(fileID,'pattern UniformExcitation 5 2 -accel 3 -fact %f \n',analysis.ground_motion_scale_factor); 
     end
 end
 

@@ -260,7 +260,7 @@ for i = 1:length(dirs_ran)
                    eq_dt = ground_motion.(dirs_ran{i}).eq_dt;
                    eq_timespace = linspace(eq_dt,eq_length*eq_dt,eq_length);
                    eq_analysis_timespace = node_accel_raw(1,:);
-                   eq_analysis.(dirs_ran{i}) = interp1(eq_timespace,eq.(dirs_ran{i}),eq_analysis_timespace);
+                   eq_analysis.(dirs_ran{i}) = interp1(eq_timespace,eq.(dirs_ran{i}),eq_analysis_timespace)*analysis.ground_motion_scale_factor;
               end
            
                if strcmp(dirs_ran{i},'x')
@@ -306,11 +306,13 @@ for i = 1:length(dirs_ran)
         
     % EDP Profiles
     [ story.(['max_disp_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' dirs_ran{i}]), story, node, 0 );
+    story.(['max_disp_center_' dirs_ran{i}]) = node.(['max_disp_' dirs_ran{i}])(node.center == 1 & node.record_disp == 1 & node.story > 0);
     [ story.(['ave_disp_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' dirs_ran{i}]), story, node, 1 );
     [ story.(['residual_disp_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['residual_disp_' dirs_ran{i}]), story, node, 1 );
     story.(['torsional_factor_' dirs_ran{i}]) = story.(['max_disp_' dirs_ran{i}]) ./ story.(['ave_disp_' dirs_ran{i}]);
     if analysis.type == 1 % Dynamic Analysis
         [ story.(['max_accel_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' dirs_ran{i} '_abs']), story, node, 0 );
+        story.(['max_accel_center_' dirs_ran{i}]) = node.(['max_accel_' dirs_ran{i} '_abs'])(node.center == 1 & node.record_accel == 1 & node.story > 0);
     end
     [ story.(['max_drift_' dirs_ran{i}]) ] = fn_drift_profile( node_TH, story, node, dirs_ran{i} );
     

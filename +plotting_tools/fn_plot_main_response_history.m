@@ -71,5 +71,17 @@ else
     fn_plot_response_history( roof_center_id_TH.nd_TH.(disp_tag)/roof_ht, eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Drift Center ' direction], 30 )
     fn_plot_response_history( roof_center_id_TH.nd_TH.(accel_tag), eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Acceleration Center ' direction ' (g)'], 30 )
 end
+
+%% Node time history comparison check (set up as sperate checker function
+% node_roof = node(node.story == 3 & node.record_accel == 1,:);
+% node_center = node_roof(node_roof.x == 671 & node_roof.z == 300,:);
+% node_extreeme = node_roof(node_roof.x == 1642 & node_roof.z == 450,:);
+% center_TH = load([read_dir_opensees filesep 'node_TH_' num2str(node_center.id) '.mat']);
+% extreeme_TH = load([read_dir_opensees filesep 'node_TH_' num2str(node_extreeme.id) '.mat']);
+% 
+% hold on
+% plot(eq_analysis_timespace,movmean(center_TH.nd_TH.accel_z_abs_TH,50))
+% plot(eq_analysis_timespace,movmean(extreeme_TH.nd_TH.accel_z_abs_TH,50))
+% xlim([0,15])
 end
 

@@ -24,7 +24,9 @@ import asce_41.fn_calc_dcr
 % Define Read and Write Directories
 read_dir = [analysis.out_dir filesep 'opensees_data'];
 write_dir = [analysis.out_dir filesep 'asce_41_data'];
-fn_make_directory( write_dir )
+if ~exist(write_dir,'dir')
+    fn_make_directory( write_dir )
+end
 
 % Load Analysis Data
 load([read_dir filesep 'model_analysis.mat'])
@@ -43,10 +45,14 @@ load([read_dir filesep 'hinge_analysis.mat'])
 if analysis.asce_41_post_process
     % Procedure Specific Analysis
     if strcmp(analysis.proceedure,'NDP') % Nonlinear Dynamic Proceedure
-        [ element, joint ] = main_element_capacity( story, ele_prop_table, element, analysis, joint, read_dir, write_dir );
-        [ element, joint ] = main_hinge_properties( ele_prop_table, element, joint );
-        if analysis.nonlinear ~= 0 % Only for nonlinear runs
+        if analysis.nonlinear ~= 0 && analysis.type == 1 % Only for last nonlinear dynamic run
+            load([write_dir filesep 'element_analysis.mat'])
+            load([write_dir filesep 'joint_analysis.mat'])
+            load([write_dir filesep 'hinge_analysis.mat'])
             [ hinge ] = fn_accept_hinge( element, ele_prop_table, hinge, read_dir );
+        else % Pushover runs
+            [ element, joint ] = main_element_capacity( story, ele_prop_table, element, analysis, joint, read_dir, write_dir );
+            [ element, joint ] = main_hinge_properties( ele_prop_table, element, joint );
         end
     elseif strcmp(analysis.proceedure,'LDP') % Linear Dynamic Proceedure and Test Proceedure (and all others defined so be careful)
         fn_torsional_amplification( story, element ) % Torsion check (will throw errors if triggered, need to update)

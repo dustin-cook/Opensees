@@ -102,9 +102,9 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     elseif strcmp(analysis.proceedure,'NDP') % Nonlinear Procedures
         %% Plot Hinge accpetance
         % Elevation
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Interior Frame', plot_dir, 'int_frame' )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Exterior Frame', plot_dir, 'ext_frame' )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Wall Frame', plot_dir, 'east_wall' )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Interior Frame', plot_dir, 'int_frame' )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Exterior Frame', plot_dir, 'ext_frame' )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Wall Frame', plot_dir, 'east_wall' )
 
         % Plan View
         fn_plot_plan_view( hinge, element, node, 'Story 1 Columns', plot_dir )
@@ -133,11 +133,11 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
             fn_plot_edp_profiles( plot_dir, ground_motion.z.pga, model, story, target_disp_in.z, 'z', record_edp )
         end
 
-        % Plot specific TH comparisons
-        fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x', record_edp )
-        if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-            fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z', record_edp )
-        end
+%         % Plot specific TH comparisons
+%         fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x', record_edp )
+%         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
+%             fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z', record_edp )
+%         end
     else
         % Plot EDP Profiles
         fn_plot_edp_profiles( plot_dir, ground_motion.x.pga, model, story, target_disp_in.x, 'x' )
@@ -173,13 +173,15 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
             outputs.type{idx,:} = ['Record-' dirs_ran{i}];
             outputs.period(idx,:) = NaN; % Maybe figures out a way to do this automaticly
             outputs.max_roof_drift(idx,:) = record_edp.max_disp.(dirs_ran{i})(end) / sum(story.story_ht);
+            outputs.max_roof_drift_center(idx,:) = record_edp.max_disp_center.(dirs_ran{i})(end) / sum(story.story_ht);
             rel_disp = record_edp.max_disp.(dirs_ran{i})(2:end) - record_edp.max_disp.(dirs_ran{i})(1:(end-1));
             outputs.max_drift(idx,:) = max( rel_disp(1:height(story)) ./ story.story_ht);
             end_of_record = 5/ground_motion.(dirs_ran{i}).eq_dt;
             roof_disp_TH = record_edp.disp_TH_roof.(dirs_ran{i});
             outputs.residual_drift(idx,:) = abs(mean(roof_disp_TH((end-end_of_record):end))) / sum(story.story_ht);
             outputs.max_base_shear(idx,:) = ground_motion.(dirs_ran{i}).pga;
-            outputs.max_roof_accel(idx,:) = record_edp.max_accel.(dirs_ran{i})(end);    
+            outputs.max_roof_accel(idx,:) = record_edp.max_accel.(dirs_ran{i})(end);   
+            outputs.max_roof_accel_center(idx,:) = record_edp.max_accel_center.(dirs_ran{i})(end); 
         end
     end
     
@@ -188,10 +190,12 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         outputs.type{idx,:} = ['Analysis-' dirs_ran{i}];
         outputs.period(idx,:) = model.(['T1_' dirs_ran{i}]);
         outputs.max_roof_drift(idx,:) = story.(['max_disp_' dirs_ran{i}])(end) / sum(story.story_ht);
+        outputs.max_roof_drift_center(idx,:) = story.(['max_disp_center_' dirs_ran{i}])(end) / sum(story.story_ht);
         outputs.max_drift(idx,:) = max(story.(['max_drift_' dirs_ran{i}]));
         outputs.residual_drift(idx,:) = story.(['residual_disp_' dirs_ran{i}])(end) / sum(story.story_ht);
         outputs.max_base_shear(idx,:) = ground_motion.(dirs_ran{i}).pga;
         outputs.max_roof_accel(idx,:) = story.(['max_accel_' dirs_ran{i}])(end);
+        outputs.max_roof_accel_center(idx,:) = story.(['max_accel_center_' dirs_ran{i}])(end);
     end
     
     % Save as csv

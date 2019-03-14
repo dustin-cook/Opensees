@@ -403,16 +403,30 @@ if strcmp(model.dimension,'2D')
     node = new_node;
 end
 
+%% Convert outputs to tables
+node = struct2table(node);
+element = struct2table(element);
+joint = struct2table(joint);
+hinge = struct2table(hinge);
+
+%% Define Center Nodes
+node.center = zeros(length(node.id),1);
+for s = 0:height(story)
+    story_nodes = node(node.story == s & (node.record_accel == 1 | node.record_disp == 1),:);
+    x_center = mean([min(story_nodes.x),max(story_nodes.x)]);
+    z_center = mean([min(story_nodes.z),max(story_nodes.z)]);
+    node_resultant_dist = sqrt((story_nodes.x-x_center).^2 + (story_nodes.z-z_center).^2);
+    [~,closest_idx] = min(node_resultant_dist);
+    center_node_id = story_nodes.id(closest_idx);
+    node.center(node.id == center_node_id) = 1;
+end
+
 %% Reformat outputs to table and write CSV's
 writetable(story,[write_dir filesep 'story.csv'])
-node_table = struct2table(node);
-writetable(node_table,[write_dir filesep 'node.csv'])
-ele_table = struct2table(element);
-writetable(ele_table,[write_dir filesep 'element.csv'])
-joint_table = struct2table(joint);
-writetable(joint_table,[write_dir filesep 'joint.csv'])
-hinge_table = struct2table(hinge);
-writetable(hinge_table,[write_dir filesep 'hinge.csv'])
+writetable(node,[write_dir filesep 'node.csv'])
+writetable(element,[write_dir filesep 'element.csv'])
+writetable(joint,[write_dir filesep 'joint.csv'])
+writetable(hinge,[write_dir filesep 'hinge.csv'])
 
 end
 

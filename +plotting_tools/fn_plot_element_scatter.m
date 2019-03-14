@@ -41,6 +41,7 @@ for s = 1:height(story)
         ylabel('Max(\theta)/"a"')
         set(gca,'XTickLabel',[])
         xlim([0.5,height(side_1)+height(side_2)+0.5])
+        ylim([0, inf])
         fn_format_and_save_plot( plot_dir, plot_name, 2, 0 )
         
         % B Ratio
@@ -52,6 +53,7 @@ for s = 1:height(story)
         ylabel('Max(\theta)/"b"')
         set(gca,'XTickLabel',[])
         xlim([0.5,height(side_1)+height(side_2)+0.5])
+        ylim([0, inf])
         fn_format_and_save_plot( plot_dir, plot_name, 2, 0 )
         
         % V Ratio
@@ -63,6 +65,7 @@ for s = 1:height(story)
         xlabel([upper(ele_type(1)) ele_type(2:end) 's'])
         ylabel('Max(V)/Vn')
         xlim([0.5,height(side_1)+height(side_2)+0.5])
+        ylim([0, inf])
         fn_format_and_save_plot( plot_dir, plot_name, 2, 1)
     end
 
@@ -82,6 +85,7 @@ for s = 1:height(story)
         ylabel('Max(\theta)/"a"')
         set(gca,'XTickLabel',[])
         xlim([0.5,height(side_1)+height(side_2)+0.5])
+        ylim([0, inf])
         fn_format_and_save_plot( plot_dir, plot_name, 2, 0 )
         
         % B Ratio
@@ -93,6 +97,7 @@ for s = 1:height(story)
         ylabel('Max(\theta)/"b"')
         set(gca,'XTickLabel',[])
         xlim([0.5,height(side_1)+height(side_2)+0.5])
+        ylim([0, inf])
         fn_format_and_save_plot( plot_dir, plot_name, 2, 0 )
         
         % V Ratio
@@ -104,6 +109,7 @@ for s = 1:height(story)
         xlabel([upper(ele_type(1)) ele_type(2:end) 's'])
         ylabel('Max(V)/Vn')
         xlim([0.5,height(side_1)+height(side_2)+0.5])
+        ylim([0, inf])
         fn_format_and_save_plot( plot_dir, plot_name, 2, 1 )
     end
 end
