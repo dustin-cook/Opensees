@@ -5,25 +5,31 @@ clc
 
 %% Initial Setup
 % Set Input Parameters
-scale_factors = [1.1];
-name = 'scale_11';
+analysis.model_id = 11;
+analysis.proceedure = 'NDP';
+analysis.scale_factors = [0.5,0.7,0.9];
 
-% Sa Values
-sa_x_t1 = 0.35;
-sa_z_t1 = 0.88;
-
-% Load in Model Tables
-node = readtable('mini_ida/model_tables/node.csv','readVariableNames',true);
-story = readtable('mini_ida/model_tables/story.csv','readVariableNames',true);
+% Load basic model data
+model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
+model = model_table(model_table.id == analysis.model_id,:);
 
 % Import packages
 import opensees.post_process.*
 import plotting_tools.*
 
-% make folders
-mkdir('mini_ida/model/outputs')
-mkdir('mini_ida/ida_results')
-mkdir(['mini_ida/ida_results' filesep name])
+% Sa Values
+sa_x_t1 = 0.35;
+sa_z_t1 = 0.88;
+
+%% Define read and write directories
+model_dir = ['outputs' filesep model.name filesep analysis.proceedure filesep 'model_data'];
+tcl_dir = ['outputs' filesep model.name filesep analysis.proceedure filesep 'opensees_data'];
+outputs_dir = ['outputs' filesep model.name filesep analysis.proceedure filesep 'IDA'];
+mkdir(outputs_dir)
+
+% Load in Model Tables
+node = readtable([model_dir filesep 'node.csv'],'readVariableNames',true);
+story = readtable([model_dir filesep 'story.csv'],'readVariableNames',true);
 
 %% Run Opensees Model
 for i = 1:length(scale_factors)
@@ -33,13 +39,13 @@ for i = 1:length(scale_factors)
     sa_z(i,1) = sa_z_t1*scale_factor;
     
     % Write master run file
-    file_name = ['mini_ida/model/master_run_analysis_' name '.tcl'];
+    file_name = [outputs_dir filesep 'master_run_analysis_' name '.tcl'];
     fileID = fopen(file_name,'w');
     fprintf(fileID,'wipe\n');
-    fprintf(fileID,'source mini_ida/model/model.tcl\n'); 
-    fprintf(fileID,'source mini_ida/model/loads.tcl\n');
-    fprintf(fileID,'source mini_ida/model/recorders_%s.tcl\n',name);
-    fprintf(fileID,'source mini_ida/model/run_analysis.tcl\n');
+    fprintf(fileID,'source %s/model.tcl\n',tcl_dir); 
+    fprintf(fileID,'source %s/loads.tcl\n',tcl_dir);
+    fprintf(fileID,'source %s/recorders_%s.tcl\n',outputs_dir,name);
+    fprintf(fileID,'source %s/run_analysis.tcl\n',tcl_dir);
     fclose(fileID);
     
     % Write Recorders File

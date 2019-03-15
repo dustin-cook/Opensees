@@ -96,8 +96,8 @@ elseif strcmp(analysis.proceedure,'NDP')
     analysis.dead_load_list = [1, 1, 1];
     analysis.live_load_list = [1, 1, 1];
     analysis.case_list = {'NA', 'backbones', 'NA'};
-    analysis.pushover_drift_list_x = [0.009, 0.0095, NaN]; % Drift limit where the pushover will go till
-    analysis.pushover_drift_list_z = [0.003 0.003, NaN];
+    analysis.pushover_drift_list_x = [0.0075, 0.0095, NaN]; % Drift limit where the pushover will go till
+    analysis.pushover_drift_list_z = [0.0025 0.003, NaN];
     analysis.accidental_torsion_list = [0, 0, 1];
     analysis.damp_ratio_list = [0.03, 0.03, 0.03]; % Analysis damping ratio
      
