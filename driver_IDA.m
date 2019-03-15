@@ -12,7 +12,7 @@ analysis.summit = 0;
 % IDA Inputs
 analysis.gm_seq_id = 10;
 analysis.IDA_scale_factors = [0.5,0.7,0.9];
-analysis.collapse_drift = 0.20;
+analysis.collapse_drift = 0.10;
 
 % Secondary options
 analysis.dead_load = 1;
@@ -46,7 +46,7 @@ sa_z_t1 = 0.88;
 model_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '/' 'model_data'];
 tcl_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '/' 'opensees_data'];
 outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '/' 'IDA'];
-mkdir(outputs_dir)
+
 
 % Load in Model Tables
 node = readtable([model_dir filesep 'node.csv'],'readVariableNames',true);
@@ -54,12 +54,11 @@ story = readtable([model_dir filesep 'story.csv'],'readVariableNames',true);
 
 %% Run Opensees Model
 for i = 1:length(analysis.IDA_scale_factors)
-    collapse(i) = 0;
-    
-    % Change EQ Scale factor
+    % Iteration Parameters
+    summary.collapse = 0;
     analysis.ground_motion_scale_factor = analysis.IDA_scale_factors(i);
-    sa_x(i,1) = sa_x_t1*analysis.ground_motion_scale_factor;
-    sa_z(i,1) = sa_z_t1*analysis.ground_motion_scale_factor;
+    outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '/' 'IDA' '/' 'Scale_' num2str(analysis.ground_motion_scale_factor)];
+    mkdir(outputs_dir)
     
     % Write Recorders File
     file_name = [outputs_dir filesep 'recorders.tcl'];
@@ -88,6 +87,15 @@ for i = 1:length(analysis.IDA_scale_factors)
         ground_motion.y = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_y,:);
     end
     
+    % Load spectral info and save Sa
+    model_periods = load([tcl_dir filesep 'model_analysis.mat']);
+    spectra_table = readtable([ground_motion.x.eq_dir{1} filesep 'spectra_' erase(erase(ground_motion.x.eq_name{1},'.tcl'),'gm_') '.csv'],'ReadVariableNames',true);
+    summary.sa_x = interp1(spectra_table.period,spectra_table.psa_5,model_periods.model.T1_x)*analysis.ground_motion_scale_factor;
+    clear spectra_table
+    spectra_table = readtable([ground_motion.z.eq_dir{1} filesep 'spectra_' erase(erase(ground_motion.z.eq_name{1},'.tcl'),'gm_') '.csv'],'ReadVariableNames',true);
+    summary.sa_z = interp1(spectra_table.period,spectra_table.psa_5,model_periods.model.T1_z)*analysis.ground_motion_scale_factor;
+    clear spectra_table
+
     % Write Loads file
     fn_define_loads( outputs_dir, analysis, node, model.dimension, story, 0, 0, ground_motion )
     
@@ -108,11 +116,13 @@ for i = 1:length(analysis.IDA_scale_factors)
     if status ~= 0
         if contains(cmdout,'Analysis Failure: Convergence') || contains(cmdout,'Analysis Failure: Singularity')
             warning('collapse or signularity')
-            collapse(i) = 1;
+            summary.collapse = 1;
         else
             error('Opensees Failed')
         end
     end
+    
+    clear cmdout
     
     %% Post Process Data
     for n = 1:height(node)
@@ -121,40 +131,42 @@ for i = 1:length(analysis.IDA_scale_factors)
                [ node_disp_raw ] = fn_xml_read([outputs_dir filesep 'nodal_disp_' num2str(node.id(n)) '.xml']);
                node_disp_raw = node_disp_raw'; % flip to be node per row
                disp_TH.(['node_' num2str(node_id) '_TH']).(['disp_x_TH']) = node_disp_raw(2,:);
-               node.max_disp_x(n) = max(abs(node_disp_raw(2,:)));
                disp_TH.(['node_' num2str(node_id) '_TH']).(['disp_z_TH']) = node_disp_raw(3,:);  % Currently Hard coded to three dimensions
-               node.max_disp_z(n) = max(abs(node_disp_raw(3,:)));
-           else
-%                node.disp_x{n} = [];
-               node.max_disp_x(n) = NaN;
-%                node.disp_z{n} = [];
-               node.max_disp_z(n) = NaN;
            end
+           clear node_disp_raw
     end
     
     % Calc Story Drift
     [ story.max_drift_x ] = fn_drift_profile( disp_TH, story, node, 'x' );
     [ story.max_drift_z ] = fn_drift_profile( disp_TH, story, node, 'z' );
     
-    max_drift_x(i,1) = max(story.max_drift_x);
-    max_drift_z(i,1) = max(story.max_drift_z);
+    clear disp_TH
+    
+    summary.max_drift_x = max(story.max_drift_x);
+    summary.max_drift_z = max(story.max_drift_z);
+    
+    % Save data for this run
+    save([outputs_dir filesep 'summary_results.mat'],'summary')
+    save([outputs_dir filesep 'story_analysis.mat'],'story')
+    
+    clear summary
 end
 
 %% Plot and Save Results
-plot(max_drift_x,sa_x)
-xlabel('Max Drift')
-ylabel('Sa(T_1) (g)')
-fn_format_and_save_plot( outputs_dir, 'IDA Plot EW Frame Direction', 2 )
-
-plot(max_drift_z,sa_z)
-xlabel('Max Drift')
-ylabel('Sa(T_1) (g)')
-fn_format_and_save_plot( outputs_dir, 'IDA Plot NS Wall Direction', 2 )
-
-% Save results as csv
-ida.sa_x = sa_x;
-ida.sa_z = sa_z;
-ida.max_drift_x = max_drift_x;
-ida.max_drift_z = max_drift_z;
-ida_table = struct2table(ida);
-writetable(ida_table,[outputs_dir filesep 'ida_results_.csv'])
+% plot(max_drift_x,sa_x)
+% xlabel('Max Drift')
+% ylabel('Sa(T_1) (g)')
+% fn_format_and_save_plot( outputs_dir, 'IDA Plot EW Frame Direction', 2 )
+% 
+% plot(max_drift_z,sa_z)
+% xlabel('Max Drift')
+% ylabel('Sa(T_1) (g)')
+% fn_format_and_save_plot( outputs_dir, 'IDA Plot NS Wall Direction', 2 )
+% 
+% % Save results as csv
+% ida.sa_x = sa_x;
+% ida.sa_z = sa_z;
+% ida.max_drift_x = max_drift_x;
+% ida.max_drift_z = max_drift_z;
+% ida_table = struct2table(ida);
+% writetable(ida_table,[outputs_dir filesep 'ida_results_.csv'])
