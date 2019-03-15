@@ -54,7 +54,8 @@ for i = 1:height(hinge)
     end
     
     % calculate the ratio of the a, b, d, and e values and shear
-    if strcmp(ele.type,'wall') && strcmp(hinge.direction{i},'primary')
+    if strcmp(hinge.direction{i},'primary')
+    if strcmp(ele.type,'wall')
         hinge.a_ratio(i) = NaN;
         hinge.b_ratio(i) = NaN;
         hinge.d_ratio(i) = max_ele_disp/disp_vec(3);
@@ -62,6 +63,12 @@ for i = 1:height(hinge)
     else
         hinge.a_ratio(i) = max_ele_deform/(ele.(['a_hinge_' ele_side]) + max_elastic_ele_deform);
         hinge.b_ratio(i) = max_ele_deform/(ele.(['b_hinge_' ele_side]) + max_elastic_ele_deform);
+        hinge.d_ratio(i) = NaN;
+        hinge.e_ratio(i) = NaN;
+    end
+    elseif strcmp(hinge.direction{i},'oop')
+        hinge.a_ratio(i) = max_ele_deform/(ele.(['a_hinge_oop_' ele_side]) + max_elastic_ele_deform);
+        hinge.b_ratio(i) = max_ele_deform/(ele.(['b_hinge_oop_' ele_side]) + max_elastic_ele_deform);
         hinge.d_ratio(i) = NaN;
         hinge.e_ratio(i) = NaN;
     end

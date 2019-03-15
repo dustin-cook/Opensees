@@ -32,13 +32,19 @@ for s = 1:height(story)
         side_2 = prim_hin(prim_hin.ele_side == 2,:);
         plot_name = ['Primary - ' 'Story - ' num2str(s) ' - ' ele_type];
 
-        % A Ratio
+        % A Ratio or D ratio
         subplot(3,1,1)
         hold on
         plot([0.5,height(side_1)+height(side_2)+0.5],[1,1],'--k')
-        scatter(1:height(side_1),side_1.a_ratio, 'o', 'filled', 'MarkerEdgeColor', 'b', 'MarkerFaceColor', 'b' )
-        scatter(height(side_1)+1:height(side_1)+height(side_2),side_2.a_ratio, 'd', 'filled', 'MarkerEdgeColor', 'b', 'MarkerFaceColor', 'b' )
-        ylabel('Max(\theta)/"a"')
+        if strcmp(ele_type,'wall')
+            scatter(1:height(side_1),side_1.d_ratio, 'o', 'filled', 'MarkerEdgeColor', 'b', 'MarkerFaceColor', 'b' )
+            scatter(height(side_1)+1:height(side_1)+height(side_2),side_2.d_ratio, 'd', 'filled', 'MarkerEdgeColor', 'b', 'MarkerFaceColor', 'b' )
+            ylabel('Max(\Delta_shear)/"d"')
+        else
+            scatter(1:height(side_1),side_1.a_ratio, 'o', 'filled', 'MarkerEdgeColor', 'b', 'MarkerFaceColor', 'b' )
+            scatter(height(side_1)+1:height(side_1)+height(side_2),side_2.a_ratio, 'd', 'filled', 'MarkerEdgeColor', 'b', 'MarkerFaceColor', 'b' )
+            ylabel('Max(\theta)/"a"')
+        end
         set(gca,'XTickLabel',[])
         xlim([0.5,height(side_1)+height(side_2)+0.5])
         ylim([0, inf])
@@ -48,9 +54,15 @@ for s = 1:height(story)
         subplot(3,1,2)
         hold on
         plot([0.5,height(side_1)+height(side_2)+0.5],[1,1],'--k')
-        scatter(1:height(side_1),side_1.b_ratio, 'o', 'filled', 'MarkerEdgeColor', 'b', 'MarkerFaceColor', 'b' )
-        scatter(height(side_1)+1:height(side_1)+height(side_2),side_2.b_ratio, 'd', 'filled', 'MarkerEdgeColor', 'b', 'MarkerFaceColor', 'b' )
-        ylabel('Max(\theta)/"b"')
+        if strcmp(ele_type,'wall')
+            scatter(1:height(side_1),side_1.e_ratio, 'o', 'filled', 'MarkerEdgeColor', 'b', 'MarkerFaceColor', 'b' )
+            scatter(height(side_1)+1:height(side_1)+height(side_2),side_2.e_ratio, 'd', 'filled', 'MarkerEdgeColor', 'b', 'MarkerFaceColor', 'b' )
+            ylabel('Max(\Delta_shear)/"e"')
+        else
+            scatter(1:height(side_1),side_1.b_ratio, 'o', 'filled', 'MarkerEdgeColor', 'b', 'MarkerFaceColor', 'b' )
+            scatter(height(side_1)+1:height(side_1)+height(side_2),side_2.b_ratio, 'd', 'filled', 'MarkerEdgeColor', 'b', 'MarkerFaceColor', 'b' )
+            ylabel('Max(\theta)/"b"')
+        end
         set(gca,'XTickLabel',[])
         xlim([0.5,height(side_1)+height(side_2)+0.5])
         ylim([0, inf])
@@ -73,7 +85,7 @@ for s = 1:height(story)
     oop_hin = hins(strcmp(hins.direction,'oop'),:);
     if ~isempty(oop_hin)
         side_1 = oop_hin(oop_hin.ele_side == 1,:);
-        side_2 = oop_hin(oop_hin.ele_side == 1,:);
+        side_2 = oop_hin(oop_hin.ele_side == 2,:);
         plot_name = ['OOP - ' 'Story - ' num2str(s) ' - ' ele_type];
 
         % A Ratio
