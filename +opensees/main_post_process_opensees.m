@@ -282,10 +282,6 @@ for i = 1:length(dirs_ran)
            end
        end
        
-       % Base shear reactions
-       [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
-       story.(['base_shear_' dirs_ran{i} '_TH']) = sum(base_node_reactions(:,2:end),2)';
-       
    elseif analysis.type == 2 || analysis.type == 3 % Pushover Analysis or Cyclic
         for n = 1:height(node)
            if node.record_disp(n)
@@ -305,10 +301,17 @@ for i = 1:length(dirs_ran)
            end       
         end
         
-        % Base shear reactions 
-        [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
-        analysis.(['base_shear_' dirs_ran{i}]) = abs(sum(base_node_reactions(:,2:end),2))';
+%         % Base shear reactions 
+%         [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
+%         analysis.(['base_shear_' dirs_ran{i}]) = abs(sum(base_node_reactions(:,2:end),2))';
    end
+   
+   % Base shear reactions
+   [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
+   story_TH.(['base_shear_' dirs_ran{i} '_TH']) = sum(base_node_reactions(:,2:end),2)';
+   story.(['max_reaction_' dirs_ran{i}])(1) = max(abs(story_TH.(['base_shear_' dirs_ran{i} '_TH'])));
+   clear base_node_reactions
+   
         
     % EDP Profiles
     [ story.(['max_disp_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' dirs_ran{i}]), story, node, 0 );
@@ -397,7 +400,6 @@ save([opensees_dir filesep 'joint_analysis.mat'],'joint')
 save([opensees_dir filesep 'node_analysis.mat'],'node')
 save([opensees_dir filesep 'hinge_analysis.mat'],'hinge')
 save([opensees_dir filesep 'story_analysis.mat'],'story')
-save([opensees_dir filesep 'analysis_options.mat'],'story')
 if analysis.type == 1 % Dynamic Analysis
     save([opensees_dir filesep 'gm_data.mat'],'eq','dirs_ran','ground_motion','eq_analysis_timespace','eq_analysis')
 elseif analysis.type == 2 % Pushover Analysis
@@ -425,6 +427,12 @@ for i = 1:height(hinge)
         save([pushover_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'hin_TH')
     end
 end
+
+save([opensees_dir filesep 'story_TH.mat'],'story_TH')
+if analysis.type == 2 % Pushover Analysis
+    save([pushover_dir filesep 'story_TH.mat'],'story_TH')
+end
+
 
 end
 

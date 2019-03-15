@@ -60,10 +60,11 @@ end
 if sum(analysis.type_list == 2) > 0 % Pushover was run as part of this proceedure
     pushover_read_dir = [analysis.out_dir filesep 'pushover'];
     pushover_analysis = load([pushover_read_dir filesep 'analysis_options.mat']);
+    pushover_story_TH = load([pushover_read_dir filesep 'story_TH.mat']);
     % Plot Building Pushovers
-    fn_plot_pushover( pushover_read_dir, 'x', story.story_dead_load, pushover_analysis.analysis.base_shear_x )
+    fn_plot_pushover( pushover_read_dir, 'x', story.story_dead_load, pushover_story_TH.story_TH.base_shear_x_TH )
     if strcmp(model.dimension,'3D')
-        fn_plot_pushover( pushover_read_dir, 'z', story.story_dead_load, pushover_analysis.analysis.base_shear_z )
+        fn_plot_pushover( pushover_read_dir, 'z', story.story_dead_load, pushover_story_TH.story_TH.base_shear_z_TH )
     end
     
     if analysis.element_plots
@@ -179,7 +180,7 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
             end_of_record = 5/ground_motion.(dirs_ran{i}).eq_dt;
             roof_disp_TH = record_edp.disp_TH_roof.(dirs_ran{i});
             outputs.residual_drift(idx,:) = abs(mean(roof_disp_TH((end-end_of_record):end))) / sum(story.story_ht);
-            outputs.max_base_shear(idx,:) = ground_motion.(dirs_ran{i}).pga;
+            outputs.max_base_shear(idx,:) = NaN;
             outputs.max_roof_accel(idx,:) = record_edp.max_accel.(dirs_ran{i})(end);   
             outputs.max_roof_accel_center(idx,:) = record_edp.max_accel_center.(dirs_ran{i})(end); 
         end
@@ -193,7 +194,7 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         outputs.max_roof_drift_center(idx,:) = story.(['max_disp_center_' dirs_ran{i}])(end) / sum(story.story_ht);
         outputs.max_drift(idx,:) = max(story.(['max_drift_' dirs_ran{i}]));
         outputs.residual_drift(idx,:) = story.(['residual_disp_' dirs_ran{i}])(end) / sum(story.story_ht);
-        outputs.max_base_shear(idx,:) = analysis.(dirs_ran{i}).pga;
+        outputs.max_base_shear(idx,:) = story.(['max_reaction_' dirs_ran{i}])(1);
         outputs.max_roof_accel(idx,:) = story.(['max_accel_' dirs_ran{i}])(end);
         outputs.max_roof_accel_center(idx,:) = story.(['max_accel_center_' dirs_ran{i}])(end);
     end

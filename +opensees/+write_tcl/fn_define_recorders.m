@@ -43,7 +43,7 @@ if analysis.type == 1
     end
     
     % Nodal Reaction Recorders
-    base_nodes = node.id(node.y == 0 & node.record_disp == 1);
+    base_nodes = node.id(node.y == 0);
     fprintf(fileID,'recorder Node %s %s/nodal_base_reaction_x.%s -time -node %s -dof 1 reaction \n', file_type, write_dir, file_ext, num2str(base_nodes'));
     if strcmp(dimension,'3D')
         fprintf(fileID,'recorder Node %s %s/nodal_base_reaction_z.%s -time -node %s -dof 3 reaction \n', file_type, write_dir, file_ext, num2str(base_nodes'));

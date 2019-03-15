@@ -30,7 +30,7 @@ ylim([min(node_2_use.z)-r_height*0.05,max(node_2_use.z)+r_height*0.05])
 % Plot Column Highlight
 c = hinge_2_use.a_ratio;
 caxis([0,1.2])
-scatter(node_2_use.x,node_2_use.z,400,c,'s','fiiled');
+scatter(node_2_use.x,node_2_use.z,400,c,'s','filled')
 colorbar
 set(gca,'FontSize',15)
 axis off
@@ -47,7 +47,7 @@ ylim([min(node_2_use.z)-r_height*0.05,max(node_2_use.z)+r_height*0.05])
 % Plot Column Highlight
 c = hinge_2_use.b_ratio;
 caxis([0,1.2])
-scatter(node_2_use.x,node_2_use.z,400,c,'s','fiiled');
+scatter(node_2_use.x,node_2_use.z,400,c,'s','filled')
 colorbar
 set(gca,'FontSize',15)
 axis off
@@ -64,7 +64,7 @@ ylim([min(node_2_use.z)-r_height*0.05,max(node_2_use.z)+r_height*0.05])
 % Plot Column Highlight
 c = hinge_2_use.V_ratio;
 caxis([0,1.2])
-scatter(node_2_use.x,node_2_use.z,400,c,'s','fiiled');
+scatter(node_2_use.x,node_2_use.z,400,c,'s','filled')
 colorbar
 axis off
 title('Max(V)/Vn')
