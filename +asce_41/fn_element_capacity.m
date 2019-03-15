@@ -15,6 +15,11 @@ if sum(strcmp('Pmax',ele.Properties.VariableNames)) == 0
     ele.Pmax = ele.P_grav;
 end
 
+ele.Mn_grav_pos_1 = NaN;
+ele.Mn_grav_pos_2 = NaN;
+ele.Mn_grav_neg_1 = NaN;
+ele.Mn_grav_neg_2 = NaN;
+
 %% Calc Axial Capacity
 % Axial Compression Capacity per ACI (use lower bound strength since assuming axial is force controlled)
 [ ~, ele.Pn_c, ~, ~ ] = fn_aci_axial_capacity( ele_prop.fc_n, ele_prop.a, ele_prop.As, ele_prop.fy_n );
@@ -109,12 +114,17 @@ for i = 1:2 % Calc properiteis on each side of the element
                 ele_TH.(['Mn_neg_linear_' num2str(i)]) = ele_TH.(['Mn_pos_linear_' num2str(i)]); % assumes columns are the same in both directions
                 % Moment Capcity
                 [~, ele.P_max_idx] = min(abs(load_history-ele.Pmax));
-                ele.(['Mn_pos_' num2str(i)]) = ele_TH.(['Mn_pos_' num2str(i)])(ele.P_max_idx); % Use Maximum axial from analysis
+                % Use Maximum axial from analysis to find capacity
+                ele.(['Mn_pos_' num2str(i)]) = ele_TH.(['Mn_pos_' num2str(i)])(ele.P_max_idx); 
                 ele.(['Mn_neg_' num2str(i)]) = ele_TH.(['Mn_neg_' num2str(i)])(ele.P_max_idx);
                 ele.(['Mn_oop_' num2str(i)]) = ele_TH.(['Mn_oop_' num2str(i)])(ele.P_max_idx);
                 ele.(['Mp_pos_' num2str(i)]) = ele_TH.(['Mp_pos_' num2str(i)])(ele.P_max_idx);
                 ele.(['Mp_neg_' num2str(i)]) = ele_TH.(['Mp_neg_' num2str(i)])(ele.P_max_idx);
                 ele.(['Mp_oop_' num2str(i)]) = ele_TH.(['Mp_oop_' num2str(i)])(ele.P_max_idx);
+                % Find moment capacity at gravity load
+                P_grav_idx = 1; % The very first step is the closest to the gravity load (could change this to explicityly calc at the exact grav load)
+                ele.(['Mn_grav_pos_' num2str(i)]) = ele_TH.(['Mn_pos_' num2str(i)])(P_grav_idx);
+                ele.(['Mn_grav_neg_' num2str(i)]) = ele_TH.(['Mn_neg_' num2str(i)])(P_grav_idx);
             else
                 [ ~, ele.(['Mn_pos_' num2str(i)]) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
                 [ ~, ele.(['Mn_neg_' num2str(i)]) ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
@@ -122,6 +132,8 @@ for i = 1:2 % Calc properiteis on each side of the element
                 [ ~, ele.(['Mp_pos_' num2str(i)]) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, 0, 0 );
                 [ ~, ele.(['Mp_neg_' num2str(i)]) ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e*1.15, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, 0, 0 );
                 [ ~, ele.(['Mp_oop_' num2str(i)]) ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e*1.15, ele_prop.h, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, 0, 0 );
+                ele.(['Mn_grav_pos_' num2str(i)]) = ele.(['Mn_pos_' num2str(i)]); 
+                ele.(['Mn_grav_neg_' num2str(i)]) = ele.(['Mn_neg_' num2str(i)]);
             end
         end
     end

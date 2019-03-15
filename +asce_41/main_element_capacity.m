@@ -119,8 +119,8 @@ for i =1:length(joint.id)
     beam_strength_1 = sum([beam_left.Mn_pos_2,beam_right.Mn_neg_1]); % case 1: 1 pos and 1 neg bending
     beam_strength_2 = sum([beam_left.Mn_neg_2,beam_right.Mn_pos_1]); % case 2: 1 pos and 1 neg bending the other way
     jnt.beam_strength = mean([beam_strength_1,beam_strength_2]); % Average of two cases
-    col_strength_1 = sum([column_low.Mn_pos_2,column_high.Mn_pos_1]); % case 1: positive bending for both columns
-    col_strength_2 = sum([column_low.Mn_neg_2,column_high.Mn_neg_1]); % case 2: negative bending for both columns
+    col_strength_1 = sum([column_low.Mn_grav_pos_2,column_high.Mn_grav_pos_1]); % case 1: positive bending for both columns
+    col_strength_2 = sum([column_low.Mn_grav_neg_2,column_high.Mn_grav_neg_1]); % case 2: negative bending for both columns
     jnt.column_strength = mean([col_strength_1,col_strength_2]); % Avearge of two cases
     jnt.col_bm_ratio = jnt.column_strength/jnt.beam_strength;
 

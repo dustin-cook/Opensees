@@ -281,6 +281,11 @@ for i = 1:length(dirs_ran)
                node.(['max_accel_' dirs_ran{i} '_abs'])(n) = NaN;
            end
        end
+       
+       % Base shear reactions
+       [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
+       story.(['base_shear_' dirs_ran{i} '_TH']) = sum(base_node_reactions(:,2:end),2)';
+       
    elseif analysis.type == 2 || analysis.type == 3 % Pushover Analysis or Cyclic
         for n = 1:height(node)
            if node.record_disp(n)
@@ -299,7 +304,8 @@ for i = 1:length(dirs_ran)
                node.(['residual_disp_' dirs_ran{i}])(n) = NaN;
            end       
         end
-       
+        
+        % Base shear reactions 
         [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
         analysis.(['base_shear_' dirs_ran{i}]) = abs(sum(base_node_reactions(:,2:end),2))';
    end
@@ -391,6 +397,7 @@ save([opensees_dir filesep 'joint_analysis.mat'],'joint')
 save([opensees_dir filesep 'node_analysis.mat'],'node')
 save([opensees_dir filesep 'hinge_analysis.mat'],'hinge')
 save([opensees_dir filesep 'story_analysis.mat'],'story')
+save([opensees_dir filesep 'analysis_options.mat'],'story')
 if analysis.type == 1 % Dynamic Analysis
     save([opensees_dir filesep 'gm_data.mat'],'eq','dirs_ran','ground_motion','eq_analysis_timespace','eq_analysis')
 elseif analysis.type == 2 % Pushover Analysis

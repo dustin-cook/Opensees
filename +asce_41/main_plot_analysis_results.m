@@ -68,7 +68,7 @@ if sum(analysis.type_list == 2) > 0 % Pushover was run as part of this proceedur
     
     if analysis.element_plots
         % Plot PM Diagrams for each element
-        fn_plot_PM_response( pushover_read_dir, pushover_read_dir, element, analysis.hinge_stories_2_plot )
+%         fn_plot_PM_response( pushover_read_dir, pushover_read_dir, element, analysis.hinge_stories_2_plot )
 
         % Plot Hinge Response
         if pushover_analysis.analysis.nonlinear ~= 0 && exist('backbones','var') % Is the pushover nonlinear?
@@ -193,7 +193,7 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         outputs.max_roof_drift_center(idx,:) = story.(['max_disp_center_' dirs_ran{i}])(end) / sum(story.story_ht);
         outputs.max_drift(idx,:) = max(story.(['max_drift_' dirs_ran{i}]));
         outputs.residual_drift(idx,:) = story.(['residual_disp_' dirs_ran{i}])(end) / sum(story.story_ht);
-        outputs.max_base_shear(idx,:) = ground_motion.(dirs_ran{i}).pga;
+        outputs.max_base_shear(idx,:) = analysis.(dirs_ran{i}).pga;
         outputs.max_roof_accel(idx,:) = story.(['max_accel_' dirs_ran{i}])(end);
         outputs.max_roof_accel_center(idx,:) = story.(['max_accel_center_' dirs_ran{i}])(end);
     end

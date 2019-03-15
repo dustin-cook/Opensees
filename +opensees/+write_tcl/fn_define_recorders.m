@@ -41,6 +41,13 @@ if analysis.type == 1
             end
         end
     end
+    
+    % Nodal Reaction Recorders
+    base_nodes = node.id(node.y == 0 & node.record_disp == 1);
+    fprintf(fileID,'recorder Node %s %s/nodal_base_reaction_x.%s -time -node %s -dof 1 reaction \n', file_type, write_dir, file_ext, num2str(base_nodes'));
+    if strcmp(dimension,'3D')
+        fprintf(fileID,'recorder Node %s %s/nodal_base_reaction_z.%s -time -node %s -dof 3 reaction \n', file_type, write_dir, file_ext, num2str(base_nodes'));
+    end
 
     % Define Element Recorders
     % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
