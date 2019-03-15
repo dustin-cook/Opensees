@@ -1,4 +1,4 @@
-function [ ] = fn_setup_analysis( write_dir, analysis, first_story_node, story )
+function [ ] = fn_setup_analysis( write_dir, model_dir, analysis, first_story_node, story )
 %UNTITLED9 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -13,7 +13,7 @@ fileID = fopen(file_name,'w');
 fprintf(fileID,'wipe \n');
 
 % Build Model and Analysis Parameters
-fprintf(fileID,'source %s/model.tcl \n', write_dir);
+fprintf(fileID,'source %s/model.tcl \n', model_dir);
 if analysis.run_eigen
     fprintf(fileID,'source %s/eigen.tcl \n', write_dir);
 end

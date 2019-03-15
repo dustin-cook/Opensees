@@ -24,7 +24,6 @@ joint = readtable([read_dir_model filesep 'joint.csv'],'ReadVariableNames',true)
 hinge = readtable([read_dir_model filesep 'hinge.csv'],'ReadVariableNames',true);
 
 %% Run Opensees
-
 % Define Number of Opensees runs to be performed
 pushover_directions = {'x', 'z'};
 if (analysis.type == 2 || analysis.type == 3) && strcmp(model.dimension,'3D') % 3D pushover or cyclic
