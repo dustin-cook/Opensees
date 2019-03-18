@@ -6,19 +6,18 @@ clc
 %% Assumptions
 % 1) 3D model
 
-
 %% Initial Setup
 % Define Model
 analysis.model_id = 6;
 analysis.proceedure = 'NDP';
-analysis.summit = 0;
+analysis.summit = 1;
 analysis.run_ida = 1;
 analysis.gm_set = 'FEMA_far_field';
 
 % IDA Inputs
 hazard.curve.rp = [43, 72, 224, 475, 975, 2475, 4975];
 hazard.curve.pga = [0.224, 0.308, 0.502, 0.635, 0.766, 0.946, 1.082];
-analysis.collapse_drift = 0.10;
+analysis.collapse_drift = 0.1;
 
 % Secondary options
 analysis.dead_load = 1;
@@ -40,6 +39,9 @@ model = model_table(model_table.id == analysis.model_id,:);
 % Import packages
 import plotting_tools.fn_format_and_save_plot
 
+% Set up Parallel Workers
+parpool;
+
 %% Define read and write directories
 model_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '/' 'model_data'];
 tcl_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '/' 'opensees_data'];
@@ -47,6 +49,8 @@ tcl_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '/' 'opensees_dat
 % Load in Model Tables
 node = readtable([model_dir filesep 'node.csv'],'readVariableNames',true);
 story = readtable([model_dir filesep 'story.csv'],'readVariableNames',true);
+hinge = readtable([model_dir filesep 'hinge.csv'],'readVariableNames',true);
+element = readtable([model_dir filesep 'element.csv'],'readVariableNames',true);
 
 % Load ground motion data
 gm_set_table = readtable(['ground_motions' filesep analysis.gm_set filesep 'ground_motion_set.csv'],'ReadVariableNames',true);
@@ -54,18 +58,15 @@ gm_median_pga = median(gm_set_table.pga);
 IDA_scale_factors = hazard.curve.pga ./ gm_median_pga;
 
 %% Run Opensees Model
-tic
 if analysis.run_ida
     for i = 1:length(IDA_scale_factors)
         scale_factor = IDA_scale_factors(i);
-        parfor gms = 1:height(gm_set_table)
-            pause(1)
-%             fn_main_IDA(analysis, model, story, node, gm_set_table, gms, scale_factor, tcl_dir)
+        for gms = 1:height(gm_set_table)
+            fn_main_IDA(analysis, model, story, element, node, hinge, gm_set_table, gms, scale_factor, tcl_dir)
             clc 
         end
     end
 end
-toc
 
 %% Plot Results
 plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '/' 'IDA' '/' 'IDA Plots'];
@@ -89,19 +90,26 @@ for i = 1:length(IDA_scale_factors)
     end
 end
 
-% Plot IDA curves
-for gms = 1:height(gm_set_table)
-    plot(ida.drift_x(strcmp(ida.gm,gm_set_table.eq_name{gms})),ida.sa_x(strcmp(ida.gm,gm_set_table.eq_name{gms})))
-    xlabel('Max Drift')
-    ylabel('Sa(T_1) (g)')
-    fn_format_and_save_plot( plot_dir, 'IDA Plot EW Frame Direction', 2 )
+% End Parallel Process
+delete(gcp('nocreate'))
 
-    plot(ida.drift_z(strcmp(ida.gm,gm_set_table.eq_name{gms})),ida.sa_z(strcmp(ida.gm,gm_set_table.eq_name{gms})))
-    xlabel('Max Drift')
-    ylabel('Sa(T_1) (g)')
-    fn_format_and_save_plot( plot_dir, 'IDA Plot NS Wall Direction', 2 )
+% Plot IDA curves
+hold on
+for gms = 1:height(gm_set_table)
+    plot(ida.drift_x(strcmp(ida.gm_name,gm_set_table.eq_name{gms})),ida.sa_x(strcmp(ida.gm_name,gm_set_table.eq_name{gms})))
 end
+xlabel('Max Drift')
+ylabel('Sa(T_1) (g)')
+fn_format_and_save_plot( plot_dir, 'IDA Plot EW Frame Direction', 2 )
+hold on
+for gms = 1:height(gm_set_table)
+    plot(ida.drift_z(strcmp(ida.gm_name,gm_set_table.eq_name{gms})),ida.sa_z(strcmp(ida.gm_name,gm_set_table.eq_name{gms})))
+end
+xlabel('Max Drift')
+ylabel('Sa(T_1) (g)')
+fn_format_and_save_plot( plot_dir, 'IDA Plot NS Wall Direction', 2 )
 
 % Save results as csv
 ida_table = struct2table(ida);
 writetable(ida_table,[plot_dir filesep 'ida_results.csv'])
+

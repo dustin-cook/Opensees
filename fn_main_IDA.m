@@ -1,4 +1,4 @@
-function [] = fn_main_IDA(analysis, model, story, node, gm_set_table, gm_idx, scale_factor, tcl_dir)
+function [] = fn_main_IDA(analysis, model, story, element, node, hinge, gm_set_table, gm_idx, scale_factor, tcl_dir)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -15,7 +15,6 @@ ground_motion.z.eq_dir = {['ground_motions' '/' analysis.gm_set '/' ground_motio
 ground_motion.z.eq_name = {[ground_motion.z.eq_name{1} '.tcl']};
 
 % Iteration Parameters
-summary.collapse = 0;
 analysis.ground_motion_scale_factor = scale_factor;
 outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '/' 'IDA' '/' 'Scale_' num2str(analysis.ground_motion_scale_factor) '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair)];
 mkdir(outputs_dir)
@@ -39,6 +38,16 @@ for n = 1:height(node)
         fprintf(fileID,'recorder Node -xml %s/nodal_disp_%s.xml -time -node %i -dof 1 3 disp\n',outputs_dir,num2str(node.id(n)),node.id(n));
    end
 end
+if analysis.nonlinear ~= 0 && ~isempty(hinge)
+    for i = 1:height(hinge)
+        hinge_y = node.y(node.id == hinge.node_1(i));
+        if hinge_y == 0 && strcmp(hinge.direction{i},'primary')
+            hinge_id = element.id(end) + hinge.id(i);
+%             fprintf(fileID,'recorder Element %s %s/hinge_force_%s.%s -time -ele %s -dof 1 3 4 6 force \n', file_type, write_dir, num2str(hinge_id), file_ext, num2str(hinge_id));
+            fprintf(fileID,'recorder Element -xml %s/hinge_deformation_%s.xml -time -ele %s deformation \n', outputs_dir, num2str(hinge_id), num2str(hinge_id));
+        end
+    end
+end
 fprintf(fileID,'puts "Defining Recorders Complete"\n');
 fclose(fileID);
 
@@ -59,18 +68,22 @@ end
 [status,cmdout] = system(command,'-echo');
 
 % test for analysis failure and terminate Matlab
-if status ~= 0
-    if contains(cmdout,'Analysis Failure: Convergence') || contains(cmdout,'Analysis Failure: Singularity')
-        warning('collapse or signularity')
-        summary.collapse = 1;
+% if status ~= 0
+    if contains(cmdout,'Analysis Failure: Collapse')
+        summary.collapse = 1; % Collapse triggered by drift limit
+    elseif contains(cmdout,'Analysis Failure: Convergence') || contains(cmdout,'Analysis Failure: Singularity')
+        summary.collapse = 2; % Collapse triggered by convergence or singularity issue
+    elseif status ~= 0
+        summary.collapse = 3; % Unexpected Opensees failure (shouldnt get here)
     else
-        error('Opensees Failed')
+        summary.collapse = 0;
     end
-end
+% end
 
 clear cmdout
 
 %% Post Process Data
+% Nodal displacements
 for n = 1:height(node)
     node_id = node.id(n);
        if node.record_disp(n)
@@ -81,6 +94,22 @@ for n = 1:height(node)
        end
        clear node_disp_raw
 end
+
+% Hinge Deformations
+if analysis.nonlinear ~= 0 && ~isempty(hinge)
+    for i = 1:height(hinge)
+        hinge_y = node.y(node.id == hinge.node_1(i));
+        if hinge_y == 0 && strcmp(hinge.direction{i},'primary')
+            hinge_id = element.id(end) + hinge.id(i);
+            [ hinge_deformation_TH ] = fn_xml_read([outputs_dir filesep 'hinge_deformation_' num2str(hinge_id) '.xml']);
+            hinge.max_deform(i) = max(abs(hinge_deformation_TH(:,2)));
+            clear hinge_deformation_TH
+        else
+            hinge.max_deform(i) = NaN;
+        end
+    end
+end
+save([outputs_dir filesep 'hinge_analysis.mat'],'hinge')
 
 % Calc Story Drift
 [ story.max_drift_x ] = fn_drift_profile( disp_TH, story, node, 'x' );
