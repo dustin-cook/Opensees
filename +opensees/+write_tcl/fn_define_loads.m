@@ -45,7 +45,9 @@ fprintf(fileID,'puts "Analysis Failure: Gravity Load Failure" \n');
 fprintf(fileID,'wipe \n');
 fprintf(fileID,'exit \n');
 fprintf(fileID,'} \n');
-fprintf(fileID,'puts "Gravity Load Complete" \n');
+if ~analysis.suppress_outputs
+    fprintf(fileID,'puts "Gravity Load Complete" \n');
+end
 fprintf(fileID,'loadConst -time 0.0 \n');
 
 %% Static Lateral Loading
@@ -89,19 +91,19 @@ if analysis.type == 1
     % pattern UniformExcitation $patternTag $dir -accel $tsTag <-vel0 $vel0> <-fact $cFactor>
     if isfield(ground_motion,'x')
         fprintf(fileID,'set dt %f \n',ground_motion.x.eq_dt);
-        fprintf(fileID,'puts "EQ X dt = $dt" \n');
+%         fprintf(fileID,'puts "EQ X dt = $dt" \n');
         fprintf(fileID,'timeSeries Path 1 -dt $dt -filePath %s/%s -factor %f \n', ground_motion.x.eq_dir{1}, ground_motion.x.eq_name{1}, scale_factor);
         fprintf(fileID,'pattern UniformExcitation 3 1 -accel 1 -fact %f \n',analysis.ground_motion_scale_factor); 
     end
     if isfield(ground_motion,'z')
         fprintf(fileID,'set dt %f \n',ground_motion.z.eq_dt);
-        fprintf(fileID,'puts "EQ Z dt = $dt" \n');
+%         fprintf(fileID,'puts "EQ Z dt = $dt" \n');
         fprintf(fileID,'timeSeries Path 2 -dt $dt -filePath %s/%s -factor %f \n', ground_motion.z.eq_dir{1}, ground_motion.z.eq_name{1}, scale_factor);
         fprintf(fileID,'pattern UniformExcitation 4 3 -accel 2 -fact %f \n',analysis.ground_motion_scale_factor); 
     end
     if isfield(ground_motion,'y')
         fprintf(fileID,'set dt %f \n',ground_motion.y.eq_dt);
-        fprintf(fileID,'puts "EQ Y dt = $dt" \n');
+%         fprintf(fileID,'puts "EQ Y dt = $dt" \n');
         fprintf(fileID,'timeSeries Path 3 -dt $dt -filePath %s/%s -factor %f \n', ground_motion.y.eq_dir{1}, ground_motion.y.eq_name{1}, scale_factor);
         fprintf(fileID,'pattern UniformExcitation 5 2 -accel 3 -fact %f \n',analysis.ground_motion_scale_factor); 
     end
@@ -109,7 +111,9 @@ end
 
 
 % Define Damping based on eigen modes
-fprintf(fileID,'puts "Running Eigen and Defining Damping" \n');
+if ~analysis.suppress_outputs
+    fprintf(fileID,'puts "Running Eigen and Defining Damping" \n');
+end
 if  strcmp(analysis.damping,'simple')
     fprintf(fileID,'set lambda [eigen -fullGenLapack 1] \n');
     fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
@@ -128,9 +132,9 @@ else
     fprintf(fileID,'	set omega($i) [expr sqrt($lam)]\n');
     fprintf(fileID,'	set period($i) [expr 2*$pi/sqrt($lam)]\n');
     fprintf(fileID,'}\n');
-    fprintf(fileID,'puts $period(1) \n');
-    fprintf(fileID,'puts $period(2) \n');
-    fprintf(fileID,'puts $period(3) \n');
+%     fprintf(fileID,'puts $period(1) \n');
+%     fprintf(fileID,'puts $period(2) \n');
+%     fprintf(fileID,'puts $period(3) \n');
     fprintf(fileID,'set zeta %f\n',analysis.damp_ratio);		% percentage of critical damping
     fprintf(fileID,'set a0 [expr $zeta*2.0*$omega(1)*$omega(2)/($omega(1) + $omega(2))]\n');	% mass damping coefficient based on first and third modes
     if analysis.nonlinear == 0
@@ -157,8 +161,9 @@ else
     end
 end
 
-
-fprintf(fileID,'puts "Define Load Complete" \n');
+if ~analysis.suppress_outputs
+    fprintf(fileID,'puts "Define Load Complete" \n');
+end
 
 %% Close File
 fclose(fileID);

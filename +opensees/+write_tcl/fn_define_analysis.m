@@ -17,6 +17,8 @@ fprintf(fileID,'set currentStep [getTime] \n');
 fprintf(fileID,'set ok 0 \n');
 
 %% Run the Analysis
+fprintf(fileID,'puts "Analyzing Model ..." \n');
+
 if analysis.type == 1 % Dynamic 
     % Set analysis timestep equal to the ground motion time step
     time_step = ground_motion.x.eq_dt; % Clean up to be not based on x?

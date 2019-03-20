@@ -47,7 +47,6 @@ if analysis.nonlinear ~= 0 && ~isempty(hinge)
         end
     end
 end
-fprintf(fileID,'puts "Defining Recorders Complete"\n');
 fclose(fileID);
 
 % Write Loads file
@@ -64,20 +63,19 @@ if analysis.summit
 else
     command = ['openseesSP ' outputs_dir filesep 'run_analysis.tcl'];
 end
-[status,cmdout] = system(command,'-echo');
+[status,cmdout] = system(command);
+% [status,cmdout] = system(command,'-echo');
 
 % test for analysis failure and terminate Matlab
-% if status ~= 0
-    if contains(cmdout,'Analysis Failure: Collapse')
-        summary.collapse = 1; % Collapse triggered by drift limit
-    elseif contains(cmdout,'Analysis Failure: Convergence') || contains(cmdout,'Analysis Failure: Singularity')
-        summary.collapse = 2; % Collapse triggered by convergence or singularity issue
-    elseif status ~= 0
-        summary.collapse = 3; % Unexpected Opensees failure (shouldnt get here)
-    else
-        summary.collapse = 0;
-    end
-% end
+if contains(cmdout,'Analysis Failure: Collapse')
+    summary.collapse = 1; % Collapse triggered by drift limit
+elseif contains(cmdout,'Analysis Failure: Convergence') || contains(cmdout,'Analysis Failure: Singularity')
+    summary.collapse = 2; % Collapse triggered by convergence or singularity issue
+elseif status ~= 0
+    summary.collapse = 3; % Unexpected Opensees failure (shouldnt get here)
+else
+    summary.collapse = 0;
+end
 
 clear cmdout
 

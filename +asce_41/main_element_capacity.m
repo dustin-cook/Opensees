@@ -37,7 +37,11 @@ for i = 1:length(element.id)
         save([write_dir filesep 'element_TH_' num2str(ele.id) '.mat'],'ele_TH')
         save([write_dir filesep 'element_PM_' num2str(ele.id) '.mat'],'ele_PM')
     end
-    disp([num2str(i), ' out of ', num2str(length(element.id)) ' elements complete' ])
+    
+    % Display Progress
+    if ~analysis.suppress_outputs
+        disp([num2str(i), ' out of ', num2str(length(element.id)) ' elements complete' ])
+    end
     
     %% Caculate required development length and make sure there is enough
     [ ele.pass_aci_dev_length, ele.ld_avail, ele.ld_req ] = fn_development_check( ele, ele_prop );

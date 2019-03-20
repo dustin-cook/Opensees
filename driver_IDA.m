@@ -31,6 +31,7 @@ analysis.hinge_stiff_mod = 10;
 analysis.run_eigen = 0;
 analysis.solution_algorithm = 1;
 analysis.initial_timestep_factor = 1;
+analysis.suppress_outputs = 1;
 
 % Load basic model data
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
@@ -63,16 +64,17 @@ if analysis.run_ida
     for i = 1:length(IDA_scale_factors)
         scale_factor = IDA_scale_factors(i);
         parfor gms = 1:height(gm_set_table)
-            disp(['Running Scale Factor of ' num2str(scale_factor) ' for Ground Motion ID: ' num2str(gm_set_table.set_id(gms)) '-' num2str(gm_set_table.pair(gms))])
-            pause(1)
-%             fn_main_IDA(analysis, model, story, element, node, hinge, gm_set_table, gms, scale_factor, tcl_dir)
+            % Suppress MATLAB warnings
+            warning('off','all')
+            
+            % Run Opensees
+            fprintf('Running Scale Factor %4.2f for Ground Motion ID: %i-%i \n\n', scale_factor, gm_set_table.set_id(gms), gm_set_table.pair(gms))
+            fn_main_IDA(analysis, model, story, element, node, hinge, gm_set_table, gms, scale_factor, tcl_dir)
+            fprintf('\n')
         end
     end
     toc
 end
-
-% End Parallel Process
-delete(gcp('nocreate'))
 
 %% Plot Results
 plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '/' 'IDA' '/' 'IDA Plots'];
@@ -115,4 +117,7 @@ fn_format_and_save_plot( plot_dir, 'IDA Plot NS Wall Direction', 2 )
 % Save results as csv
 ida_table = struct2table(ida);
 writetable(ida_table,[plot_dir filesep 'ida_results.csv'])
+
+%% End Parallel Process
+delete(gcp('nocreate'))
 

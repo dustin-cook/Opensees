@@ -534,7 +534,9 @@ end
 % Print model to file 
 % fprintf(fileID,'print -file %s/model.txt \n',output_dir);
 
-fprintf(fileID,'puts "Model Build Complete" \n');
+if ~analysis.suppress_outputs
+    fprintf(fileID,'puts "Model Build Complete" \n');
+end
 
 % Close File
 fclose(fileID);

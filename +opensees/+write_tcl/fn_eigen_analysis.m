@@ -15,7 +15,7 @@ end
 file_name = [write_dir filesep 'eigen.tcl'];
 fileID = fopen(file_name,'w');
 
-fprintf(fileID,'puts "Eigen Start" \n');
+fprintf(fileID,'puts "Running Eigen ..." \n');
 
 % Initail Setup
 % Eigen analysis - 10.4 from "Dynamics of Structures" book by Anil Chopra - using equalDOF and very high Ib
@@ -70,7 +70,9 @@ fprintf(fileID,'} \n');
 % Remove recorder
 fprintf(fileID,'remove recorders \n');
 
-fprintf(fileID,'puts "Eigen End" \n');
+if ~analysis.suppress_outputs
+    fprintf(fileID,'puts "Eigen Complete" \n');
+end
 
 % Close File
 fclose(fileID);

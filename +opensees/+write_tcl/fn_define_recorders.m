@@ -153,7 +153,9 @@ if analysis.play_movie
     fprintf(fileID,'display 1 5 %f \n',analysis.movie_scale);
 end
 
-fprintf(fileID,'puts "Defining Recorders Complete" \n');
+if ~analysis.suppress_outputs
+    fprintf(fileID,'puts "Defining Recorders Complete" \n');
+end
 
 % Close File
 fclose(fileID);

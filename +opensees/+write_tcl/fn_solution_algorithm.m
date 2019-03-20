@@ -47,7 +47,9 @@ for j = 1:length(cycle_leg_vec)
 % fprintf(fileID,'while {$ok == 0 && $currentStep < %f && $collapse_check == 0 && $singularity_check == 0} { \n',analysis_length);
 
 % Output current time progress
-fprintf(fileID,'puts "Progress: $currentStep out of %f" \n',analysis_length);
+if ~analysis.suppress_outputs
+    fprintf(fileID,'puts "Progress: $currentStep out of %f" \n',analysis_length);
+end
 
 % Run analysis step with basic props
 fprintf(fileID,'set tol %f \n', tolerance(1));
@@ -64,7 +66,7 @@ elseif analysis.type == 2 || analysis.type == 3 % Pushover or Cyclic
     fprintf(fileID,'integrator DisplacementControl %i %i $step_size \n', control_node, control_dof);
     fprintf(fileID,'set ok [analyze 1] \n');
 end
-fprintf(fileID,'puts "analysis failure = $ok " \n');
+% fprintf(fileID,'puts "analysis failure = $ok " \n');
 
 % Loop Through Tolerance
 for tol = 1:length(tolerance)
@@ -76,7 +78,7 @@ for tol = 1:length(tolerance)
 %         for a = 1:length(algorithm_typs)
             fprintf(fileID,'if {$ok != 0} { \n');
 %             fprintf(fileID,'puts "analysis failed, try try tolerance = %f, step_length/%f, and algorithm = %s" \n', tolerance(tol), step_reduction(t), algorithm_typs{1});
-            fprintf(fileID,'puts "analysis failed, try try tolerance = %f, step_length/%f" \n', tolerance(tol), step_reduction(t));
+%             fprintf(fileID,'puts "analysis failed, try try tolerance = %f, step_length/%f" \n', tolerance(tol), step_reduction(t));
             fprintf(fileID,'set tol %f \n', tolerance(tol));
             if tol <= 4
                 fprintf(fileID,'test NormDispIncr $tol %i \n', min_tolerance_steps);
@@ -115,13 +117,13 @@ fprintf(fileID,'if {$ok == 0} { \n');
 if analysis.type == 2 || analysis.type == 3 % Pushover or Cyclic
     fprintf(fileID,'set node_at_floor_1 %i \n', control_node);
     fprintf(fileID,'set floor_displ_1 "[nodeDisp $node_at_floor_1 %i]" \n',control_dof);
-    fprintf(fileID,'puts "Control Node Disp = $floor_displ_1" \n');
+%     fprintf(fileID,'puts "Control Node Disp = $floor_displ_1" \n');
     fprintf(fileID,'set height_floor_1 %f \n', story_ht(1));
     fprintf(fileID,'set floor_drift_1 [expr abs($floor_displ_1/$height_floor_1)] \n');
 elseif analysis.type == 1 % Dynamic
     fprintf(fileID,'set node_at_floor_1 %i \n', first_story_node(1));
     fprintf(fileID,'set floor_displ_1 "[nodeDisp $node_at_floor_1 1]" \n');
-    fprintf(fileID,'puts "First Story Disp = $floor_displ_1" \n');
+%     fprintf(fileID,'puts "First Story Disp = $floor_displ_1" \n');
     fprintf(fileID,'set height_floor_1 %f \n', story_ht(1));
     fprintf(fileID,'set floor_drift_1 [expr abs($floor_displ_1/$height_floor_1)] \n');
 end
