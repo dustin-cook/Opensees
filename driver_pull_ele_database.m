@@ -7,6 +7,7 @@ clc
 
 %% User inputs
 analysis_dir = ['outputs' filesep 'ICBS_model_3D_fixed' filesep 'NDP' filesep 'asce_41_data'];
+opensees_dir = ['outputs' filesep 'ICBS_model_3D_fixed' filesep 'NDP' filesep 'opensees_data'];
 
 %% Import Packages
 import asce_41.fn_define_backbone_rot
@@ -18,61 +19,68 @@ ele_props_table = readtable('inputs/element.csv','ReadVariableNames',true);
 load([analysis_dir filesep 'joint_analysis.mat'])
 load([analysis_dir filesep 'element_analysis.mat'])
 load([analysis_dir filesep 'story_analysis.mat'])
+load([analysis_dir filesep 'hinge_analysis.mat'])
 load(['ground_motions' filesep 'ICSB_recordings' filesep 'recorded_edp_profile.mat'])
 
 % Formulate Beam Table
 beams = ele_inputs(strcmp(ele_inputs.element_type,'beam'),:);
 for i = 1:height(beams)
+    hin_side = num2str(beams.hinge_side(i));
     ele = element(element.id == beams.id(i),:);
+    hin = hinge(hinge.element_id == ele.id & strcmp(hinge.direction,'primary') & hinge.ele_side == str2double(hin_side),:);
+    load([opensees_dir filesep 'hinge_TH_' num2str(hin.id)])
     if ~isempty(ele)
         this_story = story(story.id == ele.story,:);
         ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
         beams.ld_req(i) = ele.ld_req;
         beams.ld_avail{i} = ele.ld_avail;
         beams.rho_ratio(i) = (ele_props.row - ele_props.row_prime)/ele.row_bal;
-        beams.shear_stress_ratio(i) = ele.Vmax/(ele_props.w*ele_props.d*sqrt(ele_props.fc_e));
-        beams.shear_demand_ratio(i) = ele.Vmax/ele.Vn;
+        beams.shear_stress_ratio(i) = ele.Vmax/(ele_props.w*ele_props.d_eff*sqrt(ele_props.fc_e));
+        beams.shear_demand_ratio(i) = ele.Vmax/ele.(['Vn_' hin_side]);
         if strcmp(ele.trans_rein_check,'NC')
             beams.trans_rein(i) = 0;
         elseif strcmp(ele.trans_rein_check,'C')
             beams.trans_rein(i) = 1;
         end
-        beams.s(i) = ele_props.S;
+        beams.s(i) = ele_props.(['S_' hin_side]);
         beams.hinge_splices(i) = 0;
         beams.K0(i) = (1/1000)*6*ele_props.e*ele_props.iz/ele.length;
-        if strcmp(ele.(['rot_' num2str(beams.hinge_side(i)) '_dir']),'pos') % Assumes beam strength is same on each side of the beam
-            beams.Mn(i) = (1/1000)*ele.Mn_pos;
-            beams.Mp(i) = (1/1000)*ele.Mp_pos;
-        elseif strcmp(ele.(['rot_' num2str(beams.hinge_side(i)) '_dir']),'neg')
-            beams.Mn(i) = (1/1000)*ele.Mn_neg;
-            beams.Mp(i) = (1/1000)*ele.Mp_neg;
+        if abs(max(hin_TH.deformation_TH)) >= abs(min(hin_TH.deformation_TH))% Assumes beam strength is same on each side of the beam
+            beams.Mn(i) = (1/1000)*ele.(['Mn_pos_' hin_side]); % Positive Bendiong
+            beams.Mp(i) = (1/1000)*ele.(['Mp_pos_' hin_side]);
+        elseif abs(max(hin_TH.deformation_TH)) < abs(min(hin_TH.deformation_TH))
+            beams.Mn(i) = (1/1000)*ele.(['Mn_neg_' hin_side]); % Negative Bending
+            beams.Mp(i) = (1/1000)*ele.(['Mp_neg_' hin_side]);
         end
         if ele.pass_aci_dev_length == 0
             beams.condition(i) = 3;
-        elseif strcmp(ele.critical_mode,'shear')
+        elseif strcmp(ele.(['critical_mode_' hin_side]),'shear')
             beams.condition(i) = 2;
         else   
             beams.condition(i) = 1;
         end 
-        beams.max_element_rotation_or_drift(i) = ele.(['rot_' num2str(beams.hinge_side(i))]);
+        beams.max_element_rotation_or_drift(i) = max(abs(hin_TH.deformation_TH));
         beams.max_story_drift_analysis(i) = this_story.(['max_drift_' ele.direction{1}]); % Need to fix elment story drift read such that it does not come in as NaN
         beams.max_story_drift_record(i) = record_edp.max_disp.(ele.direction{1})(ele.story+1);
         beams.failure_mech_analysis{i} = 'Rotational Yeilding'; % Need to dynamically check this
         beams.failure_mech_recorded{i} = 'No Failure'; % hard coded from ICSB results
         beams.damage_image{i} = 'NA';
-        beams.a(i) = ele.a_hinge;
-        beams.b(i) = ele.b_hinge;
-        beams.c(i) = ele.c_hinge;
-        beams.io(i) = ele.io;
-        beams.ls(i) = ele.ls;
-        beams.cp(i) = ele.cp;
+        beams.a(i) = ele.(['a_hinge_' hin_side]);
+        beams.b(i) = ele.(['b_hinge_' hin_side]);
+        beams.c(i) = ele.(['c_hinge_' hin_side]);
+        beams.io(i) = ele.(['io_' hin_side]);
+        beams.ls(i) = ele.(['ls_' hin_side]);
+        beams.cp(i) = ele.(['cp_' hin_side]);
     end
 end
 
 % Formulate Column Table
 columns = ele_inputs(strcmp(ele_inputs.element_type,'column'),:);
 for i = 1:height(columns)
+    hin_side = num2str(columns.hinge_side(i));
     ele = element(element.id == columns.id(i),:);
+    hin = hinge(hinge.element_id == ele.id & strcmp(hinge.direction,'primary') & hinge.ele_side == str2double(hin_side),:);
+    load([opensees_dir filesep 'hinge_TH_' num2str(hin.id)])
     if ~isempty(ele)
         this_story = story(story.id == ele.story,:);
         ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
@@ -81,37 +89,37 @@ for i = 1:height(columns)
         columns.fyt_e(i) = (1/1000)*ele_props.fy_e; % Assume they are the same
         columns.max_axial_load_ratio(i) = ele.Pmax/(ele_props.a*ele_props.fc_e);
         columns.gravity_axial_load_ratio(i) = ele.P_grav/(ele_props.a*ele_props.fc_e);
-        columns.shear_flexure_yield_ratio(i) = ele.vye/ele.V0;
-        columns.shear_demand_ratio(i) = ele.Vmax/ele.V0;
+        columns.shear_flexure_yield_ratio(i) = ele.(['vye_' hin_side])/ele.(['V0_' hin_side]);
+        columns.shear_demand_ratio(i) = ele.Vmax/ele.(['V0_' hin_side]);
         min_d_b = min(str2double(strsplit(strrep(strrep(ele_props.d_b{1},']',''),'[',''))));
-        columns.shear_length_ratio(i) = ele_props.a/ele_props.d;
+        columns.shear_length_ratio(i) = ele_props.a/ele_props.d_eff;
         columns.rho_t(i) = ele.rho_t;
         columns.rho_l(i) = ele_props.row;
-        columns.s(i) = ele_props.S;
-        columns.s_db(i) = ele_props.S/min_d_b;
+        columns.s(i) = ele_props.(['S_' hin_side]);
+        columns.s_db(i) = ele_props.(['S_' hin_side])/min_d_b;
         columns.hoops_conform(i) = 1; % Assume the are anchored into the core based on 135 deg hooks
         columns.hinge_splices(i) = 0; % Plans say that splices are in center of column
         columns.K0(i) = 6*ele_props.e*ele_props.iz/ele.length*(1/1000);
-        columns.Mn(i) = ele.Mn_pos*(1/1000); % Assuming columns are the same in both directions (and have the same capacity top and bottom)
-        columns.Mp(i) = ele.Mp_pos*(1/1000);
+        columns.Mn(i) = ele.(['Mn_pos_' hin_side])*(1/1000); % Assuming columns are the same in both directions (and have the same capacity top and bottom)
+        columns.Mp(i) = ele.(['Mp_pos_' hin_side])*(1/1000);
         if ele.pass_aci_dev_length == 0
             columns.condition(i) = 2;
         else   
             columns.condition(i) = 1;
         end 
         columns.yield_rotation(i) = columns.Mn(i)/columns.K0(i);
-        columns.max_element_rotation_or_drift(i) = ele.(['rot_' num2str(columns.hinge_side(i))]);
+        columns.max_element_rotation_or_drift(i) = max(abs(hin_TH.deformation_TH));
         columns.max_story_drift_analysis(i) = this_story.(['max_drift_' ele.direction{1}]);
         columns.max_story_drift_record(i) = record_edp.max_disp.(ele.direction{1})(ele.story+1);
         columns.failure_mech_analysis{i} = 'ADD FAILURE MECH'; % Need to dynamically check this
         columns.failure_mech_recorded{i} = 'ADD FAILURE MECH'; % need to hard cod from ICSB documenta
         columns.damage_image{i} = ['Fig - ', columns.member_id{i}];
-        columns.a(i) = ele.a_hinge;
-        columns.b(i) = ele.b_hinge;
-        columns.c(i) = ele.c_hinge;
-        columns.io(i) = ele.io;
-        columns.ls(i) = ele.ls;
-        columns.cp(i) = ele.cp;
+        columns.a(i) = ele.(['a_hinge_' hin_side]);
+        columns.b(i) = ele.(['b_hinge_' hin_side]);
+        columns.c(i) = ele.(['c_hinge_' hin_side]);
+        columns.io(i) = ele.(['io_' hin_side]);
+        columns.ls(i) = ele.(['ls_' hin_side]);
+        columns.cp(i) = ele.(['cp_' hin_side]);
     end
 end
 
@@ -120,8 +128,6 @@ joints = ele_inputs(strcmp(ele_inputs.element_type,'joint'),:);
 joints.joint_id = [];
 for i = 1:height(joints)
     jnt = joint(joint.id == joints.id(i),:);
-%     ele = element(element.id == joints.id(i),:);
-%     ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
     if ~isempty(jnt)
         joints.axial_load_ratio(i) = jnt.Pmax/(jnt.a*jnt.fc_e);
         joints.shear_ratio(i) = jnt.Vmax/jnt.Vj;
@@ -152,6 +158,30 @@ for i = 1:height(joints)
         joints.io(i) = jnt.io;
         joints.ls(i) = jnt.ls;
         joints.cp(i) = jnt.cp;
+    else
+        ele_id = columns.id(strcmp(columns.joint_id,joints.member_id(i)));
+        ele = element(element.id == ele_id,:);
+        ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
+        joints.axial_load_ratio(i) = ele.Pmax/(ele_props.a*ele_props.fc_e);
+        joints.shear_ratio(i) = 0;
+        joints.scwb(i) = 0;
+        joints.trans_rein(i) = 1; % Not really a joint so its conforming
+        joints.K0(i) = inf;
+        joints.Mn(i) = inf;
+        joints.Mp(i) = inf;
+        joints.condition(i) = 1; % Dont think this matters
+        joints.max_element_rotation_or_drift(i) = 0; 
+        joints.max_story_drift_analysis(i) = 0; 
+        joints.max_story_drift_record(i) = NaN; 
+        joints.failure_mech_analysis{i} = 'No Failure'; 
+        joints.failure_mech_recorded{i} = 'No Failure';
+        joints.damage_image{i} = 'NA';
+        joints.a(i) = 0;
+        joints.b(i) = 0;
+        joints.c(i) = 0;
+        joints.io(i) = 0;
+        joints.ls(i) = 0;
+        joints.cp(i) = 0;
     end
 end
 

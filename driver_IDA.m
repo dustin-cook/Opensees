@@ -59,14 +59,20 @@ IDA_scale_factors = hazard.curve.pga ./ gm_median_pga;
 
 %% Run Opensees Model
 if analysis.run_ida
+    tic
     for i = 1:length(IDA_scale_factors)
         scale_factor = IDA_scale_factors(i);
-        for gms = 1:height(gm_set_table)
-            fn_main_IDA(analysis, model, story, element, node, hinge, gm_set_table, gms, scale_factor, tcl_dir)
-            clc 
+        parfor gms = 1:height(gm_set_table)
+            disp(['Running Scale Factor of ' num2str(scale_factor) ' for Ground Motion ID: ' num2str(gm_set_table.set_id(gms)) '-' num2str(gm_set_table.pair(gms))])
+            pause(1)
+%             fn_main_IDA(analysis, model, story, element, node, hinge, gm_set_table, gms, scale_factor, tcl_dir)
         end
     end
+    toc
 end
+
+% End Parallel Process
+delete(gcp('nocreate'))
 
 %% Plot Results
 plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '/' 'IDA' '/' 'IDA Plots'];
@@ -89,9 +95,6 @@ for i = 1:length(IDA_scale_factors)
         end
     end
 end
-
-% End Parallel Process
-delete(gcp('nocreate'))
 
 % Plot IDA curves
 hold on

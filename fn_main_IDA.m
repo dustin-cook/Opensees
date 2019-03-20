@@ -5,7 +5,6 @@ function [] = fn_main_IDA(analysis, model, story, element, node, hinge, gm_set_t
 import opensees.write_tcl.*
 import opensees.post_process.*
 
-
 % Defin gms for this run
 ground_motion.x = gm_set_table(gm_idx,:);
 ground_motion.x.eq_dir = {['ground_motions' '/' analysis.gm_set '/' ground_motion.x.eq_name{1}]};
