@@ -58,6 +58,7 @@ fn_setup_analysis( outputs_dir, tcl_dir, analysis, first_story_node, story )
 fn_define_analysis( outputs_dir, ground_motion, first_story_node, story.story_ht, analysis, story )
 
 % Call Opensees
+fprintf('Running Opensess... \n')
 if analysis.summit
     command = ['/projects/duco1061/software/OpenSeesSP/bin/OpenSeesSP ' outputs_dir filesep 'run_analysis.tcl'];
 else
@@ -69,17 +70,24 @@ end
 % test for analysis failure and terminate Matlab
 if contains(cmdout,'Analysis Failure: Collapse')
     summary.collapse = 1; % Collapse triggered by drift limit
+    fprintf('Model Reached Collapse Limit \n')
 elseif contains(cmdout,'Analysis Failure: Convergence') || contains(cmdout,'Analysis Failure: Singularity')
     summary.collapse = 2; % Collapse triggered by convergence or singularity issue
+    fprintf('Unexpected Opensees failure \n')
+    printf('Model Experienced a Convergence Failure (Treat as collapsed)')
 elseif status ~= 0
     summary.collapse = 3; % Unexpected Opensees failure (shouldnt get here)
+    fprintf('UNHANDLED OPENSEES FAILURE \n')
 else
     summary.collapse = 0;
+    fprintf('Model Ran Successfully \n')
 end
 
+fprintf('Opensees Completed \n')
 clear cmdout
 
 %% Post Process Data
+fprintf('Postprocessing Opensess Ouputs from Directory: %s \n',outputs_dir)
 % Nodal displacements
 for n = 1:height(node)
     node_id = node.id(n);
@@ -118,6 +126,7 @@ summary.max_drift_x = max(story.max_drift_x);
 summary.max_drift_z = max(story.max_drift_z);
 
 % Save data for this run
+fprintf('Writing IDA Results to Directory: %s \n',outputs_dir)
 save([outputs_dir filesep 'summary_results.mat'],'summary')
 save([outputs_dir filesep 'story_analysis.mat'],'story')
 

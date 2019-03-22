@@ -99,6 +99,7 @@ for i = 1:length(IDA_scale_factors)
 end
 
 % Plot IDA curves
+fprintf('Saving IDA Summary Data and Figures to Directory: %s',plot_dir)
 hold on
 for gms = 1:height(gm_set_table)
     plot(ida.drift_x(strcmp(ida.gm_name,gm_set_table.eq_name{gms})),ida.sa_x(strcmp(ida.gm_name,gm_set_table.eq_name{gms})))
