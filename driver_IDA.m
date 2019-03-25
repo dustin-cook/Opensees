@@ -15,8 +15,8 @@ analysis.run_ida = 1;
 analysis.gm_set = 'FEMA_far_field';
 
 % IDA Inputs
-hazard.curve.rp = [43, 72, 224, 475, 975, 2475, 4975];
-hazard.curve.pga = [0.224, 0.308, 0.502, 0.635, 0.766, 0.946, 1.082];
+hazard.curve.rp = 43;%[43, 72, 224, 475, 975, 2475, 4975];
+hazard.curve.pga = 0.224;%[0.224, 0.308, 0.502, 0.635, 0.766, 0.946, 1.082];
 analysis.collapse_drift = 0.1;
 
 % Secondary options
