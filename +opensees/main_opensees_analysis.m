@@ -68,6 +68,7 @@ for i = 1:num_OS_runs
         main_write_tcl( model.dimension, write_dir_opensees, node, element, story, joint, hinge, analysis, read_dir_analysis, ground_motion, hinge_grouping );
 
         % Run Opensees
+        fprintf('Running Opensees Analysis %i of %i',i,num_OS_runs)
         main_run_opensees( write_dir_opensees, analysis )
     end
 end

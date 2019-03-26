@@ -9,7 +9,11 @@ elseif analysis.opensees_SP
 else
     command = ['opensees ' opensees_dir filesep 'run_analysis.tcl'];
 end
-[status,cmdout] = system(command,'-echo');
+if analysis.suppress_outputs
+    [status,cmdout] = system(command);
+else
+    [status,cmdout] = system(command,'-echo');
+end
 
 % test for analysis failure and terminate Matlab
 if contains(cmdout,'Analysis Failure: Convergence') || contains(cmdout,'Analysis Failure: Singularity')
