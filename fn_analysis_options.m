@@ -15,7 +15,7 @@ function [ analysis ] = fn_analysis_options( analysis )
 analysis.run_opensees = 1; % 1 = Run opensees, 0 = use existing results
 analysis.asce_41_post_process = 1; % 1 = run asce 41 post process logic
 analysis.opensees_SP = 1; % 0 = Standard OpenSees; 1 = OpenseesSP
-analysis.skip_2_outputs =0; % Skip all the way to the plotters
+analysis.skip_2_outputs = 0; % Skip all the way to the plotters
 
 % Model Options
 analysis.stories_nonlinear = inf; % Default to all modeling all stories as nonlinear when doing NDP
@@ -40,11 +40,11 @@ analysis.filter_high_freq = 40;
 
 % Visuals and Graphics
 analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
-analysis.plot_recordings = 1; % Plot analysis results v recorded results
+analysis.plot_recordings = 0; % Plot analysis results v recorded results
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 1; % Visual scale of the movie playback
 analysis.hinge_stories_2_plot = 1;
-analysis.suppress_outputs = 0;
+analysis.suppress_outputs = 1;
 
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
@@ -97,8 +97,8 @@ elseif strcmp(analysis.proceedure,'NDP')
     analysis.dead_load_list = [1, 1, 1];
     analysis.live_load_list = [1, 1, 1];
     analysis.case_list = {'NA', 'backbones', 'NA'};
-    analysis.pushover_drift_list_x = [0.009, 0.0095, NaN]; % Drift limit where the pushover will go till
-    analysis.pushover_drift_list_z = [0.002 0.002, NaN];
+    analysis.pushover_drift_list_x = [0.009, 0.01, NaN]; % Drift limit where the pushover will go till
+    analysis.pushover_drift_list_z = [0.001 0.0015, NaN];
     analysis.accidental_torsion_list = [0, 0, 1];
     analysis.damp_ratio_list = [0.03, 0.03, 0.03]; % Analysis damping ratio
      

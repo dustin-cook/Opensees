@@ -100,7 +100,7 @@ for i = 1:length(element.id)
         end
     end
     for j = 1:length(comp_names)
-        element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH(:,comp_keys(j))';
+        element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH(1:(end-5),comp_keys(j))';
     end
     
     % Max Force for each element
@@ -286,7 +286,7 @@ for i = 1:length(dirs_ran)
                else
                    node_disp_raw = dlmread([opensees_dir filesep 'nodal_disp_' dirs_ran{i} '_' num2str(node.id(n)) '.txt'],' ')';
                end
-                   node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2,:); 
+                   node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2,1:(end-5)); 
                    node.(['max_disp_' dirs_ran{i}])(n) = max(abs(node_disp_raw(2,:)));
                    node.(['residual_disp_' dirs_ran{i}])(n) = NaN;
            else
@@ -303,7 +303,7 @@ for i = 1:length(dirs_ran)
    
    % Base shear reactions
    [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
-   story_TH.(['base_shear_' dirs_ran{i} '_TH']) = sum(base_node_reactions(:,2:end),2)';
+   story_TH.(['base_shear_' dirs_ran{i} '_TH']) = sum(base_node_reactions(1:(end-5),2:end),2)';
    story.(['max_reaction_' dirs_ran{i}])(1) = max(abs(story_TH.(['base_shear_' dirs_ran{i} '_TH'])));
    clear base_node_reactions
    
