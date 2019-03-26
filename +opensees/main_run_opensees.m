@@ -25,9 +25,9 @@ end
 if contains(cmdout,'Analysis Failure: Collapse')
     fprintf('Model Reached Collapse Limit \n')
 elseif contains(cmdout,'Analysis Failure: Convergence')
-    fprintf('Model Experienced a Convergence Failure')
+    fprintf('Model Experienced a Convergence Failure  \n')
 elseif contains(cmdout,'Analysis Failure: Singularity')
-    fprintf('Model Experienced a Singularity Failure')
+    fprintf('Model Experienced a Singularity Failure  \n')
 elseif status ~= 0 %(shouldnt get here)
     fprintf('UNEXPECTED OPENSEES FAILURE \n')
 else
