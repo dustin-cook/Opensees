@@ -3,11 +3,17 @@ function [ ] = main_run_opensees( opensees_dir, analysis )
 
 %% Run Opensees
 if analysis.summit
-    command = ['/projects/duco1061/software/OpenSeesSP/bin/OpenSeesSP ' opensees_dir filesep 'run_analysis.tcl'];
-elseif analysis.opensees_SP
-    command = ['openseesSP ' opensees_dir filesep 'run_analysis.tcl'];
+    if analysis.opensees_SP
+        command = ['/projects/duco1061/software/OpenSeesSP/bin/OpenSeesSP ' opensees_dir filesep 'run_analysis.tcl'];
+    else
+        command = ['/projects/duco1061/software/OpenSeesSP/bin/OpenSees ' opensees_dir filesep 'run_analysis.tcl'];
+    end
 else
-    command = ['opensees ' opensees_dir filesep 'run_analysis.tcl'];
+    if analysis.opensees_SP
+        command = ['openseesSP ' opensees_dir filesep 'run_analysis.tcl'];
+    else
+        command = ['opensees ' opensees_dir filesep 'run_analysis.tcl'];
+    end
 end
 if analysis.suppress_outputs
     [status,cmdout] = system(command);

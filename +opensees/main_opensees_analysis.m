@@ -77,10 +77,10 @@ end
 main_post_process_opensees( analysis, model, story, node, element, joint, hinge, ground_motion, write_dir_opensees )
 
 %% Write Summit Batch File
-if analysis.summit
-    write_dir_summit = [analysis.out_dir filesep 'summit'];
-    fn_make_directory( write_dir_summit )
-    fn_write_summit_batch_file( write_dir_summit, analysis.proceedure, model.name{1} )
-end
+% if analysis.summit
+%     write_dir_summit = [analysis.out_dir filesep 'summit'];
+%     fn_make_directory( write_dir_summit )
+%     fn_write_summit_batch_file( write_dir_summit, analysis.proceedure, model.name{1} )
+% end
 end
 
