@@ -14,7 +14,7 @@ function [ analysis ] = fn_analysis_options( analysis )
 % Run Options
 analysis.run_opensees = 1; % 1 = Run opensees, 0 = use existing results
 analysis.asce_41_post_process = 1; % 1 = run asce 41 post process logic
-analysis.opensees_SP = 0; % 0 = Standard OpenSees; 1 = OpenseesSP
+analysis.opensees_SP = 1; % 0 = Standard OpenSees; 1 = OpenseesSP
 analysis.skip_2_outputs =0; % Skip all the way to the plotters
 
 % Model Options
@@ -44,7 +44,7 @@ analysis.plot_recordings = 1; % Plot analysis results v recorded results
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 1; % Visual scale of the movie playback
 analysis.hinge_stories_2_plot = 1;
-analysis.suppress_outputs = 1;
+analysis.suppress_outputs = 0;
 
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
