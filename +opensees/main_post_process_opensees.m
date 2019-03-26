@@ -8,10 +8,10 @@ import file_exchange.fn_accel_filter
 
 % Make Ouput Directories 
 if analysis.type == 2 % Pushover Analysis
-    pushover_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure filesep 'pushover'];
+    pushover_dir = [analysis.out_dir filesep 'pushover'];
     fn_make_directory( pushover_dir )
 elseif analysis.type == 3 % Cyclic Analysis
-    cyclic_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure filesep 'cyclic'];
+    cyclic_dir = [analysis.out_dir filesep 'cyclic'];
     fn_make_directory( cyclic_dir )
 end
 
