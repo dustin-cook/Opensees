@@ -4,6 +4,7 @@ function [ ] = main_post_process_opensees( analysis, model, story, node, element
 %% Initial Setup
 % Import Packages
 import opensees.post_process.*
+import file_exchange.fn_accel_filter
 
 % Make Ouput Directories 
 if analysis.type == 2 % Pushover Analysis
@@ -16,15 +17,6 @@ end
 
 %% Load in Analysis data
 if analysis.type == 1 % dynamic analysis
-    % Load element force data
-    for i = 1:height(element)
-        if analysis.write_xml
-            [ element_force_recorders.(['ele_' num2str(element.id(i))]) ] = fn_xml_read([opensees_dir filesep 'element_force_' num2str(i) '.xml']);
-        else
-            element_force_recorders.(['ele_' num2str(element.id(i))]) = dlmread([opensees_dir filesep 'element_force_' num2str(i) '.txt'],' ');
-        end
-    end
-    
     % Load Hinge Data
     if analysis.nonlinear ~= 0
         hinge_groups = unique(hinge.group);
@@ -44,21 +36,6 @@ if analysis.type == 1 % dynamic analysis
         end
     end
 else % pushover analysis or Cyclic
-    % Load element force data
-    for i = 1:height(element)
-        if analysis.write_xml
-            [ element_force_recorders_x.(['ele_' num2str(element.id(i))]) ] = fn_xml_read([opensees_dir filesep 'element_force_x_' num2str(i) '.xml']);
-            if strcmp(model.dimension,'3D')
-                [ element_force_recorders_z.(['ele_' num2str(element.id(i))]) ] = fn_xml_read([opensees_dir filesep 'element_force_z_' num2str(i) '.xml']);
-            end
-        else
-            element_force_recorders_x.(['ele_' num2str(element.id(i))]) = dlmread([opensees_dir filesep 'element_force_x_' num2str(i) '.txt'],' ');
-            if strcmp(model.dimension,'3D')
-                element_force_recorders_z.(['ele_' num2str(element.id(i))]) = dlmread([opensees_dir filesep 'element_force_z_' num2str(i) '.txt'],' ');
-            end
-        end
-    end
-    
     % Hinges
     if analysis.nonlinear ~= 0
         hinge_groups = unique(hinge.group);
@@ -95,20 +72,31 @@ end
 
 %% Element Forces
 % Force component IDs
-comp_names = {'P_TH_1','V_TH_1','V_TH_oop','M_TH_1','M_TH_2'};
-num_comps = 5;
-comp_keys = [2,3,4,5,6];
+comp_names = {'P_TH','V_TH_1','V_TH_oop_1','M_TH_1','V_TH_2','V_TH_oop_2','M_TH_2'};
+comp_keys = [2,3,4,7,9,10,13];
 
 % Loop through elements and save data
 for i = 1:length(element.id)
     % Force Time Histories
     if analysis.type == 1 % dynamic analysis
-        ele_force_TH = element_force_recorders.(['ele_' num2str(element.id(i))]);
+        if analysis.write_xml
+            ele_force_TH = fn_xml_read([opensees_dir filesep 'element_force_' num2str(i) '.xml']);
+        else
+            ele_force_TH = dlmread([opensees_dir filesep 'element_force_' num2str(i) '.txt'],' ');
+        end
     else % pushover analysis
-        if strcmp(element.direction{i},'x')
-            ele_force_TH = element_force_recorders_x.(['ele_' num2str(element.id(i))]);
-        elseif strcmp(element.direction{i},'z')
-            ele_force_TH = element_force_recorders_z.(['ele_' num2str(element.id(i))]);
+        if analysis.write_xml
+            if strcmp(element.direction{i},'x')
+                ele_force_TH = fn_xml_read([opensees_dir filesep 'element_force_x_' num2str(i) '.xml']);
+            elseif strcmp(element.direction{i},'z')
+                ele_force_TH = fn_xml_read([opensees_dir filesep 'element_force_z_' num2str(i) '.xml']);
+            end
+        else
+            if strcmp(element.direction{i},'x')
+                ele_force_TH = dlmread([opensees_dir filesep 'element_force_x_' num2str(i) '.txt'],' ');
+            elseif strcmp(element.direction{i},'z')
+                ele_force_TH = dlmread([opensees_dir filesep 'element_force_z_' num2str(i) '.txt'],' ');
+            end
         end
     end
     for j = 1:length(comp_names)
@@ -116,12 +104,15 @@ for i = 1:length(element.id)
     end
     
     % Max Force for each element
-    element.P_grav(i) = ele_force_TH(1,1);
-    element.Pmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH_1));
-    element.Pmin(i) = min(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH_1));
-    element.Vmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_1));
-    element.Vmax_oop(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_oop));
-    element.Mmax(i) = max(abs([element_TH.(['ele_' num2str(element.id(i))]).M_TH_1,element_TH.(['ele_' num2str(element.id(i))]).M_TH_1]));
+    element.P_grav(i) = abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH(1));
+    element.Pmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH));
+    element.Pmin(i) = min(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH));
+    element.Vmax_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_1));
+    element.Vmax_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_2));
+    element.Vmax_oop_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_oop_1));
+    element.Vmax_oop_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_oop_2));
+    element.Mmax_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_1));
+    element.Mmax_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_2));
 end
   
 %% Save Element Time History
@@ -134,9 +125,7 @@ for i = 1:height(element)
 end
 
 % clear raw opesees data
-clear element_force_recorders
-clear element_force_recorders_x
-clear element_force_recorders_z
+clear ele_force_TH
 clear element_TH
 
 %% Load hinge moment and rotation
@@ -252,7 +241,8 @@ for i = 1:length(dirs_ran)
                    node_accel_raw = dlmread([opensees_dir filesep 'nodal_accel_' num2str(node.id(n)) '.txt'],' ')';
                end
                
-              % Scale EQ (linear interpolation) based on time step used
+              % Scale acceleration EQ (linear interpolation) based on
+              % uniform time step points
               eq_analysis = [];
               if ~isfield(eq_analysis,dirs_ran{i})
                    eq.(dirs_ran{i}) = load([ground_motion.(dirs_ran{i}).eq_dir{1} filesep ground_motion.(dirs_ran{i}).eq_name{1}]);
@@ -260,20 +250,25 @@ for i = 1:length(dirs_ran)
                    eq_dt = ground_motion.(dirs_ran{i}).eq_dt;
                    eq_timespace = linspace(eq_dt,eq_length*eq_dt,eq_length);
                    eq_analysis_timespace = node_accel_raw(1,:);
-                   eq_analysis.(dirs_ran{i}) = interp1(eq_timespace,eq.(dirs_ran{i}),eq_analysis_timespace)*analysis.ground_motion_scale_factor;
+                   if strcmp(dirs_ran{i},'x')
+                        node_accel_interp = interp1(eq_analysis_timespace,node_accel_raw(2,:),eq_timespace);
+                   else
+                       node_accel_interp = interp1(eq_analysis_timespace,node_accel_raw(3,:),eq_timespace);
+                   end
+                   eq_analysis.(dirs_ran{i}) = eq_timespace*analysis.ground_motion_scale_factor;
               end
            
-               if strcmp(dirs_ran{i},'x')
-                    node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_rel_TH']) = node_accel_raw(2,:)/386; % Convert to G  
-                    node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_abs_TH']) = node_accel_raw(2,:)/386 + eq_analysis.(dirs_ran{i});
-                    node.(['max_accel_' dirs_ran{i} '_rel'])(n) = max(abs(node_accel_raw(2,:)/386));
-                    node.(['max_accel_' dirs_ran{i} '_abs'])(n) = max(abs(node_accel_raw(2,:)/386 + eq_analysis.(dirs_ran{i})));
-               else
-                    node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_rel_TH']) = node_accel_raw(3,:)/386; % Convert to G
-                    node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_abs_TH']) = node_accel_raw(3,:)/386 + eq_analysis.(dirs_ran{i});
-                    node.(['max_accel_' dirs_ran{i} '_rel'])(n) = max(abs(node_accel_raw(3,:)/386));
-                    node.(['max_accel_' dirs_ran{i} '_abs'])(n) = max(abs(node_accel_raw(3,:)/386 + eq_analysis.(dirs_ran{i})));
-               end 
+              % Filter out High Frequency Noise
+              low_freq = 0; % hardcode to no high pass filter
+              [ node_accel_filtered ] = fn_fft_accel_filter( node_accel_interp, eq_dt, eq_timespace, analysis.filter_high_freq, low_freq );
+%               [ node_accel_filtered_temp ] = fn_accel_filter( node_accel_raw', 100, 5, 'low');
+%               node_accel_filtered = node_accel_filtered_temp';
+              
+              % compile nodal accels into fields
+              node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_rel_TH']) = node_accel_filtered/386; % Convert to G  
+              node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_abs_TH']) = node_accel_filtered/386 + eq_analysis.(dirs_ran{i});
+              node.(['max_accel_' dirs_ran{i} '_rel'])(n) = max(abs(node_accel_filtered/386));
+              node.(['max_accel_' dirs_ran{i} '_abs'])(n) = max(abs(node_accel_filtered/386 + eq_analysis.(dirs_ran{i})));
            else
                node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_rel_TH']) = [];
                node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_abs_TH']) = [];

@@ -33,9 +33,10 @@ analysis.collapse_drift = 0.20; % stop analysis at this drift and say collapse
 analysis.joint_model = 1; % 1 = beam/column elements, 2 = joint 3D
 analysis.joint_explicit = 0; % 0 = rigid, 1 = model joint nonlinearity (could automate this based on first assessment of joints)
 analysis.write_xml = 1; % Write and read opensees out files as xml files (0 = .txt files)
-analysis.pushover_num_steps = 100; % Number of steps a pushover will take to get to the dirft limit
+analysis.pushover_num_steps = 500; % Number of steps a pushover will take to get to the dirft limit
 analysis.cyclic_pushover_peak_drifts = [0.4, 0.5, 0.6]; % Percent of the final Pushover drift of each cycle
 analysis.hinge_group_length = 10;
+analysis.filter_high_freq = 40;
 
 % Visuals and Graphics
 analysis.element_plots = 1; % Plot hinge backnones and other per element visualizations
@@ -48,7 +49,7 @@ analysis.suppress_outputs = 1;
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
     analysis.type_list = [1];
-    analysis.nonlinear_list = [0];
+    analysis.nonlinear_list = [1];
     analysis.dead_load_list = [1];
     analysis.live_load_list = [1];
     analysis.case_list = {'NA'};
@@ -76,7 +77,7 @@ elseif strcmp(analysis.proceedure,'Pushover')
     analysis.live_load_list = [1, 1];
     analysis.case_list = {'NA', 'backbones'};
     analysis.pushover_drift_list_x = [0.009, 0.0095]; % Drift limit where the pushover will go till
-    analysis.pushover_drift_list_z = [0.003 0.003];
+    analysis.pushover_drift_list_z = [0.002, 0.002];
     analysis.accidental_torsion_list = [0, 0];
     analysis.damp_ratio_list = [0.03, 0.03]; % Analysis damping ratio
     
@@ -97,8 +98,8 @@ elseif strcmp(analysis.proceedure,'NDP')
     analysis.dead_load_list = [1, 1, 1];
     analysis.live_load_list = [1, 1, 1];
     analysis.case_list = {'NA', 'backbones', 'NA'};
-    analysis.pushover_drift_list_x = [0.005, 0.009, NaN]; % Drift limit where the pushover will go till
-    analysis.pushover_drift_list_z = [0.0025 0.003, NaN];
+    analysis.pushover_drift_list_x = [0.009, 0.0095, NaN]; % Drift limit where the pushover will go till
+    analysis.pushover_drift_list_z = [0.002 0.002, NaN];
     analysis.accidental_torsion_list = [0, 0, 1];
     analysis.damp_ratio_list = [0.03, 0.03, 0.03]; % Analysis damping ratio
      
@@ -107,12 +108,12 @@ elseif strcmp(analysis.proceedure,'NDP')
 %     analysis.nonlinear_list = [1 1];
 %     analysis.dead_load_list = [1 1];
 %     analysis.live_load_list = [1 1];
-%     analysis.case_list = {'backbones', 'NA'};
-%     analysis.pushover_drift_list_x = [0.01 NaN]; % Drift limit where the pushover will go till
-%     analysis.pushover_drift_list_z = [0.01 NaN];
+%     analysis.case_list = {'backbones' 'NA'};
+%     analysis.pushover_drift_list_x = [0.005 NaN]; % Drift limit where the pushover will go till
+%     analysis.pushover_drift_list_z = [0.002 NaN];
 %     analysis.accidental_torsion_list = [0 1];
 %     analysis.damp_ratio_list = [0.03 0.03]; % Analysis damping ratio
-    
+%     
 elseif strcmp(analysis.proceedure,'LDP') % Linear Test
     analysis.type_list = [1, 1]; % 1 = dynamic, 2 = pushover % 3 = static cyclic
     analysis.nonlinear_list = [0, 0]; % 0 = linear, 1 = IMK Rotational Hinge, 2 = strain hardening hinges

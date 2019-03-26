@@ -14,7 +14,6 @@ function [ ] = main_ASCE_41( analysis )
 import build_model.main_build_model
 import opensees.main_opensees_analysis
 import asce_41.main_ASCE_41_post_process
-import asce_41.main_plot_analysis_results
 import asce_41.main_combine_load_case
 
 %% Begin Method

@@ -28,11 +28,11 @@ import asce_41.*
 if sum(strcmp('Pmax',ele.Properties.VariableNames)) == 0
     ele.Pmax = 0;
 end
-if sum(strcmp('Vmax',ele.Properties.VariableNames)) == 0
-    ele.Vmax = 0;
+if sum(strcmp(['Vmax_' num2str(ele_side)],ele.Properties.VariableNames)) == 0
+    ele.(['Vmax_' num2str(ele_side)]) = 0;
 end
-if sum(strcmp('Vmax_oop',ele.Properties.VariableNames)) == 0
-    ele.Vmax_oop = 0;
+if sum(strcmp(['Vmax_oop_' num2str(ele_side)],ele.Properties.VariableNames)) == 0
+    ele.(['Vmax_oop_' num2str(ele_side)]) = 0;
 end
 
 % Defined Critical Model
@@ -59,9 +59,9 @@ if strcmp(critical_mode,'flexure')
 
     %% Filter table based on V ratio
     if oop_tag
-        v_ratio = ele.Vmax_oop / (ele_props.w*ele_props.h*sqrt(ele_props.fc_e));
+        v_ratio = ele.(['Vmax_oop_' num2str(ele_side)]) / (ele_props.w*ele_props.h*sqrt(ele_props.fc_e));
     else
-        v_ratio = ele.Vmax / (ele_props.w*ele_props.h*sqrt(ele_props.fc_e));
+        v_ratio = ele.(['Vmax_' num2str(ele_side)]) / (ele_props.w*ele_props.h*sqrt(ele_props.fc_e));
     end
     [ hinge_filt ] = fn_filter_asce41_table( hinge_filt, v_ratio, 'v_ratio', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
 

@@ -76,7 +76,7 @@ end
 %% Walls do not yeild
 if strcmp(analysis.proceedure,'NDP') && analysis.type == 1 && analysis.nonlinear == 1
     walls = element(strcmp(element.type,'wall'),:);
-    wall_shear_ratio = walls.Vmax ./ (walls.f_hinge_1 .* walls.Vn_1);
+    wall_shear_ratio = walls.Vmax_1 ./ (walls.f_hinge_1 .* walls.Vn_1);
     fprintf(fileID,'Max Wall Shear Ratio =  %f of first yield (f-value)\n',max(wall_shear_ratio));
 end
 

@@ -29,14 +29,14 @@ ele.Mn_grav_neg_2 = NaN;
 
 % Axial Capacity Time History
 if ~isempty(ele_TH)
-    for i = 1:length(ele_TH.P_TH_1)
+    for i = 1:length(ele_TH.P_TH)
         % Axial Capacity
-        if ele_TH.P_TH_1(i) >= 0 
+        if ele_TH.P_TH(i) >= 0 
             ele_TH.Pn(i) = ele.Pn_c; % Compressive Capacity is the same for each timestep
-            [ ele_TH.P_TH_linear(i) ] = fn_force_controlled_action( ele_TH.P_TH_1(i), ele.P_grav, 'cp', 'high', 1, 1 ); % Use force controlled axial loads for linear procedures
+            [ ele_TH.P_TH_linear(i) ] = fn_force_controlled_action( ele_TH.P_TH(i), ele.P_grav, 'cp', 'high', 1, 1 ); % Use force controlled axial loads for linear procedures
         else
             ele_TH.Pn(i) = ele.Pn_t; % Tensile Capacity is the same for each timestep
-            ele_TH.P_TH_linear(i) = ele_TH.P_TH_1(i); % Tensile Capacity for linear procedures is not force controlled
+            ele_TH.P_TH_linear(i) = ele_TH.P_TH(i); % Tensile Capacity for linear procedures is not force controlled
         end
     end
 end
@@ -72,12 +72,12 @@ for i = 1:2 % Calc properiteis on each side of the element
             [ ~, ele.(['Mp_oop_' num2str(i)]) ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e*1.15, ele_prop.h, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e*1.15, ele_prop.Es, 0, 0, 0 );
             % Moment Capacity Time History
             if ~isempty(ele_TH)
-                ele_TH.(['Mn_pos_' num2str(i)]) = ones(1,length(ele_TH.P_TH_1))*ele.(['Mn_pos_' num2str(i)]);
-                ele_TH.(['Mn_neg_' num2str(i)]) = ones(1,length(ele_TH.P_TH_1))*ele.(['Mn_neg_' num2str(i)]);
-                ele_TH.(['Mn_oop_' num2str(i)]) = ones(1,length(ele_TH.P_TH_1))*ele.(['Mn_oop_' num2str(i)]);
-                ele_TH.(['Mp_pos_' num2str(i)]) = ones(1,length(ele_TH.P_TH_1))*ele.(['Mp_pos_' num2str(i)]);
-                ele_TH.(['Mp_neg_' num2str(i)]) = ones(1,length(ele_TH.P_TH_1))*ele.(['Mp_neg_' num2str(i)]);
-                ele_TH.(['Mp_oop_' num2str(i)]) = ones(1,length(ele_TH.P_TH_1))*ele.(['Mp_oop_' num2str(i)]);
+                ele_TH.(['Mn_pos_' num2str(i)]) = ones(1,length(ele_TH.P_TH))*ele.(['Mn_pos_' num2str(i)]);
+                ele_TH.(['Mn_neg_' num2str(i)]) = ones(1,length(ele_TH.P_TH))*ele.(['Mn_neg_' num2str(i)]);
+                ele_TH.(['Mn_oop_' num2str(i)]) = ones(1,length(ele_TH.P_TH))*ele.(['Mn_oop_' num2str(i)]);
+                ele_TH.(['Mp_pos_' num2str(i)]) = ones(1,length(ele_TH.P_TH))*ele.(['Mp_pos_' num2str(i)]);
+                ele_TH.(['Mp_neg_' num2str(i)]) = ones(1,length(ele_TH.P_TH))*ele.(['Mp_neg_' num2str(i)]);
+                ele_TH.(['Mp_oop_' num2str(i)]) = ones(1,length(ele_TH.P_TH))*ele.(['Mp_oop_' num2str(i)]);
                 ele_TH.(['Mn_pos_linear_' num2str(i)]) = ele_TH.(['Mn_pos_' num2str(i)]);
                 ele_TH.(['Mn_neg_linear_' num2str(i)]) = ele_TH.(['Mn_neg_' num2str(i)]);
                 ele.P_max_idx = 0;
@@ -96,7 +96,7 @@ for i = 1:2 % Calc properiteis on each side of the element
                 ele_PM.(['vector_P_' num2str(i)]) = [-ele.Pn_t, vector_P, ele.Pn_c];
                 ele_PM.(['vector_M_' num2str(i)]) = [0, vector_M, 0];
                 % Moment Capacity Time History
-                load_history = ele_TH.P_TH_1;
+                load_history = ele_TH.P_TH;
                 load_history(load_history > max(vector_P)) = max(vector_P); % Keep the axial load history within the bounds of the PM diagram so that we don't get NaNs with the interp
                 load_history(load_history < min(vector_P)) = min(vector_P); % This shouldn't really matter unless I load a linear model too heavily
 
@@ -178,7 +178,7 @@ for i = 1:2 % Calc properiteis on each side of the element
     % shear capacity depends on Axial load for columns (through ductility
     % factor)) However, only used to calculate dcrs for linear analysis.
     if ~isempty(ele_TH)
-        ele_TH.(['Vn_' num2str(i)]) = ones(1,length(ele_TH.P_TH_1))*ele.(['Vn_' num2str(i)]);
+        ele_TH.(['Vn_' num2str(i)]) = ones(1,length(ele_TH.P_TH))*ele.(['Vn_' num2str(i)]);
     end
 
     %% Perform Checks
