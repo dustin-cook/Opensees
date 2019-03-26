@@ -15,7 +15,7 @@ function [ analysis ] = fn_analysis_options( analysis )
 analysis.run_opensees = 1; % 1 = Run opensees, 0 = use existing results
 analysis.asce_41_post_process = 1; % 1 = run asce 41 post process logic
 analysis.opensees_SP = 1; % 0 = Standard OpenSees; 1 = OpenseesSP
-analysis.skip_2_outputs = 0; % Skip all the way to the plotters
+analysis.skip_2_outputs =0; % Skip all the way to the plotters
 
 % Model Options
 analysis.stories_nonlinear = inf; % Default to all modeling all stories as nonlinear when doing NDP
@@ -75,8 +75,8 @@ elseif strcmp(analysis.proceedure,'Pushover')
     analysis.dead_load_list = [1, 1];
     analysis.live_load_list = [1, 1];
     analysis.case_list = {'NA', 'backbones'};
-    analysis.pushover_drift_list_x = [0.001, 0.011]; % Drift limit where the pushover will go till
-    analysis.pushover_drift_list_z = [0.00165, 0.00175];
+    analysis.pushover_drift_list_x = [0.008, 0.015]; % Drift limit where the pushover will go till
+    analysis.pushover_drift_list_z = [0.0014, 0.0015];
     analysis.accidental_torsion_list = [0, 0];
     analysis.damp_ratio_list = [0.03, 0.03]; % Analysis damping ratio
     

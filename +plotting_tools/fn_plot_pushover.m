@@ -40,7 +40,7 @@ fn_format_and_save_plot( plot_dir, plot_name, 2 )
 hold on
 for i = 1:height(control_nodes)
     story_node = control_nodes(i,:);
-    load([read_dir filesep 'node_TH_' num2str(roof_node.id) '.mat'])
+    load([read_dir filesep 'node_TH_' num2str(story_node.id) '.mat'])
     story_disp(i,:) = nd_TH.(['disp_' direction '_TH']);
     if i == 1
         rel_story_disp = story_disp;
