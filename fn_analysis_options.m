@@ -39,8 +39,8 @@ analysis.hinge_group_length = 10;
 analysis.filter_high_freq = 40;
 
 % Visuals and Graphics
-analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
-analysis.plot_recordings = 0; % Plot analysis results v recorded results
+analysis.element_plots = 1; % Plot hinge backnones and other per element visualizations
+analysis.plot_recordings = 1; % Plot analysis results v recorded results
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 1; % Visual scale of the movie playback
 analysis.hinge_stories_2_plot = 1;
@@ -75,7 +75,7 @@ elseif strcmp(analysis.proceedure,'Pushover')
     analysis.dead_load_list = [1, 1];
     analysis.live_load_list = [1, 1];
     analysis.case_list = {'NA', 'backbones'};
-    analysis.pushover_drift_list_x = [0.011, 0.011]; % Drift limit where the pushover will go till
+    analysis.pushover_drift_list_x = [0.008, 0.011]; % Drift limit where the pushover will go till
     analysis.pushover_drift_list_z = [0.0014 0.0014];
     analysis.accidental_torsion_list = [0, 0];
     analysis.damp_ratio_list = [0.03, 0.03]; % Analysis damping ratio
@@ -97,8 +97,8 @@ elseif strcmp(analysis.proceedure,'NDP')
     analysis.dead_load_list = [1, 1, 1];
     analysis.live_load_list = [1, 1, 1];
     analysis.case_list = {'NA', 'backbones', 'NA'};
-    analysis.pushover_drift_list_x = [0.009, 0.01, NaN]; % Drift limit where the pushover will go till
-    analysis.pushover_drift_list_z = [0.001 0.0015, NaN];
+    analysis.pushover_drift_list_x = [0.008, 0.011, NaN]; % Drift limit where the pushover will go till
+    analysis.pushover_drift_list_z = [0.0014, 0.0014, NaN];
     analysis.accidental_torsion_list = [0, 0, 1];
     analysis.damp_ratio_list = [0.03, 0.03, 0.03]; % Analysis damping ratio
      

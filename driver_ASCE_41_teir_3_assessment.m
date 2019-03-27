@@ -17,7 +17,7 @@ fclose('all');
 
 %% User Inputs (Think about changing this to a file read and command line execution)
 analysis.model_id = 11;
-analysis.proceedure = 'Pushover'; % LDP or NDP or test
+analysis.proceedure = 'NDP'; % LDP or NDP or test
 analysis.id = 1; % ID of the analysis for it to create its own directory
 analysis.summit = 1; % Writetcl files to be run on summit and change location of opensees call
 
