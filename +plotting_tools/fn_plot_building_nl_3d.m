@@ -1,36 +1,21 @@
-function [ ] = fn_plot_building_nl_3d( hinge, element, node, plot_name, plot_dir, elevation )
+function [ ] = fn_plot_building_nl_3d( hinge, element, node, plot_name, plot_dir, direction, x_start, x_end, z_start, z_end )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
 %% Import Packages
 import plotting_tools.*
 
-% Pick Elavation Coordinates
-if strcmp(elevation,'ext_frame')
-    x_min = 71;
-    x_max = 1571;
-    z_start = 0;
-    z_end = 0;
+if strcmp(direction,'x')
     type_filter = ~strcmp(element.type,'wall');
-elseif strcmp(elevation,'int_frame')
-    x_min = 71;
-    x_max = 1571;
-    z_start = 300;
-    z_end = 300;
-    type_filter = ~strcmp(element.type,'wall');
-elseif strcmp(elevation,'east_wall')
-    x_min = 1271;
-    x_max = 2000;
-    z_start = 0;
-    z_end = 900;
+elseif strcmp(direction,'z')
     type_filter = strcmp(element.type,'wall');
 end
 
 % Filter Elements
 count = 0;
 for i = 1:length(element.id)
-    if (node.z(node.id == element.node_1(i)) >= z_start) && (node.z(node.id == element.node_1(i)) <= z_end) &&(node.x(node.id == element.node_1(i)) >= x_min) && (node.x(node.id == element.node_1(i)) <= x_max)
-        if (node.z(node.id == element.node_2(i)) >= z_start) && (node.z(node.id == element.node_2(i)) <= z_end) && (node.x(node.id == element.node_2(i)) >= x_min) && (node.x(node.id == element.node_2(i)) <= x_max)
+    if (node.z(node.id == element.node_1(i)) >= z_start) && (node.z(node.id == element.node_1(i)) <= z_end) &&(node.x(node.id == element.node_1(i)) >= x_start) && (node.x(node.id == element.node_1(i)) <= x_end)
+        if (node.z(node.id == element.node_2(i)) >= z_start) && (node.z(node.id == element.node_2(i)) <= z_end) && (node.x(node.id == element.node_2(i)) >= x_start) && (node.x(node.id == element.node_2(i)) <= x_end)
             if type_filter(i)
                 count = count + 1;
                 ele(count,:) = element(i,:);
@@ -59,9 +44,9 @@ t = ele_new.node_2;
 G = graph(s,t);
 
 % Plot Graph
-if strcmp(elevation,'east_wall')
+if strcmp(direction,'z')
     x = new_node.z;
-else
+elseif strcmp(direction,'x')
     x = new_node.x;
 end
 y = new_node.y;

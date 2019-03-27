@@ -17,6 +17,9 @@ import plotting_tools.fn_plot_response_history
 % Define plot directory
 rh_plot_dir = [plot_dir filesep 'Response History Plots'];
 
+% Define EQ timespace
+eq_timespace = eq_dt:eq_dt:(eq_dt*length(eq));
+
 %% Begin Method
 % Plot recorded vs analysis signals
 disp_tag = ['disp_' direction '_TH'];
@@ -43,15 +46,15 @@ if exist('record_edp','var')
     roof_center_id_TH = load([read_dir_opensees filesep 'node_TH_' num2str(node_roof_center_id) '.mat']);
 
     fn_plot_response_history( ground_id_TH.nd_TH.(disp_tag), eq_analysis_timespace, eq, eq_dt, rh_plot_dir, ['Ground Displacement ' direction ' (in)'], 30, record_edp.disp_TH_ground.(direction)  )
-    fn_plot_response_history( ground_id_TH.nd_TH.(accel_tag), eq_analysis_timespace, eq, eq_dt, rh_plot_dir, ['Ground Acceleration ' direction ' (g)'], 30, record_edp.accel_TH_ground.(direction) )
+    fn_plot_response_history( ground_id_TH.nd_TH.(accel_tag), eq_timespace, eq, eq_dt, rh_plot_dir, ['Ground Acceleration ' direction ' (g)'], 30, record_edp.accel_TH_ground.(direction) )
     fn_plot_response_history( second_center_id_TH.nd_TH.(disp_tag), eq_analysis_timespace, eq, eq_dt, rh_plot_dir, ['Second Floor Displacement Center ' direction ' (in)'], 30, record_edp.disp_TH_second.(direction) )
-    fn_plot_response_history( second_center_id_TH.nd_TH.(accel_tag), eq_analysis_timespace, eq, eq_dt, rh_plot_dir, ['Second Floor Acceleration Center ' direction ' (g)'], 30, record_edp.accel_TH_second.(direction) )
+    fn_plot_response_history( second_center_id_TH.nd_TH.(accel_tag), eq_timespace, eq, eq_dt, rh_plot_dir, ['Second Floor Acceleration Center ' direction ' (g)'], 30, record_edp.accel_TH_second.(direction) )
     fn_plot_response_history( roof_center_id_TH.nd_TH.(disp_tag), eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Displacement Center ' direction ' (in)'], 30, record_edp.disp_TH_roof.(direction) )
     fn_plot_response_history( roof_center_id_TH.nd_TH.(disp_tag)/roof_ht, eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Drift Center ' direction ' (in)'], 30, record_edp.disp_TH_roof.(direction)/roof_ht )
-    fn_plot_response_history( roof_center_id_TH.nd_TH.(accel_tag), eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Acceleration Center ' direction ' (g)'], 30, record_edp.accel_TH_roof.(direction))
+    fn_plot_response_history( roof_center_id_TH.nd_TH.(accel_tag), eq_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Acceleration Center ' direction ' (g)'], 30, record_edp.accel_TH_roof.(direction))
     if strcmp(direction,'z')
         fn_plot_response_history( roof_east_id_TH.nd_TH.(disp_tag), eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Displacement East ' direction ' (in)'], 30, record_edp.disp_TH_roof_east.(direction) )
-        fn_plot_response_history( roof_east_id_TH.nd_TH.(accel_tag), eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Acceleration East ' direction ' (g)'], 30, record_edp.accel_TH_roof_east.(direction) )
+        fn_plot_response_history( roof_east_id_TH.nd_TH.(accel_tag), eq_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Acceleration East ' direction ' (g)'], 30, record_edp.accel_TH_roof_east.(direction) )
         % Torsional Response
         relative_torsional_displacement = roof_east_id_TH.nd_TH.disp_z_TH - roof_center_id_TH.nd_TH.disp_z_TH;
         record_torsional_displacement = record_edp.disp_TH_roof_east.z - record_edp.disp_TH_roof.z;
@@ -69,7 +72,7 @@ else
     roof_center_id_TH = load([read_dir_opensees filesep 'node_TH_' num2str(node_roof_center_id) '.mat']);
     fn_plot_response_history( roof_center_id_TH.nd_TH.(disp_tag), eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Displacement Center ' direction ' (in)'], 30 )
     fn_plot_response_history( roof_center_id_TH.nd_TH.(disp_tag)/roof_ht, eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Drift Center ' direction], 30 )
-    fn_plot_response_history( roof_center_id_TH.nd_TH.(accel_tag), eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Acceleration Center ' direction ' (g)'], 30 )
+    fn_plot_response_history( roof_center_id_TH.nd_TH.(accel_tag), eq_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Acceleration Center ' direction ' (g)'], 30 )
 end
 
 %% Node time history comparison check (set up as sperate checker function

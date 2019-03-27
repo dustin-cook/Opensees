@@ -20,7 +20,8 @@ for s = 1:height(story)
     ele_story = element(element.story == story.id(s),:); 
     % Elements of one type
     ele = ele_story(strcmp(ele_story.type,ele_type),:);
-    hins = hinge(ismember(hinge.element_id,ele.id),:);
+    ele2use = ele(ele.length >= 100,:); % Omit the nubs on the end of the frame (improve the way I am doing this)
+    hins = hinge(ismember(hinge.element_id,ele2use.id),:);
 
     % Primary Direction
     prim_hin = hins(strcmp(hins.direction,'primary'),:);
@@ -79,7 +80,7 @@ if strcmp(ele_type,'wall') && strcmp(direction,'primary')
     scatter(side_2_id(side_2.damage_recorded == 2),side_2.d_ratio(side_2.damage_recorded == 2), 'd', 'filled', 'MarkerEdgeColor', 'r', 'MarkerFaceColor', 'r' )
     scatter(side_2_id(side_2.damage_recorded == 1),side_2.d_ratio(side_2.damage_recorded == 1), 'd', 'filled', 'MarkerEdgeColor', 'y', 'MarkerFaceColor', 'y' )
     scatter(side_2_id(side_2.damage_recorded == 0),side_2.d_ratio(side_2.damage_recorded == 0), 'd', 'filled', 'MarkerEdgeColor', 'b', 'MarkerFaceColor', 'b' )
-    ylabel('Max(\Delta_shear)/"d"')
+    ylabel('Max(\Delta)/"d"')
 else
     scatter(side_1_id(side_1.damage_recorded == 2),side_1.a_ratio(side_1.damage_recorded == 2), 'o', 'filled', 'MarkerEdgeColor', 'r', 'MarkerFaceColor', 'r' )
     scatter(side_1_id(side_1.damage_recorded == 1),side_1.a_ratio(side_1.damage_recorded == 1), 'o', 'filled', 'MarkerEdgeColor', 'y', 'MarkerFaceColor', 'y' )
@@ -105,7 +106,7 @@ if strcmp(ele_type,'wall') && strcmp(direction,'primary')
     scatter(side_2_id(side_2.damage_recorded == 2),side_2.e_ratio(side_2.damage_recorded == 2), 'd', 'filled', 'MarkerEdgeColor', 'r', 'MarkerFaceColor', 'r' )
     scatter(side_2_id(side_2.damage_recorded == 1),side_2.e_ratio(side_2.damage_recorded == 1), 'd', 'filled', 'MarkerEdgeColor', 'y', 'MarkerFaceColor', 'y' )
     scatter(side_2_id(side_2.damage_recorded == 0),side_2.e_ratio(side_2.damage_recorded == 0), 'd', 'filled', 'MarkerEdgeColor', 'b', 'MarkerFaceColor', 'b' )
-    ylabel('Max(\Delta_shear)/"e"')
+    ylabel('Max(\Delta)/"e"')
 else
     scatter(side_1_id(side_1.damage_recorded == 2),side_1.b_ratio(side_1.damage_recorded == 2), 'o', 'filled', 'MarkerEdgeColor', 'r', 'MarkerFaceColor', 'r' )
     scatter(side_1_id(side_1.damage_recorded == 1),side_1.b_ratio(side_1.damage_recorded == 1), 'o', 'filled', 'MarkerEdgeColor', 'y', 'MarkerFaceColor', 'y' )

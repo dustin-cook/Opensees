@@ -64,6 +64,7 @@ for i = 1:2 % Calc properiteis on each side of the element
     else
         if strcmp(ele.type,'beam') % beams
             % Moment Capcity per ACI (assume no axial loads for beams)
+            ele.P_max_idx = 0;
             [ ~, ele.(['Mn_pos_' num2str(i)]) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
             [ ~, ele.(['Mn_neg_' num2str(i)]) ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
             [ ~, ele.(['Mn_oop_' num2str(i)]) ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e, ele_prop.h, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
@@ -80,7 +81,6 @@ for i = 1:2 % Calc properiteis on each side of the element
                 ele_TH.(['Mp_oop_' num2str(i)]) = ones(1,length(ele_TH.P_TH))*ele.(['Mp_oop_' num2str(i)]);
                 ele_TH.(['Mn_pos_linear_' num2str(i)]) = ele_TH.(['Mn_pos_' num2str(i)]);
                 ele_TH.(['Mn_neg_linear_' num2str(i)]) = ele_TH.(['Mn_neg_' num2str(i)]);
-                ele.P_max_idx = 0;
             end
         else % columns and walls
             % PM Interactions
@@ -126,6 +126,7 @@ for i = 1:2 % Calc properiteis on each side of the element
                 ele.(['Mn_grav_pos_' num2str(i)]) = ele_TH.(['Mn_pos_' num2str(i)])(P_grav_idx);
                 ele.(['Mn_grav_neg_' num2str(i)]) = ele_TH.(['Mn_neg_' num2str(i)])(P_grav_idx);
             else
+                ele.P_max_idx = 0;
                 [ ~, ele.(['Mn_pos_' num2str(i)]) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
                 [ ~, ele.(['Mn_neg_' num2str(i)]) ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
                 [ ~, ele.(['Mn_oop_' num2str(i)]) ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e, ele_prop.h, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
@@ -164,9 +165,9 @@ for i = 1:2 % Calc properiteis on each side of the element
         % The yield displacement is the lateral displacement of the column, determined using the effective rigidities 
         % from Table 10-5, at a shear demand resulting in flexural yielding of the plastic hinges, VyE.
         if isempty(ele_TH)
-            [ ele.(['Vn_' num2str(i)]), ele.(['V0_' num2str(i)]) ] = fn_shear_capacity( ele_prop.(['Av_' num2str(i)]), eff_fyt_e, ele_prop.d_eff, ele_prop.(['S_' num2str(i)]), ele_prop.lambda, ele_prop.fc_e, ele_prop.a, 1, 1, ele.P_grav, ductility_factor );
+            [ ele.(['Vn_' num2str(i)]), ele.(['V0_' num2str(i)]) ] = fn_shear_capacity( ele_prop.(['Av_' num2str(i)]), eff_fyt_e, ele_prop.d_eff, ele_prop.(['S_' num2str(i)]), ele_prop.lambda, ele_prop.fc_e, ele_prop.a, 3*ele_prop.d_eff, 1, ele.P_grav, ductility_factor );
         else
-            [ ele.(['Vn_' num2str(i)]), ele.(['V0_' num2str(i)]) ] = fn_shear_capacity( ele_prop.(['Av_' num2str(i)]), eff_fyt_e, ele_prop.d_eff, ele_prop.(['S_' num2str(i)]), ele_prop.lambda, ele_prop.fc_e, ele_prop.a, ele_TH.M_TH_1, ele_TH.V_TH_1, ele.P_grav, ductility_factor );
+            [ ele.(['Vn_' num2str(i)]), ele.(['V0_' num2str(i)]) ] = fn_shear_capacity( ele_prop.(['Av_' num2str(i)]), eff_fyt_e, ele_prop.d_eff, ele_prop.(['S_' num2str(i)]), ele_prop.lambda, ele_prop.fc_e, ele_prop.a, ele_TH.(['M_TH_' num2str(i)]), ele_TH.(['V_TH_' num2str(i)]), ele.P_grav, ductility_factor );
         end
         ele.(['Vs_' num2str(i)]) = NaN;
     else

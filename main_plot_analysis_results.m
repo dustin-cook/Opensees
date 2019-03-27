@@ -21,7 +21,7 @@ import asce_41.*
 read_dir = [analysis.out_dir filesep 'asce_41_data'];
 read_dir_opensees = [analysis.out_dir filesep 'opensees_data'];
 plot_dir = [analysis.out_dir filesep 'analysis_plots'];
-fn_make_directory( plot_dir )
+% fn_make_directory( plot_dir )
 
 % Load Analysis Data
 load([read_dir filesep 'element_analysis.mat'])
@@ -103,9 +103,17 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     elseif strcmp(analysis.proceedure,'NDP') % Nonlinear Procedures
         %% Plot Hinge accpetance
         % Elevation
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Interior Frame', plot_dir, 'int_frame' )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Exterior Frame', plot_dir, 'ext_frame' )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Wall Frame', plot_dir, 'east_wall' )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 1', plot_dir, 'x', 71, 1571, 0, 0 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 2', plot_dir, 'x', 71, 1571, 300, 300 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 3', plot_dir, 'x', 71, 1571, 600, 600 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 4', plot_dir, 'x', 71, 1571, 900, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - West Upper Wall', plot_dir, 'z', 0, 0, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 1', plot_dir, 'z', 71, 71, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 2', plot_dir, 'z', 671, 671, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 3', plot_dir, 'z', 971, 971, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 4', plot_dir, 'z', 1271, 1271, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Upper Wall', plot_dir, 'z', 1500, 2000, 0, 900 )
+        
 
         % Plan View
         fn_plot_plan_view( hinge, element, node, 1, 'Story 1 Columns - Bottom', plot_dir )
@@ -158,7 +166,7 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     %% Plots Element results for Dynamic analysis
     if analysis.element_plots
         % Plot PM Diagrams for each element
-        fn_plot_PM_response( plot_dir, read_dir, element, analysis.hinge_stories_2_plot )
+%         fn_plot_PM_response( plot_dir, read_dir, element, analysis.hinge_stories_2_plot )
 
         % Plot Hinge Response
         if exist('backbones','var')

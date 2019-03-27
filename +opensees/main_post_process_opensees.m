@@ -266,9 +266,9 @@ for i = 1:length(dirs_ran)
               
               % compile nodal accels into fields
               node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_rel_TH']) = node_accel_filtered/386; % Convert to G  
-              node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_abs_TH']) = node_accel_filtered/386 + eq_analysis.(dirs_ran{i});
+              node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_abs_TH']) = node_accel_filtered/386 + eq.(dirs_ran{i})';
               node.(['max_accel_' dirs_ran{i} '_rel'])(n) = max(abs(node_accel_filtered/386));
-              node.(['max_accel_' dirs_ran{i} '_abs'])(n) = max(abs(node_accel_filtered/386 + eq_analysis.(dirs_ran{i})));
+              node.(['max_accel_' dirs_ran{i} '_abs'])(n) = max(abs(node_accel_filtered/386 + eq.(dirs_ran{i})'));
            else
                node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_rel_TH']) = [];
                node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_abs_TH']) = [];
