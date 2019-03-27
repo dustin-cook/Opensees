@@ -19,6 +19,7 @@ ele.Mn_grav_pos_1 = NaN;
 ele.Mn_grav_pos_2 = NaN;
 ele.Mn_grav_neg_1 = NaN;
 ele.Mn_grav_neg_2 = NaN;
+ele.P_max_idx = 0;
 
 %% Calc Axial Capacity
 % Axial Compression Capacity per ACI (use lower bound strength since assuming axial is force controlled)
@@ -59,12 +60,10 @@ for i = 1:2 % Calc properiteis on each side of the element
             ele_TH.(['Mp_oop_' num2str(i)]) = inf;
             ele_TH.(['Mn_pos_linear_' num2str(i)]) = inf;
             ele_TH.(['Mn_neg_linear_' num2str(i)]) = inf;
-            ele.P_max_idx = 0;
         end
     else
         if strcmp(ele.type,'beam') % beams
             % Moment Capcity per ACI (assume no axial loads for beams)
-            ele.P_max_idx = 0;
             [ ~, ele.(['Mn_pos_' num2str(i)]) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
             [ ~, ele.(['Mn_neg_' num2str(i)]) ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, ele_prop.slab_depth, ele_prop.b_eff );
             [ ~, ele.(['Mn_oop_' num2str(i)]) ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e, ele_prop.h, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
@@ -126,7 +125,6 @@ for i = 1:2 % Calc properiteis on each side of the element
                 ele.(['Mn_grav_pos_' num2str(i)]) = ele_TH.(['Mn_pos_' num2str(i)])(P_grav_idx);
                 ele.(['Mn_grav_neg_' num2str(i)]) = ele_TH.(['Mn_neg_' num2str(i)])(P_grav_idx);
             else
-                ele.P_max_idx = 0;
                 [ ~, ele.(['Mn_pos_' num2str(i)]) ] = fn_aci_moment_capacity( 'pos', ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
                 [ ~, ele.(['Mn_neg_' num2str(i)]) ] = fn_aci_moment_capacity( 'neg', ele_prop.fc_e, ele_prop.w, ele_prop.h, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
                 [ ~, ele.(['Mn_oop_' num2str(i)]) ] = fn_aci_moment_capacity( 'oop', ele_prop.fc_e, ele_prop.h, ele_prop.w, ele_prop.As, ele_prop.As_d, ele_prop.fy_e, ele_prop.Es, 0, 0, 0 );
