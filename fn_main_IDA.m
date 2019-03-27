@@ -15,7 +15,7 @@ ground_motion.z.eq_name = {[ground_motion.z.eq_name{1} '.tcl']};
 
 % Iteration Parameters
 analysis.ground_motion_scale_factor = scale_factor;
-outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '/' 'IDA' '/' 'Scale_' num2str(analysis.ground_motion_scale_factor) '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair)];
+outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Scale_' num2str(analysis.ground_motion_scale_factor) '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair)];
 mkdir(outputs_dir)
 
 % Load spectral info and save Sa

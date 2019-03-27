@@ -10,6 +10,7 @@ clc
 % Define Model
 analysis.model_id = 11;
 analysis.proceedure = 'NDP';
+analysis.id = 1;
 analysis.summit = 1;
 analysis.run_ida = 1;
 analysis.gm_set = 'FEMA_far_field';
@@ -44,8 +45,8 @@ import plotting_tools.fn_format_and_save_plot
 parpool;
 
 %% Define read and write directories
-model_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '/' 'model_data'];
-tcl_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '/' 'opensees_data'];
+model_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'model_data'];
+tcl_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'opensees_data'];
 
 % Load in Model Tables
 node = readtable([model_dir filesep 'node.csv'],'readVariableNames',true);
@@ -77,7 +78,7 @@ if analysis.run_ida
 end
 
 %% Plot Results
-plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '/' 'IDA' '/' 'IDA Plots'];
+plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'IDA Plots'];
 id = 0;
 for i = 1:length(IDA_scale_factors)
     for gms = 1:height(gm_set_table)
