@@ -28,11 +28,12 @@ load([read_dir filesep 'element_analysis.mat'])
 load([read_dir filesep 'story_analysis.mat'])
 load([read_dir filesep 'hinge_analysis.mat'])
 load([read_dir filesep 'model_analysis.mat'])
+node = readtable([analysis.out_dir filesep 'model_data' filesep 'node.csv'], 'ReadVariableNames', true);
 
-load([read_dir_opensees filesep 'node_analysis.mat']) % Could probably change these to read from model inputs instead of the opensses analysis
-if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this proceedure
-    load([read_dir_opensees filesep 'gm_data.mat'])
-end
+% load([read_dir_opensees filesep 'node_analysis.mat']) % Could probably change these to read from model inputs instead of the opensses analysis
+% if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this proceedure
+%     load([read_dir_opensees filesep 'gm_data.mat'])
+% end
 
 if analysis.plot_recordings
     load([pwd filesep 'ground_motions' filesep 'ICSB_recordings' filesep 'recorded_edp_profile.mat']);
