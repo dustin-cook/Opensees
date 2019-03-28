@@ -42,12 +42,11 @@ tolerance = 1e-6;
 fprintf(fileID,'test NormDispIncr %f 100 \n',tolerance);
 
 % Define analysis type
-fprintf(fileID,'algorithm KrylovNewton \n');
+fprintf(fileID,'algorithm %s \n',analysis.algorithm);
 
 if analysis.type == 1 % Dynamic Analysis
     % Define Each Load Step
-%     fprintf(fileID,'integrator Newmark 0.5 0.25 \n');
-    fprintf(fileID,'integrator HHT 0.9 \n');
+    fprintf(fileID,'integrator %s \n',analysis.integrator);
     
     % Define analysis type
     fprintf(fileID,'analysis Transient \n');
