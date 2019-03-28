@@ -37,7 +37,7 @@ analysis.pushover_num_steps = 500; % Number of steps a pushover will take to get
 analysis.cyclic_pushover_peak_drifts = [0.4, 0.5, 0.6]; % Percent of the final Pushover drift of each cycle
 analysis.hinge_group_length = 10;
 analysis.filter_high_freq = inf;
-analysis.algorithm = 'NewtonLineSearch';
+analysis.algorithm = 'BFGS';
 analysis.integrator = 'HHT 0.9';
 
 % Visuals and Graphics
