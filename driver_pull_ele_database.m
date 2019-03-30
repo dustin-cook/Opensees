@@ -5,9 +5,18 @@ clear all
 close all
 clc
 
+
 %% User inputs
-analysis_dir = ['outputs' filesep 'ICBS_model_3D_fixed' filesep 'NDP' filesep 'asce_41_data'];
-opensees_dir = ['outputs' filesep 'ICBS_model_3D_fixed' filesep 'NDP' filesep 'opensees_data'];
+analysis.model_id = 11;
+analysis.proceedure = 'NDP'; % LDP or NDP or test
+analysis.id = 6; % ID of the analysis for it to create its own directory
+
+%% Define data directories
+model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
+model = model_table(model_table.id == analysis.model_id,:);
+analysis_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' num2str(analysis.id) filesep 'asce_41_data'];
+opensees_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' num2str(analysis.id) filesep 'opensees_data'];
+write_dir = 'C:\Users\DustinCook\Dropbox (HB Risk)\PhD\ATC 134\P-58 Analysis\inputs';
 
 %% Import Packages
 import asce_41.fn_define_backbone_rot
@@ -35,8 +44,8 @@ for i = 1:height(beams)
         beams.ld_req(i) = ele.ld_req;
         beams.ld_avail{i} = ele.ld_avail;
         beams.rho_ratio(i) = (ele_props.row - ele_props.row_prime)/ele.row_bal;
-        beams.shear_stress_ratio(i) = ele.Vmax/(ele_props.w*ele_props.d_eff*sqrt(ele_props.fc_e));
-        beams.shear_demand_ratio(i) = ele.Vmax/ele.(['Vn_' hin_side]);
+        beams.shear_stress_ratio(i) = ele.(['Vmax_' hin_side])/(ele_props.w*ele_props.d_eff*sqrt(ele_props.fc_e));
+        beams.shear_demand_ratio(i) = ele.(['Vmax_' hin_side])/ele.(['Vn_' hin_side]);
         if strcmp(ele.trans_rein_check,'NC')
             beams.trans_rein(i) = 0;
         elseif strcmp(ele.trans_rein_check,'C')
@@ -90,7 +99,7 @@ for i = 1:height(columns)
         columns.max_axial_load_ratio(i) = ele.Pmax/(ele_props.a*ele_props.fc_e);
         columns.gravity_axial_load_ratio(i) = ele.P_grav/(ele_props.a*ele_props.fc_e);
         columns.shear_flexure_yield_ratio(i) = ele.(['vye_' hin_side])/ele.(['V0_' hin_side]);
-        columns.shear_demand_ratio(i) = ele.Vmax/ele.(['V0_' hin_side]);
+        columns.shear_demand_ratio(i) = ele.(['Vmax_' hin_side])/ele.(['V0_' hin_side]);
         min_d_b = min(str2double(strsplit(strrep(strrep(ele_props.d_b{1},']',''),'[',''))));
         columns.shear_length_ratio(i) = ele_props.a/ele_props.d_eff;
         columns.rho_t(i) = ele.rho_t;
@@ -234,14 +243,14 @@ end
 
 % Save Data
 if ~isempty(beams)
-    writetable(beams,[analysis_dir filesep 'raw_beams_database.csv'])
+    writetable(beams,[write_dir filesep 'raw_beams_database.csv'])
 end
 if ~isempty(columns)
-    writetable(columns,[analysis_dir filesep 'raw_columns_database.csv'])
+    writetable(columns,[write_dir filesep 'raw_columns_database.csv'])
 end
 if ~isempty(joints)
-    writetable(joints,[analysis_dir filesep 'raw_joints_database.csv'])
+    writetable(joints,[write_dir filesep 'raw_joints_database.csv'])
 end
 if ~isempty(walls)
-    writetable(walls,[analysis_dir filesep 'raw_walls_database.csv'])
+    writetable(walls,[write_dir filesep 'raw_walls_database.csv'])
 end

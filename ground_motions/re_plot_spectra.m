@@ -3,8 +3,8 @@ close
 clc
 
 %% Load Data
-spectra_1 = readtable(['ICBS_model_3D_fixed' filesep 'spectra.csv'],'ReadVariableNames', true);
-spectra_2 = readtable(['ICSB_recordings' filesep 'chan_4_accel' filesep 'spectra.csv'],'ReadVariableNames', true);
+spectra_1 = readtable(['ICBS_model_3D_fixed_z' filesep 'spectra.csv'],'ReadVariableNames', true);
+spectra_2 = readtable(['ICSB_recordings' filesep 'chan_2_accel' filesep 'spectra.csv'],'ReadVariableNames', true);
 
 %% Plot Spectra
 hold on
@@ -17,8 +17,8 @@ box on
 legend('Location','northeast')
 set(gca,'FontSize',15)
 xlim([0,3])
-savefig('Roof Spectra.fig')
-saveas(gcf,'Roof Spectra.png')
+savefig('Roof Spectra z.fig')
+saveas(gcf,'Roof Spectra z.png')
 hold off
 close
 
