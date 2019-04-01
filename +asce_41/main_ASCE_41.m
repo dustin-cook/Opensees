@@ -52,11 +52,11 @@ if ~analysis.skip_2_outputs % Don't skip to plotters
 
         %% Build Model
         disp('Building Model ...')
-        main_build_model( model, analysis, ele_prop_table )
+%         main_build_model( model, analysis, ele_prop_table )
 
         %% Run and Postprocess Opensees Analysis
         disp('Running Opensees ...')
-        main_opensees_analysis( model, analysis )
+%         main_opensees_analysis( model, analysis )
 
         %% Postprocess ASCE 41 data
         disp('Post Processing Via ASCE 41 ...')

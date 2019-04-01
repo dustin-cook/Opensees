@@ -16,14 +16,15 @@ model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true)
 model = model_table(model_table.id == analysis.model_id,:);
 analysis_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' num2str(analysis.id) filesep 'asce_41_data'];
 opensees_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' num2str(analysis.id) filesep 'opensees_data'];
-write_dir = 'C:\Users\DustinCook\Dropbox (HB Risk)\PhD\ATC 134\P-58 Analysis\inputs';
+% write_dir = 'C:\Users\DustinCook\Dropbox (HB Risk)\PhD\ATC 134\P-58 Analysis\inputs';
+write_dir = 'C:\Users\Dustin\Dropbox (HB Risk)\PhD\ATC 134\P-58 Analysis\inputs';
 
 %% Import Packages
 import asce_41.fn_define_backbone_rot
 import asce_41.fn_define_backbone_shear
 
 %% Load Inputs
-ele_inputs = readtable('element_collection_key.csv','ReadVariableNames',true);
+ele_inputs = readtable('element_collection_key_story_1.csv','ReadVariableNames',true);
 ele_props_table = readtable('inputs/element.csv','ReadVariableNames',true);
 load([analysis_dir filesep 'joint_analysis.mat'])
 load([analysis_dir filesep 'element_analysis.mat'])
@@ -31,7 +32,7 @@ load([analysis_dir filesep 'story_analysis.mat'])
 load([analysis_dir filesep 'hinge_analysis.mat'])
 load(['ground_motions' filesep 'ICSB_recordings' filesep 'recorded_edp_profile.mat'])
 
-% Formulate Beam Table
+%% Formulate Beam Table
 beams = ele_inputs(strcmp(ele_inputs.element_type,'beam'),:);
 for i = 1:height(beams)
     hin_side = num2str(beams.hinge_side(i));
@@ -96,7 +97,7 @@ for i = 1:height(columns)
         columns.fc_e(i) = (1/1000)*ele_props.fc_e;
         columns.fy_e(i) = (1/1000)*ele_props.fy_e;
         columns.fyt_e(i) = (1/1000)*ele_props.fy_e; % Assume they are the same
-        columns.max_axial_load_ratio(i) = ele.Pmax/(ele_props.a*ele_props.fc_e);
+        columns.max_axial_load_ratio(i) = ele.Pmax/ele.Pn_c; %ele.Pmax/(ele_props.a*ele_props.fc_e);
         columns.gravity_axial_load_ratio(i) = ele.P_grav/(ele_props.a*ele_props.fc_e);
         columns.shear_flexure_yield_ratio(i) = ele.(['vye_' hin_side])/ele.(['V0_' hin_side]);
         columns.shear_demand_ratio(i) = ele.(['Vmax_' hin_side])/ele.(['V0_' hin_side]);
@@ -106,7 +107,7 @@ for i = 1:height(columns)
         columns.rho_l(i) = ele_props.row;
         columns.s(i) = ele_props.(['S_' hin_side]);
         columns.s_db(i) = ele_props.(['S_' hin_side])/min_d_b;
-        columns.hoops_conform(i) = 1; % Assume the are anchored into the core based on 135 deg hooks
+        columns.hoops_conform(i) = 0; % Even though you can assume rein is anchored into the core based on 135 deg hooks from the plans I am going to assume idadequate here to trigger shear behavior in the bottom story
         columns.hinge_splices(i) = 0; % Plans say that splices are in center of column
         columns.K0(i) = 6*ele_props.e*ele_props.iz/ele.length*(1/1000);
         columns.Mn(i) = ele.(['Mn_pos_' hin_side])*(1/1000); % Assuming columns are the same in both directions (and have the same capacity top and bottom)
