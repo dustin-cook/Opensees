@@ -1,4 +1,4 @@
-function [ hinge ] = fn_accept_hinge( element, ele_prop_table, hinge, read_dir )
+function [ hinge ] = fn_accept_hinge( element, ele_prop_table, hinge, read_dir, node )
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -11,6 +11,7 @@ for i = 1:height(hinge)
     ele_side = num2str(hinge.ele_side(i));
     ele = element(element.id == hinge.element_id(i),:);
     ele_prop = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
+    node_x = node.x(node.id == ele.(['node_' ele_side]));
     load([read_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'])
     if strcmp(ele.type,'wall') && strcmp(hinge.direction{i},'primary')
         [ ~, disp_vec ] = fn_define_backbone_shear( ele.(['Vn_' ele_side]), ele.length, ele_prop.g, ele_prop.av, ele.(['c_hinge_' ele_side]), ele.(['d_hinge_' ele_side]), ele.(['e_hinge_' ele_side]), ele.(['f_hinge_' ele_side]), ele.(['g_hinge_' ele_side])  );
@@ -66,13 +67,21 @@ for i = 1:height(hinge)
             hinge.d_ratio(i) = NaN;
             hinge.e_ratio(i) = NaN;
         end
-        hinge.damage_recorded(i) = ele_prop.(['damage_' ele_side]);
+        if strcmp(ele_side,'1') && node_x == 1571
+            hinge.damage_recorded(i) = ele_prop.(['damage_' ele_side '_east']);
+        else
+            hinge.damage_recorded(i) = ele_prop.(['damage_' ele_side]);
+        end
     elseif strcmp(hinge.direction{i},'oop')
         hinge.a_ratio(i) = max_ele_deform/(ele.(['a_hinge_oop_' ele_side]) + max_elastic_ele_deform);
         hinge.b_ratio(i) = max_ele_deform/(ele.(['b_hinge_oop_' ele_side]) + max_elastic_ele_deform);
         hinge.d_ratio(i) = NaN;
         hinge.e_ratio(i) = NaN;
-        hinge.damage_recorded(i) = ele_prop.(['damage_oop_' ele_side]);
+        if strcmp(ele_side,'1') && node_x == 1571
+            hinge.damage_recorded(i) = ele_prop.(['damage_' ele_side '_east']);
+        else
+            hinge.damage_recorded(i) = ele_prop.(['damage_oop_' ele_side]);
+        end
     end
     hinge.V_ratio(i) = ele.(['Vmax_' ele_side])/ele.(['Vn_' ele_side]);
     hinge.P_ratio_expected(i) = ele.Pmax/(ele_prop.fc_e*ele_prop.a);

@@ -33,11 +33,15 @@ color_range = [0 1.2];
 % fn_plot_plan_scatter( node_2_use, hinge_2_use.P_ratio_asce41(strcmp(hinge_2_use.direction,'primary')), plot_dir, [plot_name, ' - P ratio asce41'], 'P_{max} / P_n', color_range )
 
 %% Plot TAR
-story_nodes = node(node.story == 1 & node.record_accel == 1 & node.mass > 0 & node.z ~= 450,:);
-color_range = [0 2];
-fn_plot_plan_scatter( story_nodes, story_nodes.TAR_x, plot_dir, [plot_name, ' - TAR x'], 'TAR - EW Shaking', color_range )
-fn_plot_plan_scatter( story_nodes, story_nodes.TAR_z, plot_dir, [plot_name, ' - TAR z'], 'TAR - NS Shaking', color_range )
-fn_plot_plan_scatter( story_nodes, story_nodes.TAR_srss, plot_dir, [plot_name, ' - TAR srrs'], 'TAR - SRSS', color_range )
+% story_nodes = node(node.story == 1 & node.record_accel == 1 & node.mass > 0 & node.z ~= 450,:);
+% color_range = [0 2];
+% fn_plot_plan_scatter( story_nodes, story_nodes.TAR_x, plot_dir, [plot_name, ' - TAR x'], 'TAR - EW Shaking', color_range )
+% fn_plot_plan_scatter( story_nodes, story_nodes.TAR_z, plot_dir, [plot_name, ' - TAR z'], 'TAR - NS Shaking', color_range )
+% fn_plot_plan_scatter( story_nodes, story_nodes.TAR_srss, plot_dir, [plot_name, ' - TAR srrs'], 'TAR - SRSS', color_range )
+
+%% Plot Recorded Damage
+color_range = [0 3];
+fn_plot_plan_scatter( node_2_use, hinge_2_use.damage_recorded(strcmp(hinge_2_use.direction,'primary')), plot_dir, [plot_name, ' - Recorded Damage'], 'Recorded Damage', color_range )
 
 %% Plotter
 function [ ] = fn_plot_plan_scatter( node_2_use, scatter_value, plot_dir, plot_name, plot_title, color_range )

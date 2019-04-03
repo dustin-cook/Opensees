@@ -58,7 +58,7 @@ if analysis.asce_41_post_process
             joint.Pmax = OS_joint.Pmax;
             joint.Vmax = OS_joint.Vmax;
             % calculate hinge demand to capacity ratios
-            [ hinge ] = fn_accept_hinge( element, ele_prop_table, hinge, read_dir );
+            [ hinge ] = fn_accept_hinge( element, ele_prop_table, hinge, read_dir, node );
         else % Pushover runs
             [ element, joint ] = main_element_capacity( story, ele_prop_table, element, analysis, joint, read_dir, write_dir );
             [ element, joint ] = main_hinge_properties( ele_prop_table, element, joint );
