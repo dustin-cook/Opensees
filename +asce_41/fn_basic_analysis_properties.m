@@ -1,4 +1,4 @@
-function [ model, element, torsion ] = fn_basic_analysis_properties( model, story, element )
+function [ model, element, torsion, node ] = fn_basic_analysis_properties( model, story, element, node )
 %UNTITLED9 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -17,5 +17,11 @@ else
     torsion.z = story.torsional_factor_x;
 end
 
+for s = 1:height(story)
+    node.TAR_x(node.story == s) = node.max_disp_x(node.story == s) ./ story.ave_disp_x(s);
+    node.TAR_z(node.story == s) = node.max_disp_z(node.story == s) ./ story.ave_disp_z(s);
+end
+
+node.TAR_srss = sqrt(node.TAR_x.^2 + node.TAR_z.^2);
 end
 

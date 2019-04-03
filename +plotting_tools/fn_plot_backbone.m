@@ -1,4 +1,4 @@
-function [ ] = fn_plot_backbone( ele, ele_side, ele_props, output_dir, plot_name, plot_style, hinge_disp_to_plot, hinge_force_to_plot, crit_mode, hin_dir, line_color )
+function [ ] = fn_plot_backbone( ele, ele_side, ele_props, read_dir, output_dir, plot_name, plot_style, hinge_disp_to_plot, hinge_force_to_plot, crit_mode, hin_dir, line_color )
 % Plot the backbone curve from an ASCE 41 analysis in terms of normalized 
 % moment and rotation or drift and normalized shear force
 
@@ -21,8 +21,16 @@ if strcmp(ele.type,'beam') || strcmp(ele.type,'column') || (strcmp(ele.type,'wal
     n = 10;
     if strcmp(hin_dir,'oop')
         [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.(['Mn_oop_' ele_side]), ele.(['Mn_oop_' ele_side]), ele.(['Mp_oop_' ele_side]), ele.(['Mp_oop_' ele_side]), ele.length, ele_props.e, ele_props.iy, ele.(['a_hinge_oop_' ele_side]), ele.(['b_hinge_oop_' ele_side]), ele.(['c_hinge_oop_' ele_side]), n, 0.1, ele.(['critical_mode_oop_' ele_side]) );
+        if strcmp(ele.direction,'x')
+            ele_dir = 'z';
+        elseif strcmp(ele.direction,'z')
+            ele_dir = 'x';
+        end
+        mom_of_I = ele_props.iy;
     else
         [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.(['Mn_pos_' ele_side]), ele.(['Mn_neg_' ele_side]), ele.(['Mp_pos_' ele_side]), ele.(['Mp_neg_' ele_side]), ele.length, ele_props.e, ele_props.iz, ele.(['a_hinge_' ele_side]), ele.(['b_hinge_' ele_side]), ele.(['c_hinge_' ele_side]), n, 0.1, ele.(['critical_mode_' ele_side]) );
+        ele_dir = ele.direction{1};
+        mom_of_I = ele_props.iz;
     end
     if plot_style == 1
         plot([0,rot_vec_pos],[0,moment_vec_pos/moment_vec_pos(1)],'Color',line_color,'LineWidth',2) % Don't need to worry about negative bending because this plot is normalized by Qy
@@ -30,14 +38,21 @@ if strcmp(ele.type,'beam') || strcmp(ele.type,'column') || (strcmp(ele.type,'wal
         ylabel('Q/Qy')
     elseif plot_style == 2
         hold on
-        elastic_element_disp_pos = rot_vec_pos(1)*(n/(n+1)); % removes contribution from elastic beam/column. assumes n = 10;
-        elastic_element_disp_neg = rot_vec_neg(1)*(n/(n+1)); % removes contribution from elastic beam/column. assumes n = 10;
-        plot([fliplr(-(rot_vec_neg-elastic_element_disp_neg)),0,(rot_vec_pos-elastic_element_disp_pos)],[fliplr(-moment_vec_neg),0,moment_vec_pos]/1000,'k','LineWidth',1.5,'DisplayName','ASCE 41 Backone') % Converted to K-in
-        plot(hinge_disp_to_plot,hinge_force_to_plot/1000,'r','LineWidth',2,'DisplayName','Analysis'); % transform from lb-in to kip-in
-        xlabel('Hinge Rotation (rad)')
+%         elastic_element_disp_pos = rot_vec_pos(1)*(n/(n+1)); % removes contribution from elastic beam/column. assumes n = 10;
+%         elastic_element_disp_neg = rot_vec_neg(1)*(n/(n+1)); % removes contribution from elastic beam/column. assumes n = 10;
+%         plot([fliplr(-(rot_vec_neg-elastic_element_disp_neg)),0,(rot_vec_pos-elastic_element_disp_pos)],[fliplr(-moment_vec_neg),0,moment_vec_pos]/1000,'k','LineWidth',1.5,'DisplayName','ASCE 41 Backone') % Converted to K-in
+        plot([fliplr(-(rot_vec_neg)),0,rot_vec_pos],[fliplr(-moment_vec_neg),0,moment_vec_pos]/1000,'Color','k','LineWidth',2,'DisplayName','ASCE 41 Backone') % Don't need to worry about negative bending because this plot is normalized by Qy
+%         node_1_TH = load([read_dir filesep 'node_TH_' num2str(ele.node_1)]);
+%         node_2_TH = load([read_dir filesep 'node_TH_' num2str(ele.node_2)]);
+%         elastic_rotation = (node_2_TH.nd_TH.(['disp_' ele_dir '_TH']) - node_1_TH.nd_TH.(['disp_' ele_dir '_TH']))/ele.length;
+        elastic_rotation = (hinge_force_to_plot*ele.length / (6*ele_props.e*mom_of_I))*(10/11);
+        plot(hinge_disp_to_plot + elastic_rotation,hinge_force_to_plot/1000,'r','LineWidth',1.5,'DisplayName','Analysis'); % transform from lb-in to kip-in
+        xlabel('Total Rotation (rad)')
         ylabel('Moment (k-in)')
-        xlim([-max(rot_vec_neg)*1.25,max(rot_vec_pos)*1.25])
-        ylim([-max(moment_vec_neg)*1.25/1000,max(moment_vec_pos)*1.25/1000])
+%         xlim([-max(rot_vec_neg)*1.25,max(rot_vec_pos)*1.25])
+%         ylim([-max(moment_vec_neg)*1.25/1000,max(moment_vec_pos)*1.25/1000])
+        xlim([-0.05,0.05])
+        ylim([-15000,15000])
     end
     
 % For Walls Contolled by shear, Plot shear springs
@@ -62,7 +77,8 @@ end
 if plot_style == 1
     fn_format_and_save_plot( output_dir , plot_name, 2 )
 elseif plot_style == 2
-    fn_format_and_save_plot( output_dir , plot_name, 1 )
+%     fn_format_and_save_plot( output_dir , plot_name, 1 )
+    fn_format_and_save_plot( output_dir , plot_name, 2 )
 end
 
 end

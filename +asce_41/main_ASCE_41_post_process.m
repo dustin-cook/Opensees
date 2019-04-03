@@ -27,13 +27,14 @@ load([read_dir filesep 'story_analysis.mat'])
 load([read_dir filesep 'element_analysis.mat'])
 load([read_dir filesep 'joint_analysis.mat'])
 load([read_dir filesep 'hinge_analysis.mat'])
+load([read_dir filesep 'node_analysis.mat'])
 
 % mf_joint_table = readtable([analysis.out_dir filesep 'model_data' filesep 'mf_joint.csv'],'ReadVariableNames',true);
 % joint_table = readtable([analysis.out_dir filesep 'model_data' filesep 'joint.csv'],'ReadVariableNames',true);
 
 %% Calculate Element Properties and Modify Analysis Results based on ASCE 41-17
 % Basic building or analysis properties
-[ model, element, torsion ] = fn_basic_analysis_properties( model, story, element );
+[ model, element, torsion, node ] = fn_basic_analysis_properties( model, story, element, node );
 
 if analysis.asce_41_post_process
     % Procedure Specific Analysis
@@ -79,7 +80,7 @@ save([write_dir filesep 'story_analysis.mat'],'story')
 save([write_dir filesep 'element_analysis.mat'],'element')
 save([write_dir filesep 'hinge_analysis.mat'],'hinge')
 save([write_dir filesep 'joint_analysis.mat'],'joint')
-
+save([write_dir filesep 'node_analysis.mat'],'node')
 % Save load case info
 if ~strcmp(analysis.case,'NA')
     write_dir = [analysis.out_dir filesep analysis.case];

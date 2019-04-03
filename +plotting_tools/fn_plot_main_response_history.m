@@ -55,10 +55,18 @@ if exist('record_edp','var')
     if strcmp(direction,'z')
         fn_plot_response_history( roof_east_id_TH.nd_TH.(disp_tag), eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Displacement East ' direction ' (in)'], 30, record_edp.disp_TH_roof_east.(direction) )
         fn_plot_response_history( roof_east_id_TH.nd_TH.(accel_tag), eq_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Acceleration East ' direction ' (g)'], 30, record_edp.accel_TH_roof_east.(direction) )
-        % Torsional Response
+        % Torsional Response Roof
         relative_torsional_displacement = roof_east_id_TH.nd_TH.disp_z_TH - roof_center_id_TH.nd_TH.disp_z_TH;
         record_torsional_displacement = record_edp.disp_TH_roof_east.z - record_edp.disp_TH_roof.z;
-        fn_plot_response_history( relative_torsional_displacement, eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Relative Torsional Displacement (in)'], 30, record_torsional_displacement)
+        fn_plot_response_history( relative_torsional_displacement, eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['Roof Twist (in)'], 30, record_torsional_displacement)
+        % Torsional Response 1st story
+        relative_torsional_displacement = second_east_id_TH.nd_TH.disp_z_TH - second_center_id_TH.nd_TH.disp_z_TH;
+        record_torsional_displacement = record_edp.disp_TH_second_east.z - record_edp.disp_TH_second.z;
+        fn_plot_response_history( relative_torsional_displacement, eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['1st Story Twist (in)'], 30, record_torsional_displacement)
+        % Torsional Response 1st story
+        relative_torsional_displacement = (second_east_id_TH.nd_TH.disp_z_TH - second_center_id_TH.nd_TH.disp_z_TH)/174;
+        record_torsional_displacement = (record_edp.disp_TH_second_east.z - record_edp.disp_TH_second.z)/174;
+        fn_plot_response_history( relative_torsional_displacement, eq_analysis_timespace, eq, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, ['1st Story Twist Drift (rad)'], 30, record_torsional_displacement)
     end
 else
     roof_nodes = node(node.y == roof_ht,:);

@@ -28,9 +28,10 @@ load([read_dir filesep 'element_analysis.mat'])
 load([read_dir filesep 'story_analysis.mat'])
 load([read_dir filesep 'hinge_analysis.mat'])
 load([read_dir filesep 'model_analysis.mat'])
+load([read_dir filesep 'node_analysis.mat'])
 % node = readtable([analysis.out_dir filesep 'model_data' filesep 'node.csv'], 'ReadVariableNames', true);
+% load([read_dir_opensees filesep 'node_analysis.mat']) % Could probably change these to read from model inputs instead of the opensses analysis
 
-load([read_dir_opensees filesep 'node_analysis.mat']) % Could probably change these to read from model inputs instead of the opensses analysis
 if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this proceedure
     load([read_dir_opensees filesep 'gm_data.mat'])
 end
@@ -104,26 +105,26 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     elseif strcmp(analysis.proceedure,'NDP') % Nonlinear Procedures
         %% Plot Hinge accpetance
         % Elevation
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 1', plot_dir, 'x', 71, 1571, 0, 0 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 2', plot_dir, 'x', 71, 1571, 300, 300 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 3', plot_dir, 'x', 71, 1571, 600, 600 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 4', plot_dir, 'x', 71, 1571, 900, 900 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - West Upper Wall', plot_dir, 'z', 0, 0, 0, 900 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 1', plot_dir, 'z', 71, 71, 0, 900 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 2', plot_dir, 'z', 671, 671, 0, 900 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 3', plot_dir, 'z', 971, 971, 0, 900 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 4', plot_dir, 'z', 1271, 1271, 0, 900 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Upper Wall', plot_dir, 'z', 1500, 2000, 0, 900 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 1', plot_dir, 'x', 71, 1571, 0, 0 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 2', plot_dir, 'x', 71, 1571, 300, 300 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 3', plot_dir, 'x', 71, 1571, 600, 600 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 4', plot_dir, 'x', 71, 1571, 900, 900 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - West Upper Wall', plot_dir, 'z', 0, 0, 0, 900 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 1', plot_dir, 'z', 71, 71, 0, 900 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 2', plot_dir, 'z', 671, 671, 0, 900 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 3', plot_dir, 'z', 971, 971, 0, 900 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 4', plot_dir, 'z', 1271, 1271, 0, 900 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Upper Wall', plot_dir, 'z', 1500, 2000, 0, 900 )
         
 
         % Plan View
-        fn_plot_plan_view( hinge, element, node, 1, 'Story 1 Columns - Bottom', plot_dir )
-        fn_plot_plan_view( hinge, element, node, 2, 'Story 1 Columns - Top', plot_dir )
+%         fn_plot_plan_view( hinge, element, node, 1, 'Story 1 Columns - Bottom', plot_dir )
+%         fn_plot_plan_view( hinge, element, node, 2, 'Story 1 Columns - Top', plot_dir )
 
         %% Plot Element Scatter
-        fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
-        fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
-        fn_plot_element_scatter( element, 'wall', story, hinge, plot_dir )
+%         fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
+%         fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
+%         fn_plot_element_scatter( element, 'wall', story, hinge, plot_dir )
     end
 
     %% ASCE 41 Target Displacement
@@ -162,30 +163,30 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     
     %% Load in Recordings to compare with EDPs and Time Histories
     if analysis.plot_recordings
-        Plot EDP Profiles
-        fn_plot_edp_profiles( plot_dir, ground_motion.x.pga, model, story, target_disp_in.x, 'x', record_edp)
-        if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-            fn_plot_edp_profiles( plot_dir, ground_motion.z.pga, model, story, target_disp_in.z, 'z', record_edp )
-        end
-
-        Plot specific TH comparisons
-        fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x', record_edp )
-        if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-            fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z', record_edp )
-        end
+%         % Plot EDP Profiles
+%         fn_plot_edp_profiles( plot_dir, ground_motion.x.pga, model, story, target_disp_in.x, 'x', record_edp)
+%         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
+%             fn_plot_edp_profiles( plot_dir, ground_motion.z.pga, model, story, target_disp_in.z, 'z', record_edp )
+%         end
+% % 
+% %         Plot specific TH comparisons
+%         fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x', record_edp )
+%         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
+%             fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z', record_edp )
+%         end
     else
-        Plot EDP Profiles
-        fn_plot_edp_profiles( plot_dir, ground_motion.x.pga, model, story, target_disp_in.x, 'x' )
-        if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-            fn_plot_edp_profiles( plot_dir, ground_motion.z.pga, model, story, target_disp_in.z, 'z' )
-        end
-
-        Plot specific TH comparisons
-        fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x' )
-        if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-            fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z' )
-        end
-
+% %         Plot EDP Profiles
+%         fn_plot_edp_profiles( plot_dir, ground_motion.x.pga, model, story, target_disp_in.x, 'x' )
+%         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
+%             fn_plot_edp_profiles( plot_dir, ground_motion.z.pga, model, story, target_disp_in.z, 'z' )
+%         end
+% 
+% %         Plot specific TH comparisons
+%         fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x' )
+%         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
+%             fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z' )
+%         end
+% 
     end
 
     %% Plots Element results for Dynamic analysis
@@ -211,6 +212,7 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
             outputs.max_roof_drift_center(idx,:) = record_edp.max_disp_center.(dirs_ran{i})(end) / sum(story.story_ht);
             rel_disp = record_edp.max_disp.(dirs_ran{i})(2:end) - record_edp.max_disp.(dirs_ran{i})(1:(end-1));
             outputs.max_drift(idx,:) = max( rel_disp(1:height(story)) ./ story.story_ht);
+            outputs.max_first_story_drift_center(idx,:) = record_edp.max_disp_center.(dirs_ran{i})(2) / story.story_ht(1);
             end_of_record = 5/ground_motion.(dirs_ran{i}).eq_dt;
             roof_disp_TH = record_edp.disp_TH_roof.(dirs_ran{i});
             outputs.residual_drift(idx,:) = abs(mean(roof_disp_TH((end-end_of_record):end))) / sum(story.story_ht);
@@ -227,6 +229,7 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         outputs.max_roof_drift(idx,:) = story.(['max_disp_' dirs_ran{i}])(end) / sum(story.story_ht);
         outputs.max_roof_drift_center(idx,:) = story.(['max_disp_center_' dirs_ran{i}])(end) / sum(story.story_ht);
         outputs.max_drift(idx,:) = max(story.(['max_drift_' dirs_ran{i}]));
+        outputs.max_first_story_drift_center(idx,:) = story.(['max_disp_center_' dirs_ran{i}])(1) / story.story_ht(1);
         outputs.residual_drift(idx,:) = story.(['residual_disp_' dirs_ran{i}])(end) / sum(story.story_ht);
         outputs.max_base_shear(idx,:) = story.(['max_reaction_' dirs_ran{i}])(1);
         outputs.max_roof_accel(idx,:) = story.(['max_accel_' dirs_ran{i}])(end);

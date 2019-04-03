@@ -16,8 +16,8 @@ model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true)
 model = model_table(model_table.id == analysis.model_id,:);
 analysis_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' num2str(analysis.id) filesep 'asce_41_data'];
 opensees_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' num2str(analysis.id) filesep 'opensees_data'];
-% write_dir = 'C:\Users\DustinCook\Dropbox (HB Risk)\PhD\ATC 134\P-58 Analysis\inputs';
-write_dir = 'C:\Users\Dustin\Dropbox (HB Risk)\PhD\ATC 134\P-58 Analysis\inputs';
+write_dir = 'C:\Users\DustinCook\Dropbox (HB Risk)\PhD\ATC 134\P-58 Analysis\inputs';
+% write_dir = 'C:\Users\Dustin\Dropbox (HB Risk)\PhD\ATC 134\P-58 Analysis\inputs';
 
 %% Import Packages
 import asce_41.fn_define_backbone_rot
@@ -97,8 +97,8 @@ for i = 1:height(columns)
         columns.fc_e(i) = (1/1000)*ele_props.fc_e;
         columns.fy_e(i) = (1/1000)*ele_props.fy_e;
         columns.fyt_e(i) = (1/1000)*ele_props.fy_e; % Assume they are the same
-        columns.max_axial_load_ratio(i) = ele.Pmax/ele.Pn_c; %ele.Pmax/(ele_props.a*ele_props.fc_e);
-        columns.gravity_axial_load_ratio(i) = ele.P_grav/(ele_props.a*ele_props.fc_e);
+        columns.max_axial_load_ratio(i) = ele.Pmax/(ele_props.a*ele_props.fc_n);% Use nominal capacity since axial is force controlled
+        columns.gravity_axial_load_ratio(i) = ele.P_grav/(ele_props.a*ele_props.fc_n);
         columns.shear_flexure_yield_ratio(i) = ele.(['vye_' hin_side])/ele.(['V0_' hin_side]);
         columns.shear_demand_ratio(i) = ele.(['Vmax_' hin_side])/ele.(['V0_' hin_side]);
         min_d_b = min(str2double(strsplit(strrep(strrep(ele_props.d_b{1},']',''),'[',''))));
