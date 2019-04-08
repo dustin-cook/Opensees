@@ -146,15 +146,20 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         if node.record_disp(n)
             load([read_dir_opensees filesep 'node_TH_' num2str(node.id(n)) '.mat'],'nd_TH')
             for d = 1:2
-                [ node_accel_filtered ] = fn_fft_accel_filter( nd_TH.accel_x_rel_TH, 0.01, 0.01:0.01:50, analysis.filter_high_freq, low_freq );
+%                 [ node_accel_filtered ] = fn_fft_accel_filter( nd_TH.accel_x_rel_TH, 0.01, 0.01:0.01:50, analysis.filter_high_freq, low_freq );
                 timespace = 0.01:0.01:50;
-                [ node_accel_filtered_butter ] = fn_accel_filter( [timespace',nd_TH.accel_x_rel_TH'], 0.01, 0.04, 5, 'low');
+                [ node_accel_filtered_butter ] = fn_accel_filter( [timespace',nd_TH.accel_x_rel_TH'], 0.01, 20, 5, 'low');
+                node_accel_filtered = node_accel_filtered_butter(:,2)';
                 nd_TH.(['accel_' dirs_ran{d} '_rel_TH']) = node_accel_filtered; % Convert to G  
                 nd_TH.(['accel_' dirs_ran{d} '_abs_TH']) = node_accel_filtered + eq.(dirs_ran{d})';
                 node.(['max_accel_' dirs_ran{d} '_rel'])(n) = max(abs(node_accel_filtered));
                 node.(['max_accel_' dirs_ran{d} '_abs'])(n) = max(abs(node_accel_filtered + eq.(dirs_ran{d})'));
+                
+%                 hold on
+%                 plot(node_accel_filtered)
+%                 plot(node_accel_filtered_butter(:,2))
             end
-%             save([read_dir_opensees filesep 'node_TH_' num2str(node.id(n)) '.mat'],'nd_TH')
+            save([read_dir_opensees filesep 'node_TH_' num2str(node.id(n)) '.mat'],'nd_TH')
         end
     end
     
@@ -165,30 +170,30 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     
     %% Load in Recordings to compare with EDPs and Time Histories
     if analysis.plot_recordings
-%         % Plot EDP Profiles
-%         fn_plot_edp_profiles( plot_dir, ground_motion.x.pga, model, story, target_disp_in.x, 'x', record_edp)
-%         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-%             fn_plot_edp_profiles( plot_dir, ground_motion.z.pga, model, story, target_disp_in.z, 'z', record_edp )
-%         end
-% % 
-% %         Plot specific TH comparisons
-%         fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x', record_edp )
-%         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-%             fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z', record_edp )
-%         end
+        % Plot EDP Profiles
+        fn_plot_edp_profiles( plot_dir, ground_motion.x.pga, model, story, target_disp_in.x, 'x', record_edp)
+        if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
+            fn_plot_edp_profiles( plot_dir, ground_motion.z.pga, model, story, target_disp_in.z, 'z', record_edp )
+        end
+% 
+%         Plot specific TH comparisons
+        fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x', record_edp )
+        if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
+            fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z', record_edp )
+        end
     else
-% %         Plot EDP Profiles
-%         fn_plot_edp_profiles( plot_dir, ground_motion.x.pga, model, story, target_disp_in.x, 'x' )
-%         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-%             fn_plot_edp_profiles( plot_dir, ground_motion.z.pga, model, story, target_disp_in.z, 'z' )
-%         end
-% 
-% %         Plot specific TH comparisons
-%         fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x' )
-%         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-%             fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z' )
-%         end
-% 
+%         Plot EDP Profiles
+        fn_plot_edp_profiles( plot_dir, ground_motion.x.pga, model, story, target_disp_in.x, 'x' )
+        if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
+            fn_plot_edp_profiles( plot_dir, ground_motion.z.pga, model, story, target_disp_in.z, 'z' )
+        end
+
+%         Plot specific TH comparisons
+        fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x' )
+        if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
+            fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z' )
+        end
+
     end
 
     %% Plots Element results for Dynamic analysis
