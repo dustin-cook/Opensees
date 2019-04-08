@@ -259,16 +259,16 @@ for i = 1:length(dirs_ran)
               end
            
               % Filter out High Frequency Noise
-              low_freq = 0; % hardcode to no high pass filter
-              [ node_accel_filtered ] = fn_fft_accel_filter( node_accel_interp, eq_dt, eq_timespace, analysis.filter_high_freq, low_freq );
+%               low_freq = 0; % hardcode to no high pass filter
+%               [ node_accel_filtered ] = fn_fft_accel_filter( node_accel_interp, eq_dt, eq_timespace, analysis.filter_high_freq, low_freq );
 %               [ node_accel_filtered_temp ] = fn_accel_filter( node_accel_raw', 100, 5, 'low');
 %               node_accel_filtered = node_accel_filtered_temp';
               
               % compile nodal accels into fields
-              node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_rel_TH']) = node_accel_filtered/386; % Convert to G  
-              node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_abs_TH']) = node_accel_filtered/386 + eq.(dirs_ran{i})';
-              node.(['max_accel_' dirs_ran{i} '_rel'])(n) = max(abs(node_accel_filtered/386));
-              node.(['max_accel_' dirs_ran{i} '_abs'])(n) = max(abs(node_accel_filtered/386 + eq.(dirs_ran{i})'));
+              node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_rel_TH']) = node_accel_interp/386; % Convert to G  
+              node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_abs_TH']) = node_accel_interp/386 + eq.(dirs_ran{i})';
+              node.(['max_accel_' dirs_ran{i} '_rel'])(n) = max(abs(node_accel_interp/386));
+              node.(['max_accel_' dirs_ran{i} '_abs'])(n) = max(abs(node_accel_interp/386 + eq.(dirs_ran{i})'));
            else
                node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_rel_TH']) = [];
                node_TH.(['node_' num2str(node.id(n)) '_TH']).(['accel_' dirs_ran{i} '_abs_TH']) = [];
