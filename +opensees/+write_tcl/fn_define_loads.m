@@ -132,10 +132,14 @@ else
     fprintf(fileID,'	set omega($i) [expr sqrt($lam)]\n');
     fprintf(fileID,'	set period($i) [expr 2*$pi/sqrt($lam)]\n');
     fprintf(fileID,'}\n');
-%     fprintf(fileID,'puts $period(1) \n');
-%     fprintf(fileID,'puts $period(2) \n');
-%     fprintf(fileID,'puts $period(3) \n');
-    fprintf(fileID,'set zeta %f\n',analysis.damp_ratio);		% percentage of critical damping
+    fprintf(fileID,'puts $period(1) \n');
+    fprintf(fileID,'puts $period(2) \n');
+    fprintf(fileID,'puts $period(3) \n');
+    if  strcmp(analysis.damping,'modal')
+        fprintf(fileID,'set zeta %f\n',0.002);		% percentage of critical damping
+    else
+        fprintf(fileID,'set zeta %f\n',analysis.damp_ratio);		% percentage of critical damping
+    end
     fprintf(fileID,'set a0 [expr $zeta*2.0*$omega(1)*$omega(2)/($omega(1) + $omega(2))]\n');	% mass damping coefficient based on first and third modes
     if analysis.nonlinear == 0
         fprintf(fileID,'set a1 [expr $zeta*2.0/($omega(1) + $omega(2))]\n'); % stiffness damping coefficient based on first and third modes
@@ -154,8 +158,8 @@ else
 %         fprintf(fileID,'region 1 -eleOnly %s -rayleigh 0.0 $a1 0.0 0.0 \n', num2str([element_ids])); % Assign Stiffnes Proportional Damping to the elastic elements
 %         fprintf(fileID,'region 2 -nodeOnly %s -rayleigh $a0 0.0 0.0 0.0 \n', num2str(node.id(node.mass > 0)')); % Assign Mass Proportional Damping to the whole model (only triggers where there is mass)
     elseif strcmp(analysis.damping,'modal')
-            fprintf(fileID,'modalDamping %d \n',analysis.damp_ratio);
-        %     fprintf(fileID,'rayleigh 0.0 $beta 0.0 0.0 \n');
+            fprintf(fileID,'modalDamping %f \n',analysis.damp_ratio);
+            fprintf(fileID,'rayleigh 0.0 $a1 0.0 0.0 \n'); % Just a little bit of stiffness proportional everywhere
     else
         error('Damping Type Not Recognized')
     end

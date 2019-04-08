@@ -40,6 +40,7 @@ end
 % Convergence test
 tolerance = 1e-6;
 fprintf(fileID,'test NormDispIncr %f 100 \n',tolerance);
+% fprintf(fileID,'test EnergyIncr %f 100 \n',tolerance);
 
 % Define analysis type
 fprintf(fileID,'algorithm %s \n',analysis.algorithm);

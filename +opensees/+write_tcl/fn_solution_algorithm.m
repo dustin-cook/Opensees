@@ -14,7 +14,9 @@ else
     step_reduction = [1,10,20,50];
 end
 algorithm_typs = {'BFGS', 'NewtonLineSearch', 'SecantNewton', 'KrylovNewton'};
-tolerance = [1e-5, 1e-4 0.001, 0.01, 0.1, 1];
+% tolerance = [1e-5, 1e-4 0.001, 0.01, 0.1, 1];
+tolerance = [0.001, 0.01, 0.1, 1];
+% tolerance = [0.1, 1];
 
 %% Set up Log Files
 log_file = [write_dir '/converge_tol_file.txt'];
@@ -55,6 +57,7 @@ end
 % Run analysis step with basic props
 fprintf(fileID,'set tol %f \n', tolerance(1));
 fprintf(fileID,'test NormDispIncr $tol %i \n', min_tolerance_steps);
+% fprintf(fileID,'test EnergyIncr $tol %i \n', min_tolerance_steps);
 fprintf(fileID,'algorithm KrylovNewton \n');
 if analysis.type == 1 % Dynamic
     fprintf(fileID,'set dt_reduce %f \n', 1);
@@ -83,10 +86,13 @@ for tol = 1:length(tolerance)
             fprintf(fileID,'set tol %f \n', tolerance(tol));
             if tol <= 2
                 fprintf(fileID,'test NormDispIncr $tol %i \n', min_tolerance_steps);
+%                 fprintf(fileID,'test EnergyIncr $tol %i \n', min_tolerance_steps);
             elseif tol <=4
                 fprintf(fileID,'test NormDispIncr $tol %i \n', mid_tolerance_steps);
+%                 fprintf(fileID,'test EnergyIncr $tol %i \n', mid_tolerance_steps);
             else
                 fprintf(fileID,'test NormDispIncr $tol %i \n', max_tolerance_steps);
+%                 fprintf(fileID,'test EnergyIncr $tol %i \n', max_tolerance_steps);
             end
 %             fprintf(fileID,'algorithm %s \n', algorithm_typs{a});
             if analysis.type == 1 % Dynamic
