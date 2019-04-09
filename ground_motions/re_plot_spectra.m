@@ -2,14 +2,25 @@ clear
 close
 clc
 
+%% Inpits
+direction = 'x';
+channel = '4';
+
 %% Load Data
-spectra_1 = readtable(['ICBS_model_3D_fixed' filesep 'spectra.csv'],'ReadVariableNames', true);
-spectra_2 = readtable(['ICSB_recordings' filesep 'chan_4_accel' filesep 'spectra.csv'],'ReadVariableNames', true);
+spectra_read_dir = 'C:\Users\DustinCook\Desktop\Repos\toolbelt\Spectra Tool\outputs\ICSB_analysis';
+spectra_analysis_1 = readtable([spectra_read_dir filesep 'roof_accel_' direction filesep 'spectra.csv'],'ReadVariableNames', true);
+% spectra_analysis_2 = readtable(['ICBS_model_3D_fixed' filesep 'roof_accel_x_2' filesep 'spectra.csv'],'ReadVariableNames', true);
+% spectra_analysis_3 = readtable(['ICBS_model_3D_fixed' filesep 'roof_accel_x_3' filesep 'spectra.csv'],'ReadVariableNames', true);
+% spectra_analysis_4 = readtable(['ICBS_model_3D_fixed' filesep 'roof_accel_x_4' filesep 'spectra.csv'],'ReadVariableNames', true);
+spectra_record = readtable(['ICSB_recordings' filesep 'chan_' channel '_accel' filesep 'spectra.csv'],'ReadVariableNames', true);
 
 %% Plot Spectra
 hold on
-plot(spectra_1.period,spectra_1.psa_3,'b','LineWidth',1.5,'DisplayName','Analysis')
-plot(spectra_2.period,spectra_2.psa_3,'r','LineWidth',1.5,'DisplayName','Recording')
+plot(spectra_analysis_1.period,spectra_analysis_1.psa_3,'b','LineWidth',1.5,'DisplayName','Analysis')
+% plot(spectra_analysis_2.period,spectra_analysis_2.psa_3,'b','LineWidth',1.5,'DisplayName','Analysis')
+% plot(spectra_analysis_3.period,spectra_analysis_3.psa_3,'b','LineWidth',1.5,'DisplayName','Analysis')
+% plot(spectra_analysis_4.period,spectra_analysis_4.psa_3,'b','LineWidth',1.5,'DisplayName','Analysis')
+plot(spectra_record.period,spectra_record.psa_3,'r','LineWidth',1.5,'DisplayName','Recording')
 xlabel('Period (s)')
 ylabel('Sa of roof at 3% damping (g)')
 grid on
@@ -17,8 +28,8 @@ box on
 legend('Location','northeast')
 set(gca,'FontSize',15)
 xlim([0,3])
-savefig('Roof Spectra.fig')
-saveas(gcf,'Roof Spectra.png')
+savefig(['Roof Spectra ' direction '.fig'])
+saveas(gcf,['Roof Spectra ' direction '.png'])
 hold off
 close
 
