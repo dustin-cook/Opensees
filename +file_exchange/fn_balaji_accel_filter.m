@@ -1,4 +1,4 @@
-function [ acc_com ] = fn_accel_filter( acc_raw, dt, Cut_Freq, order, f_type)
+function [ acc_com ] = fn_balaji_accel_filter( acc_raw, dt, Cut_Freq, order, f_type)
 % Description: Low-Pass Butterworth Filter
 
 % Created By: Balaji Paramasivam

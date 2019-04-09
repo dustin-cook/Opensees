@@ -42,9 +42,15 @@ if analysis.asce_41_post_process
         if analysis.nonlinear ~= 0 && analysis.type == 1 % Only for last nonlinear dynamic run
             OS_demands = element;
             OS_joint = joint;
-            load([write_dir filesep 'element_analysis.mat'])
-            load([write_dir filesep 'joint_analysis.mat'])
-            load([write_dir filesep 'hinge_analysis.mat'])
+%             if length(analysis.type_list) > 1
+                load([write_dir filesep 'element_analysis.mat'])
+                load([write_dir filesep 'joint_analysis.mat'])
+                load([write_dir filesep 'hinge_analysis.mat'])
+%             else
+%                 load([read_dir filesep 'element_analysis.mat'])
+%                 load([read_dir filesep 'joint_analysis.mat'])
+%                 load([read_dir filesep 'hinge_analysis.mat'])
+%             end
             % Get demands from recent runs
             element.Pmax = OS_demands.Pmax;
             element.Pmin = OS_demands.Pmin;
@@ -59,6 +65,10 @@ if analysis.asce_41_post_process
             joint.Vmax = OS_joint.Vmax;
             % calculate hinge demand to capacity ratios
             [ hinge ] = fn_accept_hinge( element, ele_prop_table, hinge, read_dir, node );
+            
+            % Filter Accelerations
+            [ story ] = fn_accel_filter(node, story, analysis.filter_freq_range, read_dir, write_dir);
+            
         else % Pushover runs
             [ element, joint ] = main_element_capacity( story, ele_prop_table, element, analysis, joint, read_dir, write_dir );
             [ element, joint ] = main_hinge_properties( ele_prop_table, element, joint );

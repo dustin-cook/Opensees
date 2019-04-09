@@ -36,9 +36,9 @@ analysis.write_xml = 1; % Write and read opensees out files as xml files (0 = .t
 analysis.pushover_num_steps = 500; % Number of steps a pushover will take to get to the dirft limit
 analysis.cyclic_pushover_peak_drifts = [0.4, 0.5, 0.6]; % Percent of the final Pushover drift of each cycle
 analysis.hinge_group_length = 10;
-analysis.filter_high_freq = inf;
+analysis.filter_freq_range = [0.5, 1.5];
 analysis.algorithm = 'Newton';
-analysis.integrator = 'Newmark 0.5 0.25';
+analysis.integrator = 'HHT 0.9';
 
 % Visuals and Graphics
 analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
@@ -94,26 +94,26 @@ elseif strcmp(analysis.proceedure,'NDP')
 %     analysis.damp_ratio_list = [0.03, 0.03, 0.03, 0.03, 0.03]; % Analysis damping ratio
     
     % Shorter for speed
-    analysis.type_list = [2, 2, 1]; % Linear Pushover then NL Pushover x 2 then 1 NL dynamic
-    analysis.nonlinear_list = [1, 1, 1];
-    analysis.dead_load_list = [1, 1, 1];
-    analysis.live_load_list = [1, 1, 1];
-    analysis.case_list = {'NA', 'backbones', 'NA'};
-    analysis.pushover_drift_list_x = [0.008, 0.008, NaN]; % Drift limit where the pushover will go till
-    analysis.pushover_drift_list_z = [0.0013, 0.0013, NaN];
-    analysis.accidental_torsion_list = [0, 0, 1];
-    analysis.damp_ratio_list = [0.03, 0.03, 0.03]; % Analysis damping ratio
+%     analysis.type_list = [2, 2, 1]; % Linear Pushover then NL Pushover x 2 then 1 NL dynamic
+%     analysis.nonlinear_list = [1, 1, 1];
+%     analysis.dead_load_list = [1, 1, 1];
+%     analysis.live_load_list = [1, 1, 1];
+%     analysis.case_list = {'NA', 'backbones', 'NA'};
+%     analysis.pushover_drift_list_x = [0.008, 0.008, NaN]; % Drift limit where the pushover will go till
+%     analysis.pushover_drift_list_z = [0.0013, 0.0013, NaN];
+%     analysis.accidental_torsion_list = [0, 0, 1];
+%     analysis.damp_ratio_list = [0.03, 0.03, 0.03]; % Analysis damping ratio
      
-% %     Just to run summit results
-%     analysis.type_list = [1]; % Linear Pushover then NL Pushover x 2 then 1 NL dynamic
-%     analysis.nonlinear_list = [1];
-%     analysis.dead_load_list = [1];
-%     analysis.live_load_list = [1];
-%     analysis.case_list = {'NA'};
-%     analysis.pushover_drift_list_x = [NaN]; % Drift limit where the pushover will go till
-%     analysis.pushover_drift_list_z = [NaN];
-%     analysis.accidental_torsion_list = [1];
-%     analysis.damp_ratio_list = [0.03]; % Analysis damping ratio
+%     % Just to run summit results
+    analysis.type_list = [1]; % Linear Pushover then NL Pushover x 2 then 1 NL dynamic
+    analysis.nonlinear_list = [1];
+    analysis.dead_load_list = [1];
+    analysis.live_load_list = [1];
+    analysis.case_list = {'NA'};
+    analysis.pushover_drift_list_x = [NaN]; % Drift limit where the pushover will go till
+    analysis.pushover_drift_list_z = [NaN];
+    analysis.accidental_torsion_list = [1];
+    analysis.damp_ratio_list = [0.03]; % Analysis damping ratio
    
 elseif strcmp(analysis.proceedure,'LDP') % Linear Test
     analysis.type_list = [1, 1]; % 1 = dynamic, 2 = pushover % 3 = static cyclic

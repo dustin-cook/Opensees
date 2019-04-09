@@ -177,9 +177,9 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         end
 % 
 %         Plot specific TH comparisons
-        fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x', record_edp )
+        fn_plot_main_response_history( plot_dir, read_dir, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x', record_edp )
         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-            fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z', record_edp )
+            fn_plot_main_response_history( plot_dir, read_dir, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z', record_edp )
         end
     else
 %         Plot EDP Profiles
@@ -189,9 +189,9 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         end
 
 %         Plot specific TH comparisons
-        fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x' )
+        fn_plot_main_response_history( plot_dir, read_dir, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x' )
         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-            fn_plot_main_response_history( plot_dir, read_dir_opensees, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z' )
+            fn_plot_main_response_history( plot_dir, read_dir, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z' )
         end
 
     end

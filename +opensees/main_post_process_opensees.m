@@ -4,7 +4,6 @@ function [ ] = main_post_process_opensees( analysis, model, story, node, element
 %% Initial Setup
 % Import Packages
 import opensees.post_process.*
-import file_exchange.fn_accel_filter
 
 % Make Ouput Directories 
 if analysis.type == 2 % Pushover Analysis
