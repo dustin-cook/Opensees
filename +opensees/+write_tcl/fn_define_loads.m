@@ -158,8 +158,8 @@ else
 %         fprintf(fileID,'region 1 -eleOnly %s -rayleigh 0.0 $a1 0.0 0.0 \n', num2str([element_ids])); % Assign Stiffnes Proportional Damping to the elastic elements
 %         fprintf(fileID,'region 2 -nodeOnly %s -rayleigh $a0 0.0 0.0 0.0 \n', num2str(node.id(node.mass > 0)')); % Assign Mass Proportional Damping to the whole model (only triggers where there is mass)
     elseif strcmp(analysis.damping,'modal')
-            fprintf(fileID,'modalDamping %f \n',analysis.damp_ratio);
-            fprintf(fileID,'rayleigh 0.0 $a1 0.0 0.0 \n'); % Just a little bit of stiffness proportional everywhere
+%             fprintf(fileID,'modalDamping %f \n',analysis.damp_ratio);
+%             fprintf(fileID,'rayleigh 0.0 $a1 0.0 0.0 \n'); % Just a little bit of stiffness proportional everywhere
     else
         error('Damping Type Not Recognized')
     end
