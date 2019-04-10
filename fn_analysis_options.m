@@ -38,7 +38,7 @@ analysis.cyclic_pushover_peak_drifts = [0.4, 0.5, 0.6]; % Percent of the final P
 analysis.hinge_group_length = 10;
 analysis.filter_freq_range = [0.5, 1.5];
 analysis.algorithm = 'Newton';
-analysis.integrator = 'Newmark 0.5 0.25';
+analysis.integrator = 'HHT 0.9';
 
 % Visuals and Graphics
 analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations

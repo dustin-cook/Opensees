@@ -12,3 +12,6 @@ id,eq_dir,eq_dt,eq_length,eq_name,pga
 11,ground_motions/ICSB_1979,0.01,5000,chan_13_accel_50.tcl,0.3314
 12,ground_motions/ICSB_1979,0.01,5000,chan_11_accel_50.tcl,0.2896
 13,ground_motions/ICSB_1979,0.01,5000,chan_12_accel_50.tcl,0.1777
+14,ground_motions/ICSB_1979,0.01,5688,gm_ew_free_field.tcl,0.2359
+15,ground_motions/ICSB_1979,0.01,5688,gm_ns_free_field.tcl,0.2131
+16,ground_motions/ICSB_1979,0.01,5688,gm_vert_free_field.tcl,0.2353
