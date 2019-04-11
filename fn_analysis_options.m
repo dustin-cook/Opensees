@@ -38,7 +38,7 @@ analysis.cyclic_pushover_peak_drifts = [0.4, 0.5, 0.6]; % Percent of the final P
 analysis.hinge_group_length = 10;
 analysis.filter_freq_range = [0.5, 1.5];
 analysis.algorithm = 'Newton';
-analysis.integrator = 'Newmark 0.5 0.25';
+analysis.integrator = 'HHT 0.9';
 
 % Visuals and Graphics
 analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
@@ -102,9 +102,9 @@ elseif strcmp(analysis.proceedure,'NDP')
     analysis.pushover_drift_list_x = [0.008, 0.008, NaN]; % Drift limit where the pushover will go till
     analysis.pushover_drift_list_z = [0.0013, 0.0013, NaN];
     analysis.accidental_torsion_list = [0, 0, 1];
-    analysis.damp_ratio_list = [0.03, 0.03, 0.03]; % Analysis damping ratio
+    analysis.damp_ratio_list = [0.3, 0.3, 0.3]; % Analysis damping ratio
      
-%     % Just to run summit results
+    % Just to run summit results
 %     analysis.type_list = [1]; % Linear Pushover then NL Pushover x 2 then 1 NL dynamic
 %     analysis.nonlinear_list = [1];
 %     analysis.dead_load_list = [1];
