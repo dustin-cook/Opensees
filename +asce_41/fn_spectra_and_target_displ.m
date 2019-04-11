@@ -17,7 +17,7 @@ import asce_41.fn_target_disp
 
 %% Begin Method
 % Load Spectra and Calculate Sa
-spectra_table = readtable([ground_motion.(direction).eq_dir{1} filesep 'spectra_' erase(erase(ground_motion.(direction).eq_name{1},'.tcl'),'gm_') '.csv'],'ReadVariableNames',true);
+spectra_table = readtable([ground_motion.(direction).eq_dir{1} filesep 'spectra_' erase(ground_motion.(direction).eq_name{1},'.tcl') '.csv'],'ReadVariableNames',true);
 Sa = interp1(spectra_table.period,spectra_table.psa_5,model.(['T1_' direction]));
 
 % Calculate Target Displacement
