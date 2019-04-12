@@ -36,6 +36,11 @@ load([read_dir filesep 'node_analysis.mat'])
 % Basic building or analysis properties
 [ model, element, torsion, node ] = fn_basic_analysis_properties( model, story, element, node );
 
+% Filter Accelerations
+if analysis.type == 1
+    [ story ] = fn_accel_filter(node, story, analysis.filter_freq_range, read_dir, write_dir);
+end
+
 if analysis.asce_41_post_process
     % Procedure Specific Analysis
     if strcmp(analysis.proceedure,'NDP') % Nonlinear Dynamic Proceedure
@@ -65,9 +70,6 @@ if analysis.asce_41_post_process
             joint.Vmax = OS_joint.Vmax;
             % calculate hinge demand to capacity ratios
             [ hinge ] = fn_accept_hinge( element, ele_prop_table, hinge, read_dir, node );
-            
-            % Filter Accelerations
-            [ story ] = fn_accel_filter(node, story, analysis.filter_freq_range, read_dir, write_dir);
             
         else % Pushover runs
             [ element, joint ] = main_element_capacity( story, ele_prop_table, element, analysis, joint, read_dir, write_dir );
