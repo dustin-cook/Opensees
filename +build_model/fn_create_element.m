@@ -1,4 +1,4 @@
-function [ node, element ] = fn_create_element( ele_type, ele_id, ele_props, element_group, nb, story_props, story_group, node, element, direction )
+function [ node, element ] = fn_create_element( ele_type, ele_id, ele_props, element_id, nb, story_props, story_group, node, element, direction, trib_wt_1, trib_wt_2 )
 %UNTITLED6 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -13,18 +13,19 @@ ele_y_start = story_props.y_start;
 ele_y_end = story_props.y_start + story_props.story_ht;
 
 % Assign element type specific properties properties
+ele = ele_props(ele_props.id == element_id,:);
 if strcmp(ele_type,'col')
-    ele = ele_props(ele_props.id == element_group.col_id,:);
-    element.trib_wt(ele_id,1) = 0;
+    element.trib_wt_1(ele_id,1) = 0;
+    element.trib_wt_2(ele_id,1) = 0;
     ele_prim_end = ele_prim_start;
 elseif strcmp(ele_type,'beam')
-    ele = ele_props(ele_props.id == element_group.beam_id,:);
-    element.trib_wt(ele_id,1) = story_group.trib_wt;
+    element.trib_wt_1(ele_id,1) = trib_wt_1;
+    element.trib_wt_2(ele_id,1) = trib_wt_2;
     ele_prim_end = story_props.(['bay_coor_' direction]){1}(start_bay + 1);
     ele_y_start = ele_y_end;
 elseif strcmp(ele_type,'wall')
-    ele = ele_props(ele_props.id == element_group.wall_id,:);
-    element.trib_wt(ele_id,1) = story_group.trib_wt;
+    element.trib_wt_1(ele_id,1) = trib_wt_1;
+    element.trib_wt_2(ele_id,1) = trib_wt_2;
     ele_prim_end = ele_prim_start;
 %     ele_prim_end = story_group.([direction '_start']) + story_props.(['bay_coor_' direction]){1}(start_bay + 1);
 end

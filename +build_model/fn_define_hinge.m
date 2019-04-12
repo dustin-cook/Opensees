@@ -47,22 +47,22 @@ if analysis.nonlinear ~= 0
                     hinge_id = hinge_id+1;
                     % Define hinge at start of element
                     [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id, 'shear', 'primary', 1 ); 
-                    if strcmp(model.dimension,'3D') % OOP hinges for 3D walls
-                        hinge_id = hinge_id+1;
-                        hinge.id(hinge_id,1) = hinge_id;
-                        hinge.type{hinge_id,1} = 'rotational';
-                        hinge.direction{hinge_id,1} = 'oop';
-                        hinge.ele_side{hinge_id,1} = 1;
-                        hinge.node_1(hinge_id,1) = hinge.node_1(hinge_id-1,1);
-                        hinge.node_2(hinge_id,1) = hinge.node_2(hinge_id-1,1);
-                        hinge.element_id(hinge_id,1) = hinge.element_id(hinge_id-1,1);
-                    end
+%                     if strcmp(model.dimension,'3D') % OOP hinges for 3D walls
+%                         hinge_id = hinge_id+1;
+%                         hinge.id(hinge_id,1) = hinge_id;
+%                         hinge.type{hinge_id,1} = 'rotational';
+%                         hinge.direction{hinge_id,1} = 'oop';
+%                         hinge.ele_side{hinge_id,1} = 1;
+%                         hinge.node_1(hinge_id,1) = hinge.node_1(hinge_id-1,1);
+%                         hinge.node_2(hinge_id,1) = hinge.node_2(hinge_id-1,1);
+%                         hinge.element_id(hinge_id,1) = hinge.element_id(hinge_id-1,1);
+%                     end
                 end
             end
         end
     end
 else
-    % Define Shear Spings on Walls
+    % Define Linear Shear Spings on Walls to account for shear deflections
     for i = 1:length(element.id)
         if strcmp(element.type{i},'wall')
             walls_with_same_node = element.id(strcmp(element.type,'wall') & element.node_2 == element.node_1(i));

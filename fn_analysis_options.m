@@ -41,12 +41,12 @@ analysis.algorithm = 'Newton';
 analysis.integrator = 'HHT 0.9';
 
 % Visuals and Graphics
-analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
-analysis.plot_recordings = 1; % Plot analysis results v recorded results
+analysis.element_plots = 1; % Plot hinge backnones and other per element visualizations
+analysis.plot_recordings = 0; % Plot analysis results v recorded results
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 1; % Visual scale of the movie playback
 analysis.hinge_stories_2_plot = 1;
-analysis.suppress_outputs = 1;
+analysis.suppress_outputs = 0;
 
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
@@ -55,9 +55,9 @@ if strcmp(analysis.proceedure,'test')
     analysis.dead_load_list = [1];
     analysis.live_load_list = [1];
     analysis.case_list = {'NA'};
-    analysis.pushover_drift_list_x = [NaN];
-    analysis.pushover_drift_list_z = [NaN];
-    analysis.accidental_torsion_list = [0];
+    analysis.pushover_drift_list_x = [0.001];
+    analysis.pushover_drift_list_z = [0.001];
+    analysis.accidental_torsion_list = [1];
     analysis.damp_ratio_list = [0.05]; % Analysis damping ratio
     
 elseif strcmp(analysis.proceedure,'torsion')

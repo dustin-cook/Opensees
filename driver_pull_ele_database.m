@@ -101,6 +101,7 @@ for i = 1:height(columns)
         columns.gravity_axial_load_ratio(i) = ele.P_grav/(ele_props.a*ele_props.fc_n);
         columns.shear_flexure_yield_ratio(i) = ele.(['vye_' hin_side])/ele.(['V0_' hin_side]);
         columns.shear_demand_ratio(i) = ele.(['Vmax_' hin_side])/ele.(['V0_' hin_side]);
+        columns.k(i) = ele.(['Vn_' hin_side])/ele.(['V0_' hin_side]);
         min_d_b = min(str2double(strsplit(strrep(strrep(ele_props.d_b{1},']',''),'[',''))));
         columns.shear_length_ratio(i) = ele_props.a/ele_props.d_eff;
         columns.rho_t(i) = ele.rho_t;

@@ -24,6 +24,11 @@ fprintf(fileID,'wipeAnalysis \n');
 % Record eigenvectors
 fprintf(fileID,'recorder Node %s %s/mode_shape_1.%s -dT %f -node %s -dof 1 3 "eigen 1" \n', file_type, write_dir, file_ext, 1, num2str(prim_story_nodes));
 fprintf(fileID,'recorder Node %s %s/mode_shape_2.%s -dT %f -node %s -dof 1 3 "eigen 2" \n', file_type, write_dir, file_ext, 1, num2str(prim_story_nodes));
+fprintf(fileID,'recorder Node %s %s/mode_shape_3.%s -dT %f -node %s -dof 1 3 "eigen 3" \n', file_type, write_dir, file_ext, 1, num2str(prim_story_nodes));
+fprintf(fileID,'recorder Node %s %s/mode_shape_4.%s -dT %f -node %s -dof 1 3 "eigen 4" \n', file_type, write_dir, file_ext, 1, num2str(prim_story_nodes));
+fprintf(fileID,'recorder Node %s %s/mode_shape_5.%s -dT %f -node %s -dof 1 3 "eigen 5" \n', file_type, write_dir, file_ext, 1, num2str(prim_story_nodes));
+fprintf(fileID,'recorder Node %s %s/mode_shape_6.%s -dT %f -node %s -dof 1 3 "eigen 6" \n', file_type, write_dir, file_ext, 1, num2str(prim_story_nodes));
+
 
 % Perform Eigen Analysis
 if strcmp(analysis.damping,'simple')

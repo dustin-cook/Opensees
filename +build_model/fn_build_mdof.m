@@ -40,31 +40,51 @@ for s = 1:height(story)
         for e = 1:height(element_group)
             for nb = 1:element_group.num_bays
                 % Element Properties Column
-                if element_group.col_id ~= 0
-                    ele_id = ele_id + 1;
-                    [ node, element ] = fn_create_element( 'col', ele_id, ele_props_table, element_group, nb, story_props, story_group(g,:), node, element, story_group.direction{g} );
+                if iscell(element_group.col_id)
+                    element_group.col_id = str2double(strsplit(strrep(strrep(element_group.col_id{1},'[',''),']',''),','));
                 end
-                if element_group.beam_id ~= 0
-                    ele_id = ele_id + 1;
-                    [ node, element ] = fn_create_element( 'beam', ele_id, ele_props_table, element_group, nb, story_props, story_group(g,:), node, element, story_group.direction{g} );
+                if iscell(element_group.beam_id)
+                    element_group.beam_id = str2double(strsplit(strrep(strrep(element_group.beam_id{1},'[',''),']',''),','));
                 end
-                if element_group.wall_id ~= 0
+                if iscell(element_group.wall_id)
+                    element_group.wall_id = str2double(strsplit(strrep(strrep(element_group.wall_id{1},'[',''),']',''),','));
+                end
+                if iscell(element_group.trib_wt_1)
+                    element_group.trib_wt_1 = str2double(strsplit(strrep(strrep(element_group.trib_wt_1{1},'[',''),']',''),','));
+                end
+                if iscell(element_group.trib_wt_2)
+                    element_group.trib_wt_2 = str2double(strsplit(strrep(strrep(element_group.trib_wt_2{1},'[',''),']',''),','));
+                end
+                
+                if element_group.col_id(nb) ~= 0
                     ele_id = ele_id + 1;
-                    [ node, element ] = fn_create_element( 'wall', ele_id, ele_props_table, element_group, nb, story_props, story_group(g,:), node, element, story_group.direction{g} );
+                    [ node, element ] = fn_create_element( 'col', ele_id, ele_props_table, element_group.col_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g}, element_group.trib_wt_1(nb), element_group.trib_wt_2(nb) );
+                end
+                if element_group.beam_id(nb) ~= 0
+                    ele_id = ele_id + 1;
+                    [ node, element ] = fn_create_element( 'beam', ele_id, ele_props_table, element_group.beam_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g}, element_group.trib_wt_1(nb), element_group.trib_wt_2(nb) );
+                end
+                if element_group.wall_id(nb) ~= 0
+                    ele_id = ele_id + 1;
+                    [ node, element ] = fn_create_element( 'wall', ele_id, ele_props_table, element_group.wall_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g}, element_group.trib_wt_1(nb), element_group.trib_wt_2(nb) );
                 end
             end
             % Last column in bay span
-            if element_group.col_id ~= 0
+            if sum(element_group.col_id ~=0) ~= 0 && element_group.col_id(nb+1) ~= 0
                 ele_id = ele_id + 1;
-                [ node, element ] = fn_create_element( 'col', ele_id, ele_props_table, element_group, element_group.num_bays+1, story_props, story_group(g,:), node, element, story_group.direction{g} );
+                [ node, element ] = fn_create_element( 'col', ele_id, ele_props_table, element_group.col_id(nb+1), element_group.num_bays+1, story_props, story_group(g,:), node, element, story_group.direction{g} );
             end
         end
     end
     
     % Assign Gravity Load to Elements
-    sum_trib_wt = sum(element.trib_wt(element.story == story.id(s)));
-    element.dead_load(element.story == story.id(s),1) = element.trib_wt(element.story == story.id(s))*story.story_dead_load(s)/sum_trib_wt;
-    element.live_load(element.story == story.id(s),1) = element.trib_wt(element.story == story.id(s))*story.story_live_load(s)/sum_trib_wt;
+    sum_trib_wt = sum([element.trib_wt_1(element.story == story.id(s));element.trib_wt_2(element.story == story.id(s))]);
+    element.dead_load_1(element.story == story.id(s),1) = element.trib_wt_1(element.story == story.id(s))*story.story_dead_load(s)/sum_trib_wt;
+    element.live_load_1(element.story == story.id(s),1) = element.trib_wt_1(element.story == story.id(s))*story.story_live_load(s)/sum_trib_wt;
+    element.dead_load_2(element.story == story.id(s),1) = element.trib_wt_2(element.story == story.id(s))*story.story_dead_load(s)/sum_trib_wt;
+    element.live_load_2(element.story == story.id(s),1) = element.trib_wt_2(element.story == story.id(s))*story.story_live_load(s)/sum_trib_wt;
+    element.dead_load(element.story == story.id(s),1) = element.dead_load_1(element.story == story.id(s),1) + element.dead_load_2(element.story == story.id(s),1);
+    element.live_load(element.story == story.id(s),1) = element.live_load_1(element.story == story.id(s),1) + element.live_load_2(element.story == story.id(s),1);
 end
 
 %% Define Joints (For each node created go through as say whats connected in)
@@ -105,19 +125,10 @@ element.gravity_load = element.dead_load*analysis.dead_load + element.live_load*
 node.dead_load = zeros(length(node.id),1);
 node.live_load = zeros(length(node.id),1);
 for e = 1:length(element.id)
-    if strcmp(element.type{e},'wall')
-        node.dead_load(node.id == element.node_2(e)) = node.dead_load(node.id == element.node_2(e)) + element.dead_load(e);
-        node.live_load(node.id == element.node_2(e)) = node.live_load(node.id == element.node_2(e)) + element.live_load(e);
-%         node.dead_load(element.node_3(e)) = node.dead_load(element.node_3(e)) + element.dead_load(e)/2;
-%         node.dead_load(element.node_4(e)) = node.dead_load(element.node_4(e)) + element.dead_load(e)/2;
-%         node.live_load(element.node_3(e)) = node.live_load(element.node_3(e)) + element.live_load(e)/2;
-%         node.live_load(element.node_4(e)) = node.live_load(element.node_4(e)) + element.live_load(e)/2;
-    else
-        node.dead_load(node.id == element.node_1(e)) = node.dead_load(node.id == element.node_1(e)) + element.dead_load(e)/2;
-        node.dead_load(node.id == element.node_2(e)) = node.dead_load(node.id == element.node_2(e)) + element.dead_load(e)/2;
-        node.live_load(node.id == element.node_1(e)) = node.live_load(node.id == element.node_1(e)) + element.live_load(e)/2;
-        node.live_load(node.id == element.node_2(e)) = node.live_load(node.id == element.node_2(e)) + element.live_load(e)/2;
-    end
+    node.dead_load(node.id == element.node_1(e)) = node.dead_load(node.id == element.node_1(e)) + element.dead_load_1(e);
+    node.dead_load(node.id == element.node_2(e)) = node.dead_load(node.id == element.node_2(e)) + element.dead_load_2(e);
+    node.live_load(node.id == element.node_1(e)) = node.live_load(node.id == element.node_1(e)) + element.live_load_1(e);
+    node.live_load(node.id == element.node_2(e)) = node.live_load(node.id == element.node_2(e)) + element.live_load_2(e);
 end
 
 % Define Mass
@@ -276,11 +287,16 @@ for ae = 1:height(additional_elements)
     ele_id = ele_id + 1;
     ele = ele_props_table(ele_props_table.id == additional_elements.ele_id(ae),:);
     element.id(ele_id,1) = ele_id;
-    element.trib_wt(ele_id,1) = 0;
+    element.trib_wt_1(ele_id,1) = 0;
+    element.trib_wt_2(ele_id,1) = 0;
     element.ele_id(ele_id,1) = ele.id;
     element.direction{ele_id,1} = additional_elements.direction{ae};
     element.story(ele_id,1) = additional_elements.story(ae);
     element.type{ele_id,1} = ele.type;
+    element.dead_load_1(ele_id,1) = 0;
+    element.live_load_1(ele_id,1) = 0;
+    element.dead_load_2(ele_id,1) = 0;
+    element.live_load_2(ele_id,1) = 0;
     element.dead_load(ele_id,1) = 0;
     element.live_load(ele_id,1) = 0;
     element.gravity_load(ele_id,1) = 0;
