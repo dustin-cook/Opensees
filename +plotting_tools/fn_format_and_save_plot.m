@@ -27,7 +27,7 @@ elseif plot_ops == 5 % Default settings
 end
 
 % Set Font
-set(gca,'FontSize',15)
+set(gca,'FontSize',14)
 hold off
 
 % Save and Close

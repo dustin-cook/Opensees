@@ -105,26 +105,26 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     elseif strcmp(analysis.proceedure,'NDP') % Nonlinear Procedures
         %% Plot Hinge accpetance
         % Elevation
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 1', plot_dir, 'x', 71, 1571, 0, 0 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 2', plot_dir, 'x', 71, 1571, 300, 300 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 3', plot_dir, 'x', 71, 1571, 600, 600 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 4', plot_dir, 'x', 71, 1571, 900, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - West Upper Wall', plot_dir, 'z', 0, 0, 0, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 1', plot_dir, 'z', 71, 71, 0, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 2', plot_dir, 'z', 671, 671, 0, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 3', plot_dir, 'z', 971, 971, 0, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 4', plot_dir, 'z', 1271, 1271, 0, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Upper Wall', plot_dir, 'z', 1500, 2000, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 1', plot_dir, 'x', 71, 1571, 0, 0 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 2', plot_dir, 'x', 71, 1571, 300, 300 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 3', plot_dir, 'x', 71, 1571, 600, 600 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 4', plot_dir, 'x', 71, 1571, 900, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - West Upper Wall', plot_dir, 'z', 0, 0, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 1', plot_dir, 'z', 71, 71, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 2', plot_dir, 'z', 671, 671, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 3', plot_dir, 'z', 971, 971, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 4', plot_dir, 'z', 1271, 1271, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Upper Wall', plot_dir, 'z', 1500, 2000, 0, 900 )
         
 
         % Plan View
-%         fn_plot_plan_view( hinge, element, node, 1, 'Story 1 Columns - Bottom', plot_dir )
-%         fn_plot_plan_view( hinge, element, node, 2, 'Story 1 Columns - Top', plot_dir )
+        fn_plot_plan_view( hinge, element, node, 1, 'Story 1 Columns - Bottom', plot_dir )
+        fn_plot_plan_view( hinge, element, node, 2, 'Story 1 Columns - Top', plot_dir )
 
         %% Plot Element Scatter
-%         fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
-%         fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
-%         fn_plot_element_scatter( element, 'wall', story, hinge, plot_dir )
+        fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
+        fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
+        fn_plot_element_scatter( element, 'wall', story, hinge, plot_dir )
     end
 
     %% ASCE 41 Target Displacement
