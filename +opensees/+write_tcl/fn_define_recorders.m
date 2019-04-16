@@ -53,7 +53,7 @@ if analysis.type == 1
     % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
     for i = 1:height(element)
         if strcmp(dimension,'2D')
-            fprintf(fileID,'recorder Element %s %s/element_force_%s.%s -time -ele %i force \n', file_type, write_dir, num2str(element.id(i)), file_ext, element.id(i));
+            fprintf(fileID,'recorder Element %s %s/element_force_%s.%s -time -ele %i -dof 1 3 4 6 force \n', file_type, write_dir, num2str(element.id(i)), file_ext, element.id(i));
         else
             fprintf(fileID,'recorder Element %s %s/element_force_%s.%s -time -ele %i -dof 1 2 3 4 5 6 7 8 9 10 11 12 force \n', file_type, write_dir, num2str(element.id(i)), file_ext, element.id(i));
         end
@@ -77,7 +77,11 @@ if analysis.type == 1
         for i = 1:(length(hinge_grouping)-1)
             group_range = hinge.id >= hinge_grouping(i) & hinge.id < hinge_grouping(i+1);
             hinge_ids = element.id(end) + hinge.id(group_range);
-            fprintf(fileID,'recorder Element %s %s/hinge_force_group_%s.%s -time -ele %s -dof 1 3 4 6 force \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));
+            if strcmp(dimension,'2D')
+                fprintf(fileID,'recorder Element %s %s/hinge_force_group_%s.%s -time -ele %s -dof 1 3 force \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));
+            else
+                fprintf(fileID,'recorder Element %s %s/hinge_force_group_%s.%s -time -ele %s -dof 1 3 4 6 force \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));
+            end
             fprintf(fileID,'recorder Element %s %s/hinge_deformation_group_%s.%s -time -ele %s deformation \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));
         end
     end
@@ -92,11 +96,7 @@ elseif analysis.type == 2 || analysis.type == 3
             end
         end
         for i = 1:height(element)
-            if strcmp(dimension,'2D')
-                fprintf(fileID,'recorder Element %s %s/element_force_x_%s.%s -time -ele %i localForce \n', file_type, write_dir, num2str(element.id(i)), file_ext, element.id(i));
-            else
-                fprintf(fileID,'recorder Element %s %s/element_force_x_%s.%s -time -ele %i localForce \n', file_type, write_dir, num2str(element.id(i)), file_ext, element.id(i));
-            end
+            fprintf(fileID,'recorder Element %s %s/element_force_x_%s.%s -time -ele %i localForce \n', file_type, write_dir, num2str(element.id(i)), file_ext, element.id(i));
         end
     elseif strcmp(analysis.pushover_direction,'z')
         for i = 1:height(node)
@@ -123,7 +123,11 @@ elseif analysis.type == 2 || analysis.type == 3
             group_range = hinge.id >= hinge_grouping(i) & hinge.id < hinge_grouping(i+1);
             hinge_ids = element.id(end) + hinge.id(group_range);
             if strcmp(analysis.pushover_direction,'x')
-                fprintf(fileID,'recorder Element %s %s/hinge_force_x_group_%s.%s -time -ele %s -dof 1 6 force \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));
+                if strcmp(dimension,'2D')
+                    fprintf(fileID,'recorder Element %s %s/hinge_force_x_group_%s.%s -time -ele %s -dof 1 3 force \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));
+                else
+                    fprintf(fileID,'recorder Element %s %s/hinge_force_x_group_%s.%s -time -ele %s -dof 1 6 force \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));
+                end
                 fprintf(fileID,'recorder Element %s %s/hinge_deformation_x_group_%s.%s -time -ele %s deformation \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));
             elseif strcmp(analysis.pushover_direction,'z')
                fprintf(fileID,'recorder Element %s %s/hinge_force_z_group_%s.%s -time -ele %s -dof 3 4 force \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));

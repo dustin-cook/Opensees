@@ -27,7 +27,7 @@ fn_make_directory( write_dir )
 if analysis.model_type == 2 % MDOF Model
     fn_build_mdof( model, ele_prop_table, analysis, write_dir, read_dir )
 elseif analysis.model_type == 1 % SDOF Model
-    fn_build_sdof( model, write_dir )
+    fn_build_sdof( model, analysis, write_dir )
 else
     error('Invalid Model Type')
 end

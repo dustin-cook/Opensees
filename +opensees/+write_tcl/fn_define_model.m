@@ -16,8 +16,10 @@ fprintf(fileID,'puts "Building Model..." \n');
 %% Define the model (2 dimensions, 3 dof)
 if strcmp(dimension,'2D')
     fprintf(fileID,'model basic -ndm 2 -ndf 3 \n');
+    rot_dof_x = 3;
 elseif strcmp(dimension,'3D')
     fprintf(fileID,'model basic -ndm 3 -ndf 6 \n');
+    rot_dof_x = 6;
 else
     error('Number of dimensions not valid')
 end
@@ -90,21 +92,21 @@ for i = 1:height(element)
     
     %% Beams and Columns Assignment
     if strcmp(element.type{i},'beam') || strcmp(element.type{i},'column') 
-        if analysis.nonlinear ~= 0 % Nonlinear Analysis
-            Iz_ele = ele_props.iz*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
-            Iy_ele = ele_props.iy*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod);
-            if strcmp(dimension,'2D')
-                % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-                fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,Iz_ele,geotransf);
-            elseif strcmp(dimension,'3D')
-                % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
-                fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,Iy_ele,Iz_ele,geotransf);
-            end
-        else
-            if analysis.model_type == 1 % SDOF
-                % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-                fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),element.a,element.e,element.i,geotransf);
-            elseif analysis.model_type == 2 %MDOF
+        if analysis.model_type == 1 % SDOF
+            % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
+            fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),element.a,element.e,element.iz,geotransf);
+        elseif analysis.model_type == 2 %MDOF
+            if analysis.nonlinear ~= 0 % Nonlinear Analysis
+                Iz_ele = ele_props.iz*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
+                Iy_ele = ele_props.iy*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod);
+                if strcmp(dimension,'2D')
+                    % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
+                    fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,Iz_ele,geotransf);
+                elseif strcmp(dimension,'3D')
+                    % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
+                    fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,Iy_ele,Iz_ele,geotransf);
+                end
+            else
                 if strcmp(dimension,'2D')
                     % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
                     fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
@@ -173,6 +175,8 @@ for i = 1:height(element)
 end
 
 %% Define Joints
+fprintf(fileID,'uniaxialMaterial Elastic 1 999999999999999. \n'); % Rigid Elastic Material
+joint_ele_ids = [];
 if height(joint) > 0
     % Load in joint properties
     joint_file = [read_dir_analysis filesep 'joint_analysis.mat'];
@@ -181,8 +185,6 @@ if height(joint) > 0
         joint_analysis = joint_analysis_temp.joint;
     end
     
-    fprintf(fileID,'uniaxialMaterial Elastic 1 999999999999999. \n'); % Rigid Elastic Material
-    joint_ele_ids = [];
     % GO through each joint
     for i = 1:height(joint)
         % Define joint material
@@ -374,7 +376,7 @@ end
 %% Define Plastic Hinges
 if height(hinge) > 0
     % Load linear element table
-    if analysis.nonlinear ~= 0
+    if analysis.nonlinear ~= 0 && analysis.model_type == 2 % Nonlinear MDOF
         if exist([read_dir_analysis filesep 'element_analysis.mat'],'file')
             element_analysis_temp = load([read_dir_analysis filesep 'element_analysis.mat']);
             element_analysis = element_analysis_temp.element;
@@ -382,6 +384,8 @@ if height(hinge) > 0
             [ element_analysis, joint ] = main_element_capacity( story, ele_props_table, element, analysis, joint, read_dir_analysis );
             [ element_analysis, ~ ] = main_hinge_properties( ele_props_table, element_analysis, joint );
         end
+    else % SDOF
+        element_analysis = element;
     end
     
     for i = 1:height(hinge)
@@ -402,7 +406,12 @@ if height(hinge) > 0
             end
         else
             ele = element(element.id == hin.element_id,:);
-            ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
+            if analysis.model_type == 2 % MDOF
+                ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
+            else % SDOF
+                ele_props = element;
+            end
+
             if analysis.nonlinear ~= 0
                 hinge_props = element_analysis(element_analysis.id == hin.element_id,:);
             end
@@ -433,7 +442,7 @@ if height(hinge) > 0
                 if strcmp(ele.direction,'x') && strcmp(hin.direction,'oop') % Out of plane for the X direction  
                     fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
                 elseif strcmp(ele.direction,'x') % In plane for the X direction 
-                    fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 %i -dir 1 2 %i \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id, rot_dof_x);
                 elseif strcmp(ele.direction,'z') && strcmp(hin.direction,'oop') % Out of plane for the Z direction  
                     fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
                 elseif strcmp(ele.direction,'z') % In plane for the Z direction 
@@ -441,15 +450,15 @@ if height(hinge) > 0
                 end
                 
                 % Define Equal DOFs
-                if ~strcmp(hin.direction,'oop') % Only do this for the inplane hinges
-                    if strcmp(dimension,'3D') && strcmp(ele_props.type,'column')
-                        fprintf(fileID,'equalDOF %i %i 1 2 3 5 \n', hin.node_2, hin.node_1);
-                    elseif strcmp(dimension,'3D') % 3D beams 
-                        fprintf(fileID,'equalDOF %i %i 1 2 3 4 5 \n', hin.node_2, hin.node_1);
-                    else
-                        fprintf(fileID,'equalDOF %i %i 1 2 \n', hin.node_2, hin.node_1);
-                    end
-                end
+%                 if ~strcmp(hin.direction,'oop') % Only do this for the inplane hinges
+%                     if strcmp(dimension,'3D') && strcmp(ele_props.type,'column')
+%                         fprintf(fileID,'equalDOF %i %i 1 2 3 5 \n', hin.node_2, hin.node_1);
+%                     elseif strcmp(dimension,'3D') % 3D beams 
+%                         fprintf(fileID,'equalDOF %i %i 1 2 3 4 5 \n', hin.node_2, hin.node_1);
+%                     else
+%                         fprintf(fileID,'equalDOF %i %i 1 2 \n', hin.node_2, hin.node_1);
+%                     end
+%                 end
             elseif strcmp(ele_props.type,'wall')
                 if analysis.nonlinear == 0 % Elastic Lateral Spring for shear deformations
                     elastic_shear_stiffness = ele_props.g*ele_props.av/ele.length;

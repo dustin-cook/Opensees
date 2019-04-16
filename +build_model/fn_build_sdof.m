@@ -1,11 +1,16 @@
-function [ ] = fn_build_sdof( model, write_dir )
+function [ ] = fn_build_sdof( model, analysis, write_dir )
 % Funtion to build sdof element and node tables
 
 %% INITIAL SETUP
+% Import packages
+import build_model.*
 
 %% Build Story Table
 story.id = 1;
 story.story_ht = model.height;
+story.y_start = 0;
+story.story_dead_load = model.weight;
+
 
 %% Build Node Table
 node.id = [1;2];
@@ -25,10 +30,19 @@ element.type = 'column';
 element.node_1 = 1;
 element.node_2 = 2;
 element.length = model.height;
+element.direction = 'x';
 element.k = 2*pi*(model.weight/386)/(model.period^2);
 element.e = 1000000;
 element.a = 1000000;
-element.i = element.k*(element.length^3)/(3*element.e);
+element.iz = element.k*(element.length^3)/(3*element.e);
+element.Mn_pos_1 = model.moment_capacity;
+element.Mn_neg_1 = model.moment_capacity;
+element.Mp_pos_1 = model.moment_capacity;
+element.Mp_neg_1 = model.moment_capacity;
+element.a_hinge_1 = 0.01;
+element.b_hinge_1 = 0.02;
+element.c_hinge_1 = 0.2;
+element.critical_mode_1 = 'flexure';
 
 %% Assign Joints
 joint.id = [];
@@ -38,13 +52,9 @@ hinge.id = [];
 hinge.element_id = [];
 hinge.node_1 = [];
 hinge.node_2 = [];
-if model.nonlinear ~= 0
+if analysis.nonlinear ~= 0
     % Define hinge at start of element
-    [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', 1, 1, 1, 'rotational' ); 
-        
-     % Moment Capcity per ACI
-    [ ~, element.Mn_pos ] = fn_aci_moment_capacity( 'pos', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0 ); % change to be based on the gravity load instead?
-    [ ~, element.Mn_neg ] = fn_aci_moment_capacity( 'neg', ele.fc_e, ele.w, ele.d, ele.As, ele.As_d, ele.fy_e, ele.Es, 0 );
+    [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', 1, 1, 1, 'rotational', 'primary', 1 ); 
 end
 
 %% Reformat outputs to table and write CSV's

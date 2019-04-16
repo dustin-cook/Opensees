@@ -30,7 +30,11 @@ if analysis.type == 1 % dynamic analysis
             hinge_group = hinge(hinge.group == hinge_groups(i),:);
             for h = 1:height(hinge_group)
                 hinge_deformation_TH.(['hinge_' num2str(hinge_group.id(h))]) = hinge_group_deformation_TH(:,1+h);
-                hinge_force_TH.(['hinge_' num2str(hinge_group.id(h))]) = hinge_group_force_TH(:,(1+(h-1)*4+1):(1+h*4));
+                if strcmp(model.dimension,'3D')
+                    hinge_force_TH.(['hinge_' num2str(hinge_group.id(h))]) = hinge_group_force_TH(:,(1+(h-1)*4+1):(1+h*4));
+                elseif strcmp(model.dimension,'2D')
+                    hinge_force_TH.(['hinge_' num2str(hinge_group.id(h))]) = hinge_group_force_TH(:,(1+(h-1)*2+1):(1+h*2));
+                end
             end
         end
     end
@@ -71,8 +75,15 @@ end
 
 %% Element Forces
 % Force component IDs
-comp_names = {'P_TH','V_TH_1','V_TH_oop_1','M_TH_1','V_TH_2','V_TH_oop_2','M_TH_2'};
-comp_keys = [2,3,4,7,9,10,13];
+if strcmp(model.dimension,'3D')
+    comp_names = {'P_TH','V_TH_1','V_TH_oop_1','M_TH_1','V_TH_2','V_TH_oop_2','M_TH_2'};
+    comp_keys = [2,3,4,7,9,10,13];
+elseif strcmp(model.dimension,'2D')
+%     comp_names = {'P_TH','V_TH_1','M_TH_1','V_TH_2','M_TH_2'};
+%     comp_keys = [2,3,4,6,7];
+    comp_names = {'V_TH_1','M_TH_1','V_TH_2','M_TH_2'};
+    comp_keys = [2,3,4,5];
+end
 
 % Loop through elements and save data
 for i = 1:length(element.id)
@@ -103,17 +114,43 @@ for i = 1:length(element.id)
     end
     
     % Max Force for each element
-    element.P_grav(i) = abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH(1));
-    element.Pmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH));
-    element.Pmin(i) = min(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH));
-    element.Vmax_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_1));
-    element.Vmax_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_2));
-    element.Vmax_oop_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_oop_1));
-    element.Vmax_oop_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_oop_2));
-    element.Mmax_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_1));
-    element.Mmax_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_2));
+%     element.P_grav(i) = abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH(1));
+%     element.Pmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH));
+%     element.Pmin(i) = min(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH));
+%     element.Vmax_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_1));
+%     element.Vmax_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_2));
+%     element.Mmax_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_1));
+%     element.Mmax_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_2));
+%     
+%     if strcmp(model.dimension,'3D')
+%         element.Vmax_oop_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_oop_1));
+%         element.Vmax_oop_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_oop_2));
+%     end
 end
   
+% Base shear reactions
+[ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' 'x' '.xml']);
+temp_base_shear = sum(base_node_reactions(1:(end-5),2:end),2)';
+
+% Plot Element v hinge forces
+hold on
+plot(element_TH.ele_1.M_TH_1)
+plot(-hinge_force_TH.hinge_1(:,2))
+plot(base_node_reactions(:,3)*100)
+
+close
+hold on
+plot(element_TH.ele_1.V_TH_1)
+plot(-element_TH.ele_1.V_TH_2)
+plot(-hinge_force_TH.hinge_1(:,1))
+% plot(temp_base_shear)
+plot(base_node_reactions(:,3))
+
+close
+hold on
+plot(element_TH.ele_1.M_TH_1)
+plot(100*element_TH.ele_1.V_TH_2)
+
 %% Save Element Time History
 for i = 1:height(element)
     ele_TH = element_TH.(['ele_' num2str(element.id(i))]);

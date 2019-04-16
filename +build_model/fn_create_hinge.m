@@ -13,26 +13,28 @@ end
 old_node_idx = find(node.id == old_node_id);
 
 % Define new node properties
-node.id(new_node_idx) = new_node_id;
-node.x(new_node_idx) = node.x(old_node_idx);
-node.y(new_node_idx) = node.y(old_node_idx);
-node.z(new_node_idx) = node.z(old_node_idx);
-node.dead_load(new_node_idx) = 0;
-node.live_load(new_node_idx) = 0;
-node.mass(new_node_idx) = 0;
-node.record_disp(new_node_idx) = 0;
-node.record_accel(new_node_idx) = 0;
-node.story(new_node_idx) = 0;
-node.primary_story(new_node_idx) = 0;
-node.fix(new_node_idx) = node.fix(old_node_idx);
-node.on_slab(new_node_idx) = 0;
+node.id(new_node_idx,1) = new_node_id;
+node.x(new_node_idx,1) = node.x(old_node_idx);
+node.y(new_node_idx,1) = node.y(old_node_idx);
+if isfield(node,'z')
+    node.z(new_node_idx,1) = node.z(old_node_idx);
+end
+node.dead_load(new_node_idx,1) = 0;
+node.live_load(new_node_idx,1) = 0;
+node.mass(new_node_idx,1) = 0;
+node.record_disp(new_node_idx,1) = 0;
+node.record_accel(new_node_idx,1) = 0;
+node.story(new_node_idx,1) = 0;
+node.primary_story(new_node_idx,1) = 0;
+node.fix(new_node_idx,1) = node.fix(old_node_idx);
+node.on_slab(new_node_idx,1) = 0;
 
 % Define fixity of foundation nodes
 if foundation_nodes_id(old_node_idx)
     if strcmp(type,'foundation')
-        node.fix{new_node_idx} = '[111111]';
+        node.fix{new_node_idx,1} = '[111111]';
     else
-        node.fix{new_node_idx} = '[000000]';
+        node.fix{new_node_idx,1} = '[000000]';
     end
 end
 
