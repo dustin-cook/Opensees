@@ -19,9 +19,13 @@ node.y = [0; model.height];
 node.dead_load = [0; model.weight];
 node.live_load = [0;0];
 node.mass = node.dead_load/386;
-node.fix = {'[111111]';'[000000]'};
+node.record_disp = [1;1];
+node.record_accel = [1;1];
 node.story = [0;1];
 node.primary_story = [0;1];
+node.fix = {'[111111]';'[000000]'};
+node.on_slab = [0;0];
+
 
 %% Build Element Table
 element.id = 1;
@@ -31,7 +35,7 @@ element.node_1 = 1;
 element.node_2 = 2;
 element.length = model.height;
 element.direction = 'x';
-element.k = 2*pi*(model.weight/386)/(model.period^2);
+element.k = (model.weight/386)/(model.period/(2*pi))^2;
 element.e = 1000000;
 element.a = 1000000;
 element.iz = element.k*(element.length^3)/(3*element.e);

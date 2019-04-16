@@ -29,7 +29,7 @@ analysis.hinge_stiff_mod = 10; % Scale up stiffnes of hinges for a lumped plasti
 analysis.run_eigen = 0; % Run the eignen anlayis to get mode shapes and periods for the opensees analysis
 analysis.initial_timestep_factor = 1; % reduction from eq timestep to analysis timestep
 analysis.solution_algorithm = 1; % Run the opensees solution algorthm which will try different things 
-analysis.collapse_drift = 0.20; % stop analysis at this drift and say collapse
+analysis.collapse_drift = 0.50; % stop analysis at this drift and say collapse
 analysis.joint_model = 1; % 1 = beam/column elements, 2 = joint 3D
 analysis.joint_explicit = 0; % 0 = rigid, 1 = model joint nonlinearity (could automate this based on first assessment of joints)
 analysis.write_xml = 1; % Write and read opensees out files as xml files (0 = .txt files)
@@ -38,11 +38,11 @@ analysis.cyclic_pushover_peak_drifts = [0.4, 0.5, 0.6]; % Percent of the final P
 analysis.hinge_group_length = 10;
 analysis.filter_freq_range = [0.5, 1.5];
 analysis.algorithm = 'Newton';
-analysis.integrator = 'HHT 0.9';
+analysis.integrator = 'Newmark 0.5 0.25';
 
 % Visuals and Graphics
 analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
-analysis.plot_recordings = 1; % Plot analysis results v recorded results
+analysis.plot_recordings = 0; % Plot analysis results v recorded results
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 1; % Visual scale of the movie playback
 analysis.hinge_stories_2_plot = 1;
@@ -57,7 +57,7 @@ if strcmp(analysis.proceedure,'test')
     analysis.case_list = {'NA'};
     analysis.pushover_drift_list_x = [0.02];
     analysis.pushover_drift_list_z = [0.02];
-    analysis.accidental_torsion_list = [1];
+    analysis.accidental_torsion_list = [0];
     analysis.damp_ratio_list = [0.05]; % Analysis damping ratio
     
 elseif strcmp(analysis.proceedure,'torsion')

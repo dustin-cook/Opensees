@@ -44,7 +44,7 @@ if analysis.type == 1
     
     % Nodal Reaction Recorders
     base_nodes = node.id(node.y == 0);
-    fprintf(fileID,'recorder Node %s %s/nodal_base_reaction_x.%s -time -node %s -dof 1 reaction \n', file_type, write_dir, file_ext, num2str(base_nodes'));
+    fprintf(fileID,'recorder Node %s %s/nodal_base_reaction_x.%s -time -node %s -dof 1 3 reaction \n', file_type, write_dir, file_ext, num2str(base_nodes'));
     if strcmp(dimension,'3D')
         fprintf(fileID,'recorder Node %s %s/nodal_base_reaction_z.%s -time -node %s -dof 3 reaction \n', file_type, write_dir, file_ext, num2str(base_nodes'));
     end
@@ -78,11 +78,11 @@ if analysis.type == 1
             group_range = hinge.id >= hinge_grouping(i) & hinge.id < hinge_grouping(i+1);
             hinge_ids = element.id(end) + hinge.id(group_range);
             if strcmp(dimension,'2D')
-                fprintf(fileID,'recorder Element %s %s/hinge_force_group_%s.%s -time -ele %s -dof 1 3 force \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));
+                fprintf(fileID,'recorder Element %s %s/hinge_force_group_%s.%s -time -ele %s -dof force \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));
             else
                 fprintf(fileID,'recorder Element %s %s/hinge_force_group_%s.%s -time -ele %s -dof 1 3 4 6 force \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));
             end
-            fprintf(fileID,'recorder Element %s %s/hinge_deformation_group_%s.%s -time -ele %s deformation \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));
+            fprintf(fileID,'recorder Element %s %s/hinge_deformation_group_%s.%s -time -ele %s deformation -dof 3 \n', file_type, write_dir, num2str(i), file_ext, num2str(hinge_ids'));
         end
     end
     

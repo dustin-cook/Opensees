@@ -95,7 +95,7 @@ if analysis.type == 1
         fprintf(fileID,'timeSeries Path 1 -dt $dt -filePath %s/%s -factor %f \n', ground_motion.x.eq_dir{1}, ground_motion.x.eq_name{1}, scale_factor);
         fprintf(fileID,'pattern UniformExcitation 3 1 -accel 1 -fact %f \n',analysis.ground_motion_scale_factor); 
     end
-    if isfield(ground_motion,'z')
+    if isfield(ground_motion,'z') && strcmp(dimension,'3D')
         fprintf(fileID,'set dt %f \n',ground_motion.z.eq_dt);
 %         fprintf(fileID,'puts "EQ Z dt = $dt" \n');
         fprintf(fileID,'timeSeries Path 2 -dt $dt -filePath %s/%s -factor %f \n', ground_motion.z.eq_dir{1}, ground_motion.z.eq_name{1}, scale_factor);

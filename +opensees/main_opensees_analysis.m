@@ -51,6 +51,7 @@ for i = 1:num_OS_runs
     end
     
     % Define Hinge Group
+    hinge_grouping = [];
     if analysis.nonlinear ~= 0 && ~isempty(hinge)
         hinge.group = zeros(height(hinge),1);
         hinge_grouping = 1:analysis.hinge_group_length:(height(hinge)+1);
