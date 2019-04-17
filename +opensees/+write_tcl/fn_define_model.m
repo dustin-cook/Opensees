@@ -447,24 +447,24 @@ if height(hinge) > 0
                 if strcmp(ele.direction,'x') && strcmp(hin.direction,'oop') % Out of plane for the X direction  
                     fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
                 elseif strcmp(ele.direction,'x') % In plane for the X direction 
-                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 2 -dir 1 2 3 \n',ele_hinge_id, hin.node_1, hin.node_2);
-%                     fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir %i \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id, rot_dof_x);
+%                     fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 2 -dir 1 2 3 \n',ele_hinge_id, hin.node_1, hin.node_2);
+                    fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir %i \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id, rot_dof_x);
                 elseif strcmp(ele.direction,'z') && strcmp(hin.direction,'oop') % Out of plane for the Z direction  
                     fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
                 elseif strcmp(ele.direction,'z') % In plane for the Z direction 
                     fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
                 end
                 
-%                 % Define Equal DOFs
-%                 if ~strcmp(hin.direction,'oop') % Only do this for the inplane hinges
-%                     if strcmp(dimension,'3D') && strcmp(ele_props.type,'column')
-%                         fprintf(fileID,'equalDOF %i %i 1 2 3 5 \n', hin.node_2, hin.node_1);
-%                     elseif strcmp(dimension,'3D') % 3D beams 
-%                         fprintf(fileID,'equalDOF %i %i 1 2 3 4 5 \n', hin.node_2, hin.node_1);
-%                     else
-%                         fprintf(fileID,'equalDOF %i %i 1 2 \n', hin.node_2, hin.node_1);
-%                     end
-%                 end
+                % Define Equal DOFs
+                if ~strcmp(hin.direction,'oop') % Only do this for the inplane hinges
+                    if strcmp(dimension,'3D') && strcmp(ele_props.type,'column')
+                        fprintf(fileID,'equalDOF %i %i 1 2 3 5 \n', hin.node_2, hin.node_1);
+                    elseif strcmp(dimension,'3D') % 3D beams 
+                        fprintf(fileID,'equalDOF %i %i 1 2 3 4 5 \n', hin.node_2, hin.node_1);
+                    else
+                        fprintf(fileID,'equalDOF %i %i 1 2 \n', hin.node_2, hin.node_1);
+                    end
+                end
             elseif strcmp(ele_props.type,'wall')
                 if analysis.nonlinear == 0 % Elastic Lateral Spring for shear deformations
                     elastic_shear_stiffness = ele_props.g*ele_props.av/ele.length;

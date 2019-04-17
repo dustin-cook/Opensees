@@ -129,6 +129,7 @@ else
     fprintf(fileID,'set i 0 \n');
     fprintf(fileID,'foreach lam $lambda {\n');
     fprintf(fileID,'    set i [expr $i+1] \n');
+    fprintf(fileID,'    puts $lam \n');
     fprintf(fileID,'	set omega($i) [expr sqrt($lam)]\n');
     fprintf(fileID,'	set period($i) [expr 2*$pi/sqrt($lam)]\n');
     fprintf(fileID,'}\n');

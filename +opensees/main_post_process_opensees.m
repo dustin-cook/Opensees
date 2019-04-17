@@ -33,7 +33,7 @@ if analysis.type == 1 % dynamic analysis
                 if strcmp(model.dimension,'3D')
                     hinge_force_TH.(['hinge_' num2str(hinge_group.id(h))]) = hinge_group_force_TH(:,(1+(h-1)*4+1):(1+h*4));
                 elseif strcmp(model.dimension,'2D')
-                    hinge_force_TH.(['hinge_' num2str(hinge_group.id(h))]) = hinge_group_force_TH(:,(1+(h-1)*6+1):(1+h*6));
+                    hinge_force_TH.(['hinge_' num2str(hinge_group.id(h))]) = hinge_group_force_TH(:,(1+(h-1)*2+1):(1+h*2));
                 end
             end
         end
@@ -79,10 +79,8 @@ if strcmp(model.dimension,'3D')
     comp_names = {'P_TH','V_TH_1','V_TH_oop_1','M_TH_1','V_TH_2','V_TH_oop_2','M_TH_2'};
     comp_keys = [2,3,4,7,9,10,13];
 elseif strcmp(model.dimension,'2D')
-%     comp_names = {'P_TH','V_TH_1','M_TH_1','V_TH_2','M_TH_2'};
-%     comp_keys = [2,3,4,6,7];
-    comp_names = {'V_TH_1','M_TH_1','V_TH_2','M_TH_2'};
-    comp_keys = [2,3,4,5];
+    comp_names = {'P_TH','V_TH_1','M_TH_1','V_TH_2','M_TH_2'};
+    comp_keys = [2,3,4,6,7];
 end
 
 % Loop through elements and save data
@@ -114,58 +112,19 @@ for i = 1:length(element.id)
     end
     
     % Max Force for each element
-%     element.P_grav(i) = abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH(1));
-%     element.Pmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH));
-%     element.Pmin(i) = min(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH));
-%     element.Vmax_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_1));
-%     element.Vmax_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_2));
-%     element.Mmax_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_1));
-%     element.Mmax_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_2));
-%     
-%     if strcmp(model.dimension,'3D')
-%         element.Vmax_oop_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_oop_1));
-%         element.Vmax_oop_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_oop_2));
-%     end
+    element.P_grav(i) = abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH(1));
+    element.Pmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH));
+    element.Pmin(i) = min(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH));
+    element.Vmax_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_1));
+    element.Vmax_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_2));
+    element.Mmax_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_1));
+    element.Mmax_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_2));
+    
+    if strcmp(model.dimension,'3D')
+        element.Vmax_oop_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_oop_1));
+        element.Vmax_oop_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_oop_2));
+    end
 end
-  
-plot(hinge_deformation_TH.hinge_1)
-
-% Base shear reactions
-[ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' 'x' '.xml']);
-temp_base_shear = sum(base_node_reactions(1:(end-5),[2,4]),2)';
-temp_base_moment = sum(base_node_reactions(1:(end-5),[3,5]),2)';
-% Plot Element v hinge forces
-close
-hold on
-plot(element_TH.ele_1.M_TH_1,'DisplayName','Element Force Recorder')
-% plot(base_node_reactions(:,5),'DisplayName','Base Shear Recorder x Height')
-plot(temp_base_moment,'DisplayName','Base Moment Recorder')
-plot(-hinge_force_TH.hinge_1(:,3),'--k','DisplayName','Element Hinge Recorder')
-grid on
-box on
-grid minor
-ylabel('base moment (lbs-in)')
-legend('location','northwest')
-
-
-close
-hold on
-plot(element_TH.ele_1.V_TH_1,'DisplayName','Element Force Recorder')
-% plot(-element_TH.ele_1.V_TH_2)
-% plot(base_node_reactions(:,2),'DisplayName','Base Shear Recorder')
-plot(temp_base_shear,'DisplayName','Base Shear Recorder')
-plot(-hinge_force_TH.hinge_1(:,1),'--k','DisplayName','Element Hinge Recorder')
-grid on
-box on
-grid minor
-ylabel('base shear (lbs)')
-legend('location','northwest')
-
-close
-hold on
-plot(element_TH.ele_1.M_TH_1)
-plot(100*element_TH.ele_1.V_TH_2)
-close
 
 %% Save Element Time History
 for i = 1:height(element)
@@ -332,16 +291,6 @@ for i = 1:length(dirs_ran)
                node.(['max_accel_' dirs_ran{i} '_abs'])(n) = NaN;
            end
        end
-       
-       hold on
-       plot(node_TH.node_1_TH.accel_x_abs_TH,'displayName','Base Node')
-       plot(node_TH.node_2_TH.accel_x_abs_TH,'displayName','Top Node')
-       grid on
-       box on
-       grid minor
-       ylabel('Abs Acceleration (g)')
-       legend('location','northwest')
-       test=5;
    elseif analysis.type == 2 || analysis.type == 3 % Pushover Analysis or Cyclic
         for n = 1:height(node)
            if node.record_disp(n)
