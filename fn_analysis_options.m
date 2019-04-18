@@ -29,7 +29,7 @@ analysis.hinge_stiff_mod = 10; % Scale up stiffnes of hinges for a lumped plasti
 analysis.run_eigen = 1; % Run the eignen anlayis to get mode shapes and periods for the opensees analysis
 analysis.initial_timestep_factor = 1; % reduction from eq timestep to analysis timestep
 analysis.solution_algorithm = 1; % Run the opensees solution algorthm which will try different things 
-analysis.collapse_drift = 0.50; % stop analysis at this drift and say collapse
+analysis.collapse_drift = 0.15; % stop analysis at this drift and say collapse
 analysis.joint_model = 1; % 1 = beam/column elements, 2 = joint 3D
 analysis.joint_explicit = 0; % 0 = rigid, 1 = model joint nonlinearity (could automate this based on first assessment of joints)
 analysis.write_xml = 1; % Write and read opensees out files as xml files (0 = .txt files)
@@ -41,12 +41,12 @@ analysis.algorithm = 'Newton';
 analysis.integrator = 'Newmark 0.5 0.25';
 
 % Visuals and Graphics
-analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
-analysis.plot_recordings = 0; % Plot analysis results v recorded results
+analysis.element_plots = 1; % Plot hinge backnones and other per element visualizations
+analysis.plot_recordings = 1; % Plot analysis results v recorded results
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 1; % Visual scale of the movie playback
 analysis.hinge_stories_2_plot = 1;
-analysis.suppress_outputs = 0;
+analysis.suppress_outputs = 1;
 
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
@@ -94,26 +94,26 @@ elseif strcmp(analysis.proceedure,'NDP')
 %     analysis.damp_ratio_list = [0.03, 0.03, 0.03, 0.03, 0.03]; % Analysis damping ratio
     
     % Shorter for speed
-%     analysis.type_list = [2, 2, 1]; % Linear Pushover then NL Pushover x 2 then 1 NL dynamic
-%     analysis.nonlinear_list = [1, 1, 1];
-%     analysis.dead_load_list = [1, 1, 1];
-%     analysis.live_load_list = [1, 1, 1];
-%     analysis.case_list = {'NA', 'backbones', 'NA'};
-%     analysis.pushover_drift_list_x = [0.008, 0.008, NaN]; % Drift limit where the pushover will go till
-%     analysis.pushover_drift_list_z = [0.0013, 0.0013, NaN];
-%     analysis.accidental_torsion_list = [0, 0, 1];
-%     analysis.damp_ratio_list = [0.3, 0.3, 0.3]; % Analysis damping ratio
+    analysis.type_list = [2, 2, 1]; % Linear Pushover then NL Pushover x 2 then 1 NL dynamic
+    analysis.nonlinear_list = [1, 1, 1];
+    analysis.dead_load_list = [1, 1, 1];
+    analysis.live_load_list = [1, 1, 1];
+    analysis.case_list = {'NA', 'backbones', 'NA'};
+    analysis.pushover_drift_list_x = [0.008, 0.008, NaN]; % Drift limit where the pushover will go till
+    analysis.pushover_drift_list_z = [0.0013, 0.0013, NaN];
+    analysis.accidental_torsion_list = [0, 0, 1];
+    analysis.damp_ratio_list = [0.3, 0.3, 0.3]; % Analysis damping ratio
 %      
-    % Just to run summit results
-    analysis.type_list = [1]; % Linear Pushover then NL Pushover x 2 then 1 NL dynamic
-    analysis.nonlinear_list = [1];
-    analysis.dead_load_list = [1];
-    analysis.live_load_list = [1];
-    analysis.case_list = {'NA'};
-    analysis.pushover_drift_list_x = [NaN]; % Drift limit where the pushover will go till
-    analysis.pushover_drift_list_z = [NaN];
-    analysis.accidental_torsion_list = [1];
-    analysis.damp_ratio_list = [0.03]; % Analysis damping ratio
+%     % Just to run summit results
+%     analysis.type_list = [1]; % Linear Pushover then NL Pushover x 2 then 1 NL dynamic
+%     analysis.nonlinear_list = [1];
+%     analysis.dead_load_list = [1];
+%     analysis.live_load_list = [1];
+%     analysis.case_list = {'NA'};
+%     analysis.pushover_drift_list_x = [NaN]; % Drift limit where the pushover will go till
+%     analysis.pushover_drift_list_z = [NaN];
+%     analysis.accidental_torsion_list = [1];
+%     analysis.damp_ratio_list = [0.03]; % Analysis damping ratio
    
 elseif strcmp(analysis.proceedure,'LDP') % Linear Test
     analysis.type_list = [1, 1]; % 1 = dynamic, 2 = pushover % 3 = static cyclic

@@ -48,7 +48,7 @@ for i = 1:height(hinge)
             plot_name = [ele.type{1} '_' num2str(hinge.element_id(i)) ' - ' hinge_name ' - Rotation Response'];
 
 
-            fn_plot_backbone( ele, ele_side, ele_props, read_dir, hinge_plot_dir, plot_name, 2, hin_TH.deformation_TH, hin_TH.force_TH, crit_mode, hinge.direction{i})
+            fn_plot_backbone( ele, ele_side, ele_props, read_dir, hinge_plot_dir, plot_name, 2, hin_TH.deformation_TH, hin_TH.moment_TH, crit_mode, hinge.direction{i})
 
             % Plot Hinge Rotation Time History
 %             if exist('eq_analysis_timespace','var')
@@ -84,7 +84,7 @@ for i = 1:height(hinge)
 
         elseif strcmp(hinge.type(i),'shear')
             plot_name = [ele.type{1} '_' num2str(hinge.element_id(i)) ' - Shear Response'];
-            fn_plot_backbone( ele, ele_side, ele_props, hinge_plot_dir, plot_name, 2, hin_TH.deformation_TH, hin_TH.force_TH, crit_mode, hinge.direction{i})
+            fn_plot_backbone( ele, ele_side, ele_props, hinge_plot_dir, plot_name, 2, hin_TH.deformation_TH, hin_TH.shear_TH, crit_mode, hinge.direction{i})
         end
     end
 end

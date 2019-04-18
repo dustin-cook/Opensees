@@ -11,9 +11,11 @@ end
 if plot_ops == 1 % Default settings
     legend('Location','eastoutside')
     grid on
+    grid minor
     box on
 elseif  plot_ops == 2
     grid on
+    grid minor
     box on
 elseif  plot_ops == 3
     legend('Location','eastoutside')
@@ -23,6 +25,7 @@ elseif  plot_ops == 4
 elseif plot_ops == 5 % Default settings
     legend('Location','southeast')
     grid on
+    grid minor
     box on
 end
 

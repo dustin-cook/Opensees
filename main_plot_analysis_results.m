@@ -105,21 +105,21 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     elseif strcmp(analysis.proceedure,'NDP') % Nonlinear Procedures
         %% Plot Hinge accpetance
         % Elevation
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 1', plot_dir, 'x', 71, 1571, 0, 0 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 2', plot_dir, 'x', 71, 1571, 300, 300 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 3', plot_dir, 'x', 71, 1571, 600, 600 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 4', plot_dir, 'x', 71, 1571, 900, 900 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - West Upper Wall', plot_dir, 'z', 0, 0, 0, 900 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 1', plot_dir, 'z', 71, 71, 0, 900 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 2', plot_dir, 'z', 671, 671, 0, 900 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 3', plot_dir, 'z', 971, 971, 0, 900 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 4', plot_dir, 'z', 1271, 1271, 0, 900 )
-        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Upper Wall', plot_dir, 'z', 1500, 2000, 0, 900 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 1', plot_dir, 'x', 71, 1571, 0, 0 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 2', plot_dir, 'x', 71, 1571, 300, 300 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 3', plot_dir, 'x', 71, 1571, 600, 600 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 4', plot_dir, 'x', 71, 1571, 900, 900 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - West Upper Wall', plot_dir, 'z', 0, 0, 0, 900 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 1', plot_dir, 'z', 71, 71, 0, 900 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 2', plot_dir, 'z', 671, 671, 0, 900 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 3', plot_dir, 'z', 971, 971, 0, 900 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 4', plot_dir, 'z', 1271, 1271, 0, 900 )
+%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Upper Wall', plot_dir, 'z', 1500, 2000, 0, 900 )
         
 
         % Plan View
-        fn_plot_plan_view( hinge, element, node, 1, 'Story 1 Columns - Bottom', plot_dir )
-        fn_plot_plan_view( hinge, element, node, 2, 'Story 1 Columns - Top', plot_dir )
+%         fn_plot_plan_view( hinge, element, node, 1, 'Story 1 Columns - Bottom', plot_dir )
+%         fn_plot_plan_view( hinge, element, node, 2, 'Story 1 Columns - Top', plot_dir )
 
         %% Plot Element Scatter
         fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
@@ -136,37 +136,6 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
           target_disp_in.z = NaN;
         end
     end        
-
-    %% Filter accels
-%     dirs_ran = {'x', 'z'};
-%     import file_exchange.fn_accel_filter
-%     import opensees.post_process.*
-%     low_freq = 0; % hardcode to no high pass filter
-%     for n = 1:height(node)
-%         if node.record_disp(n)
-%             load([read_dir_opensees filesep 'node_TH_' num2str(node.id(n)) '.mat'],'nd_TH')
-%             for d = 1:2
-% %                 [ node_accel_filtered ] = fn_fft_accel_filter( nd_TH.accel_x_rel_TH, 0.01, 0.01:0.01:50, analysis.filter_high_freq, low_freq );
-%                 timespace = 0.01:0.01:50;
-%                 [ node_accel_filtered_butter ] = fn_accel_filter( [timespace',nd_TH.accel_x_rel_TH'], 0.01, 20, 5, 'low');
-%                 node_accel_filtered = node_accel_filtered_butter(:,2)';
-%                 nd_TH.(['accel_' dirs_ran{d} '_rel_TH']) = node_accel_filtered; % Convert to G  
-%                 nd_TH.(['accel_' dirs_ran{d} '_abs_TH']) = node_accel_filtered + eq.(dirs_ran{d})';
-%                 node.(['max_accel_' dirs_ran{d} '_rel'])(n) = max(abs(node_accel_filtered));
-%                 node.(['max_accel_' dirs_ran{d} '_abs'])(n) = max(abs(node_accel_filtered + eq.(dirs_ran{d})'));
-%                 
-% %                 hold on
-% %                 plot(node_accel_filtered)
-% %                 plot(node_accel_filtered_butter(:,2))
-%             end
-%             save([read_dir_opensees filesep 'node_TH_' num2str(node.id(n)) '.mat'],'nd_TH')
-%         end
-%     end
-%     
-%     for d = 1:2
-%         [ story.(['max_accel_' dirs_ran{d}]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' dirs_ran{d} '_abs']), story, node, 0 );
-%         story.(['max_accel_center_' dirs_ran{d}]) = node.(['max_accel_' dirs_ran{d} '_abs'])(node.center == 1 & node.record_accel == 1 & node.story > 0);
-%     end
     
     %% Load in Recordings to compare with EDPs and Time Histories
     if analysis.plot_recordings

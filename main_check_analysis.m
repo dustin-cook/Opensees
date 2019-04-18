@@ -18,6 +18,7 @@ import plotting_tools.fn_plot_backbone
 import plotting_tools.fn_format_and_save_plot
 
 % Define Read and Write Directories
+os_dir = [analysis.out_dir filesep 'opensees_data'];
 read_dir = [analysis.out_dir filesep 'asce_41_data'];
 write_dir = [analysis.out_dir filesep 'validation_plots'];
 
@@ -25,6 +26,7 @@ write_dir = [analysis.out_dir filesep 'validation_plots'];
 load([read_dir filesep 'element_analysis.mat'])
 load([read_dir filesep 'joint_analysis.mat'])
 load([read_dir filesep 'story_analysis.mat'])
+load([read_dir filesep 'hinge_analysis.mat'])
 
 % Define Analysis Checklist File
 file_name = [analysis.out_dir filesep 'analysis_checklist.txt'];
@@ -80,9 +82,6 @@ if strcmp(analysis.proceedure,'NDP') && analysis.type == 1 && analysis.nonlinear
     fprintf(fileID,'Max Wall Shear Ratio =  %f of first yield (f-value)\n',max(wall_shear_ratio));
 end
 
-%% Vertical Ground Motion Convergence
-
-
 %% Torsion
 % If the displacement multiplier eta caused by actual plus accidental 
 % torsion at any level exceeds 1.5, two-dimensional models shall not be 
@@ -110,7 +109,44 @@ if strcmp(analysis.case,'torsion_check') && analysis.type == 1
     end
 end
 
+%% Equilibrium of hinge forces with element forces
+if analysis.element_plots && analysis.nonlinear == 1 && analysis.type == 1
+    for i = 1:height(hinge)
+        hin = hinge(i,:);
+        ele = element(element.id == hin.element_id,:);
+        if ele.story <= analysis.hinge_stories_2_plot
+            % Load time history data
+            load([os_dir filesep 'element_TH_' num2str(ele.id) '.mat'])
+            load([os_dir filesep 'hinge_TH_' num2str(hin.id) '.mat'])
+            
+            % Plot Element v Hinge Moments
+            hold on
+            if strcmp(hin.direction,'oop')
+                plot(ele_TH.(['M_TH_oop_' num2str(hin.ele_side)]),'DisplayName','Element Force Recorder')
+            else
+                plot(ele_TH.(['M_TH_' num2str(hin.ele_side)]),'DisplayName','Element Force Recorder')
+            end
+            plot(hin_TH.moment_TH,'--k','DisplayName','Element Hinge Recorder')
+            ylabel('Moment Demand (lbs-in)')
+            plot_name = [ele.type{1} ' ' num2str(ele.id) ' side ' num2str(hin.ele_side) ' - ' hin.direction{1} ' moment']; 
+            fn_format_and_save_plot( write_dir, plot_name, 1 )
+            
+            % Plot Element v Hinge Shear
+            hold on
+            if strcmp(hin.direction,'oop')
+                plot(ele_TH.(['V_TH_oop_' num2str(hin.ele_side)]),'DisplayName','Element Force Recorder')
+            else
+                plot(ele_TH.(['V_TH_' num2str(hin.ele_side)]),'DisplayName','Element Force Recorder')
+            end
+            plot(hin_TH.shear_TH,'--k','DisplayName','Element Hinge Recorder')
+            ylabel('Shear Force (lbs)')
+            plot_name = [ele.type{1} ' ' num2str(ele.id) ' side ' num2str(hin.ele_side) ' - ' hin.direction{1} ' shear']; 
+            fn_format_and_save_plot( write_dir, plot_name, 1 )
+        end
+    end
+end
 
+%% Vertical Ground Motion Convergence
 
 % Close File
 fclose(fileID);

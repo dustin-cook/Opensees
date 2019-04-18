@@ -175,7 +175,7 @@ for i = 1:height(element)
 end
 
 %% Define Joints
-fprintf(fileID,'uniaxialMaterial Elastic 1 999999999999999. \n'); % Rigid Elastic Material
+fprintf(fileID,'uniaxialMaterial Elastic 1 9999999999999999. \n'); % Rigid Elastic Material
 joint_ele_ids = [];
 if height(joint) > 0
     % Load in joint properties
@@ -440,45 +440,55 @@ if height(hinge) > 0
                 % uniaxialMaterial Bilin              $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg <$nFactor>
                 fprintf(fileID,'uniaxialMaterial Bilin %i %f %f %f %f %f 100.0 100.0 100.0 100.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_rot, end_rot);
 %                 fprintf(fileID,'uniaxialMaterial ElasticPP 3 %f 0.000005 \n', Ko);
-                
-%                 fprintf(fileID,'uniaxialMaterial Hardening 3 %f 10000 0.1 0.1 \n', Ko);
-                % Create Zero Length Element (Currently does not work for 2D)
+
+                % Create Zero Length Elements and Equal DOF constraints
                 %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
                 if strcmp(ele.direction,'x') && strcmp(hin.direction,'oop') % Out of plane for the X direction  
-                    fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 %i -dir 3 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
                 elseif strcmp(ele.direction,'x') % In plane for the X direction 
-%                     fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 2 -dir 1 2 3 \n',ele_hinge_id, hin.node_1, hin.node_2);
-                    fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir %i \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id, rot_dof_x);
+                    if strcmp(ele_props.type,'column')
+                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 %i -dir 1 %i \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id, rot_dof_x);
+                        fprintf(fileID,'equalDOF %i %i 2 5 \n', hin.node_2, hin.node_1);
+                    elseif strcmp(ele_props.type,'beam')
+                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 %i -dir 2 %i \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id, rot_dof_x);
+                        fprintf(fileID,'equalDOF %i %i 1 3 4 5 \n', hin.node_2, hin.node_1);
+                    end
                 elseif strcmp(ele.direction,'z') && strcmp(hin.direction,'oop') % Out of plane for the Z direction  
-                    fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 %i -dir 1 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
                 elseif strcmp(ele.direction,'z') % In plane for the Z direction 
-                    fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
-                end
-                
-                % Define Equal DOFs
-                if ~strcmp(hin.direction,'oop') % Only do this for the inplane hinges
-                    if strcmp(dimension,'3D') && strcmp(ele_props.type,'column')
-                        fprintf(fileID,'equalDOF %i %i 1 2 3 5 \n', hin.node_2, hin.node_1);
-                    elseif strcmp(dimension,'3D') % 3D beams 
-                        fprintf(fileID,'equalDOF %i %i 1 2 3 4 5 \n', hin.node_2, hin.node_1);
-                    else
-                        fprintf(fileID,'equalDOF %i %i 1 2 \n', hin.node_2, hin.node_1);
+                    if strcmp(ele_props.type,'column')
+                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 %i -dir 3 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                        fprintf(fileID,'equalDOF %i %i 2 5 \n', hin.node_2, hin.node_1);
+                    elseif strcmp(ele_props.type,'beam')
+                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 %i -dir 2 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                        fprintf(fileID,'equalDOF %i %i 1 3 5 6 \n', hin.node_2, hin.node_1);
                     end
                 end
+                
+%                 % Define Equal DOFs
+%                 if ~strcmp(hin.direction,'oop') % Only do this for the inplane hinges
+%                     if strcmp(dimension,'3D') && strcmp(ele_props.type,'column')
+%                         fprintf(fileID,'equalDOF %i %i 1 2 3 5 \n', hin.node_2, hin.node_1);
+%                     elseif strcmp(dimension,'3D') && strcmp(ele_props.type,'beam')% 3D beams 
+%                         fprintf(fileID,'equalDOF %i %i 1 2 3 4 5 \n', hin.node_2, hin.node_1);
+%                     else
+%                         fprintf(fileID,'equalDOF %i %i 1 2 \n', hin.node_2, hin.node_1);
+%                     end
+%                 end
             elseif strcmp(ele_props.type,'wall')
                 if analysis.nonlinear == 0 % Elastic Lateral Spring for shear deformations
                     elastic_shear_stiffness = ele_props.g*ele_props.av/ele.length;
                     % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
                     fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',ele_hinge_id,elastic_shear_stiffness);
                     
-                    %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
-                    if strcmp(ele.direction,'x')
-                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 1 \n',ele_hinge_id,hin.node_1,hin.node_2, ele_hinge_id); % Element Id for Hinge
-                        fprintf(fileID,'equalDOF %i %i 2 3 4 5 6 \n',hin.node_2,hin.node_1);
-                    elseif strcmp(ele.direction,'z')
-                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 3 \n',ele_hinge_id,hin.node_1,hin.node_2, ele_hinge_id); % Element Id for Hinge
-                        fprintf(fileID,'equalDOF %i %i 1 2 4 5 6 \n',hin.node_2,hin.node_1);
-                    end
+%                     %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
+%                     if strcmp(ele.direction,'x')
+%                         fprintf(fileID,'element zeroLength %i %i %i -mat %i 1 -dir 1 6 \n',ele_hinge_id,hin.node_1,hin.node_2, ele_hinge_id); % Element Id for Hinge
+%                         fprintf(fileID,'equalDOF %i %i 2 3 4 5 \n',hin.node_2,hin.node_1);
+%                     elseif strcmp(ele.direction,'z')
+%                         fprintf(fileID,'element zeroLength %i %i %i -mat %i 1 -dir 3 4 \n',ele_hinge_id,hin.node_1,hin.node_2, ele_hinge_id); % Element Id for Hinge
+%                         fprintf(fileID,'equalDOF %i %i 1 2 5 6 \n',hin.node_2,hin.node_1);
+%                     end
                     
                 elseif analysis.nonlinear == 1 % Nonlinear 
                     % Define backbone coordinates and IMK Hinges
@@ -499,7 +509,8 @@ if height(hinge) > 0
 %                         end
                         % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
 %                         fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, K0, 0, 0, force_vec(2), -force_vec(2), theta_p, theta_p, theta_pc, theta_pc, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_disp, end_disp);
-                        fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping, as_sping, force_vec(1), -force_vec(1), theta_p, theta_p, theta_pc, theta_pc, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_disp, end_disp); % Keep residual strength forever
+%                         fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping, as_sping, force_vec(1), -force_vec(1), theta_p, theta_p, theta_pc, theta_pc, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_disp, end_disp); % Keep residual strength forever
+                        fprintf(fileID,'uniaxialMaterial Bilin %i %f %f %f %f %f 100.0 100.0 100.0 100.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping, as_sping, force_vec(1), -force_vec(1), theta_p, theta_p, theta_pc, theta_pc, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_disp, end_disp); % Keep residual strength forever
                     elseif strcmp(hin.direction,'oop')
                         [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.(['Mn_oop_' ele_side]), hinge_props.(['Mn_oop_' ele_side]), hinge_props.(['Mp_oop_' ele_side]), hinge_props.(['Mp_oop_' ele_side]), ele.length, ele_props.e, ele_props.iy, hinge_props.(['a_hinge_oop_' ele_side]), hinge_props.(['b_hinge_oop_' ele_side]), hinge_props.(['c_hinge_oop_' ele_side]), analysis.hinge_stiff_mod, 0.1, hinge_props.(['critical_mode_oop_' ele_side]) );
                         Ko = moment_vec_pos(1)/rot_vec_pos(1);
@@ -515,32 +526,34 @@ if height(hinge) > 0
                         % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
                         fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_rot, end_rot); % Keep residual strength forever
                     end       
-
-                    % Create Zero Length Element (Currently does not work for 2D)
-                    %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
-                    if strcmp(ele.direction,'x') && strcmp(hin.direction,'oop') % Out of plane for the X direction  
-                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
-                    elseif strcmp(ele.direction,'x') % In plane for the X direction (assume shear)
-                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 1 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
-                    elseif strcmp(ele.direction,'z') && strcmp(hin.direction,'oop') % Out of plane for the Z direction  
-                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
-                    elseif strcmp(ele.direction,'z') % In plane for the Z direction (assume shear)
-                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 3 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
-                    end
-                            
-                    % Define Equal DOFs
-                    if ~strcmp(hin.direction,'oop') % Only do this for the inplane hinges
-                        if strcmp(dimension,'3D')
-                            if strcmp(ele.direction,'x') % X Direction wall
-                                fprintf(fileID,'equalDOF %i %i 2 3 5 6 \n', hin.node_2, hin.node_1);
-                            else % Z Direction wall
-                                fprintf(fileID,'equalDOF %i %i 1 2 4 5 \n', hin.node_2, hin.node_1);
-                            end
-                        else % 2D
-                            fprintf(fileID,'equalDOF %i %i 1 2 \n', hin.node_2, hin.node_1);
-                        end
-                    end
                 end
+                
+                % Create Zero Length Element (Currently does not work for 2D)
+                %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
+                if strcmp(ele.direction,'x') && strcmp(hin.direction,'oop') % Out of plane for the X direction  
+                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 %i -dir 3 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                elseif strcmp(ele.direction,'x') % In plane for the X direction (assume shear)
+                    fprintf(fileID,'element zeroLength %i %i %i -mat %i 1 -dir 1 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                    fprintf(fileID,'equalDOF %i %i 2 3 4 5 \n', hin.node_2, hin.node_1); % Restricts OOP nonlinear
+                elseif strcmp(ele.direction,'z') && strcmp(hin.direction,'oop') % Out of plane for the Z direction  
+                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 %i -dir 1 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                elseif strcmp(ele.direction,'z') % In plane for the Z direction (assume shear)
+                    fprintf(fileID,'element zeroLength %i %i %i -mat %i 1 -dir 3 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                    fprintf(fileID,'equalDOF %i %i 1 2 5 6 \n', hin.node_2, hin.node_1); % Restricts OOP nonlinear
+                end
+                            
+%                     % Define Equal DOFs
+%                     if ~strcmp(hin.direction,'oop') % Only do this for the inplane hinges
+%                         if strcmp(dimension,'3D')
+%                             if strcmp(ele.direction,'x') % X Direction wall
+%                                 fprintf(fileID,'equalDOF %i %i 2 3 5 6 \n', hin.node_2, hin.node_1);
+%                             else % Z Direction wall
+%                                 fprintf(fileID,'equalDOF %i %i 1 2 4 5 \n', hin.node_2, hin.node_1);
+%                             end
+%                         else % 2D
+%                             fprintf(fileID,'equalDOF %i %i 1 2 \n', hin.node_2, hin.node_1);
+%                         end
+%                     end
             end
         end
     end
