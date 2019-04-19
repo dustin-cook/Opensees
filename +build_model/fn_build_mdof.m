@@ -302,9 +302,9 @@ for ae = 1:height(additional_elements)
     element.gravity_load(ele_id,1) = 0;
     
     % Check to see if the element nodes exists and assign
-    [ node, id ] = fn_node_exist( node, additional_elements.x_start(ae), additional_elements.y_start(ae), additional_elements.z_start(ae), 1 );
+    [ node, id ] = fn_node_exist( node, additional_elements.x_start(ae), additional_elements.y_start(ae), additional_elements.z_start(ae), 0 );
     element.node_1(ele_id,1) = node.id(id);
-    [ node, id ] = fn_node_exist( node, additional_elements.x_end(ae), additional_elements.y_end(ae), additional_elements.z_end(ae), 1 );
+    [ node, id ] = fn_node_exist( node, additional_elements.x_end(ae), additional_elements.y_end(ae), additional_elements.z_end(ae), 0 );
     element.node_2(ele_id,1) = node.id(id);
     element.node_3(ele_id,1) = 0;
     element.node_4(ele_id,1) = 0;

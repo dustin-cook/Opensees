@@ -175,7 +175,7 @@ for i = 1:height(element)
 end
 
 %% Define Joints
-fprintf(fileID,'uniaxialMaterial Elastic 1 9999999999999999. \n'); % Rigid Elastic Material
+fprintf(fileID,'uniaxialMaterial Elastic 1 9999999999999. \n'); % Rigid Elastic Material
 joint_ele_ids = [];
 if height(joint) > 0
     % Load in joint properties
@@ -479,17 +479,7 @@ if height(hinge) > 0
                 if analysis.nonlinear == 0 % Elastic Lateral Spring for shear deformations
                     elastic_shear_stiffness = ele_props.g*ele_props.av/ele.length;
                     % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
-                    fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',ele_hinge_id,elastic_shear_stiffness);
-                    
-%                     %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
-%                     if strcmp(ele.direction,'x')
-%                         fprintf(fileID,'element zeroLength %i %i %i -mat %i 1 -dir 1 6 \n',ele_hinge_id,hin.node_1,hin.node_2, ele_hinge_id); % Element Id for Hinge
-%                         fprintf(fileID,'equalDOF %i %i 2 3 4 5 \n',hin.node_2,hin.node_1);
-%                     elseif strcmp(ele.direction,'z')
-%                         fprintf(fileID,'element zeroLength %i %i %i -mat %i 1 -dir 3 4 \n',ele_hinge_id,hin.node_1,hin.node_2, ele_hinge_id); % Element Id for Hinge
-%                         fprintf(fileID,'equalDOF %i %i 1 2 5 6 \n',hin.node_2,hin.node_1);
-%                     end
-                    
+                    fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',ele_hinge_id,elastic_shear_stiffness); 
                 elseif analysis.nonlinear == 1 % Nonlinear 
                     % Define backbone coordinates and IMK Hinges
                     if strcmp(hin.direction,'primary')
@@ -540,20 +530,7 @@ if height(hinge) > 0
                 elseif strcmp(ele.direction,'z') % In plane for the Z direction (assume shear)
                     fprintf(fileID,'element zeroLength %i %i %i -mat %i 1 -dir 3 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
                     fprintf(fileID,'equalDOF %i %i 1 2 5 6 \n', hin.node_2, hin.node_1); % Restricts OOP nonlinear
-                end
-                            
-%                     % Define Equal DOFs
-%                     if ~strcmp(hin.direction,'oop') % Only do this for the inplane hinges
-%                         if strcmp(dimension,'3D')
-%                             if strcmp(ele.direction,'x') % X Direction wall
-%                                 fprintf(fileID,'equalDOF %i %i 2 3 5 6 \n', hin.node_2, hin.node_1);
-%                             else % Z Direction wall
-%                                 fprintf(fileID,'equalDOF %i %i 1 2 4 5 \n', hin.node_2, hin.node_1);
-%                             end
-%                         else % 2D
-%                             fprintf(fileID,'equalDOF %i %i 1 2 \n', hin.node_2, hin.node_1);
-%                         end
-%                     end
+                end          
             end
         end
     end

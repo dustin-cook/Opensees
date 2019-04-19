@@ -46,7 +46,7 @@ analysis.plot_recordings = 1; % Plot analysis results v recorded results
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 1; % Visual scale of the movie playback
 analysis.hinge_stories_2_plot = 1;
-analysis.suppress_outputs = 1;
+analysis.suppress_outputs = 0;
 
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
