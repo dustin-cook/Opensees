@@ -58,7 +58,7 @@ end
 fprintf(fileID,'set tol %f \n', tolerance(1));
 fprintf(fileID,'test NormDispIncr $tol %i \n', min_tolerance_steps);
 % fprintf(fileID,'test EnergyIncr $tol %i \n', min_tolerance_steps);
-fprintf(fileID,'algorithm KrylovNewton \n');
+fprintf(fileID,'algorithm %s \n',analysis.algorithm);
 if analysis.type == 1 % Dynamic
     fprintf(fileID,'set dt_reduce %f \n', 1);
     fprintf(fileID,'set dt [expr %f/$dt_reduce] \n', step_length);

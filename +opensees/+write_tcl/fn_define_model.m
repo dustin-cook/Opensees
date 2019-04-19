@@ -175,7 +175,7 @@ for i = 1:height(element)
 end
 
 %% Define Joints
-fprintf(fileID,'uniaxialMaterial Elastic 1 9999999999999. \n'); % Rigid Elastic Material
+fprintf(fileID,'uniaxialMaterial Elastic 1 999999999999. \n'); % Rigid Elastic Material
 joint_ele_ids = [];
 if height(joint) > 0
     % Load in joint properties
