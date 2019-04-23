@@ -29,7 +29,7 @@ analysis.hinge_stiff_mod = 10; % Scale up stiffnes of hinges for a lumped plasti
 analysis.run_eigen = 1; % Run the eignen anlayis to get mode shapes and periods for the opensees analysis
 analysis.initial_timestep_factor = 1; % reduction from eq timestep to analysis timestep
 analysis.solution_algorithm = 1; % Run the opensees solution algorthm which will try different things 
-analysis.collapse_drift = 0.12; % stop analysis at this drift and say collapse
+analysis.collapse_drift = 0.06; % stop analysis at this drift and say collapse
 analysis.joint_model = 1; % 1 = beam/column elements, 2 = joint 3D
 analysis.joint_explicit = 0; % 0 = rigid, 1 = model joint nonlinearity (could automate this based on first assessment of joints)
 analysis.write_xml = 1; % Write and read opensees out files as xml files (0 = .txt files)
