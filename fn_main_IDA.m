@@ -74,7 +74,7 @@ if contains(cmdout,'Analysis Failure: Collapse')
 elseif contains(cmdout,'Analysis Failure: Convergence') || contains(cmdout,'Analysis Failure: Singularity')
     summary.collapse = 2; % Collapse triggered by convergence or singularity issue
     fprintf('Unexpected Opensees failure \n')
-    printf('Model Experienced a Convergence Failure (Treat as collapsed)')
+    fprintf('Model Experienced a Convergence Failure (Treat as collapsed)')
 elseif status ~= 0
     summary.collapse = 3; % Unexpected Opensees failure (shouldnt get here)
     fprintf('UNHANDLED OPENSEES FAILURE \n')
