@@ -37,7 +37,7 @@ load([read_dir filesep 'node_analysis.mat'])
 [ model, element, torsion, node ] = fn_basic_analysis_properties( model, story, element, node );
 
 % Filter Accelerations
-if analysis.type == 1
+if analysis.type == 1 && analysis.filter_accel == 1
     [ story ] = fn_accel_filter(node, story, analysis.filter_freq_range, read_dir, write_dir);
 end
 

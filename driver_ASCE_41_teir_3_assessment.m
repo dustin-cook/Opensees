@@ -17,10 +17,10 @@ fclose('all');
 
 %% User Inputs (Think about changing this to a file read and command line execution)
 analysis.model_id = 11;
-analysis.proceedure = 'test'; % LDP or NDP or test
-analysis.id = 1; % ID of the analysis for it to create its own directory
+analysis.proceedure = 'NDP'; % LDP or NDP or test
+analysis.id = 3; % ID of the analysis for it to create its own directory
 analysis.summit = 1; % Write tcl files to be run on summit and change location of opensees call
-analysis.gm_seq_id = 10; % Maybe also make this part ot the defualts or model?
+analysis.gm_seq_id = 12; % Maybe also make this part ot the defaults or model?
 
 %% Initial Setup
 import asce_41.main_ASCE_41

@@ -10,8 +10,8 @@ clc
 % Define Model
 analysis.model_id = 11;
 analysis.proceedure = 'NDP';
-analysis.id = 1;
-analysis.summit = 1;
+analysis.id = 3;
+analysis.summit = 0;
 analysis.run_ida = 1;
 analysis.gm_set = 'FEMA_far_field';
 
@@ -33,6 +33,8 @@ analysis.run_eigen = 0;
 analysis.solution_algorithm = 1;
 analysis.initial_timestep_factor = 1;
 analysis.suppress_outputs = 1;
+analysis.algorithm = 'KrylovNewton';
+analysis.integrator = 'Newmark 0.5 0.25';
 
 % Load basic model data
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);

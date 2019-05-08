@@ -11,7 +11,7 @@ hinge_id = 0;
 if analysis.nonlinear ~= 0
     % Define Hinges
     for i = 1:length(element.id)
-        if element.story(i) <= analysis.stories_nonlinear && ~element.rigid(i)
+        if element.story(i) <= analysis.stories_nonlinear && ~element.rigid(i) && ~element.elastic(i)
             if strcmp(element.type{i},'column') || strcmp(element.type{i},'beam') % For all columns and beams
                 % Define hinge at start of element
                 hinge_id = hinge_id+1;
@@ -25,6 +25,8 @@ if analysis.nonlinear ~= 0
                     hinge.node_1(hinge_id,1) = hinge.node_1(hinge_id-1,1);
                     hinge.node_2(hinge_id,1) = hinge.node_2(hinge_id-1,1);
                     hinge.element_id(hinge_id,1) = hinge.element_id(hinge_id-1,1);
+                    hinge.story(hinge_id,1) = element.story(i);
+                    hinge.ele_direction{hinge_id,1} = element.direction{i};
                 end
                     
                 % Define hinge at end of element
@@ -39,6 +41,8 @@ if analysis.nonlinear ~= 0
                     hinge.node_1(hinge_id,1) = hinge.node_1(hinge_id-1,1);
                     hinge.node_2(hinge_id,1) = hinge.node_2(hinge_id-1,1);
                     hinge.element_id(hinge_id,1) = hinge.element_id(hinge_id-1,1);
+                    hinge.story(hinge_id,1) = element.story(i);
+                    hinge.ele_direction{hinge_id,1} = element.direction{i};
                 end
             elseif strcmp(element.type{i},'wall') % For walls
                 % Check if wall is the bottom wall
@@ -47,16 +51,18 @@ if analysis.nonlinear ~= 0
                     hinge_id = hinge_id+1;
                     % Define hinge at start of element
                     [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id, 'shear', 'primary', 1 ); 
-%                     if strcmp(model.dimension,'3D') % OOP hinges for 3D walls
-%                         hinge_id = hinge_id+1;
-%                         hinge.id(hinge_id,1) = hinge_id;
-%                         hinge.type{hinge_id,1} = 'rotational';
-%                         hinge.direction{hinge_id,1} = 'oop';
-%                         hinge.ele_side{hinge_id,1} = 1;
-%                         hinge.node_1(hinge_id,1) = hinge.node_1(hinge_id-1,1);
-%                         hinge.node_2(hinge_id,1) = hinge.node_2(hinge_id-1,1);
-%                         hinge.element_id(hinge_id,1) = hinge.element_id(hinge_id-1,1);
-%                     end
+                    if strcmp(model.dimension,'3D') % OOP hinges for 3D walls
+                        hinge_id = hinge_id+1;
+                        hinge.id(hinge_id,1) = hinge_id;
+                        hinge.type{hinge_id,1} = 'rotational';
+                        hinge.direction{hinge_id,1} = 'oop';
+                        hinge.ele_side{hinge_id,1} = 1;
+                        hinge.node_1(hinge_id,1) = hinge.node_1(hinge_id-1,1);
+                        hinge.node_2(hinge_id,1) = hinge.node_2(hinge_id-1,1);
+                        hinge.element_id(hinge_id,1) = hinge.element_id(hinge_id-1,1);
+                        hinge.story(hinge_id,1) = element.story(i);
+                        hinge.ele_direction{hinge_id,1} = element.direction{i};
+                    end
                 end
             end
         end

@@ -17,65 +17,6 @@ end
 % Define how much of the end to clip
 clip = 5;
 
-%% Load in Analysis data
-if analysis.type == 1 % dynamic analysis
-    % Load Hinge Data
-    if analysis.nonlinear ~= 0
-        hinge_groups = unique(hinge.group);
-        for i = 1:length(hinge_groups)
-            if analysis.write_xml
-                [ hinge_group_deformation_TH ] = fn_xml_read([opensees_dir filesep 'hinge_deformation_group_' num2str(hinge_groups(i)) '.xml']);
-                [ hinge_group_force_TH ] = fn_xml_read([opensees_dir filesep 'hinge_force_group_' num2str(hinge_groups(i)) '.xml']);
-            else
-                hinge_group_deformation_TH = dlmread([opensees_dir filesep 'hinge_deformation_group_' num2str(hinge_groups(i)) '.txt'],' ');
-                hinge_group_force_TH = dlmread([opensees_dir filesep 'hinge_force_group_' num2str(hinge_groups(i)) '.txt'],' ');
-            end
-            hinge_group = hinge(hinge.group == hinge_groups(i),:);
-            for h = 1:height(hinge_group)
-                hinge_deformation_TH.(['hinge_' num2str(hinge_group.id(h))]) = hinge_group_deformation_TH(:,1+h);
-                if strcmp(model.dimension,'3D')
-                    hinge_force_TH.(['hinge_' num2str(hinge_group.id(h))]) = hinge_group_force_TH(:,(1+(h-1)*5+1):(1+h*5));
-                elseif strcmp(model.dimension,'2D')
-                    hinge_force_TH.(['hinge_' num2str(hinge_group.id(h))]) = hinge_group_force_TH(:,(1+(h-1)*2+1):(1+h*2));
-                end
-            end
-        end
-    end
-else % pushover analysis or Cyclic
-    % Hinges
-    if analysis.nonlinear ~= 0
-        hinge_groups = unique(hinge.group);
-        for i = 1:length(hinge_groups)
-            if analysis.write_xml
-                [ hinge_group_deformation_TH_x ] = fn_xml_read([opensees_dir filesep 'hinge_deformation_x_group_' num2str(hinge_groups(i)) '.xml']);
-                [ hinge_group_force_TH_x ] = fn_xml_read([opensees_dir filesep 'hinge_force_x_group_' num2str(hinge_groups(i)) '.xml']);
-                if strcmp(model.dimension,'3D')
-                    [ hinge_group_deformation_TH_z ] = fn_xml_read([opensees_dir filesep 'hinge_deformation_z_group_' num2str(hinge_groups(i)) '.xml']);
-                    [ hinge_group_force_TH_z ] = fn_xml_read([opensees_dir filesep 'hinge_force_z_group_' num2str(hinge_groups(i)) '.xml']);
-                end
-            else
-                hinge_group_deformation_TH_x = dlmread([opensees_dir filesep 'hinge_deformation_x_group_' num2str(hinge_groups(i)) '.txt'],' ');
-                hinge_group_force_TH_x = dlmread([opensees_dir filesep 'hinge_force_x_group_' num2str(hinge_groups(i)) '.txt'],' ');
-                if strcmp(model.dimension,'3D')
-                    hinge_group_deformation_TH_z = dlmread([opensees_dir filesep 'hinge_deformation_z_group_' num2str(hinge_groups(i)) '.txt'],' ');
-                    hinge_group_force_TH_z = dlmread([opensees_dir filesep 'hinge_force_z_group_' num2str(hinge_groups(i)) '.txt'],' ');
-                end
-            end
-            hinge_group = hinge(hinge.group == hinge_groups(i),:);
-            for h = 1:height(hinge_group)
-                hinge_deformation_TH_x.(['hinge_' num2str(hinge_group.id(h))]) = hinge_group_deformation_TH_x(:,1+h);
-                hinge_force_TH_x.(['hinge_' num2str(hinge_group.id(h))]) = hinge_group_force_TH_x(:,(1+(h-1)*3+1):(1+h*3));
-                if strcmp(model.dimension,'3D')
-                    hinge_deformation_TH_z.(['hinge_' num2str(hinge_group.id(h))]) = hinge_group_deformation_TH_z(:,1+h);
-                    hinge_force_TH_z.(['hinge_' num2str(hinge_group.id(h))]) = hinge_group_force_TH_z(:,(1+(h-1)*3+1):(1+h*3));
-                end
-            end
-        end
-    end
-end
-
-% [ joint_force_recorders_all ] = fn_xml_read([opensees_dir filesep 'joint_force_all.xml']);
-
 %% Element Forces
 % Force component IDs
 if strcmp(model.dimension,'3D')
@@ -152,82 +93,102 @@ end
 clear ele_force_TH
 clear element_TH
 
-%% Load hinge moment and rotation
-% Force component IDs
-if strcmp(model.dimension,'3D')
-    comp_names = {'Vx','Vy','Vz','Mx','Mz'};
-    comp_keys = [1,2,3,4,5];
-elseif strcmp(model.dimension,'2D')
-    comp_names = {'Vx','Vx','Mz'};
-    comp_keys = [1,2,3];
+%% Load hinge reactions and deformations
+% Load Hinge Data
+if analysis.nonlinear ~= 0
+    if analysis.write_xml
+        [ hinge_deformation_x ] = fn_xml_read([opensees_dir filesep 'hinge_rotation_x' '.xml']);
+        [ hinge_force_x ] = fn_xml_read([opensees_dir filesep 'hinge_moment_x' '.xml']);
+        if strcmp(model.dimension,'3D')
+            if ~isempty(hinge(strcmp(hinge.ele_direction,'z'),:))
+                [ hinge_deformation_z ] = fn_xml_read([opensees_dir filesep 'hinge_deformation_z' '.xml']);
+                [ hinge_force_z ] = fn_xml_read([opensees_dir filesep 'hinge_shear_z' '.xml']);
+            end
+            
+            if ~isempty(hinge(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'oop'),:))
+                [ hinge_deformation_z_oop ] = fn_xml_read([opensees_dir filesep 'hinge_rotation_z_oop' '.xml']);
+                [ hinge_force_z_oop ] = fn_xml_read([opensees_dir filesep 'hinge_moment_z_oop' '.xml']);
+            end
+
+            if ~isempty(hinge(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'oop'),:))
+                [ hinge_deformation_x_oop ] = fn_xml_read([opensees_dir filesep 'hinge_rotation_x_oop' '.xml']);
+                [ hinge_force_x_oop ] = fn_xml_read([opensees_dir filesep 'hinge_moment_x_oop' '.xml']);
+            end
+        end
+    else
+        hinge_deformation_x = dlmread([opensees_dir filesep 'hinge_rotation_x''.txt'],' ');
+        hinge_force_x = dlmread([opensees_dir filesep 'hinge_moment_x''.txt'],' ');
+        if strcmp(model.dimension,'3D')
+            if ~isempty(hinge(strcmp(hinge.ele_direction,'z'),:))
+                hinge_deformation_z = dlmread([opensees_dir filesep 'hinge_deformation_z' '.txt'],' ');
+                hinge_force_z = dlmread([opensees_dir filesep 'hinge_shear_z' '.txt'],' ');
+            end
+
+            if ~isempty(hinge(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'oop'),:))
+                [ hinge_deformation_z_oop ] = dlmread([opensees_dir filesep 'hinge_rotation_z_oop' '.txt'],' ');
+                [ hinge_force_z_oop ] = dlmread([opensees_dir filesep 'hinge_moment_z_oop' '.txt'],' ');
+            end
+            
+            if ~isempty(hinge(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'oop'),:))
+                hinge_deformation_x_oop = dlmread([opensees_dir filesep 'hinge_rotation_x_oop' '.txt'],' ');
+                hinge_force_x_oop = dlmread([opensees_dir filesep 'hinge_moment_x_oop' '.txt'],' ');
+            end
+        end
+    end
+
+    hinge_ids = hinge.id(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'rotational'));
+    for h = 1:length(hinge_ids)
+        hinge_deformation_TH_x.(['hinge_' num2str(hinge_ids(h))]) = hinge_deformation_x(:,1+h);
+        hinge_force_TH_x.(['hinge_' num2str(hinge_ids(h))]) = hinge_force_x(:,1+h);
+    end
+
+    hinge_ids = hinge.id(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational'));
+    for h = 1:length(hinge_ids)
+        hinge_deformation_TH_z.(['hinge_' num2str(hinge_ids(h))]) = hinge_deformation_x_oop(:,1+h);
+        hinge_force_TH_z.(['hinge_' num2str(hinge_ids(h))]) = hinge_force_x_oop(:,1+h);
+    end
+    
+    hinge_ids = hinge.id(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational'));
+    for h = 1:length(hinge_ids)
+        hinge_deformation_TH_x.(['hinge_' num2str(hinge_ids(h))]) = hinge_deformation_z_oop(:,1+h);
+        hinge_force_TH_x.(['hinge_' num2str(hinge_ids(h))]) = hinge_force_z_oop(:,1+h);
+    end
+
+    hinge_ids = hinge.id(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'shear'));
+    for h = 1:length(hinge_ids)
+        hinge_deformation_TH_z.(['hinge_' num2str(hinge_ids(h))]) = hinge_deformation_z(:,1+h);
+        hinge_force_TH_z.(['hinge_' num2str(hinge_ids(h))]) = hinge_force_z(:,1+h);
+    end
 end
 
+% Save hinge data in correect format
 if analysis.nonlinear ~= 0
-    if analysis.type == 1 % dynamic analysis
-        for i = 1:height(hinge)
-            ele = element(element.id == hinge.element_id(i),:);
-            hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH.(['hinge_' num2str(hinge.id(i))])(1:(end-clip))';
-            if strcmp(element.direction(element.id == hinge.element_id(i)),'x') && strcmp(hinge.direction(i),'oop')
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),4)';
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),3)';
-            elseif strcmp(element.direction(element.id == hinge.element_id(i)),'x')
-                if strcmp(model.dimension,'3D')
-                    if strcmp(ele.type,'beam')
-                        hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),5)'; % I think the forces here are coming in backward, but should triple check
-                        hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),2)';
-                    else % walls and columns
-                        hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),5)'; % I think the forces here are coming in backward, but should triple check
-                        hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
-                    end
-                elseif strcmp(model.dimension,'2D')
-                    if strcmp(ele.type,'beam')
-                        hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),3)';
-                        hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),2)';
-                    else % walls and columns
-                        hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),3)';
-                        hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
-                    end
-                end
-            elseif strcmp(element.direction(element.id == hinge.element_id(i)),'z') && strcmp(hinge.direction(i),'oop')
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),5)';
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
-            elseif strcmp(element.direction(element.id == hinge.element_id(i)),'z')
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),4)';
-                if strcmp(ele.type,'beam')
-                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),3)';
-                else
-                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = -hinge_force_TH.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),2)';
-                end
+    for i = 1:height(hinge) 
+        ele = element(element.id == hinge.element_id(i),:);
+        if (strcmp(ele.direction,'x') && strcmp(hinge.direction(i),'primary')) || (strcmp(ele.direction,'z') && strcmp(hinge.direction(i),'oop'))
+            if strcmp(ele.type,'beam')
+                hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; % I think the forces here are coming in backward, but should triple check
+            elseif strcmp(ele.type,'column')
+                hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; 
+            elseif strcmp(ele.type,'wall')
+                hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; 
             end
+        elseif (strcmp(ele.direction,'z') && strcmp(hinge.direction(i),'primary')) || (strcmp(ele.direction,'x') && strcmp(hinge.direction(i),'oop'))
+            if strcmp(ele.type,'beam')
+                hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; % I think the forces here are coming in backward, but should triple check
+            elseif strcmp(ele.type,'column')
+                hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; % I think the forces here are coming in backward, but should triple check
+            elseif strcmp(ele.type,'wall')
+                hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = -hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+           end
         end
-        clear hinge_deformation_TH
-        clear hinge_force_TH
-    else % pushover analysis
-        for i = 1:height(hinge) % assumes shear in z and bending in x
-            ele = element(element.id == hinge.element_id(i),:);
-            if (strcmp(ele.direction,'x') && strcmp(hinge.direction(i),'primary')) || (strcmp(ele.direction,'z') && strcmp(hinge.direction(i),'oop'))
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip))';
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),3)'; % I think the forces here are coming in backward, but should triple check
-                if strcmp(ele.type,'beam')
-                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),2)';
-                else
-                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
-                end
-            elseif (strcmp(ele.direction,'z') && strcmp(hinge.direction(i),'primary')) || (strcmp(ele.direction,'x') && strcmp(hinge.direction(i),'oop'))
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip))';
-                if strcmp(ele.type,'wall')
-                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),3)'; % I think the forces here are coming in backward, but should triple check
-                else
-                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),3)'; % I think the forces here are coming in backward, but should triple check
-                end
-                if strcmp(ele.type,'beam')
-                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = -hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
-                else
-                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = -hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),2)';
-                end
-            end
-        end
-    end   
+    end 
 end
 
 % clear raw opesees data

@@ -34,8 +34,8 @@ else
 end
 fprintf(fileID,'test NormDispIncr 1.0e-5 1000 \n');
 % fprintf(fileID,'test EnergyIncr 1.0e-6 50 \n'); % determine if convergence has been achieved at the end of an iteration step
-fprintf(fileID,'algorithm Linear \n');
-% fprintf(fileID,'algorithm KrylovNewton \n');
+% fprintf(fileID,'algorithm Linear \n');
+fprintf(fileID,'algorithm KrylovNewton \n');
 fprintf(fileID,'integrator LoadControl 0.1 \n');
 fprintf(fileID,'analysis Static \n');
 fprintf(fileID,'set ok [analyze 10] \n');
@@ -115,7 +115,7 @@ if ~analysis.suppress_outputs
     fprintf(fileID,'puts "Running Eigen and Defining Damping" \n');
 end
 if  strcmp(analysis.damping,'simple')
-    fprintf(fileID,'set lambda [eigen -fullGenLapack 1] \n');
+    fprintf(fileID,'set lambda [eigen 1] \n');
     fprintf(fileID,'set pi [expr 2.0*asin(1.0)] \n');
     fprintf(fileID,'set omega [expr sqrt($lambda)] \n');
     fprintf(fileID,'set period [expr 2*$pi/sqrt($lambda)] \n');

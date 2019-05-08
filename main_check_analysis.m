@@ -78,8 +78,10 @@ end
 %% Walls do not yeild
 if strcmp(analysis.proceedure,'NDP') && analysis.type == 1 && analysis.nonlinear == 1
     walls = element(strcmp(element.type,'wall'),:);
-    wall_shear_ratio = walls.Vmax_1 ./ (walls.f_hinge_1 .* walls.Vn_1);
-    fprintf(fileID,'Max Wall Shear Ratio =  %f of first yield (f-value)\n',max(wall_shear_ratio));
+    if ~isempty(walls)
+        wall_shear_ratio = walls.Vmax_1 ./ (walls.f_hinge_1 .* walls.Vn_1);
+        fprintf(fileID,'Max Wall Shear Ratio =  %f of first yield (f-value)\n',max(wall_shear_ratio));
+    end
 end
 
 %% Torsion
@@ -119,29 +121,29 @@ if analysis.element_plots && analysis.nonlinear == 1 && analysis.type == 1
             load([os_dir filesep 'element_TH_' num2str(ele.id) '.mat'])
             load([os_dir filesep 'hinge_TH_' num2str(hin.id) '.mat'])
             
-            % Plot Element v Hinge Moments
-            hold on
-            if strcmp(hin.direction,'oop')
-                plot(ele_TH.(['M_TH_oop_' num2str(hin.ele_side)]),'DisplayName','Element Force Recorder')
-            else
-                plot(ele_TH.(['M_TH_' num2str(hin.ele_side)]),'DisplayName','Element Force Recorder')
-            end
-            plot(hin_TH.moment_TH,'--k','DisplayName','Element Hinge Recorder')
-            ylabel('Moment Demand (lbs-in)')
-            plot_name = [ele.type{1} ' ' num2str(ele.id) ' side ' num2str(hin.ele_side) ' - ' hin.direction{1} ' moment']; 
-            fn_format_and_save_plot( write_dir, plot_name, 1 )
             
             % Plot Element v Hinge Shear
-            hold on
-            if strcmp(hin.direction,'oop')
-                plot(ele_TH.(['V_TH_oop_' num2str(hin.ele_side)]),'DisplayName','Element Force Recorder')
-            else
+            if strcmp(ele.type,'wall') && ~strcmp(hin.direction,'oop')
+                hold on
                 plot(ele_TH.(['V_TH_' num2str(hin.ele_side)]),'DisplayName','Element Force Recorder')
+                plot(hin_TH.shear_TH,'--k','DisplayName','Element Hinge Recorder')
+                ylabel('Shear Force (lbs)')
+                plot_name = [ele.type{1} ' ' num2str(ele.id) ' side ' num2str(hin.ele_side) ' - ' hin.direction{1} ' shear']; 
+                fn_format_and_save_plot( write_dir, plot_name, 1 )
+            else    
+                % Plot Element v Hinge Moments
+                hold on
+                if strcmp(hin.direction,'oop')
+                    plot(ele_TH.(['M_TH_oop_' num2str(hin.ele_side)]),'DisplayName','Element Force Recorder')
+                else
+                    plot(ele_TH.(['M_TH_' num2str(hin.ele_side)]),'DisplayName','Element Force Recorder')
+                end
+                plot(hin_TH.moment_TH,'--k','DisplayName','Element Hinge Recorder')
+                ylabel('Moment Demand (lbs-in)')
+                plot_name = [ele.type{1} ' ' num2str(ele.id) ' side ' num2str(hin.ele_side) ' - ' hin.direction{1} ' moment']; 
+                fn_format_and_save_plot( write_dir, plot_name, 1 )
             end
-            plot(hin_TH.shear_TH,'--k','DisplayName','Element Hinge Recorder')
-            ylabel('Shear Force (lbs)')
-            plot_name = [ele.type{1} ' ' num2str(ele.id) ' side ' num2str(hin.ele_side) ' - ' hin.direction{1} ' shear']; 
-            fn_format_and_save_plot( write_dir, plot_name, 1 )
+            
         end
     end
 end

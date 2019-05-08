@@ -38,13 +38,7 @@ if strcmp(ele.type,'beam') || strcmp(ele.type,'column') || (strcmp(ele.type,'wal
         ylabel('Q/Qy')
     elseif plot_style == 2
         hold on
-%         elastic_element_disp_pos = rot_vec_pos(1)*(n/(n+1)); % removes contribution from elastic beam/column. assumes n = 10;
-%         elastic_element_disp_neg = rot_vec_neg(1)*(n/(n+1)); % removes contribution from elastic beam/column. assumes n = 10;
-%         plot([fliplr(-(rot_vec_neg-elastic_element_disp_neg)),0,(rot_vec_pos-elastic_element_disp_pos)],[fliplr(-moment_vec_neg),0,moment_vec_pos]/1000,'k','LineWidth',1.5,'DisplayName','ASCE 41 Backone') % Converted to K-in
         plot([fliplr(-(rot_vec_neg)),0,rot_vec_pos],[fliplr(-moment_vec_neg),0,moment_vec_pos]/1000,'Color','k','LineWidth',2,'DisplayName','ASCE 41 Backone') % Don't need to worry about negative bending because this plot is normalized by Qy
-%         node_1_TH = load([read_dir filesep 'node_TH_' num2str(ele.node_1)]);
-%         node_2_TH = load([read_dir filesep 'node_TH_' num2str(ele.node_2)]);
-%         elastic_rotation = (node_2_TH.nd_TH.(['disp_' ele_dir '_TH']) - node_1_TH.nd_TH.(['disp_' ele_dir '_TH']))/ele.length;
         elastic_rotation = (hinge_force_to_plot*ele.length / (6*ele_props.e*mom_of_I))*(10/11);
         plot(hinge_disp_to_plot + elastic_rotation,hinge_force_to_plot/1000,'r','LineWidth',1.5,'DisplayName','Analysis'); % transform from lb-in to kip-in
         xlabel('Total Rotation (rad)')
@@ -77,7 +71,6 @@ end
 if plot_style == 1
     fn_format_and_save_plot( output_dir , plot_name, 2 )
 elseif plot_style == 2
-%     fn_format_and_save_plot( output_dir , plot_name, 1 )
     fn_format_and_save_plot( output_dir , plot_name, 2 )
 end
 

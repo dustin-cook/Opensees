@@ -282,6 +282,7 @@ for s = 1:height(story)
 end
 
 %% Assign Additional Elements
+element.elastic = zeros(length(element.id),1);
 for ae = 1:height(additional_elements)
     % Element Properties
     ele_id = ele_id + 1;
@@ -300,6 +301,7 @@ for ae = 1:height(additional_elements)
     element.dead_load(ele_id,1) = 0;
     element.live_load(ele_id,1) = 0;
     element.gravity_load(ele_id,1) = 0;
+    element.elastic(ele_id,1) = 1;
     
     % Check to see if the element nodes exists and assign
     [ node, id ] = fn_node_exist( node, additional_elements.x_start(ae), additional_elements.y_start(ae), additional_elements.z_start(ae), 0 );
@@ -342,24 +344,12 @@ for s = 1:height(story)
     nodes_on_slab{s} = node.id(node.y == slab_ht);
 end
 
-%% Define new nodes to connect rigid diaphram to
+%% Define nodes to connect to rigid diaphram
 node.on_slab = zeros(length(node.id),1);
 if analysis.rigid_diaphram
     for s = 1:height(story)
         for i = 1:length(nodes_on_slab{s})
-            node_idx = length(node.id) + 1;
-            node.id(node_idx,:) = node.id(end) + 1;
-            node.x(node_idx,:) = node.x(node.id == nodes_on_slab{s}(i),:);
-            node.y(node_idx,:) = node.y(node.id == nodes_on_slab{s}(i),:);
-            node.z(node_idx,:) = node.z(node.id == nodes_on_slab{s}(i),:);
-            node.dead_load(node_idx,:) = 0;
-            node.live_load(node_idx,:) = 0;
-            node.mass(node_idx,:) = 0;
-            node.record_disp(node_idx,:) = 0;
-            node.record_accel(node_idx,:) = 0;
-            node.story(node_idx,:) = 0;
-            node.primary_story(node_idx,:) = 0;
-            node.on_slab(node_idx,:) = s;
+            node.on_slab(node.id == nodes_on_slab{s}(i)) = s;
         end
     end
 end

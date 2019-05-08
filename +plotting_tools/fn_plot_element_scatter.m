@@ -20,7 +20,7 @@ for s = 1:height(story)
     ele_story = element(element.story == story.id(s),:); 
     % Elements of one type
     ele = ele_story(strcmp(ele_story.type,ele_type),:);
-    ele2use = ele(ele.length >= 100,:); % Omit the nubs on the end of the frame (improve the way I am doing this)
+    ele2use = ele(ele.length >= 89,:); % Omit the nubs on the end of the frame (improve the way I am doing this)
     hins = hinge(ismember(hinge.element_id,ele2use.id),:);
 
     % Primary Direction

@@ -55,5 +55,7 @@ if strcmp(type,'foundation')
 else
     hinge.element_id(hinge_id,1) = element.id(ele_or_node_id);
 end
+hinge.story(hinge_id,1) = element.story(ele_or_node_id);
+hinge.ele_direction{hinge_id,1} = element.direction{ele_or_node_id};
 end
 

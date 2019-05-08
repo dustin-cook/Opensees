@@ -94,26 +94,26 @@ for i = 1:height(element)
     if strcmp(element.type{i},'beam') || strcmp(element.type{i},'column') 
         if analysis.model_type == 1 % SDOF
             % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-            fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),element.a,element.e,element.iz,geotransf);
+            fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),element.a,element.e,element.iz,geotransf);
         elseif analysis.model_type == 2 %MDOF
             if analysis.nonlinear ~= 0 % Nonlinear Analysis
                 Iz_ele = ele_props.iz*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
                 Iy_ele = ele_props.iy*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod);
                 if strcmp(dimension,'2D')
                     % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-                    fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,Iz_ele,geotransf);
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,Iz_ele,geotransf);
                 elseif strcmp(dimension,'3D')
                     % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
-                    fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,Iy_ele,Iz_ele,geotransf);
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,Iy_ele,Iz_ele,geotransf);
                 end
             else
                 if strcmp(dimension,'2D')
                     % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-                    fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
                 elseif strcmp(dimension,'3D')
 %                     fprintf(fileID,'element ElasticTimoshenkoBeam %i %i %i %f %f %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.e,ele_props.g,ele_props.a,ele_props.j,ele_props.iy,ele_props.iz,(5/6)*ele_props.a,(5/6)*ele_props.a,geotransf);
                     % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
-                    fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,geotransf);
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,geotransf);
                 end
             end
         end
@@ -123,7 +123,7 @@ for i = 1:height(element)
         % Elastic
         if analysis.nonlinear == 0 
             if strcmp(dimension,'2D')
-                 fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
+                 fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
             elseif strcmp(dimension,'3D')
                 fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,geotransf);
             end
@@ -131,7 +131,7 @@ for i = 1:height(element)
         elseif analysis.nonlinear == 1
             Iz_ele = ele_props.iz;%*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
             if strcmp(dimension,'2D')
-                fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
+                fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
             elseif strcmp(dimension,'3D')
                 fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,geotransf);
             end
@@ -175,7 +175,8 @@ for i = 1:height(element)
 end
 
 %% Define Joints
-fprintf(fileID,'uniaxialMaterial Elastic 1 999999999999. \n'); % Rigid Elastic Material
+fprintf(fileID,'uniaxialMaterial Elastic 1 999999999. \n'); % Rigid Elastic Material
+fprintf(fileID,'uniaxialMaterial Elastic 2 999999999999. \n'); % Rigid Elastic Material
 joint_ele_ids = [];
 if height(joint) > 0
     % Load in joint properties
@@ -209,10 +210,10 @@ if height(joint) > 0
                 fprintf(fileID,'node %i %f %f \n',40000+i,joint_center.x,joint_center.y);
                 fprintf(fileID,'node %i %f %f %f \n',50000+i,joint_center.x,joint_center.y,joint_center.z);
                 % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-                fprintf(fileID,'element elasticBeamColumn %d %d %d 100000. 9999999999. 20000000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),40000+i);
-                fprintf(fileID,'element elasticBeamColumn %d %d %d 100000. 9999999999. 20000000. 2 \n',joint.id(i)*1000000+2,40000+i,joint.x_pos(i));
-                fprintf(fileID,'element elasticBeamColumn %d %d %d 100000. 9999999999. 20000000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),50000+i);
-                fprintf(fileID,'element elasticBeamColumn %d %d %d 100000. 9999999999. 20000000. 1 \n',joint.id(i)*1000000+4,50000+i,joint.y_pos(i));
+                fprintf(fileID,'element elasticBeamColumn %i %i %i 100000. 999999999. 20000000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),40000+i);
+                fprintf(fileID,'element elasticBeamColumn %i %i %i 100000. 999999999. 20000000. 2 \n',joint.id(i)*1000000+2,40000+i,joint.x_pos(i));
+                fprintf(fileID,'element elasticBeamColumn %i %i %i 100000. 999999999. 20000000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),50000+i);
+                fprintf(fileID,'element elasticBeamColumn %i %i %i 100000. 999999999. 20000000. 1 \n',joint.id(i)*1000000+4,50000+i,joint.y_pos(i));
                 % Scissor Hinge
                 %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
                 fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n', joint.id(i)+10000, 40000+i, 50000+i, joint.id(i)+10000); % Currently assumes x direction joint
@@ -257,39 +258,35 @@ if height(joint) > 0
                     % Beam Offsets
                     if ~isempty(bm_left)
                         ele_props = ele_props_table(ele_props_table.id == bm_left.ele_id,:);
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',joint.id(i)*1000000+1,joint.x_neg(i),joint_center_node_beams,ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,2);
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',joint.id(i)*1000000+1,joint.x_neg(i),joint_center_node_beams,ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,2);
                     end
                     if ~isempty(bm_right)
                         ele_props = ele_props_table(ele_props_table.id == bm_right.ele_id,:);
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',joint.id(i)*1000000+2,joint_center_node_beams,joint.x_pos(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,2);
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',joint.id(i)*1000000+2,joint_center_node_beams,joint.x_pos(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,2);
                     end
                     % Column Offsets
-                    if ~isempty(col_low)
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),joint_center_node_columns);
-                    end
-                    if ~isempty(col_high)
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,joint_center_node_columns,joint.y_pos(i));
-                    end
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),joint_center_node_columns);
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,joint_center_node_columns,joint.y_pos(i));
                 elseif joint_rigidity == 2 % Beam Offsets Rigid
                     % Primary Beam Offsets
                     if ~isempty(bm_left)
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),joint_center_node_beams);
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),joint_center_node_beams);
                     end
                     if ~isempty(bm_right)
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+2,joint_center_node_beams,joint.x_pos(i));
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+2,joint_center_node_beams,joint.x_pos(i));
                     end
                     % Column Offsets
                     if ~isempty(col_low)
                         ele_props = ele_props_table(ele_props_table.id == col_low.ele_id,:);
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',joint.id(i)*1000000+3,joint.y_neg(i),joint_center_node_columns,ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,1);
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',joint.id(i)*1000000+3,joint.y_neg(i),joint_center_node_columns,ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,1);
                     else
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),joint_center_node_columns);
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),joint_center_node_columns);
                     end
                     if ~isempty(col_high)
                         ele_props = ele_props_table(ele_props_table.id == col_high.ele_id,:);
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',joint.id(i)*1000000+4,joint_center_node_columns,joint.y_pos(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,1);
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',joint.id(i)*1000000+4,joint_center_node_columns,joint.y_pos(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,1);
                     else
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,joint_center_node_columns,joint.y_pos(i));
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,joint_center_node_columns,joint.y_pos(i));
                     end
                 elseif joint_rigidity == 3 % Both Offsets are Half Rigid
                     % Primary Beam Offsets
@@ -300,8 +297,8 @@ if height(joint) > 0
                         joint_left.z = joint_center.z;
                         fprintf(fileID,'node %i %f %f %f \n',44000+i,joint_left.x,joint_left.y,joint_left.z);
                         ele_props = ele_props_table(ele_props_table.id == bm_left.ele_id,:);
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',joint.id(i)*1000000+1,joint.x_neg(i),44000+i,ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,2);
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+7,44000+i,joint_center_node_beams);
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',joint.id(i)*1000000+1,joint.x_neg(i),44000+i,ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,2);
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+7,44000+i,joint_center_node_beams);
                     end
                     % Beam Right
                     if ~isempty(bm_right)
@@ -310,8 +307,8 @@ if height(joint) > 0
                         joint_right.z = joint_center.z;
                         fprintf(fileID,'node %i %f %f %f \n',45000+i,joint_right.x,joint_right.y,joint_right.z);
                         ele_props = ele_props_table(ele_props_table.id == bm_right.ele_id,:);
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',joint.id(i)*1000000+2,45000+i,joint.x_pos(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,2);
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+8,joint_center_node_beams,45000+i);
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',joint.id(i)*1000000+2,45000+i,joint.x_pos(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,2);
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+8,joint_center_node_beams,45000+i);
                     end
                     % Column Offsets
                     % Columns Below
@@ -321,11 +318,11 @@ if height(joint) > 0
                     fprintf(fileID,'node %i %f %f %f \n',54000+i,joint_down.x,joint_down.y,joint_down.z);
                     if ~isempty(col_low)
                         ele_props = ele_props_table(ele_props_table.id == col_low.ele_id,:);
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',joint.id(i)*1000000+3,joint.y_neg(i),54000+i,ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,1);
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',joint.id(i)*1000000+3,joint.y_neg(i),54000+i,ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,1);
                     else
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),54000+i);
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),54000+i);
                     end
-                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+9,54000+i,joint_center_node_columns);
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+9,54000+i,joint_center_node_columns);
                     % Columns Above
                     joint_up.x = joint_center.x;
                     joint_up.y = mean([joint_center.y, node.y(node.id == joint.y_pos(i),:)]);
@@ -333,11 +330,11 @@ if height(joint) > 0
                     fprintf(fileID,'node %i %f %f %f \n',55000+i,joint_up.x,joint_up.y,joint_up.z);
                     if ~isempty(col_high)
                         ele_props = ele_props_table(ele_props_table.id == col_high.ele_id,:);
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d %f %f %f %f %f %f %i \n',joint.id(i)*1000000+4,55000+i,joint.y_pos(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,1);
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',joint.id(i)*1000000+4,55000+i,joint.y_pos(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,1);
                     else
-                        fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,55000+i,joint.y_pos(i));
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,55000+i,joint.y_pos(i));
                     end
-                    fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+10,joint_center_node_columns,55000+i);
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+10,joint_center_node_columns,55000+i);
                 end
                 % Out of plane beam offsets
 %                 fprintf(fileID,'element elasticBeamColumn %d %d %d 1000. 99999999. 99999999. 99999. 200000. 200000. 3 \n',joint.id(i)*1000000+5,joint.z_neg(i),40000+i);
@@ -358,18 +355,9 @@ end
 
 %% Define Rigid Slabs
 if analysis.rigid_diaphram
-    fprintf(fileID,'uniaxialMaterial Elastic 2 999999999999. \n'); % Rigid Elastic Material
     for i = 1:height(story)
         slab_nodes_at_story = node.id(node.on_slab == story.id(i))';
-        frame_nodes_at_story = node.id(node.story == story.id(i))';
         fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(slab_nodes_at_story));
-        
-        % Create zero length element to connect rigid diaphram to nodes
-        for j = 1:length(slab_nodes_at_story)
-            new_node = slab_nodes_at_story(j);
-            old_node = frame_nodes_at_story(j);
-            fprintf(fileID,'element zeroLength %i %i %i -mat 2 2 2 2 2 2 -dir 1 2 3 4 5 6 \n',20000+i*1000+j,new_node,old_node); % Element Id for Hinge
-        end
     end
 end
                 
@@ -427,6 +415,8 @@ if height(hinge) > 0
                 Ko = moment_vec_pos(1)/rot_vec_pos(1);
                 as_sping_pos = (moment_vec_pos(2)-moment_vec_pos(1))/(rot_vec_pos(2)-rot_vec_pos(1))/Ko;
                 as_sping_neg = (moment_vec_neg(2)-moment_vec_neg(1))/(rot_vec_neg(2)-rot_vec_neg(1))/Ko;
+                theta_p_pos = rot_vec_pos(2)-rot_vec_pos(1);
+                theta_p_neg = rot_vec_neg(2)-rot_vec_neg(1);
                 theta_pc_pos = rot_vec_pos(3) - rot_vec_pos(2) + hinge_props.(['c_hinge_' ele_side])*(rot_vec_pos(3) - rot_vec_pos(2))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
                 theta_pc_neg = rot_vec_neg(3) - rot_vec_neg(2) + hinge_props.(['c_hinge_' ele_side])*(rot_vec_neg(3) - rot_vec_neg(2))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
 %                 if analysis.type == 1 % Dynamic
@@ -435,46 +425,38 @@ if height(hinge) > 0
 %                     end_rot = rot_vec_pos(end);
 %                 end
                 % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
-%                 fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_rot, end_rot);
+%                 fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), theta_p_pos, theta_p_neg, theta_pc_pos, theta_pc_neg, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_rot, end_rot);
 
-                % uniaxialMaterial Bilin              $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg <$nFactor>
+                % uniaxialMaterial IMKPeakOriented $Mat_Tag $Ke $Up_pos $Upc_pos $Uu_pos $Fy_pos $FmaxFy_pos $FresFy_pos $Up_neg $Upc_neg $Uu_neg $Fy_neg $FmaxFy_neg $FresFy_neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $D_pos $D_neg
+%                 fprintf(fileID,'uniaxialMaterial IMKPeakOriented %i %f %f %f %f %f %f %f %f %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 1.0 1.0 \n', ele_hinge_id, Ko, theta_p_pos, theta_pc_pos, end_rot, moment_vec_pos(1), moment_vec_pos(2)/moment_vec_pos(1), hinge_props.(['c_hinge_' ele_side]), theta_p_neg, theta_pc_neg, end_rot, moment_vec_neg(1), moment_vec_neg(2)/moment_vec_neg(1), hinge_props.(['c_hinge_' ele_side]));
+               
+                % uniaxialMaterial Bilin $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg <$nFactor>
                 fprintf(fileID,'uniaxialMaterial Bilin %i %f %f %f %f %f 100.0 100.0 100.0 100.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_rot, end_rot);
-%                 fprintf(fileID,'uniaxialMaterial ElasticPP 3 %f 0.000005 \n', Ko);
 
                 % Create Zero Length Elements and Equal DOF constraints
                 %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
                 if strcmp(ele.direction,'x') && strcmp(hin.direction,'oop') % Out of plane for the X direction  
-                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 %i -dir 3 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                    fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
                 elseif strcmp(ele.direction,'x') % In plane for the X direction 
                     if strcmp(ele_props.type,'column')
-                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 %i -dir 1 %i \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id, rot_dof_x);
-                        fprintf(fileID,'equalDOF %i %i 2 5 \n', hin.node_2, hin.node_1);
+                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir %i \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id, rot_dof_x);
+                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 2 -dir 1 2 3 5 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
                     elseif strcmp(ele_props.type,'beam')
-                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 %i -dir 2 %i \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id, rot_dof_x);
-                        fprintf(fileID,'equalDOF %i %i 1 3 4 5 \n', hin.node_2, hin.node_1);
+                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir %i \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id, rot_dof_x);
+                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 2 2 -dir 1 2 3 4 5 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
                     end
                 elseif strcmp(ele.direction,'z') && strcmp(hin.direction,'oop') % Out of plane for the Z direction  
-                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 %i -dir 1 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                    fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
                 elseif strcmp(ele.direction,'z') % In plane for the Z direction 
                     if strcmp(ele_props.type,'column')
-                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 %i -dir 3 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
-                        fprintf(fileID,'equalDOF %i %i 2 5 \n', hin.node_2, hin.node_1);
+                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 2 -dir 1 2 3 5 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
                     elseif strcmp(ele_props.type,'beam')
-                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 %i -dir 2 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
-                        fprintf(fileID,'equalDOF %i %i 1 3 5 6 \n', hin.node_2, hin.node_1);
+                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 2 2 -dir 1 2 3 5 6 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
                     end
                 end
                 
-%                 % Define Equal DOFs
-%                 if ~strcmp(hin.direction,'oop') % Only do this for the inplane hinges
-%                     if strcmp(dimension,'3D') && strcmp(ele_props.type,'column')
-%                         fprintf(fileID,'equalDOF %i %i 1 2 3 5 \n', hin.node_2, hin.node_1);
-%                     elseif strcmp(dimension,'3D') && strcmp(ele_props.type,'beam')% 3D beams 
-%                         fprintf(fileID,'equalDOF %i %i 1 2 3 4 5 \n', hin.node_2, hin.node_1);
-%                     else
-%                         fprintf(fileID,'equalDOF %i %i 1 2 \n', hin.node_2, hin.node_1);
-%                     end
-%                 end
             elseif strcmp(ele_props.type,'wall')
                 if analysis.nonlinear == 0 % Elastic Lateral Spring for shear deformations
                     elastic_shear_stiffness = ele_props.g*ele_props.av/ele.length;
@@ -500,6 +482,8 @@ if height(hinge) > 0
                         % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
 %                         fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, K0, 0, 0, force_vec(2), -force_vec(2), theta_p, theta_p, theta_pc, theta_pc, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_disp, end_disp);
 %                         fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping, as_sping, force_vec(1), -force_vec(1), theta_p, theta_p, theta_pc, theta_pc, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_disp, end_disp); % Keep residual strength forever
+                        
+                      % uniaxialMaterial Bilin $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg <$nFactor>
                         fprintf(fileID,'uniaxialMaterial Bilin %i %f %f %f %f %f 100.0 100.0 100.0 100.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping, as_sping, force_vec(1), -force_vec(1), theta_p, theta_p, theta_pc, theta_pc, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_disp, end_disp); % Keep residual strength forever
                     elseif strcmp(hin.direction,'oop')
                         [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.(['Mn_oop_' ele_side]), hinge_props.(['Mn_oop_' ele_side]), hinge_props.(['Mp_oop_' ele_side]), hinge_props.(['Mp_oop_' ele_side]), ele.length, ele_props.e, ele_props.iy, hinge_props.(['a_hinge_oop_' ele_side]), hinge_props.(['b_hinge_oop_' ele_side]), hinge_props.(['c_hinge_oop_' ele_side]), analysis.hinge_stiff_mod, 0.1, hinge_props.(['critical_mode_oop_' ele_side]) );
@@ -514,22 +498,24 @@ if height(hinge) > 0
 %                             end_rot = rot_vec_pos(end);
 %                         end
                         % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
-                        fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_rot, end_rot); % Keep residual strength forever
+%                         fprintf(fileID,'uniaxialMaterial Bilin %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_rot, end_rot); % Keep residual strength forever
+%                         fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n',ele_hinge_id, Ko, rot_vec_pos(1));
+                        fprintf(fileID,'uniaxialMaterial ElasticBilin %i %f %f %f \n',ele_hinge_id, Ko, -Ko/1000, rot_vec_pos(1));
                     end       
                 end
                 
                 % Create Zero Length Element (Currently does not work for 2D)
                 %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
                 if strcmp(ele.direction,'x') && strcmp(hin.direction,'oop') % Out of plane for the X direction  
-                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 %i -dir 3 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                    fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
                 elseif strcmp(ele.direction,'x') % In plane for the X direction (assume shear)
-                    fprintf(fileID,'element zeroLength %i %i %i -mat %i 1 -dir 1 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
-                    fprintf(fileID,'equalDOF %i %i 2 3 4 5 \n', hin.node_2, hin.node_1); % Restricts OOP nonlinear
+                    fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 1 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 2 2 -dir 2 3 5 6 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
                 elseif strcmp(ele.direction,'z') && strcmp(hin.direction,'oop') % Out of plane for the Z direction  
-                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 %i -dir 1 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                    fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
                 elseif strcmp(ele.direction,'z') % In plane for the Z direction (assume shear)
-                    fprintf(fileID,'element zeroLength %i %i %i -mat %i 1 -dir 3 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
-                    fprintf(fileID,'equalDOF %i %i 1 2 5 6 \n', hin.node_2, hin.node_1); % Restricts OOP nonlinear
+                    fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 3 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 2 2 -dir 1 2 4 5 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
                 end          
             end
         end

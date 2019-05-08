@@ -21,6 +21,12 @@ import asce_41.*
 read_dir = [analysis.out_dir filesep 'asce_41_data'];
 read_dir_opensees = [analysis.out_dir filesep 'opensees_data'];
 plot_dir = [analysis.out_dir filesep 'analysis_plots'];
+if analysis.filter_accel
+    read_dir_TH = [analysis.out_dir filesep 'asce_41_data'];
+else
+    read_dir_TH = [analysis.out_dir filesep 'opensees_data'];
+end
+
 % fn_make_directory( plot_dir )
 
 % Load Analysis Data
@@ -44,6 +50,10 @@ if exist([analysis.out_dir filesep 'backbones'],'dir')
     backbones = load([analysis.out_dir filesep 'backbones' filesep 'element_analysis.mat']);
 end
 
+if exist([analysis.out_dir filesep 'backbones_pushover'],'dir')
+    backbones_pushover = load([analysis.out_dir filesep 'backbones_pushover' filesep 'element_analysis.mat']);
+end
+
 %% Cyclic Analysis
 if sum(analysis.type_list == 3) > 0 % Cyclic was run as part of this proceedure
     if analysis.element_plots
@@ -53,7 +63,7 @@ if sum(analysis.type_list == 3) > 0 % Cyclic was run as part of this proceedure
         if cyclic_analysis.analysis.nonlinear ~= 0 && exist('backbones','var') % Is the pushover nonlinear?
             % Plot Hinge Response
             cyclic_hinge = load([cyclic_read_dir filesep 'hinge_analysis.mat']);
-            fn_plot_hinge_response( cyclic_read_dir, cyclic_read_dir, cyclic_hinge.hinge, backbones.element, ele_prop_table, node, analysis.hinge_stories_2_plot )
+            fn_plot_hinge_response( cyclic_read_dir, cyclic_read_dir, cyclic_hinge.hinge, backbones_pushover.element, ele_prop_table, node, analysis.hinge_stories_2_plot )
         end
     end
 end
@@ -76,7 +86,7 @@ if sum(analysis.type_list == 2) > 0 % Pushover was run as part of this proceedur
         % Plot Hinge Response
         if pushover_analysis.analysis.nonlinear ~= 0 && exist('backbones','var') % Is the pushover nonlinear?
             pushover_hinge = load([pushover_read_dir filesep 'hinge_analysis.mat']);
-            fn_plot_hinge_response( pushover_read_dir, pushover_read_dir, pushover_hinge.hinge, backbones.element, ele_prop_table, node, analysis.hinge_stories_2_plot )
+            fn_plot_hinge_response( pushover_read_dir, pushover_read_dir, pushover_hinge.hinge, backbones_pushover.element, ele_prop_table, node, analysis.hinge_stories_2_plot )
         end
     end
 end
@@ -105,21 +115,21 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     elseif strcmp(analysis.proceedure,'NDP') % Nonlinear Procedures
         %% Plot Hinge accpetance
         % Elevation
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 1', plot_dir, 'x', 71, 1571, 0, 0 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 2', plot_dir, 'x', 71, 1571, 300, 300 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 3', plot_dir, 'x', 71, 1571, 600, 600 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 4', plot_dir, 'x', 71, 1571, 900, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - West Upper Wall', plot_dir, 'z', 0, 0, 0, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 1', plot_dir, 'z', 71, 71, 0, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 2', plot_dir, 'z', 671, 671, 0, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 3', plot_dir, 'z', 971, 971, 0, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 4', plot_dir, 'z', 1271, 1271, 0, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Upper Wall', plot_dir, 'z', 1500, 2000, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 1', plot_dir, 'x', 71, 1571, 0, 0 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 2', plot_dir, 'x', 71, 1571, 300, 300 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 3', plot_dir, 'x', 71, 1571, 600, 600 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Frame 4', plot_dir, 'x', 71, 1571, 900, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - West Upper Wall', plot_dir, 'z', 0, 0, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 1', plot_dir, 'z', 71, 71, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 2', plot_dir, 'z', 671, 671, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 3', plot_dir, 'z', 971, 971, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - Lower Wall 4', plot_dir, 'z', 1271, 1271, 0, 900 )
+        fn_plot_building_nl_3d( hinge, element, node, 'Acceptance Plot - East Upper Wall', plot_dir, 'z', 1500, 2000, 0, 900 )
         
 
         % Plan View
-%         fn_plot_plan_view( hinge, element, node, 1, 'Story 1 Columns - Bottom', plot_dir )
-%         fn_plot_plan_view( hinge, element, node, 2, 'Story 1 Columns - Top', plot_dir )
+        fn_plot_plan_view( hinge, element, node, 1, 'Story 1 Columns - Bottom', plot_dir )
+        fn_plot_plan_view( hinge, element, node, 2, 'Story 1 Columns - Top', plot_dir )
 
         %% Plot Element Scatter
         fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
@@ -128,14 +138,19 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     end
 
     %% ASCE 41 Target Displacement
-    [ target_disp_in.x ] = fn_spectra_and_target_displ( model, story, ground_motion, 'x' );
-    if strcmp(model.dimension,'3D')
-        if isfield(ground_motion,'z')
-            [ target_disp_in.z ] = fn_spectra_and_target_displ( model, story, ground_motion, 'z' );
-        else
-          target_disp_in.z = NaN;
-        end
-    end        
+    if analysis.run_eigen
+        [ target_disp_in.x ] = fn_spectra_and_target_displ( model, story, ground_motion, 'x' );
+        if strcmp(model.dimension,'3D')
+            if isfield(ground_motion,'z')
+                [ target_disp_in.z ] = fn_spectra_and_target_displ( model, story, ground_motion, 'z' );
+            else
+              target_disp_in.z = NaN;
+            end
+        end  
+    else
+        target_disp_in.x = NaN;
+        target_disp_in.z = NaN;
+    end
     
     %% Load in Recordings to compare with EDPs and Time Histories
     if analysis.plot_recordings
@@ -146,9 +161,9 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         end
 % 
 %         Plot specific TH comparisons
-        fn_plot_main_response_history( plot_dir, read_dir, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x', record_edp )
+        fn_plot_main_response_history( plot_dir, read_dir_TH, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x', record_edp )
         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-            fn_plot_main_response_history( plot_dir, read_dir, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z', record_edp )
+            fn_plot_main_response_history( plot_dir, read_dir_TH, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z', record_edp )
         end
     else
 %         Plot EDP Profiles
@@ -158,9 +173,9 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         end
 
 %         Plot specific TH comparisons
-        fn_plot_main_response_history( plot_dir, read_dir, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x' )
+        fn_plot_main_response_history( plot_dir, read_dir_TH, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, 'x' )
         if strcmp(model.dimension,'3D') && isfield(ground_motion,'z')
-            fn_plot_main_response_history( plot_dir, read_dir, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z' )
+            fn_plot_main_response_history( plot_dir, read_dir_TH, node, analysis, eq_analysis_timespace, eq.z, ground_motion.z.eq_dt, 'z' )
         end
 
     end
@@ -201,7 +216,9 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     for i = 1:length(dirs_ran)
         idx = idx + 1;
         outputs.type{idx,:} = ['Analysis-' dirs_ran{i}];
-        outputs.period(idx,:) = model.(['T1_' dirs_ran{i}]);
+        if analysis.run_eigen
+            outputs.period(idx,:) = model.(['T1_' dirs_ran{i}]);
+        end
         outputs.max_roof_drift(idx,:) = story.(['max_disp_' dirs_ran{i}])(end) / sum(story.story_ht);
         outputs.max_roof_drift_center(idx,:) = story.(['max_disp_center_' dirs_ran{i}])(end) / sum(story.story_ht);
         outputs.max_drift(idx,:) = max(story.(['max_drift_' dirs_ran{i}]));

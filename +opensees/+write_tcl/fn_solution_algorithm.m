@@ -9,11 +9,11 @@ max_tolerance_steps = 1000;
 
 % Set loop factors
 if analysis.type == 1 % Dynamic
-    step_reduction = [1,10,20,50];
+    step_reduction = [1,10,20,100];
 else
-    step_reduction = [1,10,20,50];
+    step_reduction = [1,10,20,100];
 end
-algorithm_typs = {'BFGS', 'NewtonLineSearch', 'SecantNewton', 'KrylovNewton'};
+algorithm_typs = { 'NewtonLineSearch', 'SecantNewton', 'KrylovNewton'};
 % tolerance = [1e-5, 1e-4 0.001, 0.01, 0.1, 1];
 tolerance = [0.001, 0.01, 0.1, 1];
 % tolerance = [0.1, 1];
