@@ -11,7 +11,7 @@ clc
 analysis.model_id = 11;
 analysis.proceedure = 'NDP';
 analysis.id = 3;
-analysis.summit = 0;
+analysis.summit = 1;
 analysis.run_ida = 1;
 analysis.gm_set = 'FEMA_far_field';
 
