@@ -17,8 +17,8 @@ analysis.post_process_ida = 0;
 analysis.gm_set = 'FEMA_far_field';
 
 % IDA Inputs
-hazard.curve.rp = [72, 224];%[43, 72, 224, 475, 975, 2475, 4975];
-hazard.curve.pga = [0.308, 0.502];%[0.224, 0.308, 0.502, 0.635, 0.766, 0.946, 1.082];
+hazard.curve.rp = [72];%[43, 72, 224, 475, 975, 2475, 4975];
+hazard.curve.pga = [0.308];%[0.224, 0.308, 0.502, 0.635, 0.766, 0.946, 1.082];
 analysis.collapse_drift = 0.1;
 
 % Secondary options
@@ -33,7 +33,7 @@ analysis.hinge_stiff_mod = 10;
 analysis.run_eigen = 0;
 analysis.solution_algorithm = 1;
 analysis.initial_timestep_factor = 1;
-analysis.suppress_outputs = 1;
+analysis.suppress_outputs = 0;
 analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 
@@ -61,11 +61,11 @@ IDA_scale_factors = hazard.curve.pga ./ gm_median_pga;
 
 %% Run Opensees Models
 if analysis.run_ida
-    parpool; % Set up Parallel Workers
+%     parpool; % Set up Parallel Workers
     tic
     for i = 1:length(IDA_scale_factors)
         scale_factor = IDA_scale_factors(i);
-        parfor gms = 1:height(gm_set_table)
+        for gms = 1:height(gm_set_table)
             % Suppress MATLAB warnings
             warning('off','all')
             
@@ -76,7 +76,7 @@ if analysis.run_ida
         end
     end
     toc
-    delete(gcp('nocreate')) % End Parallel Process
+%     delete(gcp('nocreate')) % End Parallel Process
 end
 
 %% Post Processes Results
