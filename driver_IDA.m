@@ -24,7 +24,7 @@ analysis.collapse_drift = 0.1;
 % Secondary options
 analysis.dead_load = 1;
 analysis.live_load = 1;
-analysis.opensees_SP = 1;
+analysis.opensees_SP = 0;
 analysis.type = 1;
 analysis.nonlinear = 1;
 analysis.damping = 'rayleigh';
@@ -65,7 +65,7 @@ if analysis.run_ida
     tic
     for i = 1:length(IDA_scale_factors)
         scale_factor = IDA_scale_factors(i);
-        for gms = 1:height(gm_set_table)
+        for gms = 20:20 %1:height(gm_set_table)
             % Suppress MATLAB warnings
             warning('off','all')
             

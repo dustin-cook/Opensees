@@ -64,8 +64,11 @@ if analysis.summit
 else
     command = ['openseesSP ' outputs_dir filesep 'run_analysis.tcl'];
 end
-[status,cmdout] = system(command);
-% [status,cmdout] = system(command,'-echo');
+if analysis.suppress_outputs
+    [status,cmdout] = system(command);
+else
+    [status,cmdout] = system(command,'-echo');
+end
 
 % test for analysis failure and terminate Matlab
 if contains(cmdout,'Analysis Failure: Collapse')
