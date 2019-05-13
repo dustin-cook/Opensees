@@ -19,7 +19,7 @@ analysis.gm_set = 'FEMA_far_field';
 % IDA Inputs
 hazard.curve.rp = [72];%[43, 72, 224, 475, 975, 2475, 4975];
 hazard.curve.pga = [0.308];%[0.224, 0.308, 0.502, 0.635, 0.766, 0.946, 1.082];
-analysis.collapse_drift = 0.1;
+analysis.collapse_drift = 0.05;
 
 % Secondary options
 analysis.dead_load = 1;
@@ -33,7 +33,7 @@ analysis.hinge_stiff_mod = 10;
 analysis.run_eigen = 0;
 analysis.solution_algorithm = 1;
 analysis.initial_timestep_factor = 1;
-analysis.suppress_outputs = 0;
+analysis.suppress_outputs = 1;
 analysis.algorithm = 'Newton';
 analysis.integrator = 'Newmark 0.5 0.25';
 
@@ -61,11 +61,11 @@ IDA_scale_factors = hazard.curve.pga ./ gm_median_pga;
 
 %% Run Opensees Models
 if analysis.run_ida
-%     parpool; % Set up Parallel Workers
+    parpool; % Set up Parallel Workers
     tic
     for i = 1:length(IDA_scale_factors)
         scale_factor = IDA_scale_factors(i);
-        for gms = 1:height(gm_set_table)
+        parfor gms = 1:height(gm_set_table)
             % Suppress MATLAB warnings
             warning('off','all')
             
@@ -76,7 +76,7 @@ if analysis.run_ida
         end
     end
     toc
-%     delete(gcp('nocreate')) % End Parallel Process
+    delete(gcp('nocreate')) % End Parallel Process
 end
 
 %% Post Processes Results
@@ -87,18 +87,22 @@ if analysis.post_process_ida
     for i = 1:length(IDA_scale_factors)
         for gms = 1:height(gm_set_table)
             for d = 1:2
-                id = id + 1;
+                
                 % Load data
                 outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Scale_' num2str(IDA_scale_factors(i)) '/' 'GM_' num2str(gm_set_table.set_id(gms)) '_' num2str(d)];
-                load([outputs_dir filesep 'summary_results.mat'])
-                ida.id(id,1) = id;
-                ida.scale(id,1) = IDA_scale_factors(i);
-                ida.gm_name{id,1} = gm_set_table.eq_name{gms};
-                ida.sa_x(id,1) = summary.sa_x;
-                ida.sa_z(id,1) = summary.sa_z;
-                ida.drift_x(id,1) = summary.max_drift_x;
-                ida.drift_z(id,1) = summary.max_drift_z;
-                ida.collapse(id,1) = summary.collapse;
+                outputs_file = [outputs_dir filesep 'summary_results.mat'];
+                if exist(outputs_file,'file')
+                    id = id + 1;
+                    load([outputs_dir filesep 'summary_results.mat'])
+                    ida.id(id,1) = id;
+                    ida.scale(id,1) = IDA_scale_factors(i);
+                    ida.gm_name{id,1} = gm_set_table.eq_name{gms};
+                    ida.sa_x(id,1) = summary.sa_x;
+                    ida.sa_z(id,1) = summary.sa_z;
+                    ida.drift_x(id,1) = summary.max_drift_x;
+                    ida.drift_z(id,1) = summary.max_drift_z;
+                    ida.collapse(id,1) = summary.collapse;
+                end
             end
         end
     end

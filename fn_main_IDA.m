@@ -71,6 +71,7 @@ else
 end
 
 % test for analysis failure and terminate Matlab
+OS_crash = 0;
 if contains(cmdout,'Analysis Failure: Collapse')
     summary.collapse = 1; % Collapse triggered by drift limit
     fprintf('Model Reached Collapse Limit \n')
@@ -81,6 +82,7 @@ elseif contains(cmdout,'Analysis Failure: Convergence') || contains(cmdout,'Anal
 elseif status ~= 0
     summary.collapse = 3; % Unexpected Opensees failure (shouldnt get here)
     fprintf('UNHANDLED OPENSEES FAILURE \n')
+    OS_crash = 1;
 else
     summary.collapse = 0;
     fprintf('Model Ran Successfully \n')
@@ -90,48 +92,52 @@ fprintf('Opensees Completed \n')
 clear cmdout
 
 %% Post Process Data
-fprintf('Postprocessing Opensess Ouputs from Directory: %s \n',outputs_dir)
-% Nodal displacements
-for n = 1:height(node)
-    node_id = node.id(n);
-       if node.record_disp(n)
-           [ node_disp_raw ] = fn_xml_read([outputs_dir filesep 'nodal_disp_' num2str(node.id(n)) '.xml']);
-           node_disp_raw = node_disp_raw'; % flip to be node per row
-           disp_TH.(['node_' num2str(node_id) '_TH']).(['disp_x_TH']) = node_disp_raw(2,:);
-           disp_TH.(['node_' num2str(node_id) '_TH']).(['disp_z_TH']) = node_disp_raw(3,:);  % Currently Hard coded to three dimensions
-       end
-       clear node_disp_raw
-end
+if OS_crash
+    fprintf('Skipping Postprocessing of Opensees')
+else
+    fprintf('Postprocessing Opensees Ouputs from Directory: %s \n',outputs_dir)
+    % Nodal displacements
+    for n = 1:height(node)
+        node_id = node.id(n);
+           if node.record_disp(n)
+               [ node_disp_raw ] = fn_xml_read([outputs_dir filesep 'nodal_disp_' num2str(node.id(n)) '.xml']);
+               node_disp_raw = node_disp_raw'; % flip to be node per row
+               disp_TH.(['node_' num2str(node_id) '_TH']).(['disp_x_TH']) = node_disp_raw(2,:);
+               disp_TH.(['node_' num2str(node_id) '_TH']).(['disp_z_TH']) = node_disp_raw(3,:);  % Currently Hard coded to three dimensions
+           end
+           clear node_disp_raw
+    end
 
-% Hinge Deformations
-if analysis.nonlinear ~= 0 && ~isempty(hinge)
-    for i = 1:height(hinge)
-        hinge_y = node.y(node.id == hinge.node_1(i));
-        if hinge_y == 0 && strcmp(hinge.direction{i},'primary')
-            hinge_id = element.id(end) + hinge.id(i);
-            [ hinge_deformation_TH ] = fn_xml_read([outputs_dir filesep 'hinge_deformation_' num2str(hinge_id) '.xml']);
-            hinge.max_deform(i) = max(abs(hinge_deformation_TH(:,2)));
-            clear hinge_deformation_TH
-        else
-            hinge.max_deform(i) = NaN;
+    % Hinge Deformations
+    if analysis.nonlinear ~= 0 && ~isempty(hinge)
+        for i = 1:height(hinge)
+            hinge_y = node.y(node.id == hinge.node_1(i));
+            if hinge_y == 0 && strcmp(hinge.direction{i},'primary')
+                hinge_id = element.id(end) + hinge.id(i);
+                [ hinge_deformation_TH ] = fn_xml_read([outputs_dir filesep 'hinge_deformation_' num2str(hinge_id) '.xml']);
+                hinge.max_deform(i) = max(abs(hinge_deformation_TH(:,2)));
+                clear hinge_deformation_TH
+            else
+                hinge.max_deform(i) = NaN;
+            end
         end
     end
+    save([outputs_dir filesep 'hinge_analysis.mat'],'hinge')
+
+    % Calc Story Drift
+    [ story.max_drift_x ] = fn_drift_profile( disp_TH, story, node, 'x' );
+    [ story.max_drift_z ] = fn_drift_profile( disp_TH, story, node, 'z' );
+
+    clear disp_TH
+
+    summary.max_drift_x = max(story.max_drift_x);
+    summary.max_drift_z = max(story.max_drift_z);
+
+    % Save data for this run
+    fprintf('Writing IDA Results to Directory: %s \n',outputs_dir)
+    save([outputs_dir filesep 'summary_results.mat'],'summary')
+    save([outputs_dir filesep 'story_analysis.mat'],'story')
 end
-save([outputs_dir filesep 'hinge_analysis.mat'],'hinge')
-
-% Calc Story Drift
-[ story.max_drift_x ] = fn_drift_profile( disp_TH, story, node, 'x' );
-[ story.max_drift_z ] = fn_drift_profile( disp_TH, story, node, 'z' );
-
-clear disp_TH
-
-summary.max_drift_x = max(story.max_drift_x);
-summary.max_drift_z = max(story.max_drift_z);
-
-% Save data for this run
-fprintf('Writing IDA Results to Directory: %s \n',outputs_dir)
-save([outputs_dir filesep 'summary_results.mat'],'summary')
-save([outputs_dir filesep 'story_analysis.mat'],'story')
 
 end
 
