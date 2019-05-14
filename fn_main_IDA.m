@@ -1,4 +1,4 @@
-function [ exist_status ] = fn_main_IDA(analysis, model, story, element, node, hinge, gm_set_table, gm_idx, scale_factor, tcl_dir)
+function [ exit_status ] = fn_main_IDA(analysis, model, story, element, node, hinge, gm_set_table, gm_idx, scale_factor, tcl_dir)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -71,7 +71,7 @@ else
 end
 
 % test for analysis failure and terminate Matlab
-exist_status = 0;
+exit_status = 0;
 if contains(cmdout,'Analysis Failure: Collapse')
     summary.collapse = 1; % Collapse triggered by drift limit
     fprintf('Model Reached Collapse Limit \n')
@@ -82,7 +82,7 @@ elseif contains(cmdout,'Analysis Failure: Convergence') || contains(cmdout,'Anal
 elseif status ~= 0
     summary.collapse = 3; % Unexpected Opensees failure (shouldnt get here)
     fprintf('UNHANDLED OPENSEES FAILURE \n')
-    exist_status = 1;
+    exit_status = 1;
 else
     summary.collapse = 0;
     fprintf('Model Ran Successfully \n')
@@ -92,7 +92,7 @@ fprintf('Opensees Completed \n')
 clear cmdout
 
 %% Post Process Data
-if exist_status
+if exit_status
     fprintf('Skipping Postprocessing of Opensees')
 else
     fprintf('Postprocessing Opensees Ouputs from Directory: %s \n',outputs_dir)

@@ -73,7 +73,7 @@ if analysis.run_ida
             % Run Opensees
             fprintf('Running Scale Factor %4.2f for Ground Motion ID: %i-%i \n\n', scale_factor, gm_set_table.set_id(gms), gm_set_table.pair(gms))
             [exit_status] = fn_main_IDA(analysis, model, story, element, node, hinge, gm_set_table, gms, scale_factor, tcl_dir)
-            if exist_status == 1
+            if exit_status == 1
                 error_count = error_count + 1;
             end
             fprintf('\n')
