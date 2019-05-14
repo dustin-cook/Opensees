@@ -11,14 +11,14 @@ clc
 analysis.model_id = 11;
 analysis.proceedure = 'NDP';
 analysis.id = 2;
-analysis.summit = 1;
-analysis.run_ida = 1;
-analysis.post_process_ida = 0;
+analysis.summit = 0;
+analysis.run_ida = 0;
+analysis.post_process_ida = 1;
 analysis.gm_set = 'FEMA_far_field';
 
 % IDA Inputs
-hazard.curve.rp = [224, 475, 975, 2475, 4975];%[43, 72, 224, 475, 975, 2475, 4975];
-hazard.curve.pga = [0.502, 0.635, 0.766, 0.946, 1.082];%[0.224, 0.308, 0.502, 0.635, 0.766, 0.946, 1.082];
+hazard.curve.rp = [43, 72, 224, 475, 975, 2475, 4975];%[43, 72, 224, 475, 975, 2475, 4975];
+hazard.curve.pga = [0.224, 0.308, 0.502, 0.635, 0.766, 0.946, 1.082];%[0.224, 0.308, 0.502, 0.635, 0.766, 0.946, 1.082];
 analysis.collapse_drift = 0.05;
 
 % Secondary options
@@ -90,24 +90,21 @@ if analysis.post_process_ida
     plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'IDA Plots'];
     id = 0;
     for i = 1:length(IDA_scale_factors)
-        for gms = 1:height(gm_set_table)
-            for d = 1:2
-                
-                % Load data
-                outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Scale_' num2str(IDA_scale_factors(i)) '/' 'GM_' num2str(gm_set_table.set_id(gms)) '_' num2str(d)];
-                outputs_file = [outputs_dir filesep 'summary_results.mat'];
-                if exist(outputs_file,'file')
-                    id = id + 1;
-                    load([outputs_dir filesep 'summary_results.mat'])
-                    ida.id(id,1) = id;
-                    ida.scale(id,1) = IDA_scale_factors(i);
-                    ida.gm_name{id,1} = gm_set_table.eq_name{gms};
-                    ida.sa_x(id,1) = summary.sa_x;
-                    ida.sa_z(id,1) = summary.sa_z;
-                    ida.drift_x(id,1) = summary.max_drift_x;
-                    ida.drift_z(id,1) = summary.max_drift_z;
-                    ida.collapse(id,1) = summary.collapse;
-                end
+        for gms = 1:height(gm_set_table)   
+            % Load data
+            outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Summary Data' '/' 'Scale_' num2str(IDA_scale_factors(i)) '/' 'GM_' num2str(gm_set_table.set_id(gms)) '_' num2str(gm_set_table.pair(gms))];
+            outputs_file = [outputs_dir filesep 'summary_results.mat'];
+            if exist(outputs_file,'file')
+                id = id + 1;
+                load([outputs_dir filesep 'summary_results.mat'])
+                ida.id(id,1) = id;
+                ida.scale(id,1) = IDA_scale_factors(i);
+                ida.gm_name{id,1} = gm_set_table.eq_name{gms};
+                ida.sa_x(id,1) = summary.sa_x;
+                ida.sa_z(id,1) = summary.sa_z;
+                ida.drift_x(id,1) = summary.max_drift_x;
+                ida.drift_z(id,1) = summary.max_drift_z;
+                ida.collapse(id,1) = summary.collapse;
             end
         end
     end

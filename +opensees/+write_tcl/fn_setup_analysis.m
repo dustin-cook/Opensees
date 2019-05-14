@@ -1,4 +1,4 @@
-function [ ] = fn_setup_analysis( write_dir, model_dir, analysis, first_story_node, story )
+function [ ] = fn_setup_analysis( write_dir, model_dir, analysis, primary_nodes, story )
 %UNTITLED9 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -53,7 +53,7 @@ if analysis.type == 1 % Dynamic Analysis
     fprintf(fileID,'analysis Transient \n');
 elseif analysis.type == 2 || analysis.type == 3 % Pushover or Cyclic Analysis
     % Define Each Load Step
-    [ control_node, control_dof, ~, step_size ] = fn_pushover_properties( first_story_node, analysis, story );
+    [ control_node, control_dof, ~, step_size ] = fn_pushover_properties( primary_nodes, analysis, story );
     int_controller = ['DisplacementControl ' num2str(control_node) ' ' num2str(control_dof) ' ' num2str(step_size)]; 
     fprintf(fileID,'integrator %s \n',int_controller);
 

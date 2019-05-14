@@ -1,4 +1,4 @@
-function [ ] = fn_solution_algorithm( fileID, analysis, write_dir, analysis_length, step_length_raw, first_story_node, story_ht, control_node, control_dof )
+function [ ] = fn_solution_algorithm( fileID, analysis, write_dir, analysis_length, step_length_raw, primary_nodes, story_ht, control_node, control_dof )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -122,35 +122,35 @@ fprintf(fileID,'puts $converge_tol_file $converge_tol_log \n');
 
 %% Check for singularity and collapse
 fprintf(fileID,'if {$ok == 0} { \n');
-% Define Displacement
-if analysis.type == 2 || analysis.type == 3 % Pushover or Cyclic
-    fprintf(fileID,'set node_at_floor_1 %i \n', control_node);
-    fprintf(fileID,'set floor_displ_1 "[nodeDisp $node_at_floor_1 %i]" \n',control_dof);
-%     fprintf(fileID,'puts "Control Node Disp = $floor_displ_1" \n');
-    fprintf(fileID,'set height_floor_1 %f \n', story_ht(1));
-    fprintf(fileID,'set floor_drift_1 [expr abs($floor_displ_1/$height_floor_1)] \n');
-elseif analysis.type == 1 % Dynamic
-    fprintf(fileID,'set node_at_floor_1 %i \n', first_story_node(1));
-    fprintf(fileID,'set floor_displ_1 "[nodeDisp $node_at_floor_1 1]" \n');
-%     fprintf(fileID,'puts "First Story Disp = $floor_displ_1" \n');
-    fprintf(fileID,'set height_floor_1 %f \n', story_ht(1));
-    fprintf(fileID,'set floor_drift_1 [expr abs($floor_displ_1/$height_floor_1)] \n');
-end
-% Check for Singularity
-fprintf(fileID,'set check_QNAN_1 [string first QNAN $floor_displ_1 1] \n');
-% fprintf(fileID,'puts "QNAN Check = $check_QNAN_1" \n');
-fprintf(fileID,'set check_IND_1 [string first IND $floor_displ_1 1] \n');
-% fprintf(fileID,'puts "IND Check = $check_IND_1" \n');
-fprintf(fileID,'if {($floor_displ_1 > 1000000) || ($check_QNAN_1 != -1) || ($check_IND_1 != -1)} { \n');
-fprintf(fileID,'set singularity_check 1 \n');
-fprintf(fileID,'} \n');
-% fprintf(fileID,'puts "Singularity = $singularity_check" \n');
-% Check for Collapse
-if analysis.collapse_drift > 0
-    fprintf(fileID,'if {$floor_drift_1 > %f} { \n', analysis.collapse_drift);
-    fprintf(fileID,'set collapse_check 1 \n');
+for s = 1:length(primary_nodes)
+    % Define Displacements
+    story_collapse_disp = story_ht(s)*analysis.collapse_drift;
+    fprintf(fileID,'set node_at_floor_%s %i \n', num2str(s), primary_nodes(s));
+    fprintf(fileID,'set height_floor_%s %f \n', num2str(s), story_ht(s));
+    fprintf(fileID,'set floor_displ_%s_x "[nodeDisp $node_at_floor_%s 1]" \n', num2str(s), num2str(s));
+    fprintf(fileID,'set floor_displ_%s_z "[nodeDisp $node_at_floor_%s 3]" \n', num2str(s), num2str(s));
+    
+    % Check for Singularity in x direction
+    fprintf(fileID,'set check_QNAN_1 [string first QNAN $floor_displ_%s_x 1] \n', num2str(s));
+    fprintf(fileID,'set check_IND_1 [string first IND $floor_displ_%s_x 1] \n', num2str(s));
+    fprintf(fileID,'if {($floor_displ_%s_x > 1000000) || ($floor_displ_%s_x < -1000000) || ($check_QNAN_1 != -1) || ($check_IND_1 != -1)} { \n', num2str(s), num2str(s));
+    fprintf(fileID,'set singularity_check 1 \n');
     fprintf(fileID,'} \n');
-%     fprintf(fileID,'puts "Collapse = $collapse_check" \n');
+    
+    % Check for Singularity in z direction
+    fprintf(fileID,'set check_QNAN_1 [string first QNAN $floor_displ_%s_z 1] \n', num2str(s));
+    fprintf(fileID,'set check_IND_1 [string first IND $floor_displ_%s_z 1] \n', num2str(s));
+    fprintf(fileID,'if {($floor_displ_%s_z > 1000000) || ($floor_displ_%s_z < -1000000) || ($check_QNAN_1 != -1) || ($check_IND_1 != -1)} { \n', num2str(s), num2str(s));
+    fprintf(fileID,'set singularity_check 1 \n');
+    fprintf(fileID,'} \n');
+
+    % Check for Collapse
+    if analysis.collapse_drift > 0
+        fprintf(fileID,'if {$floor_displ_%s_x > %f || $floor_displ_%s_x < %f || $floor_displ_%s_z > %f || $floor_displ_%s_z < %f} { \n', num2str(s), story_collapse_disp, num2str(s), -story_collapse_disp, num2str(s), story_collapse_disp, num2str(s), -story_collapse_disp);
+        fprintf(fileID,'set collapse_check 1 \n');
+        fprintf(fileID,'puts "Collapse on story %i" \n', s);
+        fprintf(fileID,'} \n');
+    end
 end
 fprintf(fileID,'} \n');
 fprintf(fileID,'} \n');

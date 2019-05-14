@@ -431,7 +431,7 @@ if height(hinge) > 0
 %                 fprintf(fileID,'uniaxialMaterial IMKPeakOriented %i %f %f %f %f %f %f %f %f %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 1.0 1.0 \n', ele_hinge_id, Ko, theta_p_pos, theta_pc_pos, end_rot, moment_vec_pos(1), moment_vec_pos(2)/moment_vec_pos(1), hinge_props.(['c_hinge_' ele_side]), theta_p_neg, theta_pc_neg, end_rot, moment_vec_neg(1), moment_vec_neg(2)/moment_vec_neg(1), hinge_props.(['c_hinge_' ele_side]));
                
                 % uniaxialMaterial Bilin $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg <$nFactor>
-                fprintf(fileID,'uniaxialMaterial Bilin %i %f %f %f %f %f 100.0 100.0 100.0 100.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_rot, end_rot);
+                fprintf(fileID,'uniaxialMaterial Bilin %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_rot, end_rot);
 
                 % Create Zero Length Elements and Equal DOF constraints
                 %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
