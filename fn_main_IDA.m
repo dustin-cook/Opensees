@@ -77,12 +77,16 @@ exit_status = 0;
 if contains(cmdout,'Analysis Failure: Collapse')
     summary.collapse = 1; % Collapse triggered by drift limit
     fprintf('Model Reached Collapse Limit \n')
-elseif contains(cmdout,'Analysis Failure: Convergence') || contains(cmdout,'Analysis Failure: Singularity')
+elseif contains(cmdout,'Analysis Failure: Singularity')
     summary.collapse = 2; % Collapse triggered by convergence or singularity issue
+    fprintf('Unexpected Opensees failure \n')
+    fprintf('Model Experienced a Singularity Failure (Treat as collapsed)')
+elseif contains(cmdout,'Analysis Failure: Convergence')
+    summary.collapse = 3; % Collapse triggered by convergence or singularity issue
     fprintf('Unexpected Opensees failure \n')
     fprintf('Model Experienced a Convergence Failure (Treat as collapsed)')
 elseif status ~= 0
-    summary.collapse = 3; % Unexpected Opensees failure (shouldnt get here)
+    summary.collapse = 4; % Unexpected Opensees failure (shouldnt get here)
     fprintf('UNHANDLED OPENSEES FAILURE \n')
     exit_status = 1;
 else
