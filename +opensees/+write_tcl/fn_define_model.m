@@ -513,11 +513,14 @@ if height(hinge) > 0
 %                         fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n',ele_hinge_id, Ko/295, rot_vec_pos(1)*350);
 
                         % First story Hinges modified to match fiber model
-                        if hin.story == 1
-                            fprintf(fileID,'uniaxialMaterial ElasticBilin %i %f %f %f \n',ele_hinge_id, Ko, Ko/1500, rot_vec_pos(1)*1.2);
-                        else % second story Hinges modified to match fiber model
-                            fprintf(fileID,'uniaxialMaterial ElasticBilin %i %f %f %f \n',ele_hinge_id, Ko, Ko/3500, rot_vec_pos(1)*0.87);
-                        end
+%                         if hin.story == 1
+%                             fprintf(fileID,'uniaxialMaterial ElasticBilin %i %f %f %f \n',ele_hinge_id, Ko, Ko/1500, rot_vec_pos(1)*1.2);
+%                         else % second story Hinges modified to match fiber model
+%                             fprintf(fileID,'uniaxialMaterial ElasticBilin %i %f %f %f \n',ele_hinge_id, Ko, Ko/3500, rot_vec_pos(1)*0.87);
+%                         end
+                        
+                        % Essentially Pinned OOP Wall
+                        fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',ele_hinge_id,1);
                     end       
                 end
                 
