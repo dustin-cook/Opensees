@@ -124,31 +124,43 @@ fprintf(fileID,'puts $converge_tol_file $converge_tol_log \n');
 fprintf(fileID,'if {$ok == 0} { \n');
 for s = 1:length(primary_nodes)
     % Define Displacements
-    story_collapse_disp = story_ht(s)*analysis.collapse_drift;
     fprintf(fileID,'set node_at_floor_%s %i \n', num2str(s), primary_nodes(s));
     fprintf(fileID,'set height_floor_%s %f \n', num2str(s), story_ht(s));
     fprintf(fileID,'set floor_displ_%s_x "[nodeDisp $node_at_floor_%s 1]" \n', num2str(s), num2str(s));
     fprintf(fileID,'set floor_displ_%s_z "[nodeDisp $node_at_floor_%s 3]" \n', num2str(s), num2str(s));
+    if s == 1
+        fprintf(fileID,'set floor_drift_%s_x [expr $floor_displ_%s_x/$height_floor_%s] \n', num2str(s), num2str(s), num2str(s));
+        fprintf(fileID,'set floor_drift_%s_z [expr $floor_displ_%s_z/$height_floor_%s] \n', num2str(s), num2str(s), num2str(s));
+    else
+        fprintf(fileID,'set floor_drift_%s_x [expr ($floor_displ_%s_x - $floor_displ_%s_x)/$height_floor_%s] \n', num2str(s), num2str(s), num2str(s-1), num2str(s));
+        fprintf(fileID,'set floor_drift_%s_z [expr ($floor_displ_%s_z - $floor_displ_%s_z)/$height_floor_%s] \n', num2str(s), num2str(s), num2str(s-1), num2str(s));
+    end
     
     % Check for Singularity in x direction
     fprintf(fileID,'set check_QNAN_1 [string first QNAN $floor_displ_%s_x 1] \n', num2str(s));
     fprintf(fileID,'set check_IND_1 [string first IND $floor_displ_%s_x 1] \n', num2str(s));
-    fprintf(fileID,'if {($floor_displ_%s_x > 1000000) || ($floor_displ_%s_x < -1000000) || ($check_QNAN_1 != -1) || ($check_IND_1 != -1)} { \n', num2str(s), num2str(s));
+    fprintf(fileID,'if {([expr abs($floor_displ_%s_x)] > 1000000) || ($check_QNAN_1 != -1) || ($check_IND_1 != -1)} { \n', num2str(s));
     fprintf(fileID,'set singularity_check 1 \n');
     fprintf(fileID,'} \n');
     
     % Check for Singularity in z direction
     fprintf(fileID,'set check_QNAN_1 [string first QNAN $floor_displ_%s_z 1] \n', num2str(s));
     fprintf(fileID,'set check_IND_1 [string first IND $floor_displ_%s_z 1] \n', num2str(s));
-    fprintf(fileID,'if {($floor_displ_%s_z > 1000000) || ($floor_displ_%s_z < -1000000) || ($check_QNAN_1 != -1) || ($check_IND_1 != -1)} { \n', num2str(s), num2str(s));
+    fprintf(fileID,'if {([expr abs($floor_displ_%s_z)] > 1000000) || ($check_QNAN_1 != -1) || ($check_IND_1 != -1)} { \n', num2str(s));
     fprintf(fileID,'set singularity_check 1 \n');
     fprintf(fileID,'} \n');
 
     % Check for Collapse
     if analysis.collapse_drift > 0
-        fprintf(fileID,'if {$floor_displ_%s_x > %f || $floor_displ_%s_x < %f || $floor_displ_%s_z > %f || $floor_displ_%s_z < %f} { \n', num2str(s), story_collapse_disp, num2str(s), -story_collapse_disp, num2str(s), story_collapse_disp, num2str(s), -story_collapse_disp);
+        % Collapse in x direction
+        fprintf(fileID,'if {[expr abs($floor_drift_%s_x)] > %f} { \n', num2str(s), analysis.collapse_drift);
         fprintf(fileID,'set collapse_check 1 \n');
-        fprintf(fileID,'puts "Collapse on story %i" \n', s);
+        fprintf(fileID,'puts "Collapse on story %i in the x direction" \n', s);
+        fprintf(fileID,'} \n');
+        % Collapse in z direction
+        fprintf(fileID,'if {[expr abs($floor_drift_%s_z)] > %f} { \n', num2str(s), analysis.collapse_drift);
+        fprintf(fileID,'set collapse_check 1 \n');
+        fprintf(fileID,'puts "Collapse on story %i in the z direction" \n', s);
         fprintf(fileID,'} \n');
     end
 end

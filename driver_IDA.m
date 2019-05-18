@@ -11,15 +11,15 @@ clc
 analysis.model_id = 11;
 analysis.proceedure = 'NDP';
 analysis.id = 3;
-analysis.summit = 1;
+analysis.summit = 0;
 analysis.run_ida = 1;
-analysis.post_process_ida = 0;
+analysis.post_process_ida = 1;
 analysis.gm_set = 'FEMA_far_field';
 
 % IDA Inputs
-hazard.curve.rp = [224, 475, 975, 2475, 4975];%[43, 72, 224, 475, 975, 2475, 4975];
-hazard.curve.pga = [0.502, 0.635, 0.766, 0.946, 1.082];%[0.224, 0.308, 0.502, 0.635, 0.766, 0.946, 1.082];
-analysis.collapse_drift = 0.05;
+hazard.curve.rp = [43, 72, 224, 475, 975, 2475, 4975];%[43, 72, 224, 475, 975, 2475, 4975];
+hazard.curve.pga = [0.224, 0.308, 0.502, 0.635, 0.766, 0.946, 1.082];%[0.224, 0.308, 0.502, 0.635, 0.766, 0.946, 1.082];
+analysis.collapse_drift = 0.06;
 
 % Secondary options
 analysis.dead_load = 1;
@@ -33,7 +33,7 @@ analysis.hinge_stiff_mod = 10;
 analysis.run_eigen = 0;
 analysis.solution_algorithm = 1;
 analysis.initial_timestep_factor = 1;
-analysis.suppress_outputs = 1;
+analysis.suppress_outputs = 0;
 analysis.algorithm = 'Newton';
 analysis.integrator = 'Newmark 0.5 0.25';
 
@@ -47,12 +47,13 @@ import plotting_tools.fn_format_and_save_plot
 %% Define read and write directories
 model_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'model_data'];
 tcl_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'opensees_data'];
+asce41_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'asce_41_data'];
 
 % Load in Model Tables
 node = readtable([model_dir filesep 'node.csv'],'readVariableNames',true);
 story = readtable([model_dir filesep 'story.csv'],'readVariableNames',true);
 hinge = readtable([model_dir filesep 'hinge.csv'],'readVariableNames',true);
-element = readtable([model_dir filesep 'element.csv'],'readVariableNames',true);
+load([asce41_dir filesep 'element_analysis.mat']);
 
 % Load ground motion data
 gm_set_table = readtable(['ground_motions' filesep analysis.gm_set filesep 'ground_motion_set.csv'],'ReadVariableNames',true);
@@ -61,18 +62,18 @@ IDA_scale_factors = hazard.curve.pga ./ gm_median_pga;
 
 %% Run Opensees Models
 if analysis.run_ida
-    parpool; % Set up Parallel Workers
+%     parpool; % Set up Parallel Workers
     tic
     for i = 1:length(IDA_scale_factors)
         error_count = 0;
         scale_factor = IDA_scale_factors(i);
-        parfor gms = 1:height(gm_set_table)
+        for gms = 1:height(gm_set_table)
             % Suppress MATLAB warnings
             warning('off','all')
             
             % Run Opensees
             fprintf('Running Scale Factor %4.2f for Ground Motion ID: %i-%i \n\n', scale_factor, gm_set_table.set_id(gms), gm_set_table.pair(gms))
-            [exit_status] = fn_main_IDA(analysis, model, story, element, node, hinge, gm_set_table, gms, scale_factor, tcl_dir)
+            [exit_status] = fn_main_IDA(analysis, model, story, element, node, hinge, gm_set_table, gms, scale_factor, tcl_dir);
             if exit_status == 1
                 error_count = error_count + 1;
             end
@@ -81,7 +82,7 @@ if analysis.run_ida
         fprintf('%i Failed GMs for Scale Factor %4.2f \n\n', error_count, scale_factor)
     end
     toc
-    delete(gcp('nocreate')) % End Parallel Process
+%     delete(gcp('nocreate')) % End Parallel Process
 end
 
 %% Post Processes Results
@@ -135,4 +136,6 @@ if analysis.post_process_ida
     % Save results as csv
     ida_table = struct2table(ida);
     writetable(ida_table,[plot_dir filesep 'ida_results.csv'])
+    missing_ida_table = struct2table(missing_ida);
+    writetable(missing_ida_table,[plot_dir filesep 'missing_ida_results.csv'])
 end

@@ -44,7 +44,7 @@ if analysis.nonlinear ~= 0
                     hinge.story(hinge_id,1) = element.story(i);
                     hinge.ele_direction{hinge_id,1} = element.direction{i};
                 end
-            elseif strcmp(element.type{i},'wall') % For walls
+            elseif strcmp(element.type{i},'wall') && ~analysis.fiber_walls % Walls: Only for lumped plasticity models
                 % Check if wall is the bottom wall
                 walls_with_same_node = element.id(strcmp(element.type,'wall') & element.node_2 == element.node_1(i));
                 if isempty(walls_with_same_node)
@@ -70,7 +70,7 @@ if analysis.nonlinear ~= 0
 else
     % Define Linear Shear Spings on Walls to account for shear deflections
     for i = 1:length(element.id)
-        if strcmp(element.type{i},'wall')
+        if strcmp(element.type{i},'wall') && ~analysis.fiber_walls % Only for lumped plasticity models
             walls_with_same_node = element.id(strcmp(element.type,'wall') & element.node_2 == element.node_1(i));
             if isempty(walls_with_same_node)
                 hinge_id = hinge_id+1;

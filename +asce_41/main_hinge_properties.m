@@ -16,7 +16,7 @@ for e_idx = 1:height(element)
             [ hinge_props, element.trans_rein_check{e_idx,1} ] = fn_beam_hinge( ele, ele_props, ele_side );
             hinge_props_oop = hinge_props;
         elseif strcmp(ele.type,'column')
-            [ hinge_props, element.rho_t(e_idx,1) ] = fn_col_hinge( ele, ele_props, ele_side );
+            [ hinge_props, element.rho_t(e_idx,1), element.rho_l(e_idx,1) ] = fn_col_hinge( ele, ele_props, ele_side );
             hinge_props_oop = hinge_props;
         elseif strcmp(ele.type,'wall')
             [ hinge_props ] = fn_wall_hinge( ele, ele_props, 0, ele_side );

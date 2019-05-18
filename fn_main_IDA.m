@@ -123,12 +123,18 @@ else
                 [ hinge_deformation_TH ] = fn_xml_read([opensees_outputs_dir filesep 'hinge_deformation_' num2str(hinge_id) '.xml']);
                 hinge.max_deform(i) = max(abs(hinge_deformation_TH(:,2)));
                 clear hinge_deformation_TH
-            else
-                hinge.max_deform(i) = NaN;
+                hinge.b_value(i) = element.(['b_hinge_' num2str(hinge.ele_side(i))])(element.id == hinge.element_id(i));
+                hinge.b_ratio(i) = hinge.max_deform(i) / hinge.b_value(i);
             end
         end
     end
     save([ida_outputs_dir filesep 'hinge_analysis.mat'],'hinge')
+    
+    % Check bad convergence models to see if they are close enough to
+    % collapse
+    if summary.collapse == 3 && median(hinge.b_ratio(hinge.b_ratio ~= 0 & hinge.b_ratio ~= inf)) < 1
+        summary.collapse = 5;
+    end
 
     % Calc Story Drift
     [ story.max_drift_x ] = fn_drift_profile( disp_TH, story, node, 'x' );

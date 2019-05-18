@@ -1,2 +1,2 @@
-id,description,col_id,beam_id,wall_id,num_bays
-1,simple frame,0,0,18,1
+id,description,col_id,beam_id,wall_id,num_bays,trib_wt_1,trib_wt_2
+1,simple frame,0,0,20,1,1,1

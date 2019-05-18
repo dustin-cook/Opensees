@@ -9,7 +9,7 @@ clc
 %% User inputs
 analysis.model_id = 11;
 analysis.proceedure = 'NDP'; % LDP or NDP or test
-analysis.id = 6; % ID of the analysis for it to create its own directory
+analysis.id = 3; % ID of the analysis for it to create its own directory
 
 %% Define data directories
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
@@ -105,7 +105,7 @@ for i = 1:height(columns)
         min_d_b = min(str2double(strsplit(strrep(strrep(ele_props.d_b{1},']',''),'[',''))));
         columns.shear_length_ratio(i) = ele_props.a/ele_props.d_eff;
         columns.rho_t(i) = ele.rho_t;
-        columns.rho_l(i) = ele_props.row;
+        columns.rho_l(i) = ele.rho_l;
         columns.s(i) = ele_props.(['S_' hin_side]);
         columns.s_db(i) = ele_props.(['S_' hin_side])/min_d_b;
         columns.hoops_conform(i) = 0; % Even though you can assume rein is anchored into the core based on 135 deg hooks from the plans I am going to assume idadequate here to trigger shear behavior in the bottom story

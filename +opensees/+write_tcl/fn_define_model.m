@@ -127,42 +127,52 @@ for i = 1:height(element)
             elseif strcmp(dimension,'3D')
                 fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,geotransf);
             end
-        % Shear springs
-        elseif analysis.nonlinear == 1
-            Iz_ele = ele_props.iz;%*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
-            if strcmp(dimension,'2D')
-                fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
-            elseif strcmp(dimension,'3D')
-                fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,geotransf);
-            end
-        % Explicit steel and concrete fibers
-        elseif analysis.nonlinear == 2 
-            % uniaxialMaterial Steel02 $matTag $Fy $E $b $R0 $cR1 $cR2 <$a1 $a2 $a3 $a4 $sigInit>
-            fprintf(fileID,'uniaxialMaterial Steel02 %i %f %f 0.05 15. 0.925 0.15 \n', 1000 + element.id(i), ele_props.fy_e, ele_props.Es);
-            % uniaxialMaterial Concrete04 $matTag $fc $ec $ecu $Ec <$fct $et> <$beta>
-            fprintf(fileID,'uniaxialMaterial Concrete04 %i %f -0.002 -0.06 %f %f 0.00015 \n', element.id(i), -ele_props.fc_e, ele_props.e/.35, 7.5*sqrt(ele_props.fc_e));
-                
-            % section Fiber $secTag <-GJ $GJ> {
-            fprintf(fileID,'section Fiber %i { \n',element.id(i));
-                % patch rect $matTag $numSubdivY $numSubdivZ $yI $zI $yJ $zJ
-                fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n',element.id(i),round(ele_props.d),round(ele_props.w),0,0,ele_props.d,ele_props.w);
-                if analysis.nonlinear == 2
+        elseif analysis.nonlinear == 1 
+            if ~analysis.fiber_walls % Shear springs
+                Iz_ele = ele_props.iz;%*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
+                if strcmp(dimension,'2D')
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.iz,geotransf);
+                elseif strcmp(dimension,'3D')
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,geotransf);
+                end
+            else % Explicit steel and concrete fibers 
+                % uniaxialMaterial Steel02 $matTag $Fy $E $b $R0 $cR1 $cR2 <$a1 $a2 $a3 $a4 $sigInit>
+                fprintf(fileID,'uniaxialMaterial Steel02 %i %f %f 0.01 15.0 0.925 0.15 \n', 1000 + element.id(i), ele_props.fy_e, ele_props.Es);
+                % uniaxialMaterial Steel01 $matTag $Fy $E0 $b 
+%                 fprintf(fileID,'uniaxialMaterial Steel01 %i %f %f 0.1 \n', 1000 + element.id(i), ele_props.fy_e, ele_props.Es*0.35);
+                % uniaxialMaterial Concrete04 $matTag $fc $ec $ecu $Ec <$fct $et> <$beta>
+%                 fprintf(fileID,'uniaxialMaterial Concrete04 %i %f -0.002 -0.06 %f %f 0.00015 \n',2000 + element.id(i), -ele_props.fc_e, ele_props.e*0.35, 7.5*sqrt(ele_props.fc_e));
+                % uniaxialMaterial Concrete01 $matTag $fpc $epsc0 $fpcu $epsU
+%                 fprintf(fileID,'uniaxialMaterial Concrete01 %i %f -0.002 0.0 -0.005 \n', 2000 + element.id(i), -ele_props.fc_e);
+                % uniaxialMaterial Concrete02 $matTag $fpc $epsc0 $fpcu $epsU $lambda $ft $Ets
+%                 fprintf(fileID,'uniaxialMaterial Concrete02 %i %f -0.002 0.0 -0.005 0.75 %f %f \n', 2000 + element.id(i), -ele_props.fc_e, 7.5*sqrt(ele_props.fc_e), ele_props.e*0.1);
+                fprintf(fileID,'uniaxialMaterial Concrete04 %i %f -0.002 -0.006 %f %f 0.0001 \n',2000 + element.id(i), -ele_props.fc_e, ele_props.e, 7.5*sqrt(ele_props.fc_n));                
+                % section Fiber $secTag <-GJ $GJ> {
+                fprintf(fileID,'section Fiber %i { \n',element.id(i));
+                    % patch rect $matTag $numSubdivY $numSubdivZ $yI $zI $yJ $zJ
                     As = str2double(strsplit(strrep(strrep(ele_props.As{1},'[',''),']','')));
                     num_bars = str2double(strsplit(strrep(strrep(ele_props.n_b{1},'[',''),']','')));
                     depth_bars = str2double(strsplit(strrep(strrep(ele_props.As_d{1},'[',''),']','')));
-                    for row = 1:length(As)
-                        % layer straight $matTag $numFiber $areaFiber $yStart $zStart $yEnd $zEnd
-                        height_bars = depth_bars(row);
-                        width_start = ele_props.clear_cover + 1;
-                        width_end = ele_props.w - width_start;
-                        fprintf(fileID,'layer straight %i %i %f %f %f %f %f \n', 1000 + element.id(i), num_bars(row), As(row), height_bars, width_start, height_bars, width_end);
+                    fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n',2000 + element.id(i),length(As),3,-ele_props.h/2,-ele_props.w/2,ele_props.h/2,ele_props.w/2);
+                    
+                    % layer straight $matTag $numFiber $areaFiber $yStart $zStart $yEnd $zEnd
+                    row_ht(1) = (ele_props.clear_cover + 1) - ele_props.w/2;
+                    row_ht(2) = ele_props.w/2 - (ele_props.clear_cover + 1);
+                    for row = 1:num_bars(1)
+                        fprintf(fileID,'layer straight %i %i %f %f %f %f %f \n', 1000 + element.id(i), length(As), mean(As), depth_bars(1)-ele_props.h/2, row_ht(row), depth_bars(end)-ele_props.h/2, row_ht(row));
                     end
-                end
+%                     for row = 1:length(As)
+%                         % layer straight $matTag $numFiber $areaFiber $yStart $zStart $yEnd $zEnd
+%                         height_bars = depth_bars(row);
+%                         width_start = ele_props.clear_cover + 1;
+%                         width_end = ele_props.w - width_start;
+%                         fprintf(fileID,'layer straight %i %i %f %f %f %f %f \n', 1000 + element.id(i), num_bars(row), As(row), height_bars, width_start, height_bars, width_end);
+%                     end
+                fprintf(fileID,'} \n');
 
-            fprintf(fileID,'} \n');
-
-            % element forceBeamColumn $eleTag $iNode $jNode $numIntgrPts $secTag $transfTag <-mass $massDens> <-iter $maxIters $tol> <-integration $intType>
-            fprintf(fileID,'element forceBeamColumn %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),5,element.id(i),geotransf);  
+                % element forceBeamColumn $eleTag $iNode $jNode $numIntgrPts $secTag $transfTag <-mass $massDens> <-iter $maxIters $tol> <-integration $intType>
+                fprintf(fileID,'element forceBeamColumn %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),5,element.id(i),geotransf);  
+            end
         end
 
     %% Truss Assigment
@@ -176,6 +186,7 @@ end
 
 %% Define Joints
 fprintf(fileID,'uniaxialMaterial Elastic 1 999999999. \n'); % Rigid Elastic Material
+fprintf(fileID,'uniaxialMaterial Elastic 222222 999999999999. \n'); % Rigid Elastic Material
 fprintf(fileID,'uniaxialMaterial Elastic 2 999999999999. \n'); % Rigid Elastic Material
 joint_ele_ids = [];
 if height(joint) > 0
@@ -457,12 +468,12 @@ if height(hinge) > 0
                     end
                 end
                 
-            elseif strcmp(ele_props.type,'wall')
+            elseif strcmp(ele_props.type,'wall') && ~analysis.fiber_walls % lumped plasticity wall models
                 if analysis.nonlinear == 0 % Elastic Lateral Spring for shear deformations
                     elastic_shear_stiffness = ele_props.g*ele_props.av/ele.length;
                     % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
                     fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',ele_hinge_id,elastic_shear_stiffness); 
-                elseif analysis.nonlinear == 1 % Nonlinear 
+                elseif analysis.nonlinear == 1% Nonlinear
                     % Define backbone coordinates and IMK Hinges
                     if strcmp(hin.direction,'primary')
                         [ force_vec, disp_vec ] = fn_define_backbone_shear( hinge_props.(['Vn_' ele_side]), ele.length, ele_props.g, ele_props.av, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['d_hinge_' ele_side]), hinge_props.(['e_hinge_' ele_side]), hinge_props.(['f_hinge_' ele_side]), hinge_props.(['g_hinge_' ele_side])  );
@@ -499,8 +510,14 @@ if height(hinge) > 0
 %                         end
                         % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
 %                         fprintf(fileID,'uniaxialMaterial Bilin %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_rot, end_rot); % Keep residual strength forever
-%                         fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n',ele_hinge_id, Ko, rot_vec_pos(1));
-                        fprintf(fileID,'uniaxialMaterial ElasticBilin %i %f %f %f \n',ele_hinge_id, Ko, -Ko/1000, rot_vec_pos(1));
+%                         fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n',ele_hinge_id, Ko/295, rot_vec_pos(1)*350);
+
+                        % First story Hinges modified to match fiber model
+                        if hin.story == 1
+                            fprintf(fileID,'uniaxialMaterial ElasticBilin %i %f %f %f \n',ele_hinge_id, Ko, Ko/1500, rot_vec_pos(1)*1.2);
+                        else % second story Hinges modified to match fiber model
+                            fprintf(fileID,'uniaxialMaterial ElasticBilin %i %f %f %f \n',ele_hinge_id, Ko, Ko/3500, rot_vec_pos(1)*0.87);
+                        end
                     end       
                 end
                 
@@ -510,12 +527,12 @@ if height(hinge) > 0
                     fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
                 elseif strcmp(ele.direction,'x') % In plane for the X direction (assume shear)
                     fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 1 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
-                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 2 2 -dir 2 3 5 6 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
+                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 222222 222222 -dir 2 3 5 6 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
                 elseif strcmp(ele.direction,'z') && strcmp(hin.direction,'oop') % Out of plane for the Z direction  
                     fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
                 elseif strcmp(ele.direction,'z') % In plane for the Z direction (assume shear)
                     fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 3 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
-                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 2 2 -dir 1 2 4 5 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
+                    fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 222222 222222 -dir 1 2 4 5 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
                 end          
             end
         end

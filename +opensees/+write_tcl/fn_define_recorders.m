@@ -135,7 +135,7 @@ elseif analysis.type == 2 || analysis.type == 3
             % Rotational Hinges x direction - oop
             hinge_ids = element.id(end) + hinge.id(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational'));
             if ~isempty(hinge_ids)
-                fprintf(fileID,'recorder Element %s %s/hinge_moment_x_oop.%s -time -ele %s -dof 4 force \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
+                fprintf(fileID,'recorder Element %s %s/hinge_moment_x_oop.%s -time -ele %s localForce \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
                 fprintf(fileID,'recorder Element %s %s/hinge_rotation_x_oop.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
             end
             

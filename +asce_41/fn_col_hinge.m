@@ -1,4 +1,4 @@
-function [ hinge, rho_t ] = fn_col_hinge( ele, ele_props, ele_side )
+function [ hinge, rho_t_2use, row_l ] = fn_col_hinge( ele, ele_props, ele_side )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -17,7 +17,7 @@ v_ratio = max([ele.(['vye_' num2str(ele_side)])/ele.(['V0_' num2str(ele_side)]) 
 
 rho_t = ele_props.(['Av_' num2str(ele_side)])/(ele_props.w*ele_props.(['S_' num2str(ele_side)]));
 As_tot = sum(str2num(strrep(strrep(ele_props.As{1},']',''),'[','')));
-row_l = As_tot/(ele_props.w*ele_props.d_eff);
+row_l = As_tot/(ele_props.w*ele_props.h);
 if rho_t < 0.0005
     error('Equations in table not valid: not enough transverse reinforcement')
 end
@@ -32,12 +32,12 @@ end
 for i = 1:length(condition)
     %% Caclulate Hinge Terms based on Table 10-8 of ASCE 41-17
     if condition(i) == 1
-        rho_t = min([rho_t , 0.0175]);
-        hinge_filt.a_hinge = max([0.042 - 0.043*p_ratio + 0.63*rho_t - 0.023*v_ratio , 0]);
+        rho_t_2use = min([rho_t , 0.0175]);
+        hinge_filt.a_hinge = max([0.042 - 0.043*p_ratio + 0.63*rho_t_2use - 0.023*v_ratio , 0]);
         if p_ratio <= 0.5
-            hinge_filt.b_hinge = max([0.5/(5 + (p_ratio/0.8)*(1/rho_t)*(ele_props.fc_e/ele_props.fy_e)) - 0.01 , hinge_filt.a_hinge]);
+            hinge_filt.b_hinge = max([0.5/(5 + (p_ratio/0.8)*(1/rho_t_2use)*(ele_props.fc_e/ele_props.fy_e)) - 0.01 , hinge_filt.a_hinge]);
         else
-            b_at_5 = max([0.5/(5 + (0.5/0.8)*(1/rho_t)*(ele_props.fc_e/ele_props.fy_e)) - 0.01 , hinge_filt.a_hinge]);
+            b_at_5 = max([0.5/(5 + (0.5/0.8)*(1/rho_t_2use)*(ele_props.fc_e/ele_props.fy_e)) - 0.01 , hinge_filt.a_hinge]);
             hinge_filt.b_hinge = max([interp1([0.5,0.7],[b_at_5,0],p_ratio) , hinge_filt.a_hinge]);
         end
         hinge_filt.c_hinge = max([0.24 - 0.4*p_ratio, 0]);
@@ -45,21 +45,21 @@ for i = 1:length(condition)
 
         % don't let p ratio go below 0.1 for LS and CP criteria
         p_ratio_ls_cp = max([p_ratio,0.1]);
-        a_ls_cp = max([0.042 - 0.043*p_ratio_ls_cp + 0.63*rho_t - 0.023*v_ratio , 0]);
+        a_ls_cp = max([0.042 - 0.043*p_ratio_ls_cp + 0.63*rho_t_2use - 0.023*v_ratio , 0]);
         if p_ratio_ls_cp <= 0.5
-            b_ls_cp = max([0.5/(5 + (p_ratio_ls_cp/0.8)*(1/rho_t)*(ele_props.fc_e/ele_props.fy_e)) - 0.01 , a_ls_cp]);
+            b_ls_cp = max([0.5/(5 + (p_ratio_ls_cp/0.8)*(1/rho_t_2use)*(ele_props.fc_e/ele_props.fy_e)) - 0.01 , a_ls_cp]);
         else
-            b_at_5 = max([0.5/(5 + (0.5/0.8)*(1/rho_t)*(ele_props.fc_e/ele_props.fy_e)) - 0.01 , a_ls_cp]);
+            b_at_5 = max([0.5/(5 + (0.5/0.8)*(1/rho_t_2use)*(ele_props.fc_e/ele_props.fy_e)) - 0.01 , a_ls_cp]);
             b_ls_cp = max([interp1([0.5,0.7],[b_at_5,0],p_ratio_ls_cp) , a_ls_cp]);
         end
         hinge_filt.ls = 0.5*b_ls_cp;
         hinge_filt.cp = 0.7*b_ls_cp;
     elseif condition(i) == 2
-        rho_t = min([rho_t , 0.0075]);
+        rho_t_2use = min([rho_t , 0.0075]);
         fy_e_trans = ele_props.fy_e; % Assumes transverse rien is the same strength as long
-        hinge_filt.a_hinge = min([(rho_t*fy_e_trans)/(8*row_l*ele_props.fy_e) , 0.025]);
-        hinge_filt.b_hinge = min([max([0.012 - 0.085*p_ratio + 12*rho_t , hinge_filt.a_hinge]) , 0.06]);
-        hinge_filt.c_hinge = min([0.15 + 36*rho_t , 0.4]);
+        hinge_filt.a_hinge = min([(rho_t_2use*fy_e_trans)/(8*row_l*ele_props.fy_e) , 0.025]);
+        hinge_filt.b_hinge = min([max([0.012 - 0.085*p_ratio + 12*rho_t_2use , hinge_filt.a_hinge]) , 0.06]);
+        hinge_filt.c_hinge = min([0.15 + 36*rho_t_2use , 0.4]);
     end
 
     %% Double Check only 1 row of the hinge table remains

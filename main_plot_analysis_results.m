@@ -84,7 +84,7 @@ if sum(analysis.type_list == 2) > 0 % Pushover was run as part of this proceedur
 %         fn_plot_PM_response( pushover_read_dir, pushover_read_dir, element, analysis.hinge_stories_2_plot )
 
         % Plot Hinge Response
-        if pushover_analysis.analysis.nonlinear ~= 0 && exist('backbones','var') % Is the pushover nonlinear?
+        if pushover_analysis.analysis.nonlinear ~= 0 && exist('backbones_pushover','var') % Is the pushover nonlinear?
             pushover_hinge = load([pushover_read_dir filesep 'hinge_analysis.mat']);
             fn_plot_hinge_response( pushover_read_dir, pushover_read_dir, pushover_hinge.hinge, backbones_pushover.element, ele_prop_table, node, analysis.hinge_stories_2_plot )
         end

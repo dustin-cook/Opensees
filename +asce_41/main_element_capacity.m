@@ -61,7 +61,9 @@ end
 element = ele_to_save;
 
 %% Calculate Joint Properties;
-[ joint ] = fn_joint_capacity( joint, element, ele_prop_table );
+if ~isempty(joint)
+    [ joint ] = fn_joint_capacity( joint, element, ele_prop_table );
+end
 
 end
 

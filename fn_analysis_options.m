@@ -21,6 +21,7 @@ analysis.skip_2_outputs = 0; % Skip all the way to the plotters
 analysis.stories_nonlinear = inf; % Default to all modeling all stories as nonlinear when doing NDP
 analysis.model_type = 2; % 1 = SDOF, 2 = MDOF (default)
 analysis.rigid_diaphram = 1; % Default the model to assume rigid diaphrams (0 = non-rigid assuption)
+analysis.fiber_walls = 0;
 
 % Opensees Analysis Options
 analysis.ground_motion_scale_factor = 1; % Scale the GM amplitude
@@ -51,15 +52,15 @@ analysis.suppress_outputs = 0;
 
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
-    analysis.type_list = [1];
-    analysis.nonlinear_list = [1];
-    analysis.dead_load_list = [1];
-    analysis.live_load_list = [1];
-    analysis.case_list = {'backbones'};
-    analysis.pushover_drift_list_x = [0.01];
-    analysis.pushover_drift_list_z = [0.01];
-    analysis.accidental_torsion_list = [0];
-    analysis.damp_ratio_list = [0.03]; % Analysis damping ratio
+    analysis.type_list = [2, 2];
+    analysis.nonlinear_list = [1, 1];
+    analysis.dead_load_list = [1, 1];
+    analysis.live_load_list = [1, 1];
+    analysis.case_list = {'backbones_pushover', 'backbones'};
+    analysis.pushover_drift_list_x = [0.01, 0.01];
+    analysis.pushover_drift_list_z = [0.05, 0.05];
+    analysis.accidental_torsion_list = [0, 0];
+    analysis.damp_ratio_list = [0.03, 0.03]; % Analysis damping ratio
     
 elseif strcmp(analysis.proceedure,'torsion')
     analysis.type_list = [1, 1];

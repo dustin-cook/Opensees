@@ -95,10 +95,12 @@ clear element_TH
 
 %% Load hinge reactions and deformations
 % Load Hinge Data
-if analysis.nonlinear ~= 0
+if analysis.nonlinear ~= 0 && ~isempty(hinge)
     if analysis.write_xml
-        [ hinge_deformation_x ] = fn_xml_read([opensees_dir filesep 'hinge_rotation_x' '.xml']);
-        [ hinge_force_x ] = fn_xml_read([opensees_dir filesep 'hinge_moment_x' '.xml']);
+        if exist([opensees_dir filesep 'hinge_rotation_x' '.xml'],'file')
+            [ hinge_deformation_x ] = fn_xml_read([opensees_dir filesep 'hinge_rotation_x' '.xml']);
+            [ hinge_force_x ] = fn_xml_read([opensees_dir filesep 'hinge_moment_x' '.xml']);
+        end
         if strcmp(model.dimension,'3D')
             if ~isempty(hinge(strcmp(hinge.ele_direction,'z'),:))
                 [ hinge_deformation_z ] = fn_xml_read([opensees_dir filesep 'hinge_deformation_z' '.xml']);
@@ -116,8 +118,10 @@ if analysis.nonlinear ~= 0
             end
         end
     else
-        hinge_deformation_x = dlmread([opensees_dir filesep 'hinge_rotation_x''.txt'],' ');
-        hinge_force_x = dlmread([opensees_dir filesep 'hinge_moment_x''.txt'],' ');
+        if exist([opensees_dir filesep 'hinge_rotation_x' '.txt'],'file')
+            hinge_deformation_x = dlmread([opensees_dir filesep 'hinge_rotation_x''.txt'],' ');
+            hinge_force_x = dlmread([opensees_dir filesep 'hinge_moment_x''.txt'],' ');
+        end
         if strcmp(model.dimension,'3D')
             if ~isempty(hinge(strcmp(hinge.ele_direction,'z'),:))
                 hinge_deformation_z = dlmread([opensees_dir filesep 'hinge_deformation_z' '.txt'],' ');
@@ -172,7 +176,7 @@ if analysis.nonlinear ~= 0
             elseif strcmp(ele.type,'column')
                 hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
                 hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; 
-            elseif strcmp(ele.type,'wall')
+            elseif strcmp(ele.type,'wall') && exist('hinge_deformation_TH_x','var')
                 hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
                 hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; 
             end
@@ -184,8 +188,13 @@ if analysis.nonlinear ~= 0
                 hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
                 hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; % I think the forces here are coming in backward, but should triple check
             elseif strcmp(ele.type,'wall')
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = -hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                if strcmp(hinge.type(i),'shear')
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = -hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                elseif strcmp(hinge.type(i),'rotational')
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                end
            end
         end
     end 
@@ -430,10 +439,12 @@ for i = 1:height(node)
 end
 
 for i = 1:height(hinge)
-    hin_TH = hinge_TH.(['hinge_' num2str(hinge.id(i))]);
-    save([opensees_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'hin_TH')
-    if analysis.type == 2 % Pushover Analysis
-        save([pushover_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'hin_TH')
+    if isfield(hinge_TH,['hinge_' num2str(hinge.id(i))])
+        hin_TH = hinge_TH.(['hinge_' num2str(hinge.id(i))]);
+        save([opensees_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'hin_TH')
+        if analysis.type == 2 % Pushover Analysis
+            save([pushover_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'hin_TH')
+        end
     end
 end
 
