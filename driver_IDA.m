@@ -10,8 +10,8 @@ clc
 % Define Model
 analysis.model_id = 11;
 analysis.proceedure = 'NDP';
-analysis.id = 3;
-analysis.summit = 0;
+analysis.id = 4;
+analysis.summit = 1;
 analysis.run_ida = 1;
 analysis.post_process_ida = 1;
 analysis.gm_set = 'FEMA_far_field';
@@ -62,12 +62,12 @@ IDA_scale_factors = hazard.curve.pga ./ gm_median_pga;
 
 %% Run Opensees Models
 if analysis.run_ida
-%     parpool; % Set up Parallel Workers
+    parpool; % Set up Parallel Workers
     tic
     for i = 1:length(IDA_scale_factors)
         error_count = 0;
         scale_factor = IDA_scale_factors(i);
-        for gms = 1:height(gm_set_table)
+        parfor gms = 1:height(gm_set_table)
             % Suppress MATLAB warnings
             warning('off','all')
             
@@ -82,7 +82,7 @@ if analysis.run_ida
         fprintf('%i Failed GMs for Scale Factor %4.2f \n\n', error_count, scale_factor)
     end
     toc
-%     delete(gcp('nocreate')) % End Parallel Process
+    delete(gcp('nocreate')) % End Parallel Process
 end
 
 %% Post Processes Results
