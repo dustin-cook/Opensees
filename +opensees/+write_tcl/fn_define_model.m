@@ -512,7 +512,7 @@ if height(hinge) > 0
 %                         fprintf(fileID,'uniaxialMaterial Bilin %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_rot, end_rot); % Keep residual strength forever
 %                         fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n',ele_hinge_id, Ko/295, rot_vec_pos(1)*350);
 
-                        First story Hinges modified to match fiber model
+                        % First story Hinges modified to match fiber model
                         if hin.story == 1
                             fprintf(fileID,'uniaxialMaterial ElasticBilin %i %f %f %f \n',ele_hinge_id, Ko, Ko/1500, rot_vec_pos(1)*1.2);
                         else % second story Hinges modified to match fiber model
