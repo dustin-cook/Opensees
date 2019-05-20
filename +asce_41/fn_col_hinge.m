@@ -1,4 +1,4 @@
-function [ hinge, rho_t_2use, row_l ] = fn_col_hinge( ele, ele_props, ele_side )
+function [ hinge, rho_t, row_l ] = fn_col_hinge( ele, ele_props, ele_side )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
