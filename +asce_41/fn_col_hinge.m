@@ -17,7 +17,7 @@ v_ratio = max([ele.(['vye_' num2str(ele_side)])/ele.(['V0_' num2str(ele_side)]) 
 
 rho_t = ele_props.(['Av_' num2str(ele_side)])/(ele_props.w*ele_props.(['S_' num2str(ele_side)]));
 As_tot = sum(str2num(strrep(strrep(ele_props.As{1},']',''),'[','')));
-row_l = As_tot/(ele_props.w*ele_props.d_eff);
+row_l = As_tot/(ele_props.w*ele_props.h);
 if rho_t < 0.0005
     error('Equations in table not valid: not enough transverse reinforcement')
 end
