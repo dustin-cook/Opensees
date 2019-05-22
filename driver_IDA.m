@@ -10,7 +10,7 @@ clc
 % Define Model
 analysis.model_id = 11;
 analysis.proceedure = 'NDP';
-analysis.id = 4;
+analysis.id = 8;
 analysis.summit = 1;
 analysis.run_ida = 1;
 analysis.post_process_ida = 1;
@@ -34,7 +34,7 @@ analysis.run_eigen = 0;
 analysis.solution_algorithm = 1;
 analysis.initial_timestep_factor = 1;
 analysis.suppress_outputs = 0;
-analysis.algorithm = 'Newton';
+analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 
 % Load basic model data
