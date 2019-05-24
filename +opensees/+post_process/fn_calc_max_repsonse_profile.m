@@ -7,7 +7,7 @@ for i = 1:length(story.id)
     if ave == 1 % take the mean for all nodes at level
         edp_profile(i) = mean(max_edp(node.story == i & ~isnan(max_edp)));
     else % Take the Max of all nodes at level
-        edp_profile(i) = max(max_edp(node.story == i & ~isnan(max_edp)));
+        edp_profile(i) = max(abs(max_edp(node.story == i & ~isnan(max_edp))));
     end
 end
 

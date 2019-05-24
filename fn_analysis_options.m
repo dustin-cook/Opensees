@@ -52,7 +52,7 @@ analysis.suppress_outputs = 0;
 
 %% Define Proceedure Options
 if strcmp(analysis.proceedure,'test')
-    analysis.type_list = [2, 2];
+    analysis.type_list = [1, 1];
     analysis.nonlinear_list = [1, 1];
     analysis.dead_load_list = [1, 1];
     analysis.live_load_list = [1, 1];
