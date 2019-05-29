@@ -37,7 +37,7 @@ if exist('record_edp','var')
     node_ground_id = node.id(node.x == ground_x & node.z == ground_z & node.y == 0 & ~strcmp(node.fix,'[000000]'));
     node_second_east_id = node.id(node.x == east_x & node.z == east_z & node.story == 2);
     node_roof_east_id = node.id(node.x == east_x & node.z == east_z & node.story == 6);
-    node_second_center_id = node.id(node.x == center_x & node.z == center_z & node.story == 2);
+    node_second_center_id = node.id(node.x == center_x & node.z == center_z & node.story == 1);
     node_roof_center_id = node.id(node.x == center_x & node.z == center_z & node.story == 6);
     ground_id_TH = load([read_dir_opensees filesep 'node_TH_' num2str(node_ground_id) '.mat']);
     second_east_id_TH = load([read_dir_opensees filesep 'node_TH_' num2str(node_second_east_id) '.mat']);
