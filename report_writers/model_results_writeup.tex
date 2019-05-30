@@ -1,0 +1,235 @@
+\documentclass[12pt]{article} % Document Class
+\usepackage[utf8]{inputenc} % Import characters
+\usepackage{graphicx} % Graphics Handeling
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float} % Specific Handeling of Figure Placement
+\usepackage{listings} % For writing Code into document 
+\usepackage{color} % Changes the color on code insterts
+\usepackage{forloop} % Looper
+\usepackage{arrayjob} % add array data structures
+
+% User Inputs
+\input{report_writers/writeupVariables.tex}
+
+% Write Document
+\begin{document}
+	\title{Opensees Analysis Report\\
+	\Large \modelName: \analysisName}
+	\date{\today}
+	\maketitle
+	
+	% All data regardless of figure
+	\section{Dynamic Response}
+	
+		% EDP Profiles		
+		\begin{figure}[h]
+			\centering
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{EW Response}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/EDP Profiles/Displacement Profile x Center".png}
+			\end{subfigure}
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{NS Response}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/EDP Profiles/Displacement Profile z Center".png}
+			\end{subfigure}
+		\end{figure}
+		\pagebreak
+		
+		% Frame Profiles		
+		\begin{figure}[h]
+			\centering
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{Ext Frame South}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/Acceptance Plot - Frame 1".png}
+			\end{subfigure}
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{Int Frame South}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/Acceptance Plot - Frame 2".png}
+			\end{subfigure}
+		\end{figure}
+		\begin{figure}[h]
+			\centering
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{Int Frame North}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/Acceptance Plot - Frame 3".png}
+			\end{subfigure}
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{Ext Frame North}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/Acceptance Plot - Frame 4".png}
+			\end{subfigure}
+		\end{figure}
+		\pagebreak
+		
+		% Scatter Profiles		
+		\begin{figure}[h]
+			\centering
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{1st Story Columns}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/Scatter Plots/Primary - Story - 1 - column".png}
+			\end{subfigure}
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{1st Story Beams}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/Scatter Plots/Primary - Story - 1 - beam".png}
+			\end{subfigure}
+		\end{figure}
+		\begin{figure}[h]
+			\centering
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{2nd Story Columns}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/Scatter Plots/Primary - Story - 2 - column".png}
+			\end{subfigure}
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{2nd Story Beams}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/Scatter Plots/Primary - Story - 2 - beam".png}
+			\end{subfigure}
+		\end{figure}
+		\pagebreak
+
+		% Hinge plots
+		% First story columns
+		\begin{figure}[h]
+			\centering
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{1st Story Ext Column east}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/Hinge_Plots/Story - 1/column_9 - Hinge_y_0_primary - Rotation Response".png}
+			\end{subfigure}
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{1st Story Ext Column west}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/Hinge_Plots/Story - 1/column_11 - Hinge_y_0_primary - Rotation Response".png}
+			\end{subfigure}
+		\end{figure}
+		\begin{figure}[h]
+			\centering
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{1st Story Int Column east}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/Hinge_Plots/Story - 1/column_20 - Hinge_y_0_primary - Rotation Response".png}
+			\end{subfigure}
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{1st Story Int Column west}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/Hinge_Plots/Story - 1/column_22 - Hinge_y_0_primary - Rotation Response".png}
+			\end{subfigure}
+		\end{figure}
+		\pagebreak
+	
+		% Second Story Beams
+		\begin{figure}[h]
+			\centering
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{2nd Story Ext Beam east}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/Hinge_Plots/Story - 2/beam_58 - Hinge_x_1280_primary - Rotation Response".png}
+			\end{subfigure}
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{2nd Story Ext Beam west}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/Hinge_Plots/Story - 2/beam_58 - Hinge_x_1562_primary - Rotation Response".png}
+			\end{subfigure}
+		\end{figure}
+		\begin{figure}[h]
+			\centering
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{2nd Story Int Beam east}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/Hinge_Plots/Story - 2/beam_69 - Hinge_x_1283_primary - Rotation Response".png}
+			\end{subfigure}
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{2nd Story Int Beam west}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirDynamic/Hinge_Plots/Story - 2/beam_69 - Hinge_x_1559_primary - Rotation Response".png}
+			\end{subfigure}
+		\end{figure}
+		\pagebreak
+		
+	\section{Pushover Response}
+	
+		% Pushover Plots		
+		\begin{figure}[h]
+			\centering
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{EW Response}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirPushover/Pushover_Plots/Normalized Pushover - x".png}
+			\end{subfigure}
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{NS Response}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirPushover/Pushover_Plots/Normalized Pushover - z".png}
+			\end{subfigure}
+		\end{figure}
+		\pagebreak
+		
+		% Hinge plots
+		% First story columns
+		\begin{figure}[h]
+			\centering
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{1st Story Ext Column east}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirPushover/Hinge_Plots/Story - 1/column_9 - Hinge_y_0_primary - Rotation Response".png}
+			\end{subfigure}
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{1st Story Ext Column west}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirPushover/Hinge_Plots/Story - 1/column_11 - Hinge_y_0_primary - Rotation Response".png}
+			\end{subfigure}
+		\end{figure}
+		\begin{figure}[h]
+			\centering
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{1st Story Int Column east}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirPushover/Hinge_Plots/Story - 1/column_20 - Hinge_y_0_primary - Rotation Response".png}
+			\end{subfigure}
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{1st Story Int Column west}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirPushover/Hinge_Plots/Story - 1/column_22 - Hinge_y_0_primary - Rotation Response".png}
+			\end{subfigure}
+		\end{figure}
+		\pagebreak
+		
+		% Second Story Beams
+		\begin{figure}[h]
+			\centering
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{2nd Story Ext Beam east}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirPushover/Hinge_Plots/Story - 2/beam_58 - Hinge_x_1280_primary - Rotation Response".png}
+			\end{subfigure}
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{2nd Story Ext Beam west}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirPushover/Hinge_Plots/Story - 2/beam_58 - Hinge_x_1562_primary - Rotation Response".png}
+			\end{subfigure}
+		\end{figure}
+		\begin{figure}[h]
+			\centering
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{2nd Story Int Beam east}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirPushover/Hinge_Plots/Story - 2/beam_69 - Hinge_x_1283_primary - Rotation Response".png}
+			\end{subfigure}
+			\begin{subfigure}{.49\textwidth}
+				\centering
+				\textbf{2nd Story Int Beam west}
+				\includegraphics[width=1.0\textwidth]{"\plotsDirPushover/Hinge_Plots/Story - 2/beam_69 - Hinge_x_1559_primary - Rotation Response".png}
+			\end{subfigure}
+		\end{figure}
+		\pagebreak
+
+\end{document}
