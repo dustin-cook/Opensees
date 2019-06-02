@@ -63,8 +63,8 @@ if ~analysis.skip_2_outputs % Don't skip to plotters
         [ capacity(:,i), torsion{i} ] = main_ASCE_41_post_process( analysis, ele_prop_table );
 
         %% Analysis Checks
-        disp('Validating Analysis Results ...')
-        main_check_analysis( analysis, ele_prop_table, capacity, torsion, i )
+%         disp('Validating Analysis Results ...')
+%         main_check_analysis( analysis, ele_prop_table, capacity, torsion, i )
     end
 
     %% Combine Load Cases

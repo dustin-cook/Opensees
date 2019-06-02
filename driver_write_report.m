@@ -8,7 +8,7 @@ rng('shuffle')
 %% User Inputs
 analysis.model_name = 'ICBS_model_3D_fixed';
 analysis.proceedure = 'NDP'; % LDP or NDP or test
-analysis.id = 23; % ID of the analysis for it to create its own directory
+analysis.id = 40; % ID of the analysis for it to create its own directory
 
 %% Write PDF Report
 % Define Directories

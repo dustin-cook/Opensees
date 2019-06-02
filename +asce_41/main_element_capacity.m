@@ -44,6 +44,9 @@ for i = 1:length(element.id)
     end
     
     %% Caculate required development length and make sure there is enough
+    if ele.id == 17
+        test = 5;
+    end
     [ ele.pass_aci_dev_length, ele.ld_avail, ele.ld_req ] = fn_development_check( ele, ele_prop );
     
     % Save capcity for convergence check (just use onesided capacity for

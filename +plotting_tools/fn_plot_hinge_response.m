@@ -53,37 +53,37 @@ for i = 1:height(hinge)
 
                 fn_plot_backbone( ele, ele_side, ele_props, read_dir, hinge_plot_dir, plot_name, 2, hin_TH.deformation_TH, hin_TH.moment_TH, crit_mode, hinge.direction{i})
 
-                % Plot Hinge Rotation Time History
-                if exist('eq_analysis_timespace','var')
-                    [ ~, ~, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.(['Mn_pos_' ele_side]), ele.(['Mn_neg_' ele_side]), ele.(['Mp_pos_' ele_side]), ele.(['Mp_neg_' ele_side]), ele.length, ele_props.e, ele_props.iz, ele.(['a_hinge_' ele_side]), ele.(['b_hinge_' ele_side]), ele.(['c_hinge_' ele_side]), 10, 0.1, crit_mode );
-                    hold on
-                    pos_yeild = rot_vec_pos(1);
-                    neg_yeild = rot_vec_neg(1);
-                    pos_a = ele.(['a_hinge_' ele_side]) + pos_yeild;
-                    neg_a = ele.(['a_hinge_' ele_side]) + neg_yeild;
-                    pos_b = ele.(['b_hinge_' ele_side]) + pos_yeild;
-                    neg_b = ele.(['b_hinge_' ele_side]) + neg_yeild;
-                    yeild_time_point = min(eq_analysis_timespace(hin_TH.deformation_TH>=pos_yeild | hin_TH.deformation_TH<=-neg_yeild));
-                    a_time_point = min(eq_analysis_timespace(hin_TH.deformation_TH>=pos_a | hin_TH.deformation_TH<=-neg_a));
-                    b_time_point = min(eq_analysis_timespace(hin_TH.deformation_TH>=pos_b | hin_TH.deformation_TH<=-neg_b));
-                    max_deform = 1.25*max(abs(hin_TH.deformation_TH));
-                    if ~isempty(yeild_time_point)
-                        hist_plot = plot([yeild_time_point,yeild_time_point],[-max_deform,max_deform],'--k','LineWidth',1.25,'DisplayName','Yield');
-                    end
-                    if ~isempty(a_time_point)
-                        hist_plot = plot([a_time_point,a_time_point],[-max_deform,max_deform],'--m','LineWidth',1.25,'DisplayName','Ultimate Capacity');
-                    end
-                    if ~isempty(b_time_point)
-                        hist_plot = plot([b_time_point,b_time_point],[-max_deform,max_deform],'--r','LineWidth',1.25,'DisplayName','Failure');
-                    end
-                    hist_plot = plot(eq_analysis_timespace(1:length(hin_TH.deformation_TH)),hin_TH.deformation_TH,'b','LineWidth',1,'DisplayName','Analysis');
-                    ylabel('Hinge Rotation (rads)')
-                    xlabel('Time (s)')
-                    xlim([0,15])
-                    ylim([-max_deform,max_deform])
-                    plot_name = [ele.type{1} '_' num2str(hinge.element_id(i)) ' - ' hinge_name ' - Time History'];
-                    fn_format_and_save_plot( hinge_plot_dir, plot_name, 1 )
-                end
+%                 % Plot Hinge Rotation Time History
+%                 if exist('eq_analysis_timespace','var')
+%                     [ ~, ~, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.(['Mn_pos_' ele_side]), ele.(['Mn_neg_' ele_side]), ele.(['Mp_pos_' ele_side]), ele.(['Mp_neg_' ele_side]), ele.length, ele_props.e, ele_props.iz, ele.(['a_hinge_' ele_side]), ele.(['b_hinge_' ele_side]), ele.(['c_hinge_' ele_side]), 10, 0.1, crit_mode );
+%                     hold on
+%                     pos_yeild = rot_vec_pos(1);
+%                     neg_yeild = rot_vec_neg(1);
+%                     pos_a = ele.(['a_hinge_' ele_side]) + pos_yeild;
+%                     neg_a = ele.(['a_hinge_' ele_side]) + neg_yeild;
+%                     pos_b = ele.(['b_hinge_' ele_side]) + pos_yeild;
+%                     neg_b = ele.(['b_hinge_' ele_side]) + neg_yeild;
+%                     yeild_time_point = min(eq_analysis_timespace(hin_TH.deformation_TH>=pos_yeild | hin_TH.deformation_TH<=-neg_yeild));
+%                     a_time_point = min(eq_analysis_timespace(hin_TH.deformation_TH>=pos_a | hin_TH.deformation_TH<=-neg_a));
+%                     b_time_point = min(eq_analysis_timespace(hin_TH.deformation_TH>=pos_b | hin_TH.deformation_TH<=-neg_b));
+%                     max_deform = 1.25*max(abs(hin_TH.deformation_TH));
+%                     if ~isempty(yeild_time_point)
+%                         hist_plot = plot([yeild_time_point,yeild_time_point],[-max_deform,max_deform],'--k','LineWidth',1.25,'DisplayName','Yield');
+%                     end
+%                     if ~isempty(a_time_point)
+%                         hist_plot = plot([a_time_point,a_time_point],[-max_deform,max_deform],'--m','LineWidth',1.25,'DisplayName','Ultimate Capacity');
+%                     end
+%                     if ~isempty(b_time_point)
+%                         hist_plot = plot([b_time_point,b_time_point],[-max_deform,max_deform],'--r','LineWidth',1.25,'DisplayName','Failure');
+%                     end
+%                     hist_plot = plot(eq_analysis_timespace(1:length(hin_TH.deformation_TH)),hin_TH.deformation_TH,'b','LineWidth',1,'DisplayName','Analysis');
+%                     ylabel('Hinge Rotation (rads)')
+%                     xlabel('Time (s)')
+%                     xlim([0,15])
+%                     ylim([-max_deform,max_deform])
+%                     plot_name = [ele.type{1} '_' num2str(hinge.element_id(i)) ' - ' hinge_name ' - Time History'];
+%                     fn_format_and_save_plot( hinge_plot_dir, plot_name, 1 )
+%                 end
 
             elseif strcmp(hinge.type(i),'shear')
                 plot_name = [ele.type{1} '_' num2str(hinge.element_id(i)) ' - Shear Response'];

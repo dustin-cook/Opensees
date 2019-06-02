@@ -28,7 +28,7 @@ fprintf(fileID,'} \n');
 fprintf(fileID,'constraints Transformation \n');
 fprintf(fileID,'numberer RCM \n'); % renumber dof's to minimize band-width (optimization)
 if analysis.opensees_SP
-    fprintf(fileID,'system Mumps -ICNTL 100 \n'); % Use Mumps for OpenseesSP
+    fprintf(fileID,'system Mumps \n'); % Use Mumps for OpenseesSP
 else
     fprintf(fileID,'system BandGeneral \n'); % how to store and solve the system of equations in the analysis
 end

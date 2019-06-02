@@ -16,15 +16,14 @@ else
 end
 
 % Set K factor
-if ductility_factor <= 2
-    k = 1;
-elseif ductility_factor >= 6
-    k = 0.7;
-else
-    k = interp1([2,6],[1,0.7],ductility_factor); % The Ductility Factor This is max DCR for linear and displacement ductility for nonlinear.
-
-end
-
+% if ductility_factor <= 2
+%     k = 1;
+% elseif ductility_factor >= 6
+%     k = 0.7;
+% else
+%     k = interp1([2,6],[1,0.7],ductility_factor); % The Ductility Factor This is max DCR for linear and displacement ductility for nonlinear.
+% end
+k = 0.9;
 % Calculate shear based on EQ 10-3 from ASCE 41-17
 V0 = alpha*Av*fy*d_eff/s + lambda*(6*sqrt(fc)/mv_ratio)*sqrt(1+Nug/(6*sqrt(fc)*Ag))*0.8*Ag;
 Vn = k*V0;

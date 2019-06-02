@@ -27,7 +27,11 @@ l_s_min = str2double(strsplit(strrep(strrep(ele_prop.l_s_min{1},'[',''),']',''),
 
 for i = 1:length(d_b)
     %% Calculate Development Length Factors According to ACI 318-14
-    c_b = ele_prop.clear_cover; % Just assume distance to edge in min for now
+    if As_d(i) < ele_prop.h/2
+        c_b = As_d(i) - d_b(i)/2; % Just assume distance to edge in min for now
+    else
+        c_b = (ele_prop.h - As_d(i)) - d_b(i)/2; % Just assume distance to edge in min for now
+    end
 
     % Table 25.4.2.4
     psi_e = 1.0; % Assume Non Coated for now
@@ -43,7 +47,7 @@ for i = 1:length(d_b)
     end
 
     % Table 25.4.3.2
-    if d_b(i) <= 1.41 && ele_prop.clear_cover >= 2.5
+    if d_b(i) <= 1.41 && ele_prop.clear_cover >= 2.5 % This is the wrong clear cover, should be from the hook, but that is probably not specificed out side the general clear cover statement
         psi_c = 0.7; % for enough cover on bar
     else
         psi_c = 1.0; % not enough cover on bar
@@ -85,11 +89,11 @@ for i = 1:length(d_b)
     else
         test3 = l_d_hook_ext_min(i) >= 12*d_b(i);
     end
-    if l_s_min == 999
+%     if l_s_min == 999
         test4 = 1;
-    else
-        test4 = l_s_min(i) >= min([l_s,l_dt]); % Per 10.3.5 of ASCE 41-17
-    end
+%     else
+%         test4 = l_s_min(i) >= min([l_s,l_dt]); % Per 10.3.5 of ASCE 41-17
+%     end
     if test1 && test2 && test3 && test4
         pass_aci_dev_length(i) = 1; 
     else
