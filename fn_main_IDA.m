@@ -1,9 +1,8 @@
-function [ exit_status ] = fn_main_IDA(analysis, model, story, element, node, hinge, gm_set_table, gm_idx, scale_factor, tcl_dir)
+function [ exit_status ] = fn_main_IDA(analysis, model, story, element, node, hinge, gm_set_table, gm_idx, scale_factor, building_period, tcl_dir)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
 import opensees.write_tcl.*
-import opensees.post_process.*
 
 % Defin gms for this run
 ground_motion.x = gm_set_table(gm_idx,:);
@@ -13,21 +12,11 @@ ground_motion.z = gm_set_table(gm_set_table.set_id == ground_motion.x.set_id & g
 ground_motion.z.eq_dir = {['ground_motions' '/' analysis.gm_set '/' ground_motion.z.eq_name{1}]};
 ground_motion.z.eq_name = {[ground_motion.z.eq_name{1} '.tcl']};
 
-% Iteration Parameters
-analysis.ground_motion_scale_factor = scale_factor;
-opensees_outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Scale_' num2str(analysis.ground_motion_scale_factor) '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair)];
-ida_outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Summary Data' '/' 'Scale_' num2str(analysis.ground_motion_scale_factor) '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair)];
-mkdir(opensees_outputs_dir)
-mkdir(ida_outputs_dir)
-
 % Load spectral info and save Sa
-model_periods = load([tcl_dir filesep 'model_analysis.mat']);
 spectra_table = readtable([ground_motion.x.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
-summary.sa_x = interp1(spectra_table.period,spectra_table.psa_5,model_periods.model.T1_x)*analysis.ground_motion_scale_factor;
-clear spectra_table
+summary.sa_x = interp1(spectra_table.period,spectra_table.psa_5,building_period.ew)*scale_factor;
 spectra_table = readtable([ground_motion.z.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
-summary.sa_z = interp1(spectra_table.period,spectra_table.psa_5,model_periods.model.T1_z)*analysis.ground_motion_scale_factor;
-clear spectra_table
+summary.sa_z = interp1(spectra_table.period,spectra_table.psa_5,building_period.ns)*scale_factor;
 
 % Write Recorders File
 file_name = [opensees_outputs_dir filesep 'recorders.tcl'];
@@ -78,11 +67,11 @@ if contains(cmdout,'Analysis Failure: Collapse')
     summary.collapse = 1; % Collapse triggered by drift limit
     fprintf('Model Reached Collapse Limit \n')
 elseif contains(cmdout,'Analysis Failure: Singularity')
-    summary.collapse = 2; % Collapse triggered by convergence or singularity issue
+    summary.collapse = 2; % Collapse triggered by singularity issue
     fprintf('Unexpected Opensees failure \n')
     fprintf('Model Experienced a Singularity Failure (Treat as collapsed)')
 elseif contains(cmdout,'Analysis Failure: Convergence')
-    summary.collapse = 3; % Collapse triggered by convergence or singularity issue
+    summary.collapse = 3; % Collapse triggered by convergence
     fprintf('Unexpected Opensees failure \n')
     fprintf('Model Experienced a Convergence Failure (Treat as collapsed)')
 elseif status ~= 0
@@ -95,61 +84,8 @@ else
 end
 
 fprintf('Opensees Completed \n')
-clear cmdout
 
-%% Post Process Data
-if exit_status
-    fprintf('Skipping Postprocessing of Opensees')
-else
-    fprintf('Postprocessing Opensees Ouputs from Directory: %s \n',opensees_outputs_dir)
-    % Nodal displacements
-    for n = 1:height(node)
-        node_id = node.id(n);
-           if node.record_disp(n)
-               [ node_disp_raw ] = fn_xml_read([opensees_outputs_dir filesep 'nodal_disp_' num2str(node.id(n)) '.xml']);
-               node_disp_raw = node_disp_raw'; % flip to be node per row
-               disp_TH.(['node_' num2str(node_id) '_TH']).(['disp_x_TH']) = node_disp_raw(2,:);
-               disp_TH.(['node_' num2str(node_id) '_TH']).(['disp_z_TH']) = node_disp_raw(3,:);  % Currently Hard coded to three dimensions
-           end
-           clear node_disp_raw
-    end
-
-    % Hinge Deformations
-    if analysis.nonlinear ~= 0 && ~isempty(hinge)
-        for i = 1:height(hinge)
-            hinge_y = node.y(node.id == hinge.node_1(i));
-            if hinge_y == 0 && strcmp(hinge.direction{i},'primary')
-                hinge_id = element.id(end) + hinge.id(i);
-                [ hinge_deformation_TH ] = fn_xml_read([opensees_outputs_dir filesep 'hinge_deformation_' num2str(hinge_id) '.xml']);
-                hinge.max_deform(i) = max(abs(hinge_deformation_TH(:,2)));
-                clear hinge_deformation_TH
-                hinge.b_value(i) = element.(['b_hinge_' num2str(hinge.ele_side(i))])(element.id == hinge.element_id(i));
-                hinge.b_ratio(i) = hinge.max_deform(i) / hinge.b_value(i);
-            end
-        end
-    end
-    save([ida_outputs_dir filesep 'hinge_analysis.mat'],'hinge')
-    
-    % Check bad convergence models to see if they are close enough to
-    % collapse
-    if summary.collapse == 3 && median(hinge.b_ratio(hinge.b_ratio ~= 0 & hinge.b_ratio ~= inf)) < 1
-        summary.collapse = 5;
-    end
-
-    % Calc Story Drift
-    [ story.max_drift_x ] = fn_drift_profile( disp_TH, story, node, 'x' );
-    [ story.max_drift_z ] = fn_drift_profile( disp_TH, story, node, 'z' );
-
-    clear disp_TH
-
-    summary.max_drift_x = max(story.max_drift_x);
-    summary.max_drift_z = max(story.max_drift_z);
-
-    % Save data for this run
-    fprintf('Writing IDA Results to Directory: %s \n',ida_outputs_dir)
-    save([ida_outputs_dir filesep 'summary_results.mat'],'summary')
-    save([ida_outputs_dir filesep 'story_analysis.mat'],'story')
-end
-
+% Save summary data
+save([ida_outputs_dir filesep 'summary_results.mat'],'summary')
 end
 
