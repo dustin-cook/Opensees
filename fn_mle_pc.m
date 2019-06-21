@@ -32,7 +32,7 @@ x0 = [0.8 0.4];
 % Run optimization
 options = optimset('MaxFunEvals',1000, 'GradObj', 'off'); %maximum 1000 iterations, gradient of the function not provided
 x = fminsearch(@mlefit, x0, options, num_gms, num_collapse, IM) ;
-theta = x(1);
+theta = max([x(1),0.000001]);
 beta = x(2);
 
 % objective function to be optimized

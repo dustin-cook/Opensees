@@ -12,6 +12,16 @@ ground_motion.z = gm_set_table(gm_set_table.set_id == ground_motion.x.set_id & g
 ground_motion.z.eq_dir = {['ground_motions' '/' analysis.gm_set '/' ground_motion.z.eq_name{1}]};
 ground_motion.z.eq_name = {[ground_motion.z.eq_name{1} '.tcl']};
 
+% Create Directories
+opensees_outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Scale_' num2str(scale_factor) '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair)];
+if ~exist(opensees_outputs_dir,'dir')
+    mkdir(opensees_outputs_dir)
+end
+ida_outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Summary Data' '/' 'Scale_' num2str(scale_factor) '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair)];
+if ~exist(ida_outputs_dir,'dir')
+    mkdir(ida_outputs_dir)
+end
+
 % Load spectral info and save Sa
 spectra_table = readtable([ground_motion.x.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
 summary.sa_x = interp1(spectra_table.period,spectra_table.psa_5,building_period.ew)*scale_factor;

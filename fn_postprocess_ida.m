@@ -40,40 +40,64 @@ if exist(ida_outputs_file,'file')
     if analysis.nonlinear ~= 0 && ~isempty(hinge)
         for i = 1:height(hinge)
             hinge_y = node.y(node.id == hinge.node_1(i));
-            if hinge_y == 0 && strcmp(hinge.direction{i},'primary')
+            if hinge_y == 0 && strcmp(hinge.direction{i},'primary') && strcmp(hinge.ele_direction{i},'x')
                 hinge_id = element.id(end) + hinge.id(i);
                 ele = element(element.id == hinge.element_id(i),:);
                 ele_prop = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
+                
+                K_elastic = 6*ele_prop.e*ele_prop.iz/ele.length;
+                theta_yeild_total = ele.Mn_pos_1/K_elastic; % only for column bases currently
+                
                 [ hinge_deformation_TH ] = fn_xml_read([opensees_outputs_dir filesep 'hinge_deformation_' num2str(hinge_id) '.xml']);
-                hinge.max_deform(i) = max(abs(hinge_deformation_TH(:,2)));
-                hinge.b_value(i) = ele.(['b_hinge_' num2str(hinge.ele_side(i))]);
-                hinge.b_ratio(i) = hinge.max_deform(i) / hinge.b_value(i);
-                hinge.io_value(i) = ele.(['io_' num2str(hinge.ele_side(i))]);
-                hinge.io_ratio(i) = hinge.max_deform(i) / hinge.io_value(i);
-                hinge.ls_value(i) = ele.(['ls_' num2str(hinge.ele_side(i))]);
-                hinge.ls_ratio(i) = hinge.max_deform(i) / hinge.ls_value(i);
-                hinge.cp_value(i) = ele.(['cp_' num2str(hinge.ele_side(i))]);
-                hinge.cp_ratio(i) = hinge.max_deform(i) / hinge.cp_value(i);
+                
+                hinge.hinge_deform(i) = max(abs(hinge_deformation_TH(:,2)));
+                
+                % Modify hinge rotation to be element rotation
+                if hinge.hinge_deform(i) >= (1/11)*theta_yeild_total
+                    hinge.elastic_deform(i) = theta_yeild_total;
+                    hinge.tot_deform(i) = hinge.hinge_deform(i) + (10/11)*theta_yeild_total;
+                else
+                    percent_yield = hinge.hinge_deform(i)/((1/11)*theta_yeild_total);
+                    hinge.elastic_deform(i) = percent_yield*theta_yeild_total;
+                    hinge.tot_deform(i) = hinge.elastic_deform(i);
+                end
+                
+                hinge.plastic_deform(i) = hinge.tot_deform(i) - hinge.elastic_deform(i);
+                
+                hinge.b_value_tot(i) = ele.(['b_hinge_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
+                hinge.b_ratio(i) = hinge.tot_deform(i) / hinge.b_value_tot(i);
+                hinge.io_value_tot(i) = ele.(['io_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
+                hinge.io_ratio(i) = hinge.tot_deform(i) / hinge.io_value_tot(i);
+                hinge.ls_value_tot(i) = ele.(['ls_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
+                hinge.ls_ratio(i) = hinge.tot_deform(i) / hinge.ls_value_tot(i);
+                hinge.cp_value_tot(i) = ele.(['cp_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
+                hinge.cp_ratio(i) = hinge.tot_deform(i) / hinge.cp_value_tot(i);
 
                 % EuroCode
-                L = ele.length;      % in
-                h = ele_prop.h;       % in
-                b = ele_prop.w;       % in
-                s = ele_prop.(['S_' num2str(hinge.ele_side(i))]);        % in
+                h = ele_prop.h;           % in
+                b = ele_prop.w;           % in
+                d = ele_prop.d_eff;       % in
+                d_prm = ele_prop.h - ele_prop.d_eff; % in
+                s = ele_prop.(['S_' num2str(hinge.ele_side(i))]);      % in
                 Av = ele_prop.(['Av_' num2str(hinge.ele_side(i))]);    % in2
-                cov = ele_prop.clear_cover;    % in
+                As = sum(str2double(strsplit(strrep(strrep(ele_prop.As{1},']',''),'[',''),',')));  % in2
+                db = mean(str2double(strsplit(strrep(strrep(ele_prop.d_b{1},']',''),'[',''),',')));  % in2
                 fc = ele_prop.fc_e;    % psi
                 fy = ele_prop.fy_e;   % psi
                 P = ele.Pmax;    % lbs
-                [~, hinge.euro_th_NC_value(i)] = parametric_study(L,h,b,s,Av,cov,fc,fy,P); 
-                hinge.euro_th_NC_ratio(i) = hinge.max_deform(i) / hinge.euro_th_NC_value(i);
+                M = ele.(['Mmax_' num2str(hinge.ele_side(i))]);    % lbs-in
+                V = ele.(['Vmax_' num2str(hinge.ele_side(i))]);    % lbs
+                deform_pl = hinge.plastic_deform(i);
+                [hinge.euro_V_NC(i)] = fn_eurocode_column_shear_acceptance(h,b,d,d_prm,s,As,Av,db,fc,fy,P,M,V,deform_pl); % assumes colums are shear controlled
+%                 [~, hinge.euro_th_NC_value(i)] = parametric_study(L,h,b,s,Av,cov,fc,fy,P); 
+                hinge.euro_V_NC_ratio(i) = V / hinge.euro_V_NC(i);
             end
         end
     end
 
     % Check bad convergence models to see if they are close enough to
     % collapse
-    if summary.collapse == 3 && median(hinge.b_ratio(hinge.b_ratio ~= 0 & hinge.b_ratio ~= inf)) < 1
+    if summary.collapse == 3 && max(hinge.b_ratio(hinge.b_ratio ~= 0 & hinge.b_ratio ~= inf)) < 1.5
         summary.collapse = 5;
     end
 
@@ -83,6 +107,13 @@ if exist(ida_outputs_file,'file')
 
     summary.max_drift_x = max(story.max_drift_x);
     summary.max_drift_z = max(story.max_drift_z);
+    if summary.collapse > 0
+        if summary.max_drift_x > summary.max_drift_z
+            summary.collapse_direction = 'x';
+        else
+            summary.collapse_direction = 'z';
+        end
+    end
 
     % Save data for this run
     fprintf('Writing IDA Results to Directory: %s \n',ida_outputs_dir)
