@@ -1,16 +1,13 @@
-function [ ] = fn_plot_building_nl_3d( hinge, element, node, plot_name, plot_dir, direction, x_start, x_end, z_start, z_end )
+function [ ] = fn_plot_building_nl_3d( hinge, element, node, elev_title, plot_dir, direction, x_start, x_end, z_start, z_end )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
-
-%% Import Packages
-import plotting_tools.*
 
 if strcmp(direction,'x')
     type_filter = ~strcmp(element.type,'wall');
 elseif strcmp(direction,'z')
     type_filter = strcmp(element.type,'wall');
 end
-
+        
 % Filter Elements
 count = 0;
 for i = 1:length(element.id)
@@ -37,7 +34,33 @@ for i = 1:length(element.id)
     end
 end
 
+% Define Colors
+cmap1 = [200 200 200;
+        238 235 112;
+        252 160 98;
+        241 95 95]/255;
+    
+cmap2 = [0,60,48;
+      1,102,94;
+      53,151,143;
+      128,205,193;
+      199,234,229;
+      246,232,195;
+      223,194,125;
+      191,129,45;
+      140,81,10;
+      84,48,5]/255;
+    
 %% Plot DCR on elevation of building
+plot_elevation(ele_new, direction, new_node, hinge, cmap1, 4, plot_dir, ['ASCE 41 Acceptance - ' elev_title], 'accept')
+plot_elevation(ele_new, direction, new_node, hinge, cmap2, 1, plot_dir, ['b Hinge Rotation - ' elev_title], 'b_ratio')
+
+
+
+function [] = plot_elevation(ele_new, direction, new_node, hinge, cmap, cmap_max, plot_dir, plot_name, target)
+% Import Packages
+import plotting_tools.*
+
 % Graph structure
 s = ele_new.node_1;
 t = ele_new.node_2;
@@ -51,6 +74,7 @@ elseif strcmp(direction,'x')
 end
 y = new_node.y;
 H = plot(G,'XData',x,'YData',y,'NodeLabel',{});
+axis off
 
 %% Highlight Performance
 % Highlight elemets that pass IO
@@ -60,64 +84,18 @@ for e = 1:length(ele_new.id)
         hinge_new_node_1 = ele_new.node_1(ele_new.old_node_1 == hinges.node_1(h) | ele_new.old_node_1 == hinges.node_2(h));
         hinge_new_node_2 = ele_new.node_2(ele_new.old_node_2 == hinges.node_1(h) | ele_new.old_node_1 == hinges.node_2(h));
         hinge_new_node = max([hinge_new_node_1, hinge_new_node_2]);
-        
-        if hinges.accept(h) == 2
-            highlight(H,hinge_new_node) 
-            highlight(H,hinge_new_node,'NodeColor','g') % Highlight elemets that fail IO
-        elseif hinges.accept(h) == 3
-            highlight(H,hinge_new_node)
-            highlight(H,hinge_new_node,'NodeColor','y') % Highlight elemets that fail LS
-        elseif hinges.accept(h) == 4
-            highlight(H,hinge_new_node)
-            highlight(H,hinge_new_node,'NodeColor','r') % Highlight elemets that fail CP
-        end
+        cmap_length = length(cmap(:,1));
+        cmap_idx = max([min([round(hinges.(target)(h)*cmap_length/cmap_max),cmap_length]),1]);
+        highlight(H,hinge_new_node) 
+        highlight(H,hinge_new_node,'NodeColor',cmap(cmap_idx,:)) % Highlight elemets that fail IO
+
     end
 end
 
-
-% element_list = hinge.element_id(hinge.accept == 1);
-% for i = 1:length(element_list)
-%     if (sum(ele.id == element_list(i))>0)
-%         s_break_3 = ele_new.node_1(ele.id == element_list(i));
-%         t_break_3 = ele_new.node_2(ele.id == element_list(i));
-%         highlight(H,s_break_3,t_break_3,'EdgeColor','g','LineWidth',2)
-%     end
-% end
-% 
-% % Highlight elemets that pass LS
-% element_list = hinge.element_id(hinge.accept == 2);
-% for i = 1:length(element_list)
-%     if (sum(ele.id == element_list(i))>0)
-%         s_break_3 = ele_new.node_1(ele.id == element_list(i));
-%         t_break_3 = ele_new.node_2(ele.id == element_list(i));
-%         highlight(H,s_break_3,t_break_3,'EdgeColor','b','LineWidth',2)
-%     end
-% end
-% 
-% % Highlight elemets that pass CP
-% element_list = hinge.element_id(hinge.accept == 3);
-% for i = 1:length(element_list)
-%     if (sum(ele.id == element_list(i))>0)
-%         s_break_3 = ele_new.node_1(ele.id == element_list(i));
-%         t_break_3 = ele_new.node_2(ele.id == element_list(i));
-%         highlight(H,s_break_3,t_break_3,'EdgeColor','y','LineWidth',2)
-%     end
-% end
-% 
-% % Highlight elemets that fail all
-% element_list = hinge.element_id(hinge.accept == 4);
-% for i = 1:length(element_list)
-%     if (sum(ele.id == element_list(i))>0)
-%         s_break_3 = ele_new.node_1(ele.id == element_list(i));
-%         t_break_3 = ele_new.node_2(ele.id == element_list(i));
-%         highlight(H,s_break_3,t_break_3,'EdgeColor','r','LineWidth',2)
-%     end
-% end
-
 %% Format and save plot
-xlabel('Base (ft)')
-ylabel('Height (ft)')
+title(plot_name)
 fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
+end
 end
 

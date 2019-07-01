@@ -12,6 +12,20 @@ function [ ] = fn_plot_backbone( ele, ele_side, ele_props, read_dir, output_dir,
 % 1) hinge stiffness modification, n = 10
 
 %% Begin Method
+matlab_colors =  [0, 0.4470, 0.7410;
+                  0.8500, 0.3250, 0.0980;
+                  0.9290, 0.6940, 0.1250;
+                  0.4940, 0.1840, 0.5560;
+                  0.4660, 0.6740, 0.1880;
+                  0.3010, 0.7450, 0.9330;
+                  0.6350, 0.0780, 0.1840];
+              
+if strcmp(ele.direction,'x')
+    plt_color = matlab_colors(2,:);
+elseif strcmp(ele.direction,'z')
+    plt_color = matlab_colors(1,:);
+end
+              
 % Import Tools
 import plotting_tools.*
 import asce_41.*
@@ -38,9 +52,13 @@ if strcmp(ele.type,'beam') || strcmp(ele.type,'column') || (strcmp(ele.type,'wal
         ylabel('Q/Qy')
     elseif plot_style == 2
         hold on
+        yax = plot([0,0],[-1e6,1e6],'color',[0.5, 0.5, 0.5]);
+        set(get(get(yax,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+        xax = plot([-1e6,1e6],[0,0],'color',[0.5, 0.5, 0.5]);
+        set(get(get(xax,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
         plot([fliplr(-(rot_vec_neg)),0,rot_vec_pos],[fliplr(-moment_vec_neg),0,moment_vec_pos]/1000,'Color','k','LineWidth',2,'DisplayName','ASCE 41 Backone') % Don't need to worry about negative bending because this plot is normalized by Qy
         elastic_rotation = (hinge_force_to_plot*ele.length / (6*ele_props.e*mom_of_I))*(10/11);
-        plot(hinge_disp_to_plot + elastic_rotation,hinge_force_to_plot/1000,'r','LineWidth',1.5,'DisplayName','Analysis'); % transform from lb-in to kip-in
+        plot(hinge_disp_to_plot + elastic_rotation,hinge_force_to_plot/1000,'color', plt_color, 'LineWidth',1.25,'DisplayName','Analysis'); % transform from lb-in to kip-in
         xlabel('Total Rotation (rad)')
         ylabel('Moment (k-in)')
 %         xlim([-max(rot_vec_neg)*1.25,max(rot_vec_pos)*1.25])
@@ -58,8 +76,12 @@ elseif strcmp(ele.type,'wall') && strcmp(crit_mode,'shear')
         ylabel('Q/Qy')
     elseif plot_style == 2
         hold on
+        yax = plot([0,0],[1e6,1e6],'color',[0.5, 0.5, 0.5]);
+        set(get(get(yax,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+        xax = plot([1e6,1e6],[0,0],'color',[0.5, 0.5, 0.5]);
+        set(get(get(xax,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
         plot([fliplr(-disp_vec),0,disp_vec],[fliplr(-force_vec),0,force_vec]/1000,'k','LineWidth',1.5,'DisplayName','ASCE 41 Backone') % transform from lbs to kips
-        plot(hinge_disp_to_plot,hinge_force_to_plot/1000,'r','LineWidth',2,'DisplayName','Analysis'); % transform from lbs to kips
+        plot(hinge_disp_to_plot,hinge_force_to_plot/1000,'color', plt_color,'LineWidth',1.25,'DisplayName','Analysis'); % transform from lbs to kips
         xlabel('Hinge Displacement (in)')
         ylabel('Shear Force (k)')
         xlim([-max(disp_vec)*1.25,max(disp_vec)*1.25])
@@ -67,11 +89,15 @@ elseif strcmp(ele.type,'wall') && strcmp(crit_mode,'shear')
     end    
 end
 
-% Format and save plot      
+% Format and save plot
+box on
+% legend('location','northeast')
+% legend boxoff
+set(gcf,'Position',[300 400 300 300]);
 if plot_style == 1
     fn_format_and_save_plot( output_dir , plot_name, 2 )
 elseif plot_style == 2
-    fn_format_and_save_plot( output_dir , plot_name, 2 )
+    fn_format_and_save_plot( output_dir , plot_name, 0 )
 end
 
 end

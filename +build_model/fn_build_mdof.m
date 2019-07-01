@@ -5,7 +5,7 @@ function [ ] = fn_build_mdof( model, ele_props_table, analysis, write_dir, read_
 %% INITIAL SETUP
 % Import Packages
 import build_model.*
-import aci_318.fn_aci_moment_capacity
+import aci_318.*
 
 % Load data tables
 story = readtable([read_dir filesep 'story.csv'],'ReadVariableNames',true);
@@ -83,8 +83,6 @@ for s = 1:height(story)
     element.live_load_1(element.story == story.id(s),1) = element.trib_wt_1(element.story == story.id(s))*story.story_live_load(s)/sum_trib_wt;
     element.dead_load_2(element.story == story.id(s),1) = element.trib_wt_2(element.story == story.id(s))*story.story_dead_load(s)/sum_trib_wt;
     element.live_load_2(element.story == story.id(s),1) = element.trib_wt_2(element.story == story.id(s))*story.story_live_load(s)/sum_trib_wt;
-    element.dead_load(element.story == story.id(s),1) = element.dead_load_1(element.story == story.id(s),1) + element.dead_load_2(element.story == story.id(s),1);
-    element.live_load(element.story == story.id(s),1) = element.live_load_1(element.story == story.id(s),1) + element.live_load_2(element.story == story.id(s),1);
 end
 
 %% Define Joints (For each node created go through as say whats connected in)
@@ -118,23 +116,18 @@ for i = 1:length(node.id)
 end
 
 %% Calculate Total Element Gravity Load
+element.dead_load = element.dead_load_1 + element.dead_load_2;
+element.live_load = element.live_load_1 + element.live_load_2;
 element.gravity_load = element.dead_load*analysis.dead_load + element.live_load*analysis.live_load;
 
-%% Add info to node data
-% Assign Gravity Loads to Nodes
-node.dead_load = zeros(length(node.id),1);
-node.live_load = zeros(length(node.id),1);
+%% Define Mass
+node.mass = zeros(length(node.id),1);
 for e = 1:length(element.id)
-    node.dead_load(node.id == element.node_1(e)) = node.dead_load(node.id == element.node_1(e)) + element.dead_load_1(e);
-    node.dead_load(node.id == element.node_2(e)) = node.dead_load(node.id == element.node_2(e)) + element.dead_load_2(e);
-    node.live_load(node.id == element.node_1(e)) = node.live_load(node.id == element.node_1(e)) + element.live_load_1(e);
-    node.live_load(node.id == element.node_2(e)) = node.live_load(node.id == element.node_2(e)) + element.live_load_2(e);
+    node.mass(node.id == element.node_1(e)) = node.mass(node.id == element.node_1(e)) + element.dead_load_1(e)/386;
+    node.mass(node.id == element.node_2(e)) = node.mass(node.id == element.node_2(e)) + element.dead_load_2(e)/386;
 end
 
-% Define Mass
-node.mass = node.dead_load/386;
-
-% Say which nodes get recorders
+%% Set existing nodes as the ones that get recorded
 node.record_disp = ones(length(node.id),1);
 node.record_accel = ones(length(node.id),1);
 
@@ -207,8 +200,6 @@ for s = 1:height(story)
             new_node.x = node.x(node.id == n_id);
             new_node.y = node.y(node.id == n_id)-joint_dim_y;
             new_node.z = node.z(node.id == n_id);
-            new_node.dead_load = 0;
-            new_node.live_load = 0;
             new_node.mass = 0;
             new_node.record_disp = 0;
             new_node.record_accel = 0;
@@ -222,8 +213,6 @@ for s = 1:height(story)
                 new_node.x = [new_node.x; node.x(node.id == n_id)-joint_dim_x/2];
                 new_node.y = [new_node.y; node.y(node.id == n_id)-joint_dim_y/2];
                 new_node.z = [new_node.z; node.z(node.id == n_id);];
-                new_node.dead_load = [new_node.dead_load; 0];
-                new_node.live_load = [new_node.live_load; 0];
                 new_node.mass = [new_node.mass; 0];
                 new_node.record_disp = [new_node.record_disp; 0];
                 new_node.record_accel = [new_node.record_accel; 0];
@@ -239,8 +228,6 @@ for s = 1:height(story)
                 new_node.x = [new_node.x; node.x(node.id == n_id)+joint_dim_x/2];
                 new_node.y = [new_node.y; node.y(node.id == n_id)-joint_dim_y/2];
                 new_node.z = [new_node.z; node.z(node.id == n_id)];
-                new_node.dead_load = [new_node.dead_load; 0];
-                new_node.live_load = [new_node.live_load; 0];
                 new_node.mass = [new_node.mass; 0];
                 new_node.record_disp = [new_node.record_disp; 0];
                 new_node.record_accel = [new_node.record_accel; 0];
@@ -269,8 +256,6 @@ for s = 1:height(story)
             node.x = [node.x; new_node.x];
             node.y = [node.y; new_node.y];
             node.z = [node.z; new_node.z];
-            node.dead_load = [node.dead_load; new_node.dead_load];
-            node.live_load = [node.live_load; new_node.live_load];
             node.mass = [node.mass; new_node.mass];
             node.record_disp = [node.record_disp; new_node.record_disp];
             node.record_accel = [node.record_accel; new_node.record_accel];
@@ -398,8 +383,6 @@ if strcmp(model.dimension,'2D')
     new_node.id = node.id(non_z_nodes);
     new_node.x = node.x(non_z_nodes);
     new_node.y = node.y(non_z_nodes);
-    new_node.dead_load = node.dead_load(non_z_nodes);
-    new_node.live_load = node.live_load(non_z_nodes);
     new_node.mass = node.mass(non_z_nodes);
     new_node.record_disp = node.record_disp(non_z_nodes);
     new_node.record_accel = node.record_accel(non_z_nodes);

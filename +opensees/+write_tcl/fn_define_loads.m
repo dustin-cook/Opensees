@@ -1,4 +1,4 @@
-function [ ] = fn_define_loads( write_dir, analysis, node, dimension, story, element_ids, joint_ele_ids, ground_motion )
+function [ ] = fn_define_loads( write_dir, analysis, node, dimension, story, element, ground_motion )
 %UNTITLED8 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -13,14 +13,20 @@ fprintf(fileID,'puts "Defining Loads ..." \n');
 
 %% Define Gravity Loads (node id, axial, shear, moment)
 fprintf(fileID,'pattern Plain 1 Linear {  \n');
-for i = 1:length(node.id) 
-    if strcmp(dimension,'2D')
-        fprintf(fileID,'   load %d 0.0 -%f 0.0 \n', node.id(i), node.dead_load(i)*analysis.dead_load + node.live_load(i)*analysis.live_load);
-    elseif strcmp(dimension,'3D')
-        fprintf(fileID,'   load %d 0.0 -%f 0.0 0.0 0.0 0.0 \n', node.id(i), node.dead_load(i)*analysis.dead_load + node.live_load(i)*analysis.live_load);
-    else
-        error('Number of Dimensions Not Recognized')
-    end
+for i = 1:height(element) 
+        if strcmp(element.type{i},'beam')
+            % eleLoad -ele $eleTag1 <$eleTag2 ....> -type -beamUniform $Wy <$Wx>
+            % eleLoad -ele $eleTag1 <$eleTag2 ....> -type -beamUniform $Wy $Wz <$Wx>
+            fprintf(fileID,'   eleLoad -ele %i -type -beamUniform -%d 0.0 \n', element.id(i), element.gravity_load(i)/element.length(i));
+        elseif strcmp(element.type{i},'wall')
+            if strcmp(dimension,'2D')
+                % eleLoad -range $eleTag1 $eleTag2 -type -beamPoint $Py $xL <$Px>
+                fprintf(fileID,'   eleLoad -ele %d -type -beamPoint 0.0 1.0 -%d \n', element.id(i), element.gravity_load(i)); 
+            elseif strcmp(dimension,'3D')
+                % eleLoad -range $eleTag1 $eleTag2 -type -beamPoint $Py $Pz $xL <$Px>
+                fprintf(fileID,'   eleLoad -ele %d -type -beamPoint 0.0 0.0 1.0 -%d \n', element.id(i), element.gravity_load(i)); 
+            end
+        end
 end
 fprintf(fileID,'} \n');
 
@@ -39,7 +45,6 @@ fprintf(fileID,'algorithm KrylovNewton \n');
 fprintf(fileID,'integrator LoadControl 0.1 \n');
 fprintf(fileID,'analysis Static \n');
 fprintf(fileID,'set ok [analyze 10] \n');
-fprintf(fileID,'analyze 10 \n');
 fprintf(fileID,'if {$ok != 0} { \n');
 fprintf(fileID,'puts "Analysis Failure: Gravity Load Failure" \n');
 fprintf(fileID,'wipe \n');
@@ -61,7 +66,7 @@ if analysis.type == 2 || analysis.type == 3
     force_nodes = [];
     node.lateral_load = zeros(height(node),1);
     for i = 1:height(story)
-        force_nodes_this_story = node.id(node.story == i & node.dead_load > 0);
+        force_nodes_this_story = node.id(node.story == i & node.mass > 0);
         node.lateral_load(ismember(node.id,force_nodes_this_story)) = story.lateral_force(i)/length(force_nodes_this_story);
         force_nodes = [force_nodes;force_nodes_this_story];
     end
@@ -71,12 +76,20 @@ if analysis.type == 2 || analysis.type == 3
     for i = 1:length(force_nodes)
         node_id = force_nodes(i);
         if strcmp(dimension,'2D')
-            fprintf(fileID,'  load %d %f 0.0 0.0 \n', node_id, node.lateral_load(node.id == node_id));
+            if strcmp(analysis.pushover_direction,'x')
+                fprintf(fileID,'  load %d %f 0.0 0.0 \n', node_id, node.lateral_load(node.id == node_id));
+            elseif strcmp(analysis.pushover_direction,'-x')
+                fprintf(fileID,'  load %d %f 0.0 0.0 \n', node_id, -node.lateral_load(node.id == node_id));
+            end
         elseif strcmp(dimension,'3D')
             if strcmp(analysis.pushover_direction,'x')
                 fprintf(fileID,'  load %d %f 0.0 0.0 0.0 0.0 0.0 \n', node_id, node.lateral_load(node.id == node_id));
+            elseif strcmp(analysis.pushover_direction,'-x')
+                fprintf(fileID,'  load %d %f 0.0 0.0 0.0 0.0 0.0 \n', node_id, -node.lateral_load(node.id == node_id));
             elseif strcmp(analysis.pushover_direction,'z')
                 fprintf(fileID,'  load %d 0.0 0.0 %f 0.0 0.0 0.0 \n', node_id, node.lateral_load(node.id == node_id));
+            elseif strcmp(analysis.pushover_direction,'-z')
+                fprintf(fileID,'  load %d 0.0 0.0 %f 0.0 0.0 0.0 \n', node_id, -node.lateral_load(node.id == node_id));
             end
         end
     end

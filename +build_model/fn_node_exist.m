@@ -11,8 +11,6 @@ if isfield(node,'x') && isfield(node,'y') && isfield(node,'z')
         node.x(node_table_index,1) = x;
         node.y(node_table_index,1) = y;
         node.z(node_table_index,1) = z;
-        node.dead_load(node_table_index,1) = 0;
-        node.live_load(node_table_index,1) = 0;
         if exist('add_mass','var') && add_mass == 1
             node.mass(node_table_index,1) = 1;
         else
@@ -29,8 +27,6 @@ else % First Node
     node.x(1,1) = x;
     node.y(1,1) = y;
     node.z(1,1) = z;
-    node.dead_load(1,1) = 0;
-    node.live_load(1,1) = 0;
     node.mass(1,1) = 0;
     node.record_disp(1,1) = 0;
     node.record_accel(1,1) =  0;

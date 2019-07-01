@@ -13,24 +13,27 @@ if plot_ops == 1 % Default settings
     grid on
     grid minor
     box on
+    set(gca,'FontSize',14)
 elseif  plot_ops == 2
     grid on
     grid minor
     box on
+    set(gca,'FontSize',14)
 elseif  plot_ops == 3
     legend('Location','eastoutside')
     box on
+    set(gca,'FontSize',14)
 elseif  plot_ops == 4
     box on
+    set(gca,'FontSize',14)
 elseif plot_ops == 5 % Default settings
     legend('Location','southeast')
     grid on
     grid minor
     box on
+    set(gca,'FontSize',14)
 end
 
-% Set Font
-set(gca,'FontSize',14)
 hold off
 
 % Save and Close

@@ -1,4 +1,4 @@
-function [ ] = fn_solution_algorithm( fileID, analysis, write_dir, analysis_length, step_length_raw, primary_nodes, story_ht, control_node, control_dof )
+function [ ] = fn_solution_algorithm( fileID, analysis, write_dir, analysis_length, step_length, primary_nodes, story_ht, control_node, control_dof )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -37,11 +37,13 @@ for i = 1:length(analysis_lengths_cyclic)
 for j = 1:length(cycle_leg_vec)
     analysis_length = analysis_lengths_cyclic(i)*cycle_leg_vec(j);
     if j == 2
-        step_length = -step_length_raw;
+        step_length = -step_length;
+        % While loop through each step of the ground motion
+        fprintf(fileID,'while {$ok == 0 && $currentStep > %f && $collapse_check == 0 && $singularity_check == 0} { \n',analysis_length);
+    elseif analysis_length < 0
         % While loop through each step of the ground motion
         fprintf(fileID,'while {$ok == 0 && $currentStep > %f && $collapse_check == 0 && $singularity_check == 0} { \n',analysis_length);
     else
-        step_length = step_length_raw;
         % While loop through each step of the ground motion
         fprintf(fileID,'while {$ok == 0 && $currentStep < %f && $collapse_check == 0 && $singularity_check == 0} { \n',analysis_length);
     end

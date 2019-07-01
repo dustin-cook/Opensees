@@ -9,7 +9,7 @@ clc
 %% User inputs
 analysis.model_id = 11;
 analysis.proceedure = 'NDP'; % LDP or NDP or test
-analysis.id = 3; % ID of the analysis for it to create its own directory
+analysis.id = 38; % ID of the analysis for it to create its own directory
 
 %% Define data directories
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
@@ -121,7 +121,7 @@ for i = 1:height(columns)
         columns.yield_rotation(i) = columns.Mn(i)/columns.K0(i);
         columns.max_element_rotation_or_drift(i) = max(abs(hin_TH.deformation_TH));
         columns.max_story_drift_analysis(i) = this_story.(['max_drift_' ele.direction{1}]);
-        columns.max_story_drift_record(i) = record_edp.max_disp.(ele.direction{1})(ele.story+1);
+        columns.max_story_drift_record(i) = record_edp.max_disp.(ele.direction{1})(ele.story+1)/story.story_ht(story.id == 1); % Update this to read from story
         columns.failure_mech_analysis{i} = 'ADD FAILURE MECH'; % Need to dynamically check this
         columns.failure_mech_recorded{i} = 'ADD FAILURE MECH'; % need to hard cod from ICSB documenta
         columns.damage_image{i} = ['Fig - ', columns.member_id{i}];

@@ -24,9 +24,9 @@ end
 
 % Load spectral info and save Sa
 spectra_table = readtable([ground_motion.x.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
-summary.sa_x = interp1(spectra_table.period,spectra_table.psa_5,building_period.ew)*scale_factor;
+summary.sa_x = interp1(spectra_table.period,spectra_table.psa_5,building_period(1))*scale_factor;
 spectra_table = readtable([ground_motion.z.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
-summary.sa_z = interp1(spectra_table.period,spectra_table.psa_5,building_period.ns)*scale_factor;
+summary.sa_z = interp1(spectra_table.period,spectra_table.psa_5,building_period(2))*scale_factor;
 
 % Write Recorders File
 file_name = [opensees_outputs_dir filesep 'recorders.tcl'];
@@ -51,7 +51,7 @@ end
 fclose(fileID);
 
 % Write Loads file
-fn_define_loads( opensees_outputs_dir, analysis, node, model.dimension, story, 0, 0, ground_motion )
+fn_define_loads( opensees_outputs_dir, analysis, node, model.dimension, story, element, ground_motion )
 
 % Write Analysis Files
 first_story_node = node.id(node.primary_story == 1);

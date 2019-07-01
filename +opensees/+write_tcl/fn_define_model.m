@@ -43,11 +43,17 @@ for i = 1:length(node.id)
 end
 
 %% Define nodal masses (horizontal) (k-s2/in)
+add_mass = 0.5*(150/386); % one cubic foot of concrete
+new_mass = max(node.mass,add_mass);
+prcnt_chng = (sum(new_mass) - sum(node.mass)) / sum(node.mass);
+if prcnt_chng > 0.01
+    error('added too much mass')
+end
 for i = 1:length(node.id)
     if strcmp(dimension,'2D')
         fprintf(fileID,'mass %i %f 0. 0. \n',node.id(i), node.mass(i));
     elseif strcmp(dimension,'3D')
-        fprintf(fileID,'mass %i %f 0. %f 0. 0. 0. \n',node.id(i), node.mass(i), node.mass(i));
+        fprintf(fileID,'mass %i %f 0. %f 0. 0. 0. \n',node.id(i), new_mass(i), new_mass(i));
     end
 end
 

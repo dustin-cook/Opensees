@@ -10,7 +10,7 @@ clc
 % Define Model
 analysis.model_id = 11;
 analysis.proceedure = 'NDP';
-analysis.id = 38;
+analysis.id = 3;
 analysis.summit = 0;
 analysis.run_ida = 1;
 analysis.post_process_ida = 0;
@@ -18,9 +18,11 @@ analysis.plot_ida = 0;
 analysis.gm_set = 'FEMA_far_field';
 
 % IDA Inputs
-hazard.curve.rp = [22, 35, 64, 108, 144];
-hazard.curve.pga = [0.128, 0.192, 0.288, 0.376, 0.425];
-% hazard.curve.rp = [22, 35, 43, 64, 72, 108, 144, 224, 475, 975, 2475, 4975];
+% hazard.curve.rp = [22, 35, 64, 108, 144];
+% hazard.curve.pga = [0.128, 0.192, 0.288, 0.376, 0.425];
+hazard.curve.rp = [22, 35, 43, 64, 72, 108, 144, 224, 475, 975, 2475, 4975];
+hazard.curve.pga = [0.128, 0.192, 0.224, 0.288, 0.308, 0.376, 0.425 0.502, 0.635, 0.766, 0.946, 1.082];
+% hazard.curve.rp = [43, 72, 224, 475, 975, 2475, 4975];
 % hazard.curve.pga = [0.224, 0.308, 0.502, 0.635, 0.766, 0.946, 1.082];
 analysis.collapse_drift = 0.06;
 
@@ -54,10 +56,10 @@ mu_t_ew = 0.016 / 0.005; % rough estimate from pushover (may be slightly higher)
 mu_t_ns = 0.004 / 0.0017; % rough estimate from pushover (may be slightly higher)
 
 % MCE
-building_period.ew = 1.14;
-building_period.ns = 0.44;
-MCE_ew = 0.79; % MCE Max from SP3, fixed to this site and model period
-MCE_ns = 1.55; % MCE Max from SP3, fixed to this site and model period
+ida_results.direction = {'EW'; 'NS'};
+ida_results.period = [1.14; 0.44];
+ida_results.spectra = [0.35; 0.77];
+ida_results.mce = [0.53; 1.36]; % MCE Max from SP3, fixed to this site and model period
 
 % SSF (based on table 7-1b)
 SSF_ew = interp1([3,4], [1.275, 1.33],mu_t_ew);
@@ -93,19 +95,19 @@ IDA_scale_factors = hazard.curve.pga ./ gm_median_pga;
 
 %% Run Opensees Models
 if analysis.run_ida || analysis.post_process_ida
-parpool; % Set up Parallel Workers
+% parpool; % Set up Parallel Workers
 for i = 1:length(IDA_scale_factors)
     error_count = 0;
     scale_factor = IDA_scale_factors(i);
     analysis.ground_motion_scale_factor = scale_factor;
     run_ida = analysis.run_ida;
-    parfor gms = 1:height(gm_set_table)
+    for gms = 1:height(gm_set_table)
         % Run Opensees
         if run_ida
             % Suppress MATLAB warnings
             warning('off','all')
             fprintf('Running Scale Factor %4.2f for Ground Motion ID: %i-%i \n\n', scale_factor, gm_set_table.set_id(gms), gm_set_table.pair(gms))
-            [exit_status] = fn_main_IDA(analysis, model, story, element, node, hinge, gm_set_table, gms, scale_factor, building_period, tcl_dir);
+            [exit_status] = fn_main_IDA(analysis, model, story, element, node, hinge, gm_set_table, gms, scale_factor, ida_results.period, tcl_dir);
             if exit_status == 1
                 error_count = error_count + 1;
             end
@@ -121,7 +123,7 @@ for i = 1:length(IDA_scale_factors)
     end
     fprintf('%i Failed GMs for Scale Factor %4.2f \n\n', error_count, scale_factor)
 end
-delete(gcp('nocreate')) % End Parallel Process
+% delete(gcp('nocreate')) % End Parallel Process
 end
 
 %% Plot Results
@@ -136,10 +138,11 @@ if analysis.plot_ida
             % Load data
             outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Summary Data' '/' 'Scale_' num2str(IDA_scale_factors(i)) '/' 'GM_' num2str(gm_set_table.set_id(gms)) '_' num2str(gm_set_table.pair(gms))];
             outputs_file = [outputs_dir filesep 'summary_results.mat'];
-            if exist(outputs_file,'file')
+            hinge_file = [outputs_dir filesep 'hinge_analysis.mat'];
+            if exist(outputs_file,'file') && exist(hinge_file,'file')
                 id = id + 1;
                 load(outputs_file)
-                load([outputs_dir filesep 'hinge_analysis.mat'])
+                load(hinge_file)
                 ida.id(id,1) = id;
                 ida.scale(id,1) = IDA_scale_factors(i);
                 ida.gm_name{id,1} = gm_set_table.eq_name{gms};
@@ -147,27 +150,55 @@ if analysis.plot_ida
                 ida.sa_z(id,1) = summary.sa_z;
                 ida.drift_x(id,1) = summary.max_drift_x;
                 ida.drift_z(id,1) = summary.max_drift_z;
-                ida.collapse(id,1) = summary.collapse;
+                if ida.drift_x(id,1) > 0.1 || ida.drift_z(id,1) > 0.1
+                    ida.collapse(id,1) = 5; % Omit 1 case of extreme drift that doesnt make sense
+                else
+                    ida.collapse(id,1) = summary.collapse;
+                end
                 if isfield(summary,'collapse_direction')
                     ida.collapse_direction{id,1} = summary.collapse_direction;
                 end
                 col_base_filter = hinge.story == 1 & hinge.ele_side == 1 & strcmp(hinge.direction,'primary') & ismember(hinge.element_id,col_ids);
-                col_b_ratios = hinge.b_ratio(col_base_filter);
-                ida.num_b(id,1) = sum(col_b_ratios >= 1.0);
+                col_hinges = hinge(col_base_filter,:);
+                col_b_ratios = col_hinges.b_ratio;
+                ida.b_cols{id,1} = col_hinges.node_1(col_b_ratios >= 1.0);
+                if summary.collapse == 3 || summary.collapse == 1
+                    ida.num_b(id,1) = length(col_b_ratios);
+                else
+                    ida.num_b(id,1) = sum(col_b_ratios >= 1.0);
+                end
                 ida.percent_b(id,1) = ida.num_b(id,1) / length(col_b_ratios);
-                ida.num_15b(id,1) = sum(col_b_ratios >= 1.5);
-                ida.percent_15b(id,1) = ida.num_15b(id,1) / length(col_b_ratios);
                 col_io_ratios = hinge.io_ratio(col_base_filter);
-                ida.num_io(id,1) = sum(col_io_ratios >= 1.0);
+                ida.io_cols{id,1} = col_hinges.node_1(col_io_ratios >= 1.0);
+                if summary.collapse == 3 || summary.collapse == 1
+                    ida.num_io(id,1) = length(col_io_ratios);
+                else
+                    ida.num_io(id,1) = sum(col_io_ratios >= 1.0);
+                end
                 ida.percent_io(id,1) = ida.num_io(id,1) / length(col_io_ratios);
                 col_ls_ratios = hinge.ls_ratio(col_base_filter);
-                ida.num_ls(id,1) = sum(col_ls_ratios >= 1.0);
+                ida.ls_cols{id,1} = col_hinges.node_1(col_ls_ratios >= 1.0);
+                if summary.collapse == 3 || summary.collapse == 1
+                    ida.num_ls(id,1) = length(col_ls_ratios);
+                else
+                    ida.num_ls(id,1) = sum(col_ls_ratios >= 1.0);
+                end
                 ida.percent_ls(id,1) = ida.num_ls(id,1) / length(col_ls_ratios);                
                 col_cp_ratios = hinge.cp_ratio(col_base_filter);
-                ida.num_cp(id,1) = sum(col_cp_ratios >= 1.0);
+                ida.cp_cols{id,1} = col_hinges.node_1(col_cp_ratios >= 1.0);
+                if summary.collapse == 3 || summary.collapse == 1
+                    ida.num_cp(id,1) = length(col_cp_ratios);
+                else
+                    ida.num_cp(id,1) = sum(col_cp_ratios >= 1.0);
+                end
                 ida.percent_cp(id,1) = ida.num_cp(id,1) / length(col_cp_ratios);
                 col_euro_ratios = hinge.euro_V_NC_ratio;
-                ida.num_euro(id,1) = sum(col_euro_ratios >= 1.0);
+                ida.euro_cols{id,1} = col_hinges.node_1(col_euro_ratios >= 1.0);
+                if summary.collapse == 3 || summary.collapse == 1
+                    ida.num_euro(id,1) = length(col_euro_ratios);
+                else
+                    ida.num_euro(id,1) = sum(col_euro_ratios >= 1.0);
+                end
                 ida.percent_euro(id,1) = ida.num_euro(id,1) / length(col_euro_ratios);
             else
                 id_missing = id_missing + 1;
@@ -184,25 +215,24 @@ if analysis.plot_ida
     failed_convergence = ida_table(ida_table.collapse == 5,:);
     ida_table(ida_table.collapse == 5,:) = [];
     
-    
     % Save Tabular Results as CSVs
-    writetable(ida_table,[plot_dir filesep 'ida_results.csv'])
-    writetable(struct2table(missing_ida),[plot_dir filesep 'missing_ida_results.csv'])
-    writetable(failed_convergence,[plot_dir filesep 'failed_convergence_results.csv'])
+    writetable(ida_table,[plot_dir filesep 'ida_table.csv'])
+    writetable(struct2table(missing_ida),[plot_dir filesep 'idas_missing.csv'])
+    writetable(failed_convergence,[plot_dir filesep 'idas_failed_convergence.csv'])
     
     %% Calculate Median Drifts and Accels
     for i = 1:length(IDA_scale_factors)
         % Spectral Accelration
         frag.med_sa_ew(i,1) = exp(mean(log(ida_table.sa_x(ida_table.scale == IDA_scale_factors(i)))));
+        frag.p_15_sa_ew(i,1) = prctile(ida_table.sa_x(ida_table.scale == IDA_scale_factors(i)),15);
+        frag.p_85_sa_ew(i,1) = prctile(ida_table.sa_x(ida_table.scale == IDA_scale_factors(i)),85);
         frag.med_sa_ns(i,1) = exp(mean(log(ida_table.sa_z(ida_table.scale == IDA_scale_factors(i)))));
+        frag.p_15_sa_ns(i,1) = prctile(ida_table.sa_z(ida_table.scale == IDA_scale_factors(i)),15);
+        frag.p_85_sa_ns(i,1) = prctile(ida_table.sa_z(ida_table.scale == IDA_scale_factors(i)),85);
 
         % Drift
         frag.mean_idr_ew(i,1) = mean(ida_table.drift_x(ida_table.scale == IDA_scale_factors(i)));
-        frag.std_p_idr_ew(i,1) = frag.mean_idr_ew(i,1) + std(ida_table.drift_x(ida_table.scale == IDA_scale_factors(i)));
-        frag.std_n_idr_ew(i,1) = frag.mean_idr_ew(i,1) - std(ida_table.drift_x(ida_table.scale == IDA_scale_factors(i)));
         frag.mean_idr_ns(i,1) = exp(mean(log(ida_table.drift_z(ida_table.scale == IDA_scale_factors(i)))));
-        frag.std_p_idr_ns(i,1) = frag.mean_idr_ns(i,1) + std(ida_table.drift_x(ida_table.scale == IDA_scale_factors(i)));
-        frag.std_n_idr_ns(i,1) = frag.mean_idr_ns(i,1) - std(ida_table.drift_x(ida_table.scale == IDA_scale_factors(i)));
     end
     
     %% Plot IDA curves
@@ -213,11 +243,13 @@ if analysis.plot_ida
         set(get(get(ida_plt,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
     end
     plot(frag.mean_idr_ew,frag.med_sa_ew,'b','lineWidth',1.5,'DisplayName','Mean Drift')
-    plot(frag.std_p_idr_ew,frag.med_sa_ew,'--b','lineWidth',1.5,'DisplayName','+/-STD')
-    ida_plt = plot(frag.std_n_idr_ew,frag.med_sa_ew,'--b','lineWidth',1.5);
-    set(get(get(ida_plt,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+    plot(frag.mean_idr_ew,frag.p_15_sa_ew,'--b','lineWidth',1.5,'DisplayName','15th Percentile')
+    plot(frag.mean_idr_ew,frag.p_85_sa_ew,'--b','lineWidth',1.5,'DisplayName','85th Percentile')
+    plot([0,0.08],[ida_results.spectra(1),ida_results.spectra(1)],'--k','lineWidth',1.5,'DisplayName','ICSB Motion')
+%     set(get(get(ida_plt,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+    xlim([0 0.08])
     xlabel('Max Drift')
-    ylabel('Sa(T_1) (g)')
+    ylabel('Sa(T_1=1.14s) (g)')
     fn_format_and_save_plot( plot_dir, 'IDA Plot EW Frame Direction', 1 )
     hold on
     for gms = 1:height(gm_set_table)
@@ -225,11 +257,13 @@ if analysis.plot_ida
         set(get(get(ida_plt,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
     end
     plot(frag.mean_idr_ns,frag.med_sa_ns,'b','lineWidth',1.5,'DisplayName','Mean Drift')
-    plot(frag.std_p_idr_ns,frag.med_sa_ns,'--b','lineWidth',1.5,'DisplayName','+/-STD')
-    ida_plt = plot(frag.std_n_idr_ns,frag.med_sa_ns,'--b','lineWidth',1.5);
-    set(get(get(ida_plt,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+    plot(frag.mean_idr_ns,frag.p_15_sa_ns,'--b','lineWidth',1.5,'DisplayName','15th Percentile')
+    plot(frag.mean_idr_ns,frag.p_85_sa_ns,'--b','lineWidth',1.5,'DisplayName','85th Percentile')
+    plot([0,0.08],[ida_results.spectra(2),ida_results.spectra(2)],'--k','lineWidth',1.5,'DisplayName','ICSB Motion')
+%     set(get(get(ida_plt,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+    xlim([0 0.08])
     xlabel('Max Drift')
-    ylabel('Sa(T_1) (g)')
+    ylabel('Sa(T_1=0.44s) (g)')
     fn_format_and_save_plot( plot_dir, 'IDA Plot NS Wall Direction', 1 )
     
     %% Collect frag curve info
@@ -239,10 +273,12 @@ if analysis.plot_ida
     frag_ls = [];
     frag_cp = [];
     frag_euro = [];
+    frag_b_drift = [];
     for i = 1:length(IDA_scale_factors)
         % Regular Collapse
         collapse_ids = ida_table.collapse(ida_table.scale == IDA_scale_factors(i));
         frag.num_gms(i,1) = length(collapse_ids);
+        frag.num_gms_drift(i,1) = sum(ida_table.scale == IDA_scale_factors(i) & ida_table.collapse ~= 3);
         frag.num_collapse_drift(i,1) = sum(collapse_ids == 1);
         frag.num_collapse_convergence(i,1) = sum(collapse_ids == 3);
         frag.num_collapse_tot(i,1) = frag.num_collapse_drift(i,1) + frag.num_collapse_convergence(i,1);
@@ -254,6 +290,9 @@ if analysis.plot_ida
         percent_b = ida_table.percent_b(ida_table.scale == IDA_scale_factors(i));
         num_b = ida_table.num_b(ida_table.scale == IDA_scale_factors(i));
         [frag_b] = fn_exceedance_values(frag_b, i, num_b, percent_b);
+        percent_b_drift = ida_table.percent_b(ida_table.scale == IDA_scale_factors(i) & ida_table.collapse ~= 3);
+        num_b_drift = ida_table.num_b(ida_table.scale == IDA_scale_factors(i) & ida_table.collapse ~= 3);
+        [frag_b_drift] = fn_exceedance_values(frag_b_drift, i, num_b_drift, percent_b_drift);
         
         % IO
         percent_io = ida_table.percent_io(ida_table.scale == IDA_scale_factors(i));
@@ -278,53 +317,81 @@ if analysis.plot_ida
     
     %% Calculate Post Fragulity Curve P695 factors
     % Collapse Median Sa
-    Sa_med_col_ew = max(frag.med_sa_ew(frag.prob_collapse_tot <= 0.5));
-    Sa_med_col_ns = max(frag.med_sa_ns(frag.prob_collapse_tot <= 0.5));
+    ida_results.sa_med_col(1,1) = max(frag.med_sa_ew(frag.prob_collapse_tot <= 0.5));
+    ida_results.sa_med_col(2,1) = max(frag.med_sa_ns(frag.prob_collapse_tot <= 0.5));
     
     % Collapse Margin Ratio
-    CMR_ew = Sa_med_col_ew / MCE_ew;
-    CMR_ns = Sa_med_col_ns / MCE_ns;
+    ida_results.cmr(1,1) = ida_results.sa_med_col(1) / ida_results.mce(1);
+    ida_results.cmr(2,1) = ida_results.sa_med_col(2) / ida_results.mce(2);
     
     % Adjust for SSF and 3D
-    ACMR_ew = 1.2*SSF_ew*CMR_ew;
-    ACMR_ns = 1.2*SSF_ns*CMR_ns;
+    ida_results.acmr(1,1) = 1.2*SSF_ew*ida_results.cmr(1);
+    ida_results.acmr(2,1) = 1.2*SSF_ns*ida_results.cmr(2);
+    median_adjustment(1) = ida_results.sa_med_col(1)*(1.2*SSF_ew - 1);
+    median_adjustment(2) = ida_results.sa_med_col(2)*(1.2*SSF_ns - 1);
     
     % Create Fragility curves based on P695
     x_points = 0:0.01:2;
-    p695_frag_curve_ew = logncdf(x_points,log(Sa_med_col_ew),beta_rtr);
-    p695_frag_curve_ns = logncdf(x_points,log(Sa_med_col_ns),beta_rtr);
+    x_points_adjused_x = x_points + median_adjustment(1);
+    x_points_adjused_z = x_points + median_adjustment(2);
+%     p695_frag_curve_ew = logncdf(x_points,log(Sa_med_col_ew),beta_rtr);
+%     p695_frag_curve_ns = logncdf(x_points,log(Sa_med_col_ns),beta_rtr);
     
     % Create Fragility Curves based on Baker MLE
-    [col_frag_curve_ew_drift, ~] = fn_calc_frag_curve(x_points, frag.med_sa_ew, frag.num_gms, frag.num_collapse_drift);
-    [col_frag_curve_ns_drift, ~] = fn_calc_frag_curve(x_points, frag.med_sa_ns, frag.num_gms, frag.num_collapse_drift);
+    [col_frag_curve_ew_drift, ~] = fn_calc_frag_curve(x_points, frag.med_sa_ew, frag.num_gms_drift, frag.num_collapse_drift);
+    [col_frag_curve_ns_drift, ~] = fn_calc_frag_curve(x_points, frag.med_sa_ns, frag.num_gms_drift, frag.num_collapse_drift);
     [col_frag_curve_ew_convergence, ~] = fn_calc_frag_curve(x_points, frag.med_sa_ew, frag.num_gms, frag.num_collapse_convergence);
     [col_frag_curve_ns_convergence, ~] = fn_calc_frag_curve(x_points, frag.med_sa_ns, frag.num_gms, frag.num_collapse_convergence);
     [col_frag_curve_ew_tot, col_frag_curve_full_ew_tot] = fn_calc_frag_curve(x_points, frag.med_sa_ew, frag.num_gms, frag.num_collapse_tot);
     [col_frag_curve_ns_tot, col_frag_curve_full_ns_tot] = fn_calc_frag_curve(x_points, frag.med_sa_ns, frag.num_gms, frag.num_collapse_tot);
     [frag_b] = fn_multi_frag_curves(x_points, frag_b, frag.med_sa_ew, frag.num_gms);
+    [frag_b_drift] = fn_multi_frag_curves(x_points, frag_b_drift, frag.med_sa_ew, frag.num_gms_drift);
     [frag_io] = fn_multi_frag_curves(x_points, frag_io, frag.med_sa_ew, frag.num_gms);
     [frag_ls] = fn_multi_frag_curves(x_points, frag_ls, frag.med_sa_ew, frag.num_gms);
     [frag_cp] = fn_multi_frag_curves(x_points, frag_cp, frag.med_sa_ew, frag.num_gms);
     [frag_euro] = fn_multi_frag_curves(x_points, frag_euro, frag.med_sa_ew, frag.num_gms);
     
+    % Adjust Collapse curves based on  
+    
+    
+    %% Save IDA results as table
+    [~, idx] = min(abs(x_points_adjused_x - ida_results.mce(1)));
+    ida_results.p_col_mce(1,1) = col_frag_curve_ew_tot(idx);
+    [~, idx] = min(abs(x_points_adjused_z - ida_results.mce(2)));
+    ida_results.p_col_mce(2,1) = col_frag_curve_ns_tot(idx);
+    ida_results_table = struct2table(ida_results);
+    writetable(ida_results_table,[plot_dir filesep 'ida_results.csv'])
+    
     %% Plot Frag Curves    
-    % Total Collapse
+    % Total Collapse with discrete scatter
     figure
     hold on
     title('P695 Collapse Fragility') 
     sct = scatter(frag.med_sa_ew,frag.prob_collapse_tot,'b','filled');
     set(get(get(sct,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-    plot(x_points,p695_frag_curve_ew,'b','DisplayName','EW Frame - P695 Curve')
-    plot(x_points,col_frag_curve_ew_tot,'--b','DisplayName','EW Frame - MLE Curve')
-    plot(x_points,col_frag_curve_full_ew_tot,':b','DisplayName','EW Frame - MLE with Uncertainty')
+    plot(x_points,col_frag_curve_ew_tot,'b','DisplayName','EW Frame')
+    plot([ida_results.spectra(1),ida_results.spectra(1)],[0,1],':b','lineWidth',1.5,'DisplayName','EW Frame - ICSB Level')
     sct = scatter(frag.med_sa_ns,frag.prob_collapse_tot,'k','filled');
     set(get(get(sct,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-    plot(x_points,p695_frag_curve_ns,'k','DisplayName','NS Wall - P695 Curve')
-    plot(x_points,col_frag_curve_ns_tot,'--k','DisplayName','NS Wall - MLE Curve')
-    plot(x_points,col_frag_curve_full_ns_tot,':k','DisplayName','NS Frame - MLE with Uncertainty')
-    xlabel('Median Sa (g)')
+    plot(x_points,col_frag_curve_ns_tot,'k','DisplayName','NS Wall')
+    plot([ida_results.spectra(2),ida_results.spectra(2)],[0,1],':k','lineWidth',1.5,'DisplayName','NS Wall - ICSB Level')
+    xlabel('Sa(T_1) (g)')
     ylabel('P[Collapse]')
     fn_format_and_save_plot( plot_dir, 'Collapse Fragility', 5 )
+    
+    % Total Collapse with 695 adjustments
+    figure
+    hold on
+    title('P695 Collapse Fragility') 
+    plot(x_points,col_frag_curve_ew_tot,'b','DisplayName','EW Frame')
+    plot(x_points_adjused_x,col_frag_curve_ew_tot,'--b','DisplayName','EW Frame - Adjusted')
+    plot(x_points_adjused_x,col_frag_curve_full_ew_tot,':b','DisplayName','EW Frame - Full Uncertainty')
+    plot(x_points,col_frag_curve_ns_tot,'k','DisplayName','NS Wall')
+    plot(x_points_adjused_z,col_frag_curve_ns_tot,'--k','DisplayName','NS Wall - Adjusted')
+    plot(x_points_adjused_z,col_frag_curve_full_ns_tot,':k','DisplayName','NS Wall - Full Uncertainty')
+    xlabel('Sa(T_1) (g)')
+    ylabel('P[Collapse]')
+    fn_format_and_save_plot( plot_dir, 'Collapse Fragility with 695 Uncertainty', 5 )
     
     % Total v 6% v Convergence
     figure
@@ -333,78 +400,89 @@ if analysis.plot_ida
     plot(frag.med_sa_ew,frag.prob_collapse_tot,'k','DisplayName','Total');
     plot(frag.med_sa_ew,frag.prob_collapse_drift,'b','DisplayName','6% Drift');
     plot(frag.med_sa_ew,frag.prob_collapse_convergence,'r','DisplayName','Nonconvergence');
-    xlabel('Median Sa (g)')
+    xlabel('Sa(T_1=1.14) (g)')
     ylabel('P[Collapse]')
+    xlim([0 1])
     fn_format_and_save_plot( plot_dir, 'Collapse Fragility Breakdown - EW', 5 )
     
     % Column B Value
     figure
     hold on
     title('First Story Column Base B-Value Fragility: EW')
-    fn_plot_frag_curves(x_points, frag_b, frag.med_sa_ew)
-    ylabel('P[Exceeding Column Base B-Value]')
-    fn_format_and_save_plot( plot_dir, 'Collapse Fragility - b ratio - EW', 5 )
+    plot_name = 'Collapse Fragility - b ratio - EW';
+    fn_plot_frag_curves(x_points, frag_b, frag.med_sa_ew, col_frag_curve_ew_tot, col_frag_curve_ew_drift, ida_results.spectra(1), plot_name, plot_dir)
+
+    % Column B Value - just drift
+    figure
+    hold on
+    title('First Story Column Base B-Value Fragility: EW')
+    plot_name = 'Collapse Fragility - b ratio - EW - Ignoring Convergence';
+    fn_plot_frag_curves(x_points, frag_b_drift, frag.med_sa_ew, col_frag_curve_ew_tot, col_frag_curve_ew_drift, ida_results.spectra(1), plot_name, plot_dir)
     
     % Column IO
     figure
     hold on
     title('First Story Column Base IO Fragility: EW')
-    fn_plot_frag_curves(x_points, frag_io, frag.med_sa_ew)
-    ylabel('P[Exceeding Column Base IO]')
-    fn_format_and_save_plot( plot_dir, 'Collapse Fragility - io - EW', 5 )
+    plot_name = 'Collapse Fragility - io - EW';
+    fn_plot_frag_curves(x_points, frag_io, frag.med_sa_ew, col_frag_curve_ew_tot, col_frag_curve_ew_drift, ida_results.spectra(1), plot_name, plot_dir)
     
     % Column LS
     figure
     hold on
     title('First Story Column Base LS Fragility: EW')
-    fn_plot_frag_curves(x_points, frag_ls, frag.med_sa_ew)
-    ylabel('P[Exceeding Column Base LS]')
-    fn_format_and_save_plot( plot_dir, 'Collapse Fragility - ls - EW', 5 )
+    plot_name = 'Collapse Fragility - ls - EW';
+    fn_plot_frag_curves(x_points, frag_ls, frag.med_sa_ew, col_frag_curve_ew_tot, col_frag_curve_ew_drift, ida_results.spectra(1), plot_name, plot_dir)
     
     % Column CP
     figure
     hold on
     title('First Story Column Base CP Fragility: EW')
-    fn_plot_frag_curves(x_points, frag_cp, frag.med_sa_ew)
-    ylabel('P[Exceeding Column Base CP]')
-    fn_format_and_save_plot( plot_dir, 'Collapse Fragility - cp - EW', 5 )
+    plot_name = 'Collapse Fragility - cp - EW';
+    fn_plot_frag_curves(x_points, frag_cp, frag.med_sa_ew, col_frag_curve_ew_tot, col_frag_curve_ew_drift, ida_results.spectra(1), plot_name, plot_dir)
     
     % Column Eurocode
     figure
     hold on
     title('First Story Column Base Eurocode Fragility: EW')
-    fn_plot_frag_curves(x_points, frag_euro, frag.med_sa_ew)
-    ylabel('P[Exceeding Column Base Eurocode Acceptance]')
-    fn_format_and_save_plot( plot_dir, 'Collapse Fragility - euro - EW', 5 )
+    plot_name = 'Collapse Fragility - euro - EW';
+    fn_plot_frag_curves(x_points, frag_euro, frag.med_sa_ew, col_frag_curve_ew_tot, col_frag_curve_ew_drift, ida_results.spectra(1), plot_name, plot_dir)
     
     % Combined acceptance plots
-    color4 = [166,97,26
-      223,194,125
-      128,205,193
-      1,133,113]/255;
+%     color4 = [166,97,26
+%       223,194,125
+%       128,205,193
+%       1,133,113]/255;
+  
+      matlab_colors = [0 0.4470 0.7410;
+              0.85 0.325 0.0980;
+              0.929 0.694 0.1250;
+              0.494 0.184 0.556;
+              0.466 0.674 0.188;
+              0.301 0.7445 0.933;
+              0.635 0.078 0.184];
 
     figure
     hold on
-    title('Frist Story Column Base Acceptance Criteria: EW') 
-    sct = scatter(frag.med_sa_ew,frag_io.prob_first,[],color4(1,:),'filled');
+    title('First Story Column Base Acceptance Criteria: EW') 
+    sct = scatter(frag.med_sa_ew,frag_io.prob_first,[],matlab_colors(1,:),'filled');
     set(get(get(sct,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-    plot(x_points,frag_io.frag_curve_ew_first,'color',color4(1,:),'DisplayName','First IO Column')
-    sct = scatter(frag.med_sa_ew,frag_ls.prob_first,[],color4(2,:),'filled');
+    plot(x_points,frag_io.frag_curve_ew_first,'color',matlab_colors(1,:),'lineWidth',1.5,'DisplayName','First IO Column')
+    sct = scatter(frag.med_sa_ew,frag_ls.prob_first,[],matlab_colors(2,:),'filled');
     set(get(get(sct,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-    plot(x_points,frag_ls.frag_curve_ew_first,'color',color4(2,:),'DisplayName','First LS Column')
-    sct = scatter(frag.med_sa_ew,frag_cp.prob_first,[],color4(3,:),'filled');
+    plot(x_points,frag_ls.frag_curve_ew_first,'color',matlab_colors(2,:),'lineWidth',1.5,'DisplayName','First LS Column')
+    sct = scatter(frag.med_sa_ew,frag_cp.prob_first,[],matlab_colors(3,:),'filled');
     set(get(get(sct,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-    plot(x_points,frag_cp.frag_curve_ew_first,'color',color4(3,:),'DisplayName','First CP Column')
-    sct = scatter(frag.med_sa_ew,frag_euro.prob_first,[],color4(4,:),'filled');
-    set(get(get(sct,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-    plot(x_points,frag_euro.frag_curve_ew_first,'color',color4(4,:),'DisplayName','First Euro Column')
-    xlabel('Median Sa (g)')
-    ylabel('P[Exceeding Column Base Accepatance Criteria]')
+    plot(x_points,frag_cp.frag_curve_ew_first,'color',matlab_colors(3,:),'lineWidth',1.5,'DisplayName','First CP Column')
+%     sct = scatter(frag.med_sa_ew,frag_euro.prob_first,[],color4(4,:),'filled');
+%     set(get(get(sct,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+%     plot(x_points,frag_euro.frag_curve_ew_first,'color',color4(4,:),'DisplayName','First Euro Column')
+    xlabel('Sa(T_1=1.14) (g)')
+    ylabel('P[Exceedance]')
+    xlim([0 1])
     fn_format_and_save_plot( plot_dir, 'Collapse Fragility - Acceptance Criteria - EW', 5 )
     
     % Save Collapse Fragilty Table
     
-
 end
 
 function [frag_curve_MLE, frag_curve_full_uncertainty] = fn_calc_frag_curve(x_points, med_sa, num_gms, num_collapse)
@@ -442,32 +520,75 @@ function [frag] = fn_multi_frag_curves(x_points, frag, med_sa_ew, num_gms)
     
 end
 
-function [ ] = fn_plot_frag_curves(x_points, frag, med_sa_ew)    
-    color6 = [140,81,10;
-              216,179,101;
-              246,232,195;
-              199,234,229;
-              90,180,172;
-              1,102,94]/255;
+function [ ] = fn_plot_frag_curves(x_points, frag, med_sa_ew, col_frag_curve, col_frag_curve_drift, icsb_motion, plot_name, plot_dir)    
+% Import packages
+import plotting_tools.fn_format_and_save_plot
+
+%     color6 = [140,81,10;
+%               216,179,101;
+%               246,232,195;
+%               199,234,229;
+%               90,180,172;
+%               1,102,94]/255;
           
-    sct = scatter(med_sa_ew,frag.prob_first,[],color6(1,:),'filled');
+%     color6 = [166 206 227;
+%               31 120 180;
+%               175 223 138;
+%               51 160 44;
+%               251 154 153;
+%               227 26 28]/255;
+%           
+%           
+                    
+    matlab_colors = [0 0.4470 0.7410;
+              0.85 0.325 0.0980;
+              0.929 0.694 0.1250;
+              0.494 0.184 0.556;
+              0.466 0.674 0.188;
+              0.301 0.7445 0.933;
+              0.635 0.078 0.184];
+              
+    % Plot 1
+    sct = scatter(med_sa_ew,frag.prob_first,[],matlab_colors(1,:),'filled');
     set(get(get(sct,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-    plot(x_points,frag.frag_curve_ew_first,'color',color6(1,:),'DisplayName','First Column Base')
-    sct = scatter(med_sa_ew,frag.prob_10,[],color6(2,:),'filled');
+    plot(x_points,frag.frag_curve_ew_first,'color',matlab_colors(1,:),'lineWidth',1.5,'DisplayName','First Column Base')
+    sct = scatter(med_sa_ew,frag.prob_10,[],matlab_colors(2,:),'filled');
     set(get(get(sct,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-    plot(x_points,frag.frag_curve_ew_10,'color',color6(2,:),'DisplayName','10% of Column Bases')
-    sct = scatter(med_sa_ew,frag.prob_25,[],color6(3,:),'filled');
+    plot(x_points,frag.frag_curve_ew_10,'color',matlab_colors(2,:),'lineWidth',1.5,'DisplayName','10% of Column Bases')
+    sct = scatter(med_sa_ew,frag.prob_25,[],matlab_colors(3,:),'filled');
     set(get(get(sct,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-    plot(x_points,frag.frag_curve_ew_25,'color',color6(3,:),'DisplayName','25% of Column Bases')
-    sct = scatter(med_sa_ew,frag.prob_50,[],color6(4,:),'filled');
+    plot(x_points,frag.frag_curve_ew_25,'color',matlab_colors(3,:),'lineWidth',1.5,'DisplayName','25% of Column Bases')
+    sct = scatter(med_sa_ew,frag.prob_50,[],matlab_colors(4,:),'filled');
     set(get(get(sct,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-    plot(x_points,frag.frag_curve_ew_50,'color',color6(4,:),'DisplayName','50% of Column Bases')
-    sct = scatter(med_sa_ew,frag.prob_75,[],color6(5,:),'filled');
+    plot(x_points,frag.frag_curve_ew_50,'color',matlab_colors(4,:),'lineWidth',1.5,'DisplayName','50% of Column Bases')
+    sct = scatter(med_sa_ew,frag.prob_75,[],matlab_colors(5,:),'filled');
     set(get(get(sct,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-    plot(x_points,frag.frag_curve_ew_75,'color',color6(5,:),'DisplayName','75% of Column Bases')
-    sct = scatter(med_sa_ew,frag.prob_100,[],color6(6,:),'filled');
+    plot(x_points,frag.frag_curve_ew_75,'color',matlab_colors(5,:),'lineWidth',1.5,'DisplayName','75% of Column Bases')
+    sct = scatter(med_sa_ew,frag.prob_100,[],matlab_colors(6,:),'filled');
     set(get(get(sct,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-    plot(x_points,frag.frag_curve_ew_100,'color',color6(6,:),'DisplayName','100% of Column Bases')
-    xlabel('Median Sa (g)')
+    plot(x_points,frag.frag_curve_ew_100,'color',matlab_colors(6,:),'lineWidth',1.5,'DisplayName','100% of Column Bases')
+    plot([icsb_motion icsb_motion],[0 1],'--k','lineWidth',1.5,'DisplayName','ICSB Motion')
+    xlabel('Sa(T_1=1.14) (g)')
+    
+    ylabel('P[Exceedance]')
+    xlim([0 1])
+    fn_format_and_save_plot( plot_dir, plot_name, 5 )
+    
+    % Plot 2
+    hold on
+    plot(x_points,frag.frag_curve_ew_first,'color',matlab_colors(1,:),'lineWidth',1.5,'DisplayName','First Column Base')
+    plot(x_points,frag.frag_curve_ew_10,'color',matlab_colors(2,:),'lineWidth',1.5,'DisplayName','10% of Column Bases')
+    plot(x_points,frag.frag_curve_ew_25,'color',matlab_colors(3,:),'lineWidth',1.5,'DisplayName','25% of Column Bases')
+    plot(x_points,frag.frag_curve_ew_50,'color',matlab_colors(4,:),'lineWidth',1.5,'DisplayName','50% of Column Bases')
+    plot(x_points,frag.frag_curve_ew_75,'color',matlab_colors(5,:),'lineWidth',1.5,'DisplayName','75% of Column Bases')
+    plot(x_points,frag.frag_curve_ew_100,'color',matlab_colors(6,:),'lineWidth',1.5,'DisplayName','100% of Column Bases')
+    plot(x_points,col_frag_curve,'k','lineWidth',2,'DisplayName','Collapse')
+%     plot(x_points,col_frag_curve_drift,':k','lineWidth',1.5,'DisplayName','Collapse from Drift')
+    plot([icsb_motion icsb_motion],[0 1],'--k','lineWidth',1.5,'DisplayName','ICSB Motion')
+    xlabel('Sa(T_1=1.14) (g)')
+    
+    ylabel('P[Exceedance]')
+    xlim([0 1])
+    fn_format_and_save_plot( plot_dir, [plot_name ' - plot2'], 5 )
     
 end

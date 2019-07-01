@@ -2,7 +2,7 @@ clear
 close
 clc
 
-%% Inpits
+%% Inputs
 direction = 'x';
 channel = '4';
 

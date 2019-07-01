@@ -31,29 +31,23 @@ end
 for i = 1:length(element.id)
     % Force Time Histories
     if analysis.type == 1 % dynamic analysis
-        if analysis.write_xml
-            ele_force_TH = fn_xml_read([opensees_dir filesep 'element_force_' num2str(i) '.xml']);
-        else
-            ele_force_TH = dlmread([opensees_dir filesep 'element_force_' num2str(i) '.txt'],' ');
-        end
+        ele_force_TH = fn_xml_read([opensees_dir filesep 'element_force_' num2str(i) '.xml']);
     else % pushover analysis
-        if analysis.write_xml
-            if strcmp(element.direction{i},'x')
-                ele_force_TH = fn_xml_read([opensees_dir filesep 'element_force_x_' num2str(i) '.xml']);
-                ele_force_TH_oop = fn_xml_read([opensees_dir filesep 'element_force_z_' num2str(i) '.xml']);
-            elseif strcmp(element.direction{i},'z')
-                ele_force_TH = fn_xml_read([opensees_dir filesep 'element_force_z_' num2str(i) '.xml']);
-                ele_force_TH_oop = fn_xml_read([opensees_dir filesep 'element_force_x_' num2str(i) '.xml']);
-            end
-        else
-            if strcmp(element.direction{i},'x')
-                ele_force_TH = dlmread([opensees_dir filesep 'element_force_x_' num2str(i) '.txt'],' ');
-                ele_force_TH_oop = dlmread([opensees_dir filesep 'element_force_z_' num2str(i) '.txt'],' ');
-            elseif strcmp(element.direction{i},'z')
-                ele_force_TH = dlmread([opensees_dir filesep 'element_force_z_' num2str(i) '.txt'],' ');
-                ele_force_TH_oop = dlmread([opensees_dir filesep 'element_force_x_' num2str(i) '.txt'],' ');
-            end
+        if strcmp(element.direction{i},'x')
+            ele_force_TH_pos = fn_xml_read([opensees_dir filesep 'element_force_x_' num2str(i) '.xml']);
+            ele_force_TH_oop_pos = fn_xml_read([opensees_dir filesep 'element_force_z_' num2str(i) '.xml']);
+            ele_force_TH_neg = fn_xml_read([opensees_dir filesep 'element_force_-x_' num2str(i) '.xml']);
+            ele_force_TH_oop_neg = fn_xml_read([opensees_dir filesep 'element_force_-z_' num2str(i) '.xml']);
+        elseif strcmp(element.direction{i},'z')
+            ele_force_TH_pos = fn_xml_read([opensees_dir filesep 'element_force_z_' num2str(i) '.xml']);
+            ele_force_TH_oop_pos = fn_xml_read([opensees_dir filesep 'element_force_x_' num2str(i) '.xml']);
+            ele_force_TH_neg = fn_xml_read([opensees_dir filesep 'element_force_-z_' num2str(i) '.xml']);
+            ele_force_TH_oop_neg = fn_xml_read([opensees_dir filesep 'element_force_-x_' num2str(i) '.xml']);
         end
+        min_push_length = min(length(ele_force_TH_pos(:,1)),length(ele_force_TH_neg(:,1)));
+        min_push_length_oop = min(length(ele_force_TH_oop_pos(:,1)),length(ele_force_TH_oop_neg(:,1)));
+        ele_force_TH = max(abs(ele_force_TH_pos(1:min_push_length,:)),abs(ele_force_TH_neg(1:min_push_length,:)));
+        ele_force_TH_oop = max(abs(ele_force_TH_oop_pos(1:min_push_length_oop,:)),abs(ele_force_TH_oop_neg(1:min_push_length_oop,:)));
     end
     for j = 1:length(comp_names)
         if contains(comp_names{j},'oop') && analysis.type == 2 % Pushover out of plane
@@ -96,47 +90,24 @@ clear element_TH
 %% Load hinge reactions and deformations
 % Load Hinge Data
 if analysis.nonlinear ~= 0 && ~isempty(hinge)
-    if analysis.write_xml
-        if exist([opensees_dir filesep 'hinge_rotation_x' '.xml'],'file')
-            [ hinge_deformation_x ] = fn_xml_read([opensees_dir filesep 'hinge_rotation_x' '.xml']);
-            [ hinge_force_x ] = fn_xml_read([opensees_dir filesep 'hinge_moment_x' '.xml']);
+    if exist([opensees_dir filesep 'hinge_rotation_x' '.xml'],'file')
+        [ hinge_deformation_x ] = fn_xml_read([opensees_dir filesep 'hinge_rotation_x' '.xml']);
+        [ hinge_force_x ] = fn_xml_read([opensees_dir filesep 'hinge_moment_x' '.xml']);
+    end
+    if strcmp(model.dimension,'3D')
+        if ~isempty(hinge(strcmp(hinge.ele_direction,'z'),:))
+            [ hinge_deformation_z ] = fn_xml_read([opensees_dir filesep 'hinge_deformation_z' '.xml']);
+            [ hinge_force_z ] = fn_xml_read([opensees_dir filesep 'hinge_shear_z' '.xml']);
         end
-        if strcmp(model.dimension,'3D')
-            if ~isempty(hinge(strcmp(hinge.ele_direction,'z'),:))
-                [ hinge_deformation_z ] = fn_xml_read([opensees_dir filesep 'hinge_deformation_z' '.xml']);
-                [ hinge_force_z ] = fn_xml_read([opensees_dir filesep 'hinge_shear_z' '.xml']);
-            end
-            
-            if ~isempty(hinge(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'oop'),:))
-                [ hinge_deformation_z_oop ] = fn_xml_read([opensees_dir filesep 'hinge_rotation_z_oop' '.xml']);
-                [ hinge_force_z_oop ] = fn_xml_read([opensees_dir filesep 'hinge_moment_z_oop' '.xml']);
-            end
 
-            if ~isempty(hinge(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'oop'),:))
-                [ hinge_deformation_x_oop ] = fn_xml_read([opensees_dir filesep 'hinge_rotation_x_oop' '.xml']);
-                [ hinge_force_x_oop ] = fn_xml_read([opensees_dir filesep 'hinge_moment_x_oop' '.xml']);
-            end
+        if ~isempty(hinge(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'oop'),:))
+            [ hinge_deformation_z_oop ] = fn_xml_read([opensees_dir filesep 'hinge_rotation_z_oop' '.xml']);
+            [ hinge_force_z_oop ] = fn_xml_read([opensees_dir filesep 'hinge_moment_z_oop' '.xml']);
         end
-    else
-        if exist([opensees_dir filesep 'hinge_rotation_x' '.txt'],'file')
-            hinge_deformation_x = dlmread([opensees_dir filesep 'hinge_rotation_x''.txt'],' ');
-            hinge_force_x = dlmread([opensees_dir filesep 'hinge_moment_x''.txt'],' ');
-        end
-        if strcmp(model.dimension,'3D')
-            if ~isempty(hinge(strcmp(hinge.ele_direction,'z'),:))
-                hinge_deformation_z = dlmread([opensees_dir filesep 'hinge_deformation_z' '.txt'],' ');
-                hinge_force_z = dlmread([opensees_dir filesep 'hinge_shear_z' '.txt'],' ');
-            end
 
-            if ~isempty(hinge(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'oop'),:))
-                [ hinge_deformation_z_oop ] = dlmread([opensees_dir filesep 'hinge_rotation_z_oop' '.txt'],' ');
-                [ hinge_force_z_oop ] = dlmread([opensees_dir filesep 'hinge_moment_z_oop' '.txt'],' ');
-            end
-            
-            if ~isempty(hinge(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'oop'),:))
-                hinge_deformation_x_oop = dlmread([opensees_dir filesep 'hinge_rotation_x_oop' '.txt'],' ');
-                hinge_force_x_oop = dlmread([opensees_dir filesep 'hinge_moment_x_oop' '.txt'],' ');
-            end
+        if ~isempty(hinge(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'oop'),:))
+            [ hinge_deformation_x_oop ] = fn_xml_read([opensees_dir filesep 'hinge_rotation_x_oop' '.xml']);
+            [ hinge_force_x_oop ] = fn_xml_read([opensees_dir filesep 'hinge_moment_x_oop' '.xml']);
         end
     end
 
@@ -229,12 +200,9 @@ for i = 1:length(dirs_ran)
    if analysis.type == 1 % Dynamic Analysis       
        for n = 1:height(node)
            if node.record_disp(n)
-               if analysis.write_xml
-                   [ node_disp_raw ] = fn_xml_read([opensees_dir filesep 'nodal_disp_' num2str(node.id(n)) '.xml']);
-                   node_disp_raw = node_disp_raw'; % flip to be node per row
-               else
-                   node_disp_raw = dlmread([opensees_dir filesep 'nodal_disp_' num2str(node.id(n)) '.txt'],' ')';
-               end
+               [ node_disp_raw ] = fn_xml_read([opensees_dir filesep 'nodal_disp_' num2str(node.id(n)) '.xml']);
+               node_disp_raw = node_disp_raw'; % flip to be node per row
+
                if strcmp(dirs_ran{i},'x')
                    node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2,:); 
                    node.(['max_disp_' dirs_ran{i}])(n) = max(abs(node_disp_raw(2,:)));
@@ -298,15 +266,11 @@ for i = 1:length(dirs_ran)
    elseif analysis.type == 2 || analysis.type == 3 % Pushover Analysis or Cyclic
         for n = 1:height(node)
            if node.record_disp(n)
-               if analysis.write_xml
-                   [ node_disp_raw ] = fn_xml_read([opensees_dir filesep 'nodal_disp_' dirs_ran{i} '_' num2str(node.id(n)) '.xml']);
-                   node_disp_raw = node_disp_raw'; % flip to be node per row
-               else
-                   node_disp_raw = dlmread([opensees_dir filesep 'nodal_disp_' dirs_ran{i} '_' num2str(node.id(n)) '.txt'],' ')';
-               end
-                   node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2,1:(end-clip)); 
-                   node.(['max_disp_' dirs_ran{i}])(n) = max(abs(node_disp_raw(2,:)));
-                   node.(['residual_disp_' dirs_ran{i}])(n) = NaN;
+               [ node_disp_raw ] = fn_xml_read([opensees_dir filesep 'nodal_disp_' dirs_ran{i} '_' num2str(node.id(n)) '.xml']);
+               node_disp_raw = node_disp_raw'; % flip to be node per row
+               node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2,1:(end-clip)); 
+               node.(['max_disp_' dirs_ran{i}])(n) = max(abs(node_disp_raw(2,:)));
+               node.(['residual_disp_' dirs_ran{i}])(n) = NaN;
            else
                node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' dirs_ran{i} '_TH']) = [];
                node.(['max_disp_' dirs_ran{i}])(n) = NaN;
@@ -320,13 +284,8 @@ for i = 1:length(dirs_ran)
    end
    
    % Base shear reactions
-   if analysis.write_xml
-       [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
-       story_TH.(['base_shear_' dirs_ran{i} '_TH']) = sum(base_node_reactions(1:(end-clip),2:end),2)';
-   else
-       base_node_reactions = dlmread([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.txt'],' ')';
-       story_TH.(['base_shear_' dirs_ran{i} '_TH']) = sum(base_node_reactions(2:end,1:(end-clip)),1);
-   end
+   [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
+   story_TH.(['base_shear_' dirs_ran{i} '_TH']) = sum(base_node_reactions(1:(end-clip),2:end),2)';
    story.(['max_reaction_' dirs_ran{i}])(1) = max(abs(story_TH.(['base_shear_' dirs_ran{i} '_TH'])));
    clear base_node_reactions
    
@@ -350,22 +309,14 @@ for i = 1:length(dirs_ran)
             % Save periods
             model.(['T1_' dirs_ran{i}]) = periods(1);
             % Save mode shapes
-            if analysis.write_xml
-                [ mode_shape_raw ] = fn_xml_read([opensees_dir filesep 'mode_shape_1.xml']);
-            else
-                mode_shape_raw = dlmread([opensees_dir filesep 'mode_shape_1.txt']);
-            end
+            [ mode_shape_raw ] = fn_xml_read([opensees_dir filesep 'mode_shape_1.xml']);
             mode_shape_norm = mode_shape_raw(1:2:end)/mode_shape_raw(end-1); % Extract odd rows and normalize by roof
             story.(['mode_shape_x']) = mode_shape_norm';
         elseif strcmp(dirs_ran{i},'z')
             % Save periods
             model.(['T1_' dirs_ran{i}]) = periods(2);
             % Save mode shapes
-            if analysis.write_xml
-                [ mode_shape_raw ] = fn_xml_read([opensees_dir filesep 'mode_shape_2.xml']);
-            else
-                mode_shape_raw = dlmread([opensees_dir filesep 'mode_shape_2.txt']);
-            end
+            [ mode_shape_raw ] = fn_xml_read([opensees_dir filesep 'mode_shape_2.xml']);
             mode_shape_norm = mode_shape_raw(1:2:end)/mode_shape_raw(end-1); % Extract odd rows and normalize by roof
             story.(['mode_shape_z']) = mode_shape_norm';
         end

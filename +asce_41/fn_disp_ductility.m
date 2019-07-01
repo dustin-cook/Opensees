@@ -17,11 +17,17 @@ import aci_318.fn_aci_shear_capacity
     [ ~, Vn, ~ ] = fn_aci_shear_capacity( ele_prop.fc_e, ele_prop.w, ele_prop.h, Av, eff_fyt_e, S, ele_prop.lambda, ele_prop.a, ele_prop.hw, ele.type, ele_prop.d_eff, ele.Pmax );
     shear2use = min(vye,Vn);
     yeild_disp = (shear2use*ele.length^3) / (12*ele_prop.e*ele_prop.iz);
-    if sum(strcmp((['max_disp_' ele.direction{1}]),story.Properties.VariableNames)) == 1 && ele.story > 0
-        max_disp_demand = story.(['max_disp_' ele.direction{1}])(ele.story); % Should update this to a diplacement demand specific to the element itself instead of just the story
-    else
-        max_disp_demand = 0;
-    end
+%     if sum(strcmp((['max_disp_' ele.direction{1}]),story.Properties.VariableNames)) == 1 && ele.story > 0
+%         max_disp_demand = story.(['max_disp_' ele.direction{1}])(ele.story); % Should update this to a diplacement demand specific to the element itself instead of just the story
+%     else
+%         max_disp_demand = 0;
+%     end
+    
+    % hardcoded to ICSB model run # 38
+%     icsb_rel_disp_profile = [7.4 1.4 0.7 0.6 0.3 0.3];
+    icsb_rel_disp_profile = [3.6 1.5 0.9 0.7 0.4 0.3];
+    max_disp_demand = icsb_rel_disp_profile(ele.story);
+    
     disp_duct = max_disp_demand / yeild_disp;
 %     ele_to_save(i,:) = ele;
 % % end

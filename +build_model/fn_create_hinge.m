@@ -19,8 +19,6 @@ node.y(new_node_idx,1) = node.y(old_node_idx);
 if isfield(node,'z')
     node.z(new_node_idx,1) = node.z(old_node_idx);
 end
-node.dead_load(new_node_idx,1) = 0;
-node.live_load(new_node_idx,1) = 0;
 node.mass(new_node_idx,1) = 0;
 node.record_disp(new_node_idx,1) = 0;
 node.record_accel(new_node_idx,1) = 0;

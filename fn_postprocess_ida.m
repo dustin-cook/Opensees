@@ -87,10 +87,11 @@ if exist(ida_outputs_file,'file')
                 P = ele.Pmax;    % lbs
                 M = ele.(['Mmax_' num2str(hinge.ele_side(i))]);    % lbs-in
                 V = ele.(['Vmax_' num2str(hinge.ele_side(i))]);    % lbs
+                L = ele.length;
                 deform_pl = hinge.plastic_deform(i);
                 [hinge.euro_V_NC(i)] = fn_eurocode_column_shear_acceptance(h,b,d,d_prm,s,As,Av,db,fc,fy,P,M,V,deform_pl); % assumes colums are shear controlled
 %                 [~, hinge.euro_th_NC_value(i)] = parametric_study(L,h,b,s,Av,cov,fc,fy,P); 
-                hinge.euro_V_NC_ratio(i) = V / hinge.euro_V_NC(i);
+                [hinge.euro_th_NC_value(i)] = fn_eurocode_rotation_acceptance(L,h,b,s,Av,cov,fc,fy,P);
             end
         end
     end

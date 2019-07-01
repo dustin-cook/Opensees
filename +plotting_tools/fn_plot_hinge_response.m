@@ -16,7 +16,6 @@ import plotting_tools.fn_format_and_save_plot
 import plotting_tools.fn_plot_backbone
 import asce_41.fn_define_backbone_rot
 
-
 % Define plot directory
 hinge_plot_dir = [plot_dir filesep 'Hinge_Plots'];
 
