@@ -1,0 +1,5 @@
+id,description,ele_id,x_start,x_end,z_start,z_end,y_start,y_end,direction,story
+1,grade beam,2,0,0,0,150,0,0,z,1
+2,grade beam,2,0,0,150,300,0,0,z,1
+3,grade beam,2,300,300,0,150,0,0,z,1
+4,grade beam,2,300,300,150,300,0,0,z,1

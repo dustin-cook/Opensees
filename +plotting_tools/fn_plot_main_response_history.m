@@ -22,14 +22,14 @@ eq_timespace = eq_dt:eq_dt:(eq_dt*length(eq));
 max_time2plot = 30;
 
 %% Begin Method
-% Plot recorded vs analysis signals
-% disp_tag = ['disp_' direction '_TH'];
-% accel_tag = ['accel_' direction '_abs_TH'];
 roof_ht = max(node.y);
-record_edp.drift_TH_roof.x = record_edp.disp_TH_roof.x/roof_ht;
-record_edp.drift_TH_roof.z = record_edp.disp_TH_roof.z/roof_ht;
 
+% Plot recorded vs analysis signals
 if exist('record_edp','var')
+    % Define Recored Roof Drift
+    record_edp.drift_TH_roof.x = record_edp.disp_TH_roof.x/roof_ht;
+    record_edp.drift_TH_roof.z = record_edp.disp_TH_roof.z/roof_ht;
+
     % Define Accelerometer Nodes (Currently Specific to ICSB, NEED TO UPDATE)
     center_x = 671;
     center_z = 300;

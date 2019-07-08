@@ -1,4 +1,4 @@
-function [ node, element, hinge ] = fn_define_hinge( analysis, model, hinge, element, node, foundation_nodes_id )
+function [ node, element, hinge ] = fn_define_hinge( analysis, model, hinge, element, node, foundation_nodes_filter )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -15,13 +15,13 @@ if analysis.nonlinear ~= 0
             if strcmp(element.type{i},'column') || strcmp(element.type{i},'beam') % For all columns and beams
                 % Define hinge at start of element
                 hinge_id = hinge_id+1;
-                [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id, 'rotational', 'primary', 1 ); 
+                [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_filter, 'rotational', 'primary', 1 ); 
                 if strcmp(model.dimension,'3D') && strcmp(element.type{i},'column') % OOP hinges for 3D columns
                     hinge_id = hinge_id+1;
                     hinge.id(hinge_id,1) = hinge_id;
                     hinge.type{hinge_id,1} = hinge.type{hinge_id-1,1};
                     hinge.direction{hinge_id,1} = 'oop';
-                    hinge.ele_side{hinge_id,1} = 1;
+                    hinge.ele_side(hinge_id,1) = 1;
                     hinge.node_1(hinge_id,1) = hinge.node_1(hinge_id-1,1);
                     hinge.node_2(hinge_id,1) = hinge.node_2(hinge_id-1,1);
                     hinge.element_id(hinge_id,1) = hinge.element_id(hinge_id-1,1);
@@ -31,13 +31,13 @@ if analysis.nonlinear ~= 0
                     
                 % Define hinge at end of element
                 hinge_id = hinge_id+1;
-                [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_2', i, hinge_id, foundation_nodes_id, 'rotational', 'primary', 2 );
+                [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_2', i, hinge_id, foundation_nodes_filter, 'rotational', 'primary', 2 );
                 if strcmp(model.dimension,'3D') && strcmp(element.type{i},'column') % OOP hinges for 3D columns
                     hinge_id = hinge_id+1;
                     hinge.id(hinge_id,1) = hinge_id;
                     hinge.type{hinge_id,1} = hinge.type{hinge_id-1,1};
                     hinge.direction{hinge_id,1} = 'oop';
-                    hinge.ele_side{hinge_id,1} = 2;
+                    hinge.ele_side(hinge_id,1) = 2;
                     hinge.node_1(hinge_id,1) = hinge.node_1(hinge_id-1,1);
                     hinge.node_2(hinge_id,1) = hinge.node_2(hinge_id-1,1);
                     hinge.element_id(hinge_id,1) = hinge.element_id(hinge_id-1,1);
@@ -50,13 +50,13 @@ if analysis.nonlinear ~= 0
                 if isempty(walls_with_same_node)
                     hinge_id = hinge_id+1;
                     % Define hinge at start of element
-                    [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id, 'shear', 'primary', 1 ); 
+                    [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_filter, 'shear', 'primary', 1 ); 
                     if strcmp(model.dimension,'3D') % OOP hinges for 3D walls
                         hinge_id = hinge_id+1;
                         hinge.id(hinge_id,1) = hinge_id;
                         hinge.type{hinge_id,1} = 'rotational';
                         hinge.direction{hinge_id,1} = 'oop';
-                        hinge.ele_side{hinge_id,1} = 1;
+                        hinge.ele_side(hinge_id,1) = 1;
                         hinge.node_1(hinge_id,1) = hinge.node_1(hinge_id-1,1);
                         hinge.node_2(hinge_id,1) = hinge.node_2(hinge_id-1,1);
                         hinge.element_id(hinge_id,1) = hinge.element_id(hinge_id-1,1);
@@ -75,7 +75,7 @@ else
             if isempty(walls_with_same_node)
                 hinge_id = hinge_id+1;
                 % Define hinge at start of element
-                [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_id, 'shear', 'primary', 1 ); 
+                [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_filter, 'shear', 'primary', 1 ); 
             end
         end
     end

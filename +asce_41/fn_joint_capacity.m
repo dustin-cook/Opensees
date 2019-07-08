@@ -34,7 +34,7 @@ for i =1:length(joint.id)
     
     % Specifiy joint properties based on surrounding element properties
     jnt.lambda = mean([column_low_props.lambda,column_high_props.lambda]); % Average of the two columns
-    jnt.fc_e = mean([column_low_props.fc_e,column_high_props.fc_e]);
+    jnt.fc_e = mean([column_low_props.fc_n,column_high_props.fc_n]);
     jnt.e = mean([column_low_props.e,column_high_props.e]);
     jnt.iz = mean([column_low_props.iz,column_high_props.iz,beam_left_props.iz,beam_right_props.iz]);
     if sum(strcmp('Pmax',column_high.Properties.VariableNames)) == 0
@@ -90,16 +90,20 @@ for i =1:length(joint.id)
     jnt.Mn = jnt.Vj*(L/((L-jnt.w/2)/(0.9*jnt.height) - L/H)); % Equation 2.1 of Hassan and Moehle 2012 (with toa*A taken as Vy)
     
     % Calculate Joint Shear Demand
-    if sum(strcmp('Vmax',column_high.Properties.VariableNames)) == 0 % Use capacities when demands do not yet exist
+    if sum(strcmp('Vmax_2',column_low.Properties.VariableNames)) == 0 % Use capacities when demands do not yet exist
         Vcol = max([column_high.Vn_1,0]); % Shear from the column above
         Ts1 = max([beam_left.Mn_pos_2 / (beam_left_props.d_eff),0]);
         C2 = max([beam_right.Mn_pos_1 / (beam_right_props.d_eff),0]); % Assuming jd is 75% of d, rough assumption for now until I take this further, also need to consider both directions
         jnt.Vmax = Ts1 + C2 - Vcol; % From Moehle Book EQ 9.2 Assumes the same as above.
+        jnt.V_grav = 0; % doesnt matter for now since only used to determine acceptance
     else
-        Vcol = max([column_high.Vmax,0]); % Shear from the column above
-        Ts1 = max([beam_left.Mmax / (beam_left_props.d_eff),0]);
-        C2 = max([beam_right.Mmax / (beam_right_props.d_eff),0]); % Assuming jd is 75% of d, rough assumption for now until I take this further, also need to consider both directions
+        Vcol = max([column_low.Vmax_2,0]); % Shear from the column above
+        Ts1 = max([beam_left.Mmax_2 / (beam_left_props.d_eff),0]);
+        C2 = max([beam_right.Mmax_1 / (beam_right_props.d_eff),0]); % Assuming jd is 75% of d, rough assumption for now until I take this further, also need to consider both directions
         jnt.Vmax = Ts1 + C2 - Vcol; % From Moehle Book EQ 9.2 Assumes the same as above.
+        
+        % Gravity Loading
+        jnt.V_grav = abs(max([beam_left.Mgrav_2 / (beam_left_props.d_eff),0]) - max([beam_right.Mgrav_1 / (beam_right_props.d_eff),0]));
     end
 
     % Joint Drift
@@ -115,6 +119,22 @@ for i =1:length(joint.id)
         jnt.yield = 1;
     else
         jnt.yield = 0;
+    end
+    
+    % Check force controlled acceptance of joints (assumes joints are
+    % critical elements)
+    force_control_demands_CP = 1*1.3*(jnt.Vmax - jnt.V_grav) + jnt.V_grav;
+    force_control_demands_LS = 1.3*1.3*(jnt.Vmax - jnt.V_grav) + jnt.V_grav;
+    force_control_demands_IO = force_control_demands_LS;
+    
+    if force_control_demands_IO/jnt.Vj < 1.0
+        jnt.accept = 1; % Passes IO
+    elseif force_control_demands_LS/jnt.Vj < 1.0
+        jnt.accept = 2; % Passes LS
+    elseif force_control_demands_CP/jnt.Vj < 1.0
+        jnt.accept = 3; % Passes CP
+    else
+        jnt.accept = 4; % Fails all Acceptance Criteria
     end
     
     % Save joint data to table

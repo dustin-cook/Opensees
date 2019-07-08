@@ -1,4 +1,4 @@
-function [ node, element, hinge ] = fn_create_hinge( node, element, hinge, node_end, ele_or_node_id, hinge_id, foundation_nodes_id, type, direction, ele_side )
+function [ node, element, hinge ] = fn_create_hinge( node, element, hinge, node_end, ele_idx_or_node_id, hinge_id, foundation_nodes_filter, type, direction, ele_side )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -6,9 +6,9 @@ function [ node, element, hinge ] = fn_create_hinge( node, element, hinge, node_
 new_node_id = node.id(end) + 1;
 new_node_idx = length(node.id) + 1;
 if strcmp(type,'foundation')
-    old_node_id = ele_or_node_id;
+    old_node_id = ele_idx_or_node_id;
 else
-    old_node_id = element.(node_end)(ele_or_node_id);
+    old_node_id = element.(node_end)(ele_idx_or_node_id);
 end
 old_node_idx = find(node.id == old_node_id);
 
@@ -28,7 +28,7 @@ node.fix(new_node_idx,1) = node.fix(old_node_idx);
 node.on_slab(new_node_idx,1) = 0;
 
 % Define fixity of foundation nodes
-if foundation_nodes_id(old_node_idx)
+if foundation_nodes_filter(old_node_idx)
     if strcmp(type,'foundation')
         node.fix{new_node_idx,1} = '[111111]';
     else
@@ -38,22 +38,27 @@ end
 
 % connect element to new node
 if ~strcmp(type,'foundation')
-    element.(node_end)(ele_or_node_id) = new_node_id;
+    element.(node_end)(ele_idx_or_node_id) = new_node_id;
 end
 
 % Assign hinge properties
 hinge.id(hinge_id,1) = hinge_id;
 hinge.type{hinge_id,1} = type;
-hinge.direction{hinge_id,1} = direction;
-hinge.ele_side{hinge_id,1} = ele_side;
 hinge.node_1(hinge_id,1) = new_node_id;
 hinge.node_2(hinge_id,1) = old_node_id;
 if strcmp(type,'foundation')
+    hinge.direction{hinge_id,1} = 'NA';
+    hinge.ele_side(hinge_id,1) = 0;
     hinge.element_id(hinge_id,1) = 0;
+    hinge.story(hinge_id,1) = 0;
+    hinge.ele_direction{hinge_id,1} = 'NA';
 else
-    hinge.element_id(hinge_id,1) = element.id(ele_or_node_id);
+    hinge.direction{hinge_id,1} = direction;
+    hinge.ele_side(hinge_id,1) = ele_side;
+    hinge.element_id(hinge_id,1) = element.id(ele_idx_or_node_id);
+    hinge.story(hinge_id,1) = element.story(ele_idx_or_node_id);
+    hinge.ele_direction{hinge_id,1} = element.direction{ele_idx_or_node_id};
 end
-hinge.story(hinge_id,1) = element.story(ele_or_node_id);
-hinge.ele_direction{hinge_id,1} = element.direction{ele_or_node_id};
+
 end
 

@@ -45,12 +45,18 @@ if exist(ida_outputs_file,'file')
                 ele = element(element.id == hinge.element_id(i),:);
                 ele_prop = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
                 
+                % Shear force Properties
+                hinge.shear_demand(i) = ele.(['Vmax_' num2str(hinge.ele_side(i))]);
+                hinge.asce41_shear_capacity(i) = ele.(['Vn_' num2str(hinge.ele_side(i))]);
+                
+                % Rotation properties
                 K_elastic = 6*ele_prop.e*ele_prop.iz/ele.length;
                 theta_yeild_total = ele.Mn_pos_1/K_elastic; % only for column bases currently
                 
                 [ hinge_deformation_TH ] = fn_xml_read([opensees_outputs_dir filesep 'hinge_deformation_' num2str(hinge_id) '.xml']);
                 
                 hinge.hinge_deform(i) = max(abs(hinge_deformation_TH(:,2)));
+
                 
                 % Modify hinge rotation to be element rotation
                 if hinge.hinge_deform(i) >= (1/11)*theta_yeild_total
@@ -87,11 +93,14 @@ if exist(ida_outputs_file,'file')
                 P = ele.Pmax;    % lbs
                 M = ele.(['Mmax_' num2str(hinge.ele_side(i))]);    % lbs-in
                 V = ele.(['Vmax_' num2str(hinge.ele_side(i))]);    % lbs
-                L = ele.length;
                 deform_pl = hinge.plastic_deform(i);
+                cov = 1.5 + 0.25; % Concrete cover plus half of the tie (assuming #4)
                 [hinge.euro_V_NC(i)] = fn_eurocode_column_shear_acceptance(h,b,d,d_prm,s,As,Av,db,fc,fy,P,M,V,deform_pl); % assumes colums are shear controlled
 %                 [~, hinge.euro_th_NC_value(i)] = parametric_study(L,h,b,s,Av,cov,fc,fy,P); 
-                [hinge.euro_th_NC_value(i)] = fn_eurocode_rotation_acceptance(L,h,b,s,Av,cov,fc,fy,P);
+                [hinge.euro_th_NC_value(i), hinge.euro_th_SD_value(i), hinge.euro_th_DL_value(i)] = fn_eurocode_rotation_acceptance(h,b,d,d_prm,s,As,Av,db,cov,fc,fy,P,M,V);
+                hinge.euro_th_NC_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_NC_value(i);
+                hinge.euro_th_SD_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_SD_value(i);
+                hinge.euro_th_DL_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_DL_value(i);
             end
         end
     end

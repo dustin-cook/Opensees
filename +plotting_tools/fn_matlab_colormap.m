@@ -1,4 +1,4 @@
-function [matlab_colormap] = fn_matlab_colormap()
+function [matlab_colors] = fn_matlab_colormap()
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -9,7 +9,5 @@ matlab_colors =  [0, 0.4470, 0.7410;
                   0.4660, 0.6740, 0.1880;
                   0.3010, 0.7450, 0.9330;
                   0.6350, 0.0780, 0.1840];
-              
-colormap(matlab_colors);
 end
 

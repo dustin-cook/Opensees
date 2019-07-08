@@ -65,6 +65,8 @@ for i = 1:length(element.id)
     element.Vmax_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_2));
     element.Mmax_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_1));
     element.Mmax_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_2));
+    element.Mgrav_1(i) = abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_1(1));
+    element.Mgrav_2(i) = abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_2(1));
     
     if strcmp(model.dimension,'3D')
         element.Vmax_oop_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_oop_1));
@@ -140,33 +142,35 @@ end
 if analysis.nonlinear ~= 0
     for i = 1:height(hinge) 
         ele = element(element.id == hinge.element_id(i),:);
-        if (strcmp(ele.direction,'x') && strcmp(hinge.direction(i),'primary')) || (strcmp(ele.direction,'z') && strcmp(hinge.direction(i),'oop'))
-            if strcmp(ele.type,'beam')
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; % I think the forces here are coming in backward, but should triple check
-            elseif strcmp(ele.type,'column')
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; 
-            elseif strcmp(ele.type,'wall') && exist('hinge_deformation_TH_x','var')
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; 
-            end
-        elseif (strcmp(ele.direction,'z') && strcmp(hinge.direction(i),'primary')) || (strcmp(ele.direction,'x') && strcmp(hinge.direction(i),'oop'))
-            if strcmp(ele.type,'beam')
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; % I think the forces here are coming in backward, but should triple check
-            elseif strcmp(ele.type,'column')
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
-                hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; % I think the forces here are coming in backward, but should triple check
-            elseif strcmp(ele.type,'wall')
-                if strcmp(hinge.type(i),'shear')
-                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
-                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = -hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
-                elseif strcmp(hinge.type(i),'rotational')
-                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
-                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+        if ~strcmp(hinge.type{i},'foundation')
+            if (strcmp(ele.direction,'x') && strcmp(hinge.direction(i),'primary')) || (strcmp(ele.direction,'z') && strcmp(hinge.direction(i),'oop'))
+                if strcmp(ele.type,'beam')
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; % I think the forces here are coming in backward, but should triple check
+                elseif strcmp(ele.type,'column')
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; 
+                elseif strcmp(ele.type,'wall') && exist('hinge_deformation_TH_x','var')
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = -hinge_force_TH_x.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; 
                 end
-           end
+            elseif (strcmp(ele.direction,'z') && strcmp(hinge.direction(i),'primary')) || (strcmp(ele.direction,'x') && strcmp(hinge.direction(i),'oop'))
+                if strcmp(ele.type,'beam')
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; % I think the forces here are coming in backward, but should triple check
+                elseif strcmp(ele.type,'column')
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                    hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)'; % I think the forces here are coming in backward, but should triple check
+                elseif strcmp(ele.type,'wall')
+                    if strcmp(hinge.type(i),'shear')
+                        hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                        hinge_TH.(['hinge_' num2str(hinge.id(i))]).shear_TH = -hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                    elseif strcmp(hinge.type(i),'rotational')
+                        hinge_TH.(['hinge_' num2str(hinge.id(i))]).deformation_TH = hinge_deformation_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                        hinge_TH.(['hinge_' num2str(hinge.id(i))]).moment_TH = hinge_force_TH_z.(['hinge_' num2str(hinge.id(i))])(1:(end-clip),1)';
+                    end
+               end
+            end
         end
     end 
 end
@@ -186,12 +190,16 @@ if analysis.type == 1 % dynamic analysis
     dirs_ran = fieldnames(ground_motion);
     % Omit Y direction if ran
     dirs_ran = dirs_ran(~strcmp(dirs_ran,'y'));
-else
+    % feild names are the directions ran (for compatibility with pushover)
+    fld_names = dirs_ran;
+elseif analysis.type == 2 || analysis.type == 3
     % Define Direction Ran
     if strcmp(model.dimension,'3D')
-        dirs_ran = {'x', 'z'};
+        dirs_ran = {'x', '-x', 'z', '-z'};
+        fld_names = {'x', 'x_neg', 'z', 'z_neg'};
     else
-        dirs_ran = {'x'};
+        dirs_ran = {'x', '-x'};
+        fld_names = {'x', 'x_neg'};
     end
 end
 
@@ -268,39 +276,33 @@ for i = 1:length(dirs_ran)
            if node.record_disp(n)
                [ node_disp_raw ] = fn_xml_read([opensees_dir filesep 'nodal_disp_' dirs_ran{i} '_' num2str(node.id(n)) '.xml']);
                node_disp_raw = node_disp_raw'; % flip to be node per row
-               node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2,1:(end-clip)); 
-               node.(['max_disp_' dirs_ran{i}])(n) = max(abs(node_disp_raw(2,:)));
-               node.(['residual_disp_' dirs_ran{i}])(n) = NaN;
+               node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' fld_names{i} '_TH']) = node_disp_raw(2,1:(end-clip)); 
+               node.(['max_disp_' fld_names{i}])(n) = max(abs(node_disp_raw(2,:)));
+               node.(['residual_disp_' fld_names{i}])(n) = NaN;
            else
-               node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' dirs_ran{i} '_TH']) = [];
-               node.(['max_disp_' dirs_ran{i}])(n) = NaN;
-               node.(['residual_disp_' dirs_ran{i}])(n) = NaN;
+               node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' fld_names{i} '_TH']) = [];
+               node.(['max_disp_' fld_names{i}])(n) = NaN;
+               node.(['residual_disp_' fld_names{i}])(n) = NaN;
            end       
         end
-        
-%         % Base shear reactions 
-%         [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
-%         analysis.(['base_shear_' dirs_ran{i}]) = abs(sum(base_node_reactions(:,2:end),2))';
    end
    
-   % Base shear reactions
-   [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
-   story_TH.(['base_shear_' dirs_ran{i} '_TH']) = sum(base_node_reactions(1:(end-clip),2:end),2)';
-   story.(['max_reaction_' dirs_ran{i}])(1) = max(abs(story_TH.(['base_shear_' dirs_ran{i} '_TH'])));
-   clear base_node_reactions
-   
-        
     % EDP Profiles
-    [ story.(['max_disp_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' dirs_ran{i}]), story, node, 0 );
-    story.(['max_disp_center_' dirs_ran{i}]) = node.(['max_disp_' dirs_ran{i}])(node.center == 1 & node.record_disp == 1 & node.story > 0);
-    [ story.(['ave_disp_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' dirs_ran{i}]), story, node, 1 );
-    [ story.(['residual_disp_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['residual_disp_' dirs_ran{i}]), story, node, 1 );
-    story.(['torsional_factor_' dirs_ran{i}]) = story.(['max_disp_' dirs_ran{i}]) ./ story.(['ave_disp_' dirs_ran{i}]);
+    [ story.(['max_disp_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' fld_names{i}]), story, node, 0 );
+    story.(['max_disp_center_' fld_names{i}]) = node.(['max_disp_' fld_names{i}])(node.center == 1 & node.record_disp == 1 & node.story > 0);
+    [ story.(['ave_disp_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' fld_names{i}]), story, node, 1 );
+    [ story.(['residual_disp_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['residual_disp_' fld_names{i}]), story, node, 1 );
+    story.(['torsional_factor_' fld_names{i}]) = story.(['max_disp_' fld_names{i}]) ./ story.(['ave_disp_' fld_names{i}]);
     if analysis.type == 1 % Dynamic Analysis
-        [ story.(['max_accel_' dirs_ran{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' dirs_ran{i} '_abs']), story, node, 0 );
-        story.(['max_accel_center_' dirs_ran{i}]) = node.(['max_accel_' dirs_ran{i} '_abs'])(node.center == 1 & node.record_accel == 1 & node.story > 0);
+        [ story.(['max_accel_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' fld_names{i} '_abs']), story, node, 0 );
+        story.(['max_accel_center_' fld_names{i}]) = node.(['max_accel_' fld_names{i} '_abs'])(node.center == 1 & node.record_accel == 1 & node.story > 0);
     end
-    [ story.(['max_drift_' dirs_ran{i}]) ] = fn_drift_profile( node_TH, story, node, dirs_ran{i} );
+    [ story.(['max_drift_' fld_names{i}]) ] = fn_drift_profile( node_TH, story, node, fld_names{i} );
+
+    % Base shear reactions
+    [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
+    story_TH.(['base_shear_' fld_names{i} '_TH']) = sum(base_node_reactions(1:(end-clip),2:end),2)';
+    story.(['max_reaction_' fld_names{i}])(1) = max(abs(story_TH.(['base_shear_' fld_names{i} '_TH'])));
     
     % Load Mode shape data and period
     if analysis.run_eigen
@@ -323,39 +325,41 @@ for i = 1:length(dirs_ran)
     end
     
     %% Collect response info for each element
-    for e = 1:height(element)
-        element.(['disp_' dirs_ran{i}])(e,1) = node.(['max_disp_' dirs_ran{i}])(node.id == element.node_2(e)); % Taking the drift at the top of column or wall or the right side of beam
-        if element.story(e) == 1
-            element.(['drift_' dirs_ran{i}])(e,1) = element.(['disp_' dirs_ran{i}])(e)/story.story_ht(story.id == element.story(e));
-        else
-            nodes_at_story_below = node(node.story == (element.story(e)-1),:);
-            [~, closest_node_idx] = min(sqrt((nodes_at_story_below.x-node.x(node.id == element.node_2(e))).^2 + (nodes_at_story_below.z-node.z(node.id == element.node_2(e))).^2)); % Min pathagorean distance to the closest point
-            node_below = nodes_at_story_below(closest_node_idx,:);
-            element.(['drift_' dirs_ran{i}])(e,1) = abs(element.(['disp_' dirs_ran{i}])(e)-node_below.max_disp_x)/story.story_ht(story.id == element.story(e));
-        end
-        if analysis.nonlinear ~= 0 && analysis.type == 1 % nonlinear dynamic analysis
-            ele_hinges = hinge(hinge.element_id == element.id(e) & strcmp(hinge.direction,'primary'),:);
-            if ~isempty(ele_hinges)
-                if strcmp(ele_hinges.type{1},'rotational') && height(ele_hinges) == 2
-                    ele_hinge_TH_1 = hinge_TH.(['hinge_' num2str(ele_hinges.id(1))]);
-                    ele_hinge_TH_2 = hinge_TH.(['hinge_' num2str(ele_hinges.id(2))]);
-                    rot_1_TH = ele_hinge_TH_1.deformation_TH;
-                    rot_2_TH = ele_hinge_TH_2.deformation_TH;
-                    element.rot_1(e,1) = max(abs(rot_1_TH));
-                    if max(rot_1_TH) > abs(min(rot_1_TH))
-                        element.rot_1_dir{e,1} = 'pos';
-                    else
-                        element.rot_1_dir{e,1} = 'neg';
+    if strcmp(dirs_ran{i},'x') || strcmp(dirs_ran{i},'z') % dont do for negative pushover directions
+        for e = 1:height(element)
+            element.(['disp_' dirs_ran{i}])(e,1) = node.(['max_disp_' dirs_ran{i}])(node.id == element.node_2(e)); % Taking the drift at the top of column or wall or the right side of beam
+            if element.story(e) == 1
+                element.(['drift_' dirs_ran{i}])(e,1) = element.(['disp_' dirs_ran{i}])(e)/story.story_ht(story.id == element.story(e));
+            else
+                nodes_at_story_below = node(node.story == (element.story(e)-1),:);
+                [~, closest_node_idx] = min(sqrt((nodes_at_story_below.x-node.x(node.id == element.node_2(e))).^2 + (nodes_at_story_below.z-node.z(node.id == element.node_2(e))).^2)); % Min pathagorean distance to the closest point
+                node_below = nodes_at_story_below(closest_node_idx,:);
+                element.(['drift_' dirs_ran{i}])(e,1) = abs(element.(['disp_' dirs_ran{i}])(e)-node_below.max_disp_x)/story.story_ht(story.id == element.story(e));
+            end
+            if analysis.nonlinear ~= 0 && analysis.type == 1 % nonlinear dynamic analysis
+                ele_hinges = hinge(hinge.element_id == element.id(e) & strcmp(hinge.direction,'primary'),:);
+                if ~isempty(ele_hinges)
+                    if strcmp(ele_hinges.type{1},'rotational') && height(ele_hinges) == 2
+                        ele_hinge_TH_1 = hinge_TH.(['hinge_' num2str(ele_hinges.id(1))]);
+                        ele_hinge_TH_2 = hinge_TH.(['hinge_' num2str(ele_hinges.id(2))]);
+                        rot_1_TH = ele_hinge_TH_1.deformation_TH;
+                        rot_2_TH = ele_hinge_TH_2.deformation_TH;
+                        element.rot_1(e,1) = max(abs(rot_1_TH));
+                        if max(rot_1_TH) > abs(min(rot_1_TH))
+                            element.rot_1_dir{e,1} = 'pos';
+                        else
+                            element.rot_1_dir{e,1} = 'neg';
+                        end
+                        element.rot_2(e,1) = max(abs(rot_2_TH));
+                        if max(rot_2_TH) > abs(min(rot_2_TH))
+                            element.rot_2_dir{e,1} = 'pos';
+                        else
+                            element.rot_2_dir{e,1} = 'neg';
+                        end
+                    elseif strcmp(ele_hinges.type{1},'shear') && height(ele_hinges) == 1
+                        ele_hinge_TH = hinge_TH.(['hinge_' num2str(ele_hinges.id(1))]);
+                        element.shear_deform(e,1) = max(ele_hinge_TH.deformation_TH);
                     end
-                    element.rot_2(e,1) = max(abs(rot_2_TH));
-                    if max(rot_2_TH) > abs(min(rot_2_TH))
-                        element.rot_2_dir{e,1} = 'pos';
-                    else
-                        element.rot_2_dir{e,1} = 'neg';
-                    end
-                elseif strcmp(ele_hinges.type{1},'shear') && height(ele_hinges) == 1
-                    ele_hinge_TH = hinge_TH.(['hinge_' num2str(ele_hinges.id(1))]);
-                    element.shear_deform(e,1) = max(ele_hinge_TH.deformation_TH);
                 end
             end
         end

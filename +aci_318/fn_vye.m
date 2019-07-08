@@ -7,7 +7,7 @@ if strcmp(ele_type,'beam')
     vye = (Mn_pos + Mn_neg)/ele_length + gravity_load/2;
 elseif strcmp(ele_type,'column')
     vye = (Mn_pos + Mn_neg)/ele_length;
-elseif strcmp(ele_type,'wall')
+else
     vye = NaN;
 end
 

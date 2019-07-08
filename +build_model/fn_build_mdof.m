@@ -353,26 +353,29 @@ end
 %% Define Nodal Fixity
 node.fix = cell(length(node.id),1);
 node.fix(1:end) = {'[000000]'}; % All nodes
-foundation_nodes_id = (node.y == 0);
+foundation_nodes_filter = node.y == 0;
+% wall_base_nodes_filter = node.y == 0 & ismember(node.id,element.node_1(strcmp(element.type,'wall')));
+% foundation_nodes_ids = node.id(foundation_nodes_filter & ~wall_base_nodes_filter);
+foundation_nodes_ids = node.id(foundation_nodes_filter);
 % foundation nodes
 if model.foundation == 1
-    node.fix(foundation_nodes_id,:) = {'[111111]'}; % Fixed
+    node.fix(foundation_nodes_filter,:) = {'[111111]'}; % Fixed
 elseif model.foundation == 0 
-    node.fix(foundation_nodes_id,:) = {'[111000]'}; % Pinned
+    node.fix(foundation_nodes_filter,:) = {'[111000]'}; % Pinned
 elseif model.foundation == 2
-    node.fix(foundation_nodes_id,:) = {'[000000]'}; % Partial Fixity (ie pile hinge)
+    node.fix(foundation_nodes_filter,:) = {'[000000]'}; % Partial Fixity (ie pile hinge)
 end
 
 %% Create Nonlinear Rotational Springs at ends of all beams and columns, and shear springs at the bottom of walls
 hinge.id = [];
-[ node, element, hinge ] = fn_define_hinge( analysis, model, hinge, element, node, foundation_nodes_id );
+[ node, element, hinge ] = fn_define_hinge( analysis, model, hinge, element, node, foundation_nodes_filter );
 
 %% Define Foundation Hinges
 if model.foundation == 2 % partial fixity such as pile hinge
-    for f_node = 1:length(foundation_nodes_id)
-        hinge_id = hinge_id+1;
+    for f = 1:length(foundation_nodes_ids)
+        hinge_id = hinge.id(end)+1;
         % Define hinge at foundation
-        [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'NA', foundation_nodes_id(f_node), hinge_id, foundation_nodes_id, 'foundation' , 'primary' ); 
+        [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'NA', foundation_nodes_ids(f), hinge_id, foundation_nodes_filter, 'foundation' ); 
     end
 end
 

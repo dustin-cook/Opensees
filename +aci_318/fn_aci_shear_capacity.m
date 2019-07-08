@@ -17,7 +17,7 @@ if strcmp(type,'wall') % Shear Walls
     Vn = Acv*(alpha_c*lambda*sqrt(fc) + rho_t*fy); % ACI 318-14 eq 18.10.4.1
     Vs = nan;
 
-else % Beams and Columns
+elseif strcmp(type,'beam') ||  strcmp(type,'column')% Beams and Columns
     % Concrete Capacity
     if strcmp(type,'beam') % Beams
         Vc = 2*lambda*b*d_eff*sqrt(fc); %eq 22.5.5.1 in ACI 318-14
@@ -34,7 +34,9 @@ else % Beams and Columns
 
     % Total Capacity
     Vn = Vc + Vs;
-
+else
+    Vn = 999999999999; % Rigid Link
+    Vs = 999999999999;
 end
 
 

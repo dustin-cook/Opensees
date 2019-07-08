@@ -43,8 +43,8 @@ analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 
 % Visuals and Graphics
-analysis.element_plots = 1; % Plot hinge backnones and other per element visualizations
-analysis.plot_recordings = 1; % Plot analysis results v recorded results
+analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
+analysis.plot_recordings = 0; % Plot analysis results v recorded results
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 1; % Visual scale of the movie playback
 analysis.hinge_stories_2_plot = 2;
@@ -80,7 +80,7 @@ elseif strcmp(analysis.proceedure,'Pushover')
     analysis.live_load_list = [1, 1];
     analysis.case_list = {'backbones_pushover', 'backbones'};
     analysis.pushover_drift_list_x = [0.02, 0.02]; % Drift limit where the pushover will go till
-    analysis.pushover_drift_list_z = [0.02 0.02];
+    analysis.pushover_drift_list_z = [0.01 0.01];
     analysis.accidental_torsion_list = [0, 0];
     analysis.damp_ratio_list = [0.03, 0.03]; % Analysis damping ratio
     

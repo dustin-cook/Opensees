@@ -395,21 +395,23 @@ if height(hinge) > 0
     
     for i = 1:height(hinge)
         hin = hinge(i,:);
-        ele_side = num2str(hin.ele_side);
         ele_hinge_id = element.id(end) + hin.id; % Element ID associated with this hinge
         if strcmp(hin.type,'foundation')
-            pile_rot_stiff = 881511412050; % Force-Displacement rotational Stiffness of Bundle of Piles
-            pile_lat_stiff = 18138095; % Force-Displacement lateral Stiffness of Bundle of Piles
-            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(end),pile_rot_stiff); % Rigid Elastic Material
-            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(end)+8000,pile_lat_stiff); % Rigid Elastic Material
+            pile_rot_stiff = 6920602859; % Force-Displacement rotational Stiffness of Bundle of Piles
+            pile_lat_stiff = 11026800; % Force-Displacement lateral Stiffness of Bundle of Piles
+            pile_axial_stiff = 5884866; % Force-Displacement lateral Stiffness of Bundle of Piles
+%             pile_lat_stiff = 1; % Force-Displacement lateral Stiffness of Bundle of Piles
+            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',ele_hinge_id,pile_rot_stiff); % Elastic Material
+            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',ele_hinge_id+8000,pile_lat_stiff); % Elastic Material
+            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',ele_hinge_id+9000,pile_axial_stiff); % Elastic Material
             if strcmp(dimension,'3D') % Input as rotational for now
-                fprintf(fileID,'element zeroLength %i %i %i -mat %i %i %i %i -dir 1 3 4 6 \n',element.id(end), hin.node_1, hin.node_2, element.id(end)+8000, element.id(end)+8000, element.id(end), element.id(end)); % Element Id for Hinge
-                fprintf(fileID,'equalDOF %i %i 2 5 \n',hin.node_2,hin.node_1);
+%                 fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 %i 2 %i -dir 1 2 3 4 5 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id, ele_hinge_id);
+                fprintf(fileID,'element zeroLength %i %i %i -mat %i %i %i %i 2 %i -dir 1 2 3 4 5 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id+8000, ele_hinge_id+9000, ele_hinge_id+8000, ele_hinge_id, ele_hinge_id);
             else
-                fprintf(fileID,'element zeroLength %i %i %i -mat %i %i -dir 1 3 \n',element.id(end),hin.node_1,hin.node_2, element.id(end)+8000, element.id(end)); % Element Id for Hinge
-                fprintf(fileID,'equalDOF %i %i 2 \n',hin.node_2,hin.node_1);
+                fprintf(fileID,'element zeroLength %i %i %i -mat %i %i %i -dir 1 2 3 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id+8000, ele_hinge_id+9000, ele_hinge_id);
             end
         else
+            ele_side = num2str(hin.ele_side);
             ele = element(element.id == hin.element_id,:);
             if analysis.model_type == 2 % MDOF
                 ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);

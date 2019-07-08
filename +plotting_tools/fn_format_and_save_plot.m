@@ -20,16 +20,20 @@ elseif  plot_ops == 2
     box on
     set(gca,'FontSize',14)
 elseif  plot_ops == 3
-    legend('Location','eastoutside')
+    legend('Location','northeast')
     box on
     set(gca,'FontSize',14)
 elseif  plot_ops == 4
     box on
     set(gca,'FontSize',14)
-elseif plot_ops == 5 % Default settings
+elseif plot_ops == 5
     legend('Location','southeast')
     grid on
     grid minor
+    box on
+    set(gca,'FontSize',14)
+elseif  plot_ops == 6
+    legend('Location','southeast')
     box on
     set(gca,'FontSize',14)
 end
