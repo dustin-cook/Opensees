@@ -37,14 +37,23 @@ if exist(ida_outputs_file,'file')
     end
 
     % Hinge Deformations
-    if analysis.nonlinear ~= 0 && ~isempty(hinge)
+    if ~isempty(hinge)
         for i = 1:height(hinge)
             hinge_y = node.y(node.id == hinge.node_1(i));
-            if hinge_y == 0 && strcmp(hinge.direction{i},'primary') && strcmp(hinge.ele_direction{i},'x')
+            if hinge_y == 0 && strcmp(hinge.direction{i},'primary')
                 hinge_id = element.id(end) + hinge.id(i);
                 ele = element(element.id == hinge.element_id(i),:);
                 ele_prop = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
+                [ hinge_deformation_TH ] = fn_xml_read([opensees_outputs_dir filesep 'hinge_deformation_' num2str(hinge_id) '.xml']);
+                hinge.hinge_deform(i) = max(abs(hinge_deformation_TH(:,2)));
                 
+                if strcmp(hinge.ele_direction{i},'z') % Walls
+                    hinge.tot_deform(i) = hinge.hinge_deform(i);
+                    hinge.d_value_tot(i) = ele.(['d_hinge_' num2str(hinge.ele_side(i))]);
+                    hinge.d_ratio(i) = hinge.tot_deform(i) / hinge.d_value_tot(i);
+                    hinge.e_value_tot(i) = ele.(['e_hinge_' num2str(hinge.ele_side(i))]);
+                    hinge.e_ratio(i) = hinge.tot_deform(i) / hinge.e_value_tot(i);
+                elseif strcmp(hinge.ele_direction{i},'x')
                 % Shear force Properties
                 hinge.shear_demand(i) = ele.(['Vmax_' num2str(hinge.ele_side(i))]);
                 hinge.asce41_shear_capacity(i) = ele.(['Vn_' num2str(hinge.ele_side(i))]);
@@ -52,11 +61,6 @@ if exist(ida_outputs_file,'file')
                 % Rotation properties
                 K_elastic = 6*ele_prop.e*ele_prop.iz/ele.length;
                 theta_yeild_total = ele.Mn_pos_1/K_elastic; % only for column bases currently
-                
-                [ hinge_deformation_TH ] = fn_xml_read([opensees_outputs_dir filesep 'hinge_deformation_' num2str(hinge_id) '.xml']);
-                
-                hinge.hinge_deform(i) = max(abs(hinge_deformation_TH(:,2)));
-
                 
                 % Modify hinge rotation to be element rotation
                 if hinge.hinge_deform(i) >= (1/11)*theta_yeild_total
@@ -101,6 +105,7 @@ if exist(ida_outputs_file,'file')
                 hinge.euro_th_NC_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_NC_value(i);
                 hinge.euro_th_SD_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_SD_value(i);
                 hinge.euro_th_DL_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_DL_value(i);
+                end
             end
         end
     end
