@@ -12,6 +12,9 @@ params = {'b','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
 
 % Collect IDA data
 plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'IDA Plots'];
+if ~exist(plot_dir,'dir')
+    mkdir(plot_dir)
+end
 id = 0;
 id_missing = 0;
 for i = 1:length(IDA_scale_factors)
@@ -167,27 +170,8 @@ for i = 1:length(IDA_scale_factors)
     frag.shear_asce41(i,:) = new_row;
 end
 
-%% Calculate Post Fragulity Curve P695 factors
-% Collapse Median Sa
-ida_results.sa_med_col(1,1) = max(frag.asce41_sa_ew(frag.prob_collapse_tot <= 0.5));
-ida_results.sa_med_col(2,1) = max(frag.asce41_sa_ns(frag.prob_collapse_tot <= 0.5));
-
-% Collapse Margin Ratio
-ida_results.cmr(1,1) = ida_results.sa_med_col(1) / ida_results.mce(1);
-ida_results.cmr(2,1) = ida_results.sa_med_col(2) / ida_results.mce(2);
-
-% Adjust for SSF and 3D
-ida_results.acmr(1,1) = 1.2*SSF_ew*ida_results.cmr(1);
-ida_results.acmr(2,1) = 1.2*SSF_ns*ida_results.cmr(2);
-median_adjustment(1) = ida_results.sa_med_col(1)*(1.2*SSF_ew - 1);
-median_adjustment(2) = ida_results.sa_med_col(2)*(1.2*SSF_ns - 1);
-
-% Create Fragility curves based on P695
+%% Create Fragility Curves based on Baker MLE
 x_points = 0:0.01:3;
-x_points_adjused_x = x_points + median_adjustment(1);
-x_points_adjused_z = x_points + median_adjustment(2);
-
-% Create Fragility Curves based on Baker MLE
 [col_frag_curve_ew_drift, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ew, frag.num_gms_drift, frag.num_collapse_drift);
 [col_frag_curve_ns_drift, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms_drift, frag.num_collapse_drift);
 [col_frag_curve_ew_convergence, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ew, frag.num_gms_convergence, frag.num_collapse_convergence);
@@ -203,11 +187,38 @@ for p = 1:length(params)
 end
 [frag_curves.shear_asce41] = fn_multi_frag_curves(x_points, frag.shear_asce41, frag.asce41_sa_ew, frag.num_gms);
 
-%% Save IDA results as table
-[~, idx_ew] = min(abs(x_points_adjused_x - ida_results.mce(1)));
+%% Calculate Post Fragulity Curve P695 factors
+% Collapse Median Sa
+[~, idx_med_ew] = min(abs(col_frag_curve_ew_tot - 0.5));
+ida_results.sa_med_col(1,1) = x_points(idx_med_ew);
+[~, idx_med_ns] = min(abs(col_frag_curve_ns_tot - 0.5));
+ida_results.sa_med_col(2,1) = x_points(idx_med_ns);
+
+% Collapse Margin Ratio
+ida_results.cmr(1,1) = ida_results.sa_med_col(1) / ida_results.mce(1);
+ida_results.cmr(2,1) = ida_results.sa_med_col(2) / ida_results.mce(2);
+
+% Adjust for SSF and 3D
+ida_results.acmr(1,1) = 1.2*SSF_ew*ida_results.cmr(1);
+ida_results.acmr(2,1) = 1.2*SSF_ns*ida_results.cmr(2);
+median_adjustment(1) = ida_results.sa_med_col(1)*(1.2*SSF_ew - 1);
+median_adjustment(2) = ida_results.sa_med_col(2)*(1.2*SSF_ns - 1);
+
+% Create Fragility curves based on P695
+x_points_adjused_x = x_points + median_adjustment(1);
+x_points_adjused_z = x_points + median_adjustment(2);
+
+% Find P[C|MCE]
+[~, idx_ew] = min(abs(x_points - ida_results.mce(1)));
 ida_results.p_col_mce(1,1) = col_frag_curve_ew_tot(idx_ew);
-[~, idx_ew] = min(abs(x_points_adjused_z - ida_results.mce(2)));
-ida_results.p_col_mce(2,1) = col_frag_curve_ns_tot(idx_ew);
+[~, idx_ns] = min(abs(x_points - ida_results.mce(2)));
+ida_results.p_col_mce(2,1) = col_frag_curve_ns_tot(idx_ns);
+[~, idx_ew] = min(abs(x_points_adjused_x - ida_results.mce(1)));
+ida_results.p_col_mce_adjust(1,1) = col_frag_curve_full_ew_tot(idx_ew);
+[~, idx_ns] = min(abs(x_points_adjused_z - ida_results.mce(2)));
+ida_results.p_col_mce_adjust(2,1) = col_frag_curve_full_ns_tot(idx_ns);
+
+% Save IDA results as table
 ida_results_table = struct2table(ida_results);
 writetable(ida_results_table,[plot_dir filesep 'ida_results.csv'])
 
