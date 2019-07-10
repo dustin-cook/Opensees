@@ -58,7 +58,7 @@ theta_DL = phi_y*(Lv + av*zm)/3 + 0.0013*(1+1.5*(hm/Lv)) + 0.13*phi_y*dbm*fym/sq
     
 % Polly Updates
     % sum Bi
-    % Lv /== length
+    % Lv == length/2 assuming double curvature
     % wc and wt /== 1
 end
 
