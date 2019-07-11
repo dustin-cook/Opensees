@@ -6,7 +6,7 @@ import opensees.write_tcl.*
 
 %% Build Scripts
 [ joint_ele_ids ] = fn_define_model( write_dir, node, element, joint, hinge, analysis, model_dimension, story, read_dir_analysis );
-fn_define_recorders( write_dir, model_dimension, node, element, joint, hinge, analysis, hinge_grouping );
+fn_define_recorders( write_dir, model_dimension, node, element, joint, hinge, analysis );
 fn_define_loads( write_dir, analysis, node, model_dimension, story, element, ground_motion);
 primary_nodes = node.id(node.primary_story == 1);
 if analysis.run_eigen

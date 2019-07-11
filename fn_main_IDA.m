@@ -13,13 +13,13 @@ ground_motion.z.eq_dir = {['ground_motions' '/' analysis.gm_set '/' ground_motio
 ground_motion.z.eq_name = {[ground_motion.z.eq_name{1} '.tcl']};
 
 % Create Directories
-opensees_outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Scale_' num2str(scale_factor) '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair)];
-if ~exist(opensees_outputs_dir,'dir')
-    mkdir(opensees_outputs_dir)
+ida_opensees_outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Scale_' num2str(scale_factor) '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair)];
+if ~exist(ida_opensees_outputs_dir,'dir')
+    mkdir(ida_opensees_outputs_dir)
 end
-ida_outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Summary Data' '/' 'Scale_' num2str(scale_factor) '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair)];
-if ~exist(ida_outputs_dir,'dir')
-    mkdir(ida_outputs_dir)
+ida_summary_outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Summary Data' '/' 'Scale_' num2str(scale_factor) '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair)];
+if ~exist(ida_summary_outputs_dir,'dir')
+    mkdir(ida_summary_outputs_dir)
 end
 
 % Load spectral info and save Sa
@@ -29,41 +29,43 @@ spectra_table = readtable([ground_motion.z.eq_dir{1} filesep 'spectra.csv'],'Rea
 summary.sa_z = interp1(spectra_table.period,spectra_table.psa_5,building_period(2))*scale_factor;
 
 % Write Recorders File
-file_name = [opensees_outputs_dir filesep 'recorders.tcl'];
-fileID = fopen(file_name,'w');
-fprintf(fileID,'puts "Defining Recorders ..."\n');
-fprintf(fileID,'setMaxOpenFiles 2000\n');
-for n = 1:height(node)
-   if node.record_disp(n)
-        fprintf(fileID,'recorder Node -xml %s/nodal_disp_%s.xml -time -node %i -dof 1 3 disp\n',opensees_outputs_dir,num2str(node.id(n)),node.id(n));
-   end
-end
-if analysis.nonlinear ~= 0 && ~isempty(hinge)
-    for i = 1:height(hinge)
-        hinge_y = node.y(node.id == hinge.node_1(i));
-        if hinge_y == 0 && strcmp(hinge.direction{i},'primary')
-            hinge_id = element.id(end) + hinge.id(i);
-%             fprintf(fileID,'recorder Element %s %s/hinge_force_%s.%s -time -ele %s -dof 1 3 4 6 force \n', file_type, write_dir, num2str(hinge_id), file_ext, num2str(hinge_id));
-            fprintf(fileID,'recorder Element -xml %s/hinge_deformation_%s.xml -time -ele %s deformation \n', opensees_outputs_dir, num2str(hinge_id), num2str(hinge_id));
-        end
-    end
-end
-fclose(fileID);
+fn_define_recorders( ida_opensees_outputs_dir, model.dimension, node, element, [], hinge, analysis )
+
+% file_name = [ida_opensees_outputs_dir filesep 'recorders.tcl'];
+% fileID = fopen(file_name,'w');
+% fprintf(fileID,'puts "Defining Recorders ..."\n');
+% fprintf(fileID,'setMaxOpenFiles 2000\n');
+% for n = 1:height(node)
+%    if node.record_disp(n)
+%         fprintf(fileID,'recorder Node -xml %s/nodal_disp_%s.xml -time -node %i -dof 1 3 disp\n',ida_opensees_outputs_dir,num2str(node.id(n)),node.id(n));
+%    end
+% end
+% if analysis.nonlinear ~= 0 && ~isempty(hinge)
+%     for i = 1:height(hinge)
+%         hinge_y = node.y(node.id == hinge.node_1(i));
+%         if hinge_y == 0 && strcmp(hinge.direction{i},'primary')
+%             hinge_id = element.id(end) + hinge.id(i);
+% %             fprintf(fileID,'recorder Element %s %s/hinge_force_%s.%s -time -ele %s -dof 1 3 4 6 force \n', file_type, write_dir, num2str(hinge_id), file_ext, num2str(hinge_id));
+%             fprintf(fileID,'recorder Element -xml %s/hinge_deformation_%s.xml -time -ele %s deformation \n', ida_opensees_outputs_dir, num2str(hinge_id), num2str(hinge_id));
+%         end
+%     end
+% end
+% fclose(fileID);
 
 % Write Loads file
-fn_define_loads( opensees_outputs_dir, analysis, node, model.dimension, story, element, ground_motion )
+fn_define_loads( ida_opensees_outputs_dir, analysis, node, model.dimension, story, element, ground_motion )
 
 % Write Analysis Files
 first_story_node = node.id(node.primary_story == 1);
-fn_setup_analysis( opensees_outputs_dir, tcl_dir, analysis, first_story_node, story )
-fn_define_analysis( opensees_outputs_dir, ground_motion, first_story_node, story.story_ht, analysis, story )
+fn_setup_analysis( ida_opensees_outputs_dir, tcl_dir, analysis, first_story_node, story )
+fn_define_analysis( ida_opensees_outputs_dir, ground_motion, first_story_node, story.story_ht, analysis, story )
 
 % Call Opensees
 fprintf('Running Opensess... \n')
 if analysis.summit
-    command = ['/projects/duco1061/software/OpenSeesSP/bin/OpenSeesSP ' opensees_outputs_dir filesep 'run_analysis.tcl'];
+    command = ['/projects/duco1061/software/OpenSeesSP/bin/OpenSeesSP ' ida_opensees_outputs_dir filesep 'run_analysis.tcl'];
 else
-    command = ['openseesSP ' opensees_outputs_dir filesep 'run_analysis.tcl'];
+    command = ['openseesSP ' ida_opensees_outputs_dir filesep 'run_analysis.tcl'];
 end
 if analysis.suppress_outputs
     [status,cmdout] = system(command);
@@ -96,6 +98,6 @@ end
 fprintf('Opensees Completed \n')
 
 % Save summary data
-save([ida_outputs_dir filesep 'summary_results.mat'],'summary')
+save([ida_summary_outputs_dir filesep 'summary_results.mat'],'summary')
 end
 

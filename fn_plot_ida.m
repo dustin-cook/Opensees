@@ -217,6 +217,8 @@ ida_results.p_col_mce(2,1) = col_frag_curve_ns_tot(idx_ns);
 ida_results.p_col_mce_adjust(1,1) = col_frag_curve_full_ew_tot(idx_ew);
 [~, idx_ns] = min(abs(x_points_adjused_z - ida_results.mce(2)));
 ida_results.p_col_mce_adjust(2,1) = col_frag_curve_full_ns_tot(idx_ns);
+[~, idx_UR] = min(abs(x_points - ida_results.mce(1)));
+p_UR_mce = col_frag_curve_ew_unacceptable_response(idx_UR);
 
 % Save IDA results as table
 ida_results_table = struct2table(ida_results);
@@ -231,10 +233,10 @@ sct = scatter(frag.asce41_sa_ew,frag.prob_collapse_tot,'b','filled');
 set(get(get(sct,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
 plot(x_points,col_frag_curve_ew_tot,'b','DisplayName','EW Frame Fragility')
 plot([ida_results.spectra(1),ida_results.spectra(1)],[0,1],'--b','lineWidth',1.0,'DisplayName','ICSB EW Spectra')
-sct = scatter(frag.asce41_sa_ns,frag.prob_collapse_tot,'k','filled');
-set(get(get(sct,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
-plot(x_points,col_frag_curve_ns_tot,'k','DisplayName','NS Wall Fragility')
-plot([ida_results.spectra(2),ida_results.spectra(2)],[0,1],'--k','lineWidth',1.0,'DisplayName','ICSB NS Spectra')
+% sct = scatter(frag.asce41_sa_ns,frag.prob_collapse_tot,'k','filled');
+% set(get(get(sct,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+% plot(x_points,col_frag_curve_ns_tot,'k','DisplayName','NS Wall Fragility')
+% plot([ida_results.spectra(2),ida_results.spectra(2)],[0,1],'--k','lineWidth',1.0,'DisplayName','ICSB NS Spectra')
 xlabel('Sa(T_1) (g)')
 ylabel('P[Collapse]')
 fn_format_and_save_plot( plot_dir, 'Collapse Fragility', 6 )
@@ -246,9 +248,9 @@ title('P-695 Collapse Fragility')
 plot(x_points,col_frag_curve_ew_tot,'b','DisplayName','EW Frame Fragility')
 plot(x_points_adjused_x,col_frag_curve_ew_tot,'--b','DisplayName','EW SSF Adjustment')
 plot(x_points_adjused_x,col_frag_curve_full_ew_tot,':b','DisplayName','EW Full Uncertainty')
-plot(x_points,col_frag_curve_ns_tot,'k','DisplayName','NS Wall Fragility')
-plot(x_points_adjused_z,col_frag_curve_ns_tot,'--k','DisplayName','NS SSF Adjustment')
-plot(x_points_adjused_z,col_frag_curve_full_ns_tot,':k','DisplayName','NS Full Uncertainty')
+% plot(x_points,col_frag_curve_ns_tot,'k','DisplayName','NS Wall Fragility')
+% plot(x_points_adjused_z,col_frag_curve_ns_tot,'--k','DisplayName','NS SSF Adjustment')
+% plot(x_points_adjused_z,col_frag_curve_full_ns_tot,':k','DisplayName','NS Full Uncertainty')
 xlabel('Sa(T_1) (g)')
 ylabel('P[Collapse]')
 fn_format_and_save_plot( plot_dir, 'Collapse Fragility with 695 Uncertainty', 6 )
@@ -290,9 +292,9 @@ title('ASCE 41 Unacceptable Response')
 plot(x_points,col_frag_curve_ew_unacceptable_response,'b','DisplayName','EW Unacceptable Response')
 plot(x_points,col_frag_curve_ew_tot,'--b','DisplayName','EW Collapse')
 plot(x_points_adjused_x,col_frag_curve_full_ew_tot,':b','DisplayName','EW Adjusted Collapse')
-plot(x_points,col_frag_curve_ns_unacceptable_response,'k','DisplayName','NS Unacceptable Response')
-plot(x_points,col_frag_curve_ns_tot,'--k','DisplayName','NS Collapse')
-plot(x_points_adjused_z,col_frag_curve_full_ns_tot,':k','DisplayName','NS Adjusted Collapse')
+% plot(x_points,col_frag_curve_ns_unacceptable_response,'k','DisplayName','NS Unacceptable Response')
+% plot(x_points,col_frag_curve_ns_tot,'--k','DisplayName','NS Collapse')
+% plot(x_points_adjused_z,col_frag_curve_full_ns_tot,':k','DisplayName','NS Adjusted Collapse')
 xlabel('Sa(T_1) (g)')
 ylabel('P[Exceedance]')
 fn_format_and_save_plot( plot_dir, 'Unacceptable Response Fragility', 6 )
@@ -352,6 +354,7 @@ matlab_colors = [0 0.4470 0.7410;
           0.301 0.7445 0.933;
           0.635 0.078 0.184];
 
+% First Acceptance criteria met
 figure
 hold on
 title('First Story Column Base Acceptance Criteria: EW') 
@@ -366,7 +369,24 @@ plot(x_points,frag_curves.euro_th_NC.frag_curve_ew_first,'--','color',matlab_col
 xlabel('Sa(T_1=1.14) (g)')
 ylabel('P[Exceedance]')
 xlim([0 1.5])
-fn_format_and_save_plot( plot_dir, 'Collapse Fragility - Acceptance Criteria - EW', 6 )
+fn_format_and_save_plot( plot_dir, 'Collapse Fragility - First Acceptance Criteria - EW', 6 )
+
+% 50% Acceptance criteria met
+figure
+hold on
+title('50% Story Column Base Acceptance Criteria: EW') 
+% ASCE 41 frags
+plot(x_points,frag_curves.io.frag_curve_ew_50,'color',matlab_colors(1,:),'lineWidth',1.5,'DisplayName','50% IO')
+plot(x_points,frag_curves.ls.frag_curve_ew_50,'color',matlab_colors(2,:),'lineWidth',1.5,'DisplayName','50% LS')
+plot(x_points,frag_curves.cp.frag_curve_ew_50,'color',matlab_colors(3,:),'lineWidth',1.5,'DisplayName','50% CP')
+% Eurcode Frags
+plot(x_points,frag_curves.euro_th_DL.frag_curve_ew_50,'--','color',matlab_colors(1,:),'lineWidth',1.5,'DisplayName','50% Euro DL')
+plot(x_points,frag_curves.euro_th_SD.frag_curve_ew_50,'--','color',matlab_colors(2,:),'lineWidth',1.5,'DisplayName','50% Euro SD')
+plot(x_points,frag_curves.euro_th_NC.frag_curve_ew_50,'--','color',matlab_colors(3,:),'lineWidth',1.5,'DisplayName','50% Euro NC')
+xlabel('Sa(T_1=1.14) (g)')
+ylabel('P[Exceedance]')
+xlim([0 1.5])
+fn_format_and_save_plot( plot_dir, 'Collapse Fragility - 50% Acceptance Criteria - EW', 6 )
 end
 
 function [frag_curve_MLE, frag_curve_full_uncertainty] = fn_calc_frag_curve(x_points, med_sa, num_gms, num_collapse)

@@ -116,7 +116,7 @@ if analysis.nonlinear ~= 0 && ~isempty(hinge)
     hinge_ids = hinge.id(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'rotational'));
     for h = 1:length(hinge_ids)
         hinge_deformation_TH_x.(['hinge_' num2str(hinge_ids(h))]) = hinge_deformation_x(:,1+h);
-        hinge_force_TH_x.(['hinge_' num2str(hinge_ids(h))]) = hinge_force_x(:,1+h);
+        hinge_force_TH_x.(['hinge_' num2str(hinge_ids(h))]) = -hinge_force_x(:,1+h);
     end
 
     hinge_ids = hinge.id(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational'));
@@ -128,13 +128,13 @@ if analysis.nonlinear ~= 0 && ~isempty(hinge)
     hinge_ids = hinge.id(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational'));
     for h = 1:length(hinge_ids)
         hinge_deformation_TH_x.(['hinge_' num2str(hinge_ids(h))]) = hinge_deformation_z_oop(:,1+h);
-        hinge_force_TH_x.(['hinge_' num2str(hinge_ids(h))]) = hinge_force_z_oop(:,1+h);
+        hinge_force_TH_x.(['hinge_' num2str(hinge_ids(h))]) = -hinge_force_z_oop(:,1+h);
     end
 
     hinge_ids = hinge.id(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'shear'));
     for h = 1:length(hinge_ids)
         hinge_deformation_TH_z.(['hinge_' num2str(hinge_ids(h))]) = hinge_deformation_z(:,1+h);
-        hinge_force_TH_z.(['hinge_' num2str(hinge_ids(h))]) = hinge_force_z(:,1+h);
+        hinge_force_TH_z.(['hinge_' num2str(hinge_ids(h))]) = -hinge_force_z(:,1+h);
     end
 end
 
@@ -229,12 +229,8 @@ for i = 1:length(dirs_ran)
            end
 
            if node.record_accel(n)
-               if analysis.write_xml
-                   [ node_accel_raw ] = fn_xml_read([opensees_dir filesep 'nodal_accel_' num2str(node.id(n)) '.xml']);
-                   node_accel_raw = node_accel_raw'; % flip to be node per row
-               else
-                   node_accel_raw = dlmread([opensees_dir filesep 'nodal_accel_' num2str(node.id(n)) '.txt'],' ')';
-               end
+               [ node_accel_raw ] = fn_xml_read([opensees_dir filesep 'nodal_accel_' num2str(node.id(n)) '.xml']);
+               node_accel_raw = node_accel_raw'; % flip to be node per row
                
               % Scale acceleration EQ (linear interpolation) based on
               % uniform time step points

@@ -1,15 +1,15 @@
-function [ ] = fn_define_recorders( write_dir, dimension, node, element, joint, hinge, analysis, hinge_grouping )
+function [ ] = fn_define_recorders( write_dir, dimension, node, element, joint, hinge, analysis )
 %UNTITLED7 Summary of this function goes here
 %   Detailed explanation goes here
 
 % Define File Type to Write to
-if analysis.write_xml
+% if analysis.write_xml
     file_type = '-xml';
     file_ext = 'xml';
-else
-    file_type = '-file';
-    file_ext = 'txt';
-end
+% else
+%     file_type = '-file';
+%     file_ext = 'txt';
+% end
 
 % Write Recorder File
 file_name = [write_dir, filesep 'recorders.tcl'];
@@ -64,28 +64,28 @@ if analysis.type == 1
         % Rotational Hinges x direction - primary
         hinge_ids = element.id(end) + hinge.id(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'rotational'));
         if ~isempty(hinge_ids)
-            fprintf(fileID,'recorder Element %s %s/hinge_moment_x.%s -time -ele %s -dof 6 force \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
+            fprintf(fileID,'recorder Element %s %s/hinge_moment_x.%s -time -ele %s localForce \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
             fprintf(fileID,'recorder Element %s %s/hinge_rotation_x.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
         end
         if strcmp(dimension,'3D')
             % Rotational Hinges x direction - oop
             hinge_ids = element.id(end) + hinge.id(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational'));
             if ~isempty(hinge_ids)
-                fprintf(fileID,'recorder Element %s %s/hinge_moment_x_oop.%s -time -ele %s -dof 4 force \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
+                fprintf(fileID,'recorder Element %s %s/hinge_moment_x_oop.%s -time -ele %s localForce \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
                 fprintf(fileID,'recorder Element %s %s/hinge_rotation_x_oop.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
             end
             
             % Rotational Hinges z direction - oop
             hinge_ids = element.id(end) + hinge.id(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational'));
             if ~isempty(hinge_ids)
-                fprintf(fileID,'recorder Element %s %s/hinge_moment_z_oop.%s -time -ele %s -dof 6 force \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
+                fprintf(fileID,'recorder Element %s %s/hinge_moment_z_oop.%s -time -ele %s localForce \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
                 fprintf(fileID,'recorder Element %s %s/hinge_rotation_z_oop.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
             end
 
             % Shear Hinges z direction 
             hinge_ids = element.id(end) + hinge.id(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'shear'));
             if ~isempty(hinge_ids)
-                fprintf(fileID,'recorder Element %s %s/hinge_shear_z.%s -time -ele %s -dof 3 force \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
+                fprintf(fileID,'recorder Element %s %s/hinge_shear_z.%s -time -ele %s localForce \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
                 fprintf(fileID,'recorder Element %s %s/hinge_deformation_z.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
             end
         end
@@ -118,34 +118,29 @@ elseif analysis.type == 2 || analysis.type == 3
             % Rotational Hinges x direction - primary
             hinge_ids = element.id(end) + hinge.id(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'rotational'));
             if ~isempty(hinge_ids)
-                fprintf(fileID,'recorder Element %s %s/hinge_moment_%s.%s -time -ele %s -dof 6 force \n', file_type, write_dir, analysis.pushover_direction, file_ext, num2str(hinge_ids'));
-                fprintf(fileID,'recorder Element %s %s/hinge_rotation_%s.%s -time -ele %s deformation \n', file_type, write_dir, analysis.pushover_direction, file_ext, num2str(hinge_ids'));
-            end
-        elseif strcmp(analysis.pushover_direction,'z') || strcmp(analysis.pushover_direction,'-z')
-            % Rotational Hinges x direction - oop
-            hinge_ids = element.id(end) + hinge.id(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational'));
-            if ~isempty(hinge_ids)
-                if strcmp(analysis.pushover_direction,'z')
-                    fprintf(fileID,'recorder Element %s %s/hinge_moment_x_oop.%s -time -ele %s localForce \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
-                    fprintf(fileID,'recorder Element %s %s/hinge_rotation_x_oop.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
-                elseif strcmp(analysis.pushover_direction,'-z')
-                    fprintf(fileID,'recorder Element %s %s/hinge_moment_-x_oop.%s -time -ele %s localForce \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
-                    fprintf(fileID,'recorder Element %s %s/hinge_rotation_-x_oop.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
-                end
+                fprintf(fileID,'recorder Element %s %s/hinge_moment_x.%s -time -ele %s localForce \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
+                fprintf(fileID,'recorder Element %s %s/hinge_rotation_x.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
             end
             
             % Rotational Hinges z direction - oop
             hinge_ids = element.id(end) + hinge.id(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational'));
             if ~isempty(hinge_ids)
-                fprintf(fileID,'recorder Element %s %s/hinge_moment_%s_oop.%s -time -ele %s -dof 6 force \n', file_type, write_dir, analysis.pushover_direction, file_ext, num2str(hinge_ids'));
-                fprintf(fileID,'recorder Element %s %s/hinge_rotation_%s_oop.%s -time -ele %s deformation \n', file_type, write_dir, analysis.pushover_direction, file_ext, num2str(hinge_ids'));
+                fprintf(fileID,'recorder Element %s %s/hinge_moment_z_oop.%s -time -ele %s localForce \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
+                fprintf(fileID,'recorder Element %s %s/hinge_rotation_z_oop.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
+            end
+        elseif strcmp(analysis.pushover_direction,'z') || strcmp(analysis.pushover_direction,'-z')
+            % Rotational Hinges x direction - oop
+            hinge_ids = element.id(end) + hinge.id(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational'));
+            if ~isempty(hinge_ids)
+                fprintf(fileID,'recorder Element %s %s/hinge_moment_x_oop.%s -time -ele %s localForce \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
+                fprintf(fileID,'recorder Element %s %s/hinge_rotation_x_oop.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
             end
 
             % Shear Hinges z direction 
             hinge_ids = element.id(end) + hinge.id(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'shear'));
             if ~isempty(hinge_ids)
-                fprintf(fileID,'recorder Element %s %s/hinge_shear_%s.%s -time -ele %s -dof 3 force \n', file_type, write_dir, analysis.pushover_direction, file_ext, num2str(hinge_ids'));
-                fprintf(fileID,'recorder Element %s %s/hinge_deformation_%s.%s -time -ele %s deformation \n', file_type, write_dir, analysis.pushover_direction, file_ext, num2str(hinge_ids'));
+                fprintf(fileID,'recorder Element %s %s/hinge_shear_z.%s -time -ele %s localForce \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
+                fprintf(fileID,'recorder Element %s %s/hinge_deformation_z.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
             end
         end
     end
@@ -157,21 +152,22 @@ end
 %     fprintf(fileID,'recorder Element %s %s/joint_deformation_all.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(joint.id' + 10000));
 % end
 
-%% Movie Recorders
-if analysis.play_movie
-    fprintf(fileID,'recorder display "Displaced shape" 10 10 500 500 -wipe \n');
-    fprintf(fileID,'prp 200.0 50.0 50.0; \n');
-    fprintf(fileID,'vup 0.0 1.0 0.0; \n');
-    if strcmp(dimension,'2D')
-        fprintf(fileID,'vpn 0.0 0.0 1.0; \n');
-    else
-        fprintf(fileID,'vpn 0.4 0.25 1; \n');
-    end
-    %     fprintf(fileID,'viewWindow -1000 1000 -1000 1000 \n');
-    fprintf(fileID,'display 1 5 %f \n',analysis.movie_scale);
-end
-
+%% Visual Outputs
 if ~analysis.suppress_outputs
+    % Movie Recorders
+    if analysis.play_movie
+        fprintf(fileID,'recorder display "Displaced shape" 10 10 500 500 -wipe \n');
+        fprintf(fileID,'prp 200.0 50.0 50.0; \n');
+        fprintf(fileID,'vup 0.0 1.0 0.0; \n');
+        if strcmp(dimension,'2D')
+            fprintf(fileID,'vpn 0.0 0.0 1.0; \n');
+        else
+            fprintf(fileID,'vpn 0.4 0.25 1; \n');
+        end
+        %     fprintf(fileID,'viewWindow -1000 1000 -1000 1000 \n');
+        fprintf(fileID,'display 1 5 %f \n',analysis.movie_scale);
+    end
+
     fprintf(fileID,'puts "Defining Recorders Complete" \n');
 end
 

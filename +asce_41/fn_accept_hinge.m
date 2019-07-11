@@ -85,6 +85,7 @@ for i = 1:height(hinge)
             end
         end
         hinge.V_ratio(i) = ele.(['Vmax_' ele_side])/ele.(['Vn_' ele_side]);
+        hinge.M_ratio_pos(i) = ele.(['Mmax_' ele_side])/ele.(['Mn_pos_' ele_side]);
         hinge.P_ratio_expected(i) = ele.Pmax/(ele_prop.fc_e*ele_prop.a);
         hinge.P_ratio_nominal(i) = ele.Pmax/(ele_prop.fc_n*ele_prop.a);
         hinge.P_ratio_asce41(i) = ele.Pmax/ele.Pn_c;

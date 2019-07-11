@@ -53,6 +53,13 @@ for s = 1:height(story)
 
             plot_name = ['V ratio - Primary - Side 2 - Story - ' num2str(s) ' - ' ele_type];
             fn_plot_results_scatter( side_2, plot_dir, plot_name, 'V_ratio', 'Max(V)/Vn', ele_type )
+            
+            % M ratio
+            plot_name = ['M ratio - Primary - Side 1 - Story - ' num2str(s) ' - ' ele_type];
+            fn_plot_results_scatter( side_1, plot_dir, plot_name, 'M_ratio_pos', 'Max(M)/Mn', ele_type )
+
+            plot_name = ['M ratio - Primary - Side 2 - Story - ' num2str(s) ' - ' ele_type];
+            fn_plot_results_scatter( side_2, plot_dir, plot_name, 'M_ratio_pos', 'Max(M)/Mn', ele_type )
         end
     end
 

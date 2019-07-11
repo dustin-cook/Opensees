@@ -51,9 +51,9 @@ if prcnt_chng > 0.01
 end
 for i = 1:length(node.id)
     if strcmp(dimension,'2D')
-        fprintf(fileID,'mass %i %f 0. 0. \n',node.id(i), node.mass(i));
+        fprintf(fileID,'mass %i %f %f 0. \n',node.id(i), new_mass(i), new_mass(i));
     elseif strcmp(dimension,'3D')
-        fprintf(fileID,'mass %i %f 0. %f 0. 0. 0. \n',node.id(i), new_mass(i), new_mass(i));
+        fprintf(fileID,'mass %i %f %f %f 0. 0. 0. \n',node.id(i), new_mass(i), new_mass(i), new_mass(i));
     end
 end
 
@@ -209,13 +209,13 @@ if height(joint) > 0
         if analysis.nonlinear ~= 0 && analysis.joint_explicit == 1 % Nonlinear Joints
                                                                                                      % type, Mn_pos,             Mn_neg,               Mp_pos, Mp_neg, length,                       e,                    iz,    a_hinge,                   b_hinge,                  c_hinge,                    n, strain_harden_ratio
             [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', joint_analysis.Mn(i), joint_analysis.Mn(i), inf, inf, joint_analysis.h(i), joint_analysis.e(i), joint_analysis.iz(i), joint_analysis.a_hinge(i), joint_analysis.b_hinge(i), joint_analysis.c_hinge(i), NaN, 0.04, 'shear' );
-            Ko = 1000*moment_vec_pos(1)/rot_vec_pos(1);
-            as_sping_pos = (moment_vec_pos(2)-moment_vec_pos(1))/(rot_vec_pos(2)-rot_vec_pos(1))/Ko;
-            as_sping_neg = (moment_vec_neg(2)-moment_vec_neg(1))/(rot_vec_neg(2)-rot_vec_neg(1))/Ko;
+            K0 = 1000*moment_vec_pos(1)/rot_vec_pos(1);
+            as_sping_pos = (moment_vec_pos(2)-moment_vec_pos(1))/(rot_vec_pos(2)-rot_vec_pos(1))/K0;
+            as_sping_neg = (moment_vec_neg(2)-moment_vec_neg(1))/(rot_vec_neg(2)-rot_vec_neg(1))/K0;
             theta_pc_pos = rot_vec_pos(3) - rot_vec_pos(2) + joint_analysis.c_hinge(i)*(rot_vec_pos(3) - rot_vec_pos(2))/(1-joint_analysis.c_hinge(i)); % theta pc defined all the way to zero where b defined to residual kink
             theta_pc_neg = rot_vec_neg(3) - rot_vec_neg(2) + joint_analysis.c_hinge(i)*(rot_vec_neg(3) - rot_vec_neg(2))/(1-joint_analysis.c_hinge(i)); % theta pc defined all the way to zero where b defined to residual kink
             % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
-            fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',joint.id(i)+10000, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, joint_analysis.c_hinge(i), joint_analysis.c_hinge(i), 0.999, 0.999); % Keep residual strength forever
+            fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',joint.id(i)+10000, K0, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, joint_analysis.c_hinge(i), joint_analysis.c_hinge(i), 0.999, 0.999); % Keep residual strength forever
 %         else % Linear
 %             fprintf(fileID,'uniaxialMaterial Elastic %i 999999999999999. \n',joint.id(i)+10000); % Rigid Elastic Material
         end
@@ -431,13 +431,16 @@ if height(hinge) > 0
                 end
 
                 % Define IMK Parameters
-                Ko = moment_vec_pos(1)/rot_vec_pos(1);
-                as_sping_pos = (moment_vec_pos(2)-moment_vec_pos(1))/(rot_vec_pos(2)-rot_vec_pos(1))/Ko;
-                as_sping_neg = (moment_vec_neg(2)-moment_vec_neg(1))/(rot_vec_neg(2)-rot_vec_neg(1))/Ko;
+                K0 = moment_vec_pos(1)/rot_vec_pos(1);
+                as_sping_pos = (moment_vec_pos(2)-moment_vec_pos(1))/(rot_vec_pos(2)-rot_vec_pos(1))/K0;
+                as_sping_neg = (moment_vec_neg(2)-moment_vec_neg(1))/(rot_vec_neg(2)-rot_vec_neg(1))/K0;
                 theta_p_pos = rot_vec_pos(2)-rot_vec_pos(1);
                 theta_p_neg = rot_vec_neg(2)-rot_vec_neg(1);
-                theta_pc_pos = rot_vec_pos(3) - rot_vec_pos(2) + hinge_props.(['c_hinge_' ele_side])*(rot_vec_pos(3) - rot_vec_pos(2))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
-                theta_pc_neg = rot_vec_neg(3) - rot_vec_neg(2) + hinge_props.(['c_hinge_' ele_side])*(rot_vec_neg(3) - rot_vec_neg(2))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
+                residual_strength = 0.05; % fix to 5%
+                q_ult_pos = moment_vec_pos(2)/moment_vec_pos(1);
+                q_ult_neg = moment_vec_neg(2)/moment_vec_neg(1);
+                theta_pc_pos = rot_vec_pos(3) - rot_vec_pos(2) + (hinge_props.(['c_hinge_' ele_side])-residual_strength)*(rot_vec_pos(3) - rot_vec_pos(2))/(q_ult_pos-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
+                theta_pc_neg = rot_vec_neg(3) - rot_vec_neg(2) + (hinge_props.(['c_hinge_' ele_side])-residual_strength)*(rot_vec_neg(3) - rot_vec_neg(2))/(q_ult_neg-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
 %                 if analysis.type == 1 % Dynamic
                     end_rot = 0.999999; % Keep residual strength forever
 %                 else
@@ -447,10 +450,10 @@ if height(hinge) > 0
 %                 fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), theta_p_pos, theta_p_neg, theta_pc_pos, theta_pc_neg, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_rot, end_rot);
 
                 % uniaxialMaterial IMKPeakOriented $Mat_Tag $Ke $Up_pos $Upc_pos $Uu_pos $Fy_pos $FmaxFy_pos $FresFy_pos $Up_neg $Upc_neg $Uu_neg $Fy_neg $FmaxFy_neg $FresFy_neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $D_pos $D_neg
-%                 fprintf(fileID,'uniaxialMaterial IMKPeakOriented %i %f %f %f %f %f %f %f %f %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 1.0 1.0 \n', ele_hinge_id, Ko, theta_p_pos, theta_pc_pos, end_rot, moment_vec_pos(1), moment_vec_pos(2)/moment_vec_pos(1), hinge_props.(['c_hinge_' ele_side]), theta_p_neg, theta_pc_neg, end_rot, moment_vec_neg(1), moment_vec_neg(2)/moment_vec_neg(1), hinge_props.(['c_hinge_' ele_side]));
+                fprintf(fileID,'uniaxialMaterial IMKPeakOriented %i %f %f %f %f %f %f %f %f %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 1.0 1.0 \n', ele_hinge_id, K0, theta_p_pos, theta_pc_pos, end_rot, moment_vec_pos(1), moment_vec_pos(2)/moment_vec_pos(1), residual_strength, theta_p_neg, theta_pc_neg, end_rot, moment_vec_neg(1), moment_vec_neg(2)/moment_vec_neg(1), residual_strength);
                
                 % uniaxialMaterial Bilin $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg <$nFactor>
-                fprintf(fileID,'uniaxialMaterial Bilin %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_rot, end_rot);
+%                 fprintf(fileID,'uniaxialMaterial Bilin %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, residual_strength, residual_strength, end_rot, end_rot);
 
                 % Create Zero Length Elements and Equal DOF constraints
                 %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
@@ -485,15 +488,22 @@ if height(hinge) > 0
                     % Define backbone coordinates and IMK Hinges
                     if strcmp(hin.direction,'primary')
                         [ force_vec, disp_vec ] = fn_define_backbone_shear( hinge_props.(['Vn_' ele_side]), ele.length, ele_props.g, ele_props.av, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['d_hinge_' ele_side]), hinge_props.(['e_hinge_' ele_side]), hinge_props.(['f_hinge_' ele_side]), hinge_props.(['g_hinge_' ele_side])  );
-                        Ko = force_vec(1)/disp_vec(1); 
+                        K0 = force_vec(1)/disp_vec(1);
+                        residual_strength = 0.05; % fix to 5% 
                         % Have it go past the shear kink with the initial stiffness and check how far it goes in post process
-%                         theta_p = disp_vec(3)-force_vec(2)/K0; % Correct theta P based initial elastic stiffness
-%                         theta_pc = disp_vec(4) - disp_vec(3) + hinge_props.(['c_hinge_' ele_side])*(disp_vec(4) - disp_vec(3))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
+                        f_yield = force_vec(2);
+                        f_ult_ratio = 1;
+                        theta_p = disp_vec(3)-force_vec(2)/K0; % Correct theta P based initial elastic stiffness
+                        theta_pc = disp_vec(4) - disp_vec(3) + (hinge_props.(['c_hinge_' ele_side])-residual_strength)*(disp_vec(4) - disp_vec(3))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
+%                         
                         % Have it go straight from yeild to residual
-                        theta_p = disp_vec(2)-disp_vec(1); % Theta P is the disp of the first kink
-                        theta_pc = disp_vec(4) - disp_vec(2) + hinge_props.(['c_hinge_' ele_side])*(disp_vec(4) - disp_vec(2))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
-                        as_sping = (force_vec(2)-force_vec(1))/(disp_vec(2)-disp_vec(1))/Ko;
-%                         if analysis.type == 1 % Dynamic
+%                         f_yield = force_vec(1);
+%                         f_ult_ratio = force_vec(2)/force_vec(1);
+%                         theta_p = disp_vec(2)-disp_vec(1); % Theta P is the disp of the first kink
+%                         theta_pc = disp_vec(4) - disp_vec(2) + (hinge_props.(['c_hinge_' ele_side])-residual_strength)*(disp_vec(4) - disp_vec(2))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
+%                         as_sping = (force_vec(2)-force_vec(1))/(disp_vec(2)-disp_vec(1))/K0;
+
+                        % if analysis.type == 1 % Dynamic
                             end_disp = 999; % Keep residual strength forever
 %                         else
 %                             end_disp = disp_vec(end);
@@ -502,30 +512,36 @@ if height(hinge) > 0
 %                         fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, K0, 0, 0, force_vec(2), -force_vec(2), theta_p, theta_p, theta_pc, theta_pc, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_disp, end_disp);
 %                         fprintf(fileID,'uniaxialMaterial ModIMKPeakOriented %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping, as_sping, force_vec(1), -force_vec(1), theta_p, theta_p, theta_pc, theta_pc, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_disp, end_disp); % Keep residual strength forever
                         
+                        % uniaxialMaterial IMKPeakOriented $Mat_Tag $Ke $Up_pos $Upc_pos $Uu_pos $Fy_pos $FmaxFy_pos $FresFy_pos $Up_neg $Upc_neg $Uu_neg $Fy_neg $FmaxFy_neg $FresFy_neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $D_pos $D_neg
+                        fprintf(fileID,'uniaxialMaterial IMKPeakOriented %i %f %f %f %f %f %f %f %f %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 1.0 1.0 \n', ele_hinge_id, K0, theta_p, theta_pc, end_disp, f_yield, f_ult_ratio, residual_strength, theta_p, theta_pc, end_disp, f_yield, f_ult_ratio, residual_strength);
+               
                       % uniaxialMaterial Bilin $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg <$nFactor>
-                        fprintf(fileID,'uniaxialMaterial Bilin %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping, as_sping, force_vec(1), -force_vec(1), theta_p, theta_p, theta_pc, theta_pc, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_disp, end_disp); % Keep residual strength forever
+%                         fprintf(fileID,'uniaxialMaterial Bilin %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping, as_sping, force_vec(1), -force_vec(1), theta_p, theta_p, theta_pc, theta_pc, residual_strength, residual_strength, end_disp, end_disp); % Keep residual strength forever
                     elseif strcmp(hin.direction,'oop')
                         [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', hinge_props.(['Mn_oop_' ele_side]), hinge_props.(['Mn_oop_' ele_side]), hinge_props.(['Mp_oop_' ele_side]), hinge_props.(['Mp_oop_' ele_side]), ele.length, ele_props.e, ele_props.iy, hinge_props.(['a_hinge_oop_' ele_side]), hinge_props.(['b_hinge_oop_' ele_side]), hinge_props.(['c_hinge_oop_' ele_side]), analysis.hinge_stiff_mod, 0.1, hinge_props.(['critical_mode_oop_' ele_side]) );
-                        Ko = moment_vec_pos(1)/rot_vec_pos(1);
-                        as_sping_pos = (moment_vec_pos(2)-moment_vec_pos(1))/(rot_vec_pos(2)-rot_vec_pos(1))/Ko;
-                        as_sping_neg = (moment_vec_neg(2)-moment_vec_neg(1))/(rot_vec_neg(2)-rot_vec_neg(1))/Ko;
-                        theta_pc_pos = rot_vec_pos(3) - rot_vec_pos(2) + hinge_props.(['c_hinge_' ele_side])*(rot_vec_pos(3) - rot_vec_pos(2))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
-                        theta_pc_neg = rot_vec_neg(3) - rot_vec_neg(2) + hinge_props.(['c_hinge_' ele_side])*(rot_vec_neg(3) - rot_vec_neg(2))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
+                        K0 = moment_vec_pos(1)/rot_vec_pos(1);
+                        residual_strength = 0.05; % fix to 5% 
+                        as_sping_pos = (moment_vec_pos(2)-moment_vec_pos(1))/(rot_vec_pos(2)-rot_vec_pos(1))/K0;
+                        as_sping_neg = (moment_vec_neg(2)-moment_vec_neg(1))/(rot_vec_neg(2)-rot_vec_neg(1))/K0;
+                        theta_pc_pos = rot_vec_pos(3) - rot_vec_pos(2) + (hinge_props.(['c_hinge_' ele_side])-residual_strength)*(rot_vec_pos(3) - rot_vec_pos(2))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
+                        theta_pc_neg = rot_vec_neg(3) - rot_vec_neg(2) + (hinge_props.(['c_hinge_' ele_side])-residual_strength)*(rot_vec_neg(3) - rot_vec_neg(2))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
 %                         if analysis.type == 1 % Dynamic
                             end_rot = 0.999999;  % Keep residual strength forever
 %                         else
 %                             end_rot = rot_vec_pos(end);
 %                         end
                         % uniaxialMaterial ModIMKPeakOriented $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg
-%                         fprintf(fileID,'uniaxialMaterial Bilin %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, hinge_props.(['c_hinge_' ele_side]), hinge_props.(['c_hinge_' ele_side]), end_rot, end_rot); % Keep residual strength forever
-%                         fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n',ele_hinge_id, Ko/295, rot_vec_pos(1)*350);
+%                         fprintf(fileID,'uniaxialMaterial Bilin %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, residual_strength, residual_strength, end_rot, end_rot); % Keep residual strength forever
+%                         fprintf(fileID,'uniaxialMaterial ElasticPP %i %f %f \n',ele_hinge_id, Ko, rot_vec_pos(1));
 
                         % First story Hinges modified to match fiber model
                         if hin.story == 1
-                            fprintf(fileID,'uniaxialMaterial ElasticBilin %i %f %f %f \n',ele_hinge_id, Ko, Ko/1500, rot_vec_pos(1)*1.2);
+                            fprintf(fileID,'uniaxialMaterial ElasticBilin %i %f %f %f \n',ele_hinge_id+15000, K0, K0/1500, rot_vec_pos(1)*1.2);
                         else % second story Hinges modified to match fiber model
-                            fprintf(fileID,'uniaxialMaterial ElasticBilin %i %f %f %f \n',ele_hinge_id, Ko, Ko/3500, rot_vec_pos(1)*0.87);
+                            fprintf(fileID,'uniaxialMaterial ElasticBilin %i %f %f %f \n',ele_hinge_id+15000, K0, K0/3500, rot_vec_pos(1)*0.87);
                         end
+                        % uniaxialMaterial MinMax $matTag $otherTag <-min $minStrain> <-max $maxStrain>
+                        fprintf(fileID,'uniaxialMaterial MinMax %i %i -min %f -max %f \n', ele_hinge_id, ele_hinge_id+15000, -rot_vec_neg(3), rot_vec_pos(3));
                         
                         % Essentially Pinned OOP Wall
 %                         fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',ele_hinge_id,1);
