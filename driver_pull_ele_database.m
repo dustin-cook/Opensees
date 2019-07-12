@@ -7,7 +7,7 @@ clc
 
 
 %% User inputs
-analysis.model_id = 6;
+analysis.model_id = 11;
 analysis.proceedure = 'NDP'; % LDP or NDP or test
 analysis.id = 1; % ID of the analysis for it to create its own directory
 
@@ -33,56 +33,56 @@ load([analysis_dir filesep 'hinge_analysis.mat'])
 load(['ground_motions' filesep 'ICSB_recordings' filesep 'recorded_edp_profile.mat'])
 
 %% Formulate Beam Table
-% beams = ele_inputs(strcmp(ele_inputs.element_type,'beam'),:);
-% for i = 1:height(beams)
-%     hin_side = num2str(beams.hinge_side(i));
-%     ele = element(element.id == beams.id(i),:);
-%     hin = hinge(hinge.element_id == ele.id & strcmp(hinge.direction,'primary') & hinge.ele_side == str2double(hin_side),:);
-%     load([opensees_dir filesep 'hinge_TH_' num2str(hin.id)])
-%     if ~isempty(ele)
-%         this_story = story(story.id == ele.story,:);
-%         ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
-%         beams.ld_req(i) = ele.ld_req;
-%         beams.ld_avail{i} = ele.ld_avail;
-%         beams.rho_ratio(i) = (ele_props.row - ele_props.row_prime)/ele.row_bal;
-%         beams.shear_stress_ratio(i) = ele.(['Vmax_' hin_side])/(ele_props.w*ele_props.d_eff*sqrt(ele_props.fc_e));
-%         beams.shear_demand_ratio(i) = ele.(['Vmax_' hin_side])/ele.(['Vn_' hin_side]);
-%         if strcmp(ele.trans_rein_check,'NC')
-%             beams.trans_rein(i) = 0;
-%         elseif strcmp(ele.trans_rein_check,'C')
-%             beams.trans_rein(i) = 1;
-%         end
-%         beams.s(i) = ele_props.(['S_' hin_side]);
-%         beams.hinge_splices(i) = 0;
-%         beams.K0(i) = (1/1000)*6*ele_props.e*ele_props.iz/ele.length;
-%         if abs(max(hin_TH.deformation_TH)) >= abs(min(hin_TH.deformation_TH))% Assumes beam strength is same on each side of the beam
-%             beams.Mn(i) = (1/1000)*ele.(['Mn_pos_' hin_side]); % Positive Bendiong
-%             beams.Mp(i) = (1/1000)*ele.(['Mp_pos_' hin_side]);
-%         elseif abs(max(hin_TH.deformation_TH)) < abs(min(hin_TH.deformation_TH))
-%             beams.Mn(i) = (1/1000)*ele.(['Mn_neg_' hin_side]); % Negative Bending
-%             beams.Mp(i) = (1/1000)*ele.(['Mp_neg_' hin_side]);
-%         end
-%         if ele.pass_aci_dev_length == 0
-%             beams.condition(i) = 3;
-%         elseif strcmp(ele.(['critical_mode_' hin_side]),'shear')
-%             beams.condition(i) = 2;
-%         else   
-%             beams.condition(i) = 1;
-%         end 
-%         beams.max_element_rotation_or_drift(i) = max(abs(hin_TH.deformation_TH));
-%         beams.max_story_drift_analysis(i) = this_story.(['max_drift_' ele.direction{1}]); % Need to fix elment story drift read such that it does not come in as NaN
-%         beams.max_story_drift_record(i) = record_edp.max_disp.(ele.direction{1})(ele.story+1);
-%         beams.failure_mech_analysis{i} = 'Rotational Yeilding'; % Need to dynamically check this
-%         beams.failure_mech_recorded{i} = 'No Failure'; % hard coded from ICSB results
-%         beams.damage_image{i} = 'NA';
-%         beams.a(i) = ele.(['a_hinge_' hin_side]);
-%         beams.b(i) = ele.(['b_hinge_' hin_side]);
-%         beams.c(i) = ele.(['c_hinge_' hin_side]);
-%         beams.io(i) = ele.(['io_' hin_side]);
-%         beams.ls(i) = ele.(['ls_' hin_side]);
-%         beams.cp(i) = ele.(['cp_' hin_side]);
-%     end
-% end
+beams = ele_inputs(strcmp(ele_inputs.element_type,'beam'),:);
+for i = 1:height(beams)
+    hin_side = num2str(beams.hinge_side(i));
+    ele = element(element.id == beams.id(i),:);
+    hin = hinge(hinge.element_id == ele.id & strcmp(hinge.direction,'primary') & hinge.ele_side == str2double(hin_side),:);
+    load([opensees_dir filesep 'hinge_TH_' num2str(hin.id)])
+    if ~isempty(ele)
+        this_story = story(story.id == ele.story,:);
+        ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
+        beams.ld_req(i) = ele.ld_req;
+        beams.ld_avail{i} = ele.ld_avail;
+        beams.rho_ratio(i) = (ele_props.row - ele_props.row_prime)/ele.row_bal;
+        beams.shear_stress_ratio(i) = ele.(['Vmax_' hin_side])/(ele_props.w*ele_props.d_eff*sqrt(ele_props.fc_e));
+        beams.shear_demand_ratio(i) = ele.(['Vmax_' hin_side])/ele.(['Vn_' hin_side]);
+        if strcmp(ele.trans_rein_check,'NC')
+            beams.trans_rein(i) = 0;
+        elseif strcmp(ele.trans_rein_check,'C')
+            beams.trans_rein(i) = 1;
+        end
+        beams.s(i) = ele_props.(['S_' hin_side]);
+        beams.hinge_splices(i) = 0;
+        beams.K0(i) = (1/1000)*6*ele_props.e*ele_props.iz/ele.length;
+        if abs(max(hin_TH.deformation_TH)) >= abs(min(hin_TH.deformation_TH))% Assumes beam strength is same on each side of the beam
+            beams.Mn(i) = (1/1000)*ele.(['Mn_pos_' hin_side]); % Positive Bendiong
+            beams.Mp(i) = (1/1000)*ele.(['Mp_pos_' hin_side]);
+        elseif abs(max(hin_TH.deformation_TH)) < abs(min(hin_TH.deformation_TH))
+            beams.Mn(i) = (1/1000)*ele.(['Mn_neg_' hin_side]); % Negative Bending
+            beams.Mp(i) = (1/1000)*ele.(['Mp_neg_' hin_side]);
+        end
+        if ele.pass_aci_dev_length == 0
+            beams.condition(i) = 3;
+        elseif strcmp(ele.(['critical_mode_' hin_side]),'shear')
+            beams.condition(i) = 2;
+        else   
+            beams.condition(i) = 1;
+        end 
+        beams.max_element_rotation_or_drift(i) = max(abs(hin_TH.deformation_TH));
+        beams.max_story_drift_analysis(i) = this_story.(['max_drift_' ele.direction{1}]); % Need to fix elment story drift read such that it does not come in as NaN
+        beams.max_story_drift_record(i) = record_edp.max_disp.(ele.direction{1})(ele.story+1);
+        beams.failure_mech_analysis{i} = 'Rotational Yeilding'; % Need to dynamically check this
+        beams.failure_mech_recorded{i} = 'No Failure'; % hard coded from ICSB results
+        beams.damage_image{i} = 'NA';
+        beams.a(i) = ele.(['a_hinge_' hin_side]);
+        beams.b(i) = ele.(['b_hinge_' hin_side]);
+        beams.c(i) = ele.(['c_hinge_' hin_side]);
+        beams.io(i) = ele.(['io_' hin_side]);
+        beams.ls(i) = ele.(['ls_' hin_side]);
+        beams.cp(i) = ele.(['cp_' hin_side]);
+    end
+end
 
 % Formulate Column Table
 columns = ele_inputs(strcmp(ele_inputs.element_type,'column'),:);
@@ -97,8 +97,9 @@ for i = 1:height(columns)
         columns.fc_e(i) = (1/1000)*ele_props.fc_e;
         columns.fy_e(i) = (1/1000)*ele_props.fy_e;
         columns.fyt_e(i) = (1/1000)*ele_props.fy_e; % Assume they are the same
-        columns.max_axial_load_ratio(i) = ele.Pmax/(ele_props.a*ele_props.fc_n);% Use nominal capacity since axial is force controlled
-        columns.gravity_axial_load_ratio(i) = ele.P_grav/(ele_props.a*ele_props.fc_n);
+        columns.max_expected_axial_load_ratio(i) = ele.Pmax/(ele_props.a*ele_props.fc_e);% Use expected to related to testing data
+        columns.max_nominal_axial_load_ratio(i) = ele.Pmax/(ele_props.a*ele_props.fc_n);% Use nominal capacity since axial is force controlled
+        columns.gravity_axial_load_ratio(i) = ele.P_grav/(ele_props.a*ele_props.fc_e);
         columns.shear_flexure_yield_ratio(i) = ele.(['vye_' hin_side])/ele.(['V0_' hin_side]);
         columns.shear_demand_ratio(i) = ele.(['Vmax_' hin_side])/ele.(['V0_' hin_side]);
         columns.k(i) = ele.(['Vn_' hin_side])/ele.(['V0_' hin_side]);
@@ -119,7 +120,12 @@ for i = 1:height(columns)
             columns.condition(i) = 1;
         end 
         columns.yield_rotation(i) = columns.Mn(i)/columns.K0(i);
-        columns.max_element_rotation_or_drift(i) = max(abs(hin_TH.deformation_TH));
+        columns.max_element_hinge_rotation(i) = max(abs(hin_TH.deformation_TH));
+        if columns.max_element_hinge_rotation(i) < columns.yield_rotation(i)/11
+            columns.max_element_total_rotation(i) = columns.max_element_hinge_rotation(i)*11;
+        else
+            columns.max_element_total_rotation(i) = columns.max_element_hinge_rotation(i) + (10/11)*columns.yield_rotation(i);
+        end
         columns.max_story_drift_analysis(i) = this_story.(['max_drift_' ele.direction{1}]);
         columns.max_story_drift_record(i) = record_edp.max_disp.(ele.direction{1})(ele.story+1)/story.story_ht(story.id == 1); % Update this to read from story
         columns.failure_mech_analysis{i} = 'ADD FAILURE MECH'; % Need to dynamically check this

@@ -39,68 +39,70 @@ load([opensees_outputs_dir filesep 'hinge_analysis.mat'])
 for i = 1:height(hinge)
     ele = element(element.id == hinge.element_id(i),:);
     ele_prop = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
-    load([opensees_outputs_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat']);
-    hinge.hinge_deform(i) = max(abs(hin_TH.deformation_TH));
-    hinge.ele_type(i) = ele_prop.type;
+    if exist([opensees_outputs_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'file')
+        load([opensees_outputs_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat']);
+        hinge.hinge_deform(i) = max(abs(hin_TH.deformation_TH));
+        hinge.ele_type(i) = ele_prop.type;
 
-    if strcmp(hinge.ele_direction{i},'z') % in plane Walls
-        hinge.tot_deform(i) = hinge.hinge_deform(i);
-        hinge.d_value_tot(i) = ele.(['d_hinge_' num2str(hinge.ele_side(i))]);
-        hinge.d_ratio(i) = hinge.tot_deform(i) / hinge.d_value_tot(i);
-        hinge.e_value_tot(i) = ele.(['e_hinge_' num2str(hinge.ele_side(i))]);
-        hinge.e_ratio(i) = hinge.tot_deform(i) / hinge.e_value_tot(i);
-    else % Everything Elase
-        % Shear force Properties
-        hinge.shear_demand(i) = ele.(['Vmax_' num2str(hinge.ele_side(i))]);
-        hinge.asce41_shear_capacity(i) = ele.(['Vn_' num2str(hinge.ele_side(i))]);
+        if strcmp(hinge.ele_direction{i},'z') % in plane Walls
+            hinge.tot_deform(i) = hinge.hinge_deform(i);
+            hinge.d_value_tot(i) = ele.(['d_hinge_' num2str(hinge.ele_side(i))]);
+            hinge.d_ratio(i) = hinge.tot_deform(i) / hinge.d_value_tot(i);
+            hinge.e_value_tot(i) = ele.(['e_hinge_' num2str(hinge.ele_side(i))]);
+            hinge.e_ratio(i) = hinge.tot_deform(i) / hinge.e_value_tot(i);
+        else % Everything Elase
+            % Shear force Properties
+            hinge.shear_demand(i) = ele.(['Vmax_' num2str(hinge.ele_side(i))]);
+            hinge.asce41_shear_capacity(i) = ele.(['Vn_' num2str(hinge.ele_side(i))]);
 
-        % Rotation properties
-        K_elastic = 6*ele_prop.e*ele_prop.iz/ele.length;
-        theta_yeild_total = ele.Mn_pos_1/K_elastic; % only for column bases currently
+            % Rotation properties
+            K_elastic = 6*ele_prop.e*ele_prop.iz/ele.length;
+            theta_yeild_total = ele.Mn_pos_1/K_elastic; % only for column bases currently
 
-        % Modify hinge rotation to be element rotation
-        if hinge.hinge_deform(i) >= (1/11)*theta_yeild_total
-            hinge.elastic_deform(i) = theta_yeild_total;
-            hinge.tot_deform(i) = hinge.hinge_deform(i) + (10/11)*theta_yeild_total;
-        else
-            percent_yield = hinge.hinge_deform(i)/((1/11)*theta_yeild_total);
-            hinge.elastic_deform(i) = percent_yield*theta_yeild_total;
-            hinge.tot_deform(i) = hinge.elastic_deform(i);
+            % Modify hinge rotation to be element rotation
+            if hinge.hinge_deform(i) >= (1/11)*theta_yeild_total
+                hinge.elastic_deform(i) = theta_yeild_total;
+                hinge.tot_deform(i) = hinge.hinge_deform(i) + (10/11)*theta_yeild_total;
+            else
+                percent_yield = hinge.hinge_deform(i)/((1/11)*theta_yeild_total);
+                hinge.elastic_deform(i) = percent_yield*theta_yeild_total;
+                hinge.tot_deform(i) = hinge.elastic_deform(i);
+            end
+
+            hinge.plastic_deform(i) = hinge.tot_deform(i) - hinge.elastic_deform(i);
+
+            hinge.b_value_tot(i) = ele.(['b_hinge_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
+            hinge.b_ratio(i) = hinge.tot_deform(i) / hinge.b_value_tot(i);
+            hinge.io_value_tot(i) = ele.(['io_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
+            hinge.io_ratio(i) = hinge.tot_deform(i) / hinge.io_value_tot(i);
+            hinge.ls_value_tot(i) = ele.(['ls_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
+            hinge.ls_ratio(i) = hinge.tot_deform(i) / hinge.ls_value_tot(i);
+            hinge.cp_value_tot(i) = ele.(['cp_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
+            hinge.cp_ratio(i) = hinge.tot_deform(i) / hinge.cp_value_tot(i);
+
+            % EuroCode
+            h = ele_prop.h;           % in
+            b = ele_prop.w;           % in
+            d = ele_prop.d_eff;       % in
+            d_prm = ele_prop.h - ele_prop.d_eff; % in
+            s = ele_prop.(['S_' num2str(hinge.ele_side(i))]);      % in
+            Av = ele_prop.(['Av_' num2str(hinge.ele_side(i))]);    % in2
+            As = sum(str2double(strsplit(strrep(strrep(ele_prop.As{1},']',''),'[',''),',')));  % in2
+            db = mean(str2double(strsplit(strrep(strrep(ele_prop.d_b{1},']',''),'[',''),',')));  % in2
+            fc = ele_prop.fc_e;    % psi
+            fy = ele_prop.fy_e;   % psi
+            P = ele.Pmax;    % lbs
+            M = ele.(['Mmax_' num2str(hinge.ele_side(i))]);    % lbs-in
+            V = ele.(['Vmax_' num2str(hinge.ele_side(i))]);    % lbs
+            deform_pl = hinge.plastic_deform(i);
+            cov = 1.5 + 0.25; % Concrete cover plus half of the tie (assuming #4)
+            [hinge.euro_V_NC(i)] = fn_eurocode_column_shear_acceptance(h,b,d,d_prm,s,As,Av,db,fc,fy,P,M,V,deform_pl); % assumes colums are shear controlled
+        %                 [~, hinge.euro_th_NC_value(i)] = parametric_study(L,h,b,s,Av,cov,fc,fy,P); 
+            [hinge.euro_th_NC_value(i), hinge.euro_th_SD_value(i), hinge.euro_th_DL_value(i)] = fn_eurocode_rotation_acceptance(h,b,d,d_prm,s,As,Av,db,cov,fc,fy,P,M,V);
+            hinge.euro_th_NC_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_NC_value(i);
+            hinge.euro_th_SD_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_SD_value(i);
+            hinge.euro_th_DL_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_DL_value(i);
         end
-
-        hinge.plastic_deform(i) = hinge.tot_deform(i) - hinge.elastic_deform(i);
-
-        hinge.b_value_tot(i) = ele.(['b_hinge_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
-        hinge.b_ratio(i) = hinge.tot_deform(i) / hinge.b_value_tot(i);
-        hinge.io_value_tot(i) = ele.(['io_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
-        hinge.io_ratio(i) = hinge.tot_deform(i) / hinge.io_value_tot(i);
-        hinge.ls_value_tot(i) = ele.(['ls_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
-        hinge.ls_ratio(i) = hinge.tot_deform(i) / hinge.ls_value_tot(i);
-        hinge.cp_value_tot(i) = ele.(['cp_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
-        hinge.cp_ratio(i) = hinge.tot_deform(i) / hinge.cp_value_tot(i);
-
-        % EuroCode
-        h = ele_prop.h;           % in
-        b = ele_prop.w;           % in
-        d = ele_prop.d_eff;       % in
-        d_prm = ele_prop.h - ele_prop.d_eff; % in
-        s = ele_prop.(['S_' num2str(hinge.ele_side(i))]);      % in
-        Av = ele_prop.(['Av_' num2str(hinge.ele_side(i))]);    % in2
-        As = sum(str2double(strsplit(strrep(strrep(ele_prop.As{1},']',''),'[',''),',')));  % in2
-        db = mean(str2double(strsplit(strrep(strrep(ele_prop.d_b{1},']',''),'[',''),',')));  % in2
-        fc = ele_prop.fc_e;    % psi
-        fy = ele_prop.fy_e;   % psi
-        P = ele.Pmax;    % lbs
-        M = ele.(['Mmax_' num2str(hinge.ele_side(i))]);    % lbs-in
-        V = ele.(['Vmax_' num2str(hinge.ele_side(i))]);    % lbs
-        deform_pl = hinge.plastic_deform(i);
-        cov = 1.5 + 0.25; % Concrete cover plus half of the tie (assuming #4)
-        [hinge.euro_V_NC(i)] = fn_eurocode_column_shear_acceptance(h,b,d,d_prm,s,As,Av,db,fc,fy,P,M,V,deform_pl); % assumes colums are shear controlled
-    %                 [~, hinge.euro_th_NC_value(i)] = parametric_study(L,h,b,s,Av,cov,fc,fy,P); 
-        [hinge.euro_th_NC_value(i), hinge.euro_th_SD_value(i), hinge.euro_th_DL_value(i)] = fn_eurocode_rotation_acceptance(h,b,d,d_prm,s,As,Av,db,cov,fc,fy,P,M,V);
-        hinge.euro_th_NC_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_NC_value(i);
-        hinge.euro_th_SD_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_SD_value(i);
-        hinge.euro_th_DL_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_DL_value(i);
     end
 end
 

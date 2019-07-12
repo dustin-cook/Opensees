@@ -18,10 +18,10 @@ analysis.plot_ida = 0;
 analysis.gm_set = 'FEMA_far_field';
 
 % IDA Inputs
-hazard.curve.rp = [22, 35];%, 64, 108, 144];
-hazard.curve.pga = [0.128, 0.192];%, 0.288, 0.376, 0.425];
-% hazard.curve.rp = [22, 35, 43, 64, 72, 108, 144, 224, 475, 975, 2475, 4975];
-% hazard.curve.pga = [0.128, 0.192, 0.224, 0.288, 0.308, 0.376, 0.425 0.502, 0.635, 0.766, 0.946, 1.082];
+% hazard.curve.rp = [22, 35];%, 64, 108, 144];
+% hazard.curve.pga = [0.128, 0.192];%, 0.288, 0.376, 0.425];
+hazard.curve.rp = [22, 35, 43, 64, 72, 108, 144, 224, 475, 975, 2475, 4975];
+hazard.curve.pga = [0.128, 0.192, 0.224, 0.288, 0.308, 0.376, 0.425 0.502, 0.635, 0.766, 0.946, 1.082];
 % hazard.curve.rp = [43, 72, 224, 475, 975, 2475, 4975];
 % hazard.curve.pga = [0.224, 0.308, 0.502, 0.635, 0.766, 0.946, 1.082];
 analysis.collapse_drift = 0.06;
@@ -36,6 +36,7 @@ analysis.damping = 'rayleigh';
 analysis.damp_ratio = 0.03;
 analysis.hinge_stiff_mod = 10;
 analysis.run_eigen = 0;
+analysis.simple_recorders = 1;
 analysis.solution_algorithm = 1;
 analysis.initial_timestep_factor = 1;
 analysis.suppress_outputs = 1;
@@ -87,13 +88,13 @@ IDA_scale_factors = hazard.curve.pga ./ gm_median_pga;
 
 %% Run Opensees Models
 if analysis.run_ida || analysis.post_process_ida
-parpool; % Set up Parallel Workers
+% parpool; % Set up Parallel Workers
 for i = 1:length(IDA_scale_factors)
     error_count = 0;
     scale_factor = IDA_scale_factors(i);
     analysis.ground_motion_scale_factor = scale_factor;
     run_ida = analysis.run_ida;
-    parfor gms = 1:height(gm_set_table)
+    for gms = 1:height(gm_set_table)
         % Run Opensees
         if run_ida
             % Suppress MATLAB warnings

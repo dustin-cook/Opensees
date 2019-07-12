@@ -25,37 +25,44 @@ end
 if analysis.type == 1 
     % Define Node recorders
     for i = 1:height(node)
-        if strcmp(dimension,'2D')
-            if node.record_disp(i)
-                fprintf(fileID,'recorder Node %s %s/nodal_disp_%s.%s -time -node %i -dof 1 disp \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
-            end
-            if node.record_accel(i)
-                fprintf(fileID,'recorder Node %s %s/nodal_accel_%s.%s -time -node %i -dof 1 accel \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
-            end
-        elseif strcmp(dimension,'3D')
-            if node.record_disp(i)
-                fprintf(fileID,'recorder Node %s %s/nodal_disp_%s.%s -time -node %i -dof 1 3 disp \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
-            end
-            if node.record_accel(i)
-                fprintf(fileID,'recorder Node %s %s/nodal_accel_%s.%s -time -node %i -dof 1 3 accel \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
+        if analysis.simple_recorders && node.primary_story(i)
+            fprintf(fileID,'recorder Node %s %s/nodal_disp_%s.%s -time -node %i -dof 1 3 disp \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
+        else
+            if strcmp(dimension,'2D')
+                if node.record_disp(i)
+                    fprintf(fileID,'recorder Node %s %s/nodal_disp_%s.%s -time -node %i -dof 1 disp \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
+                end
+                if node.record_accel(i)
+                    fprintf(fileID,'recorder Node %s %s/nodal_accel_%s.%s -time -node %i -dof 1 accel \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
+                end
+            elseif strcmp(dimension,'3D')
+                if node.record_disp(i)
+                    fprintf(fileID,'recorder Node %s %s/nodal_disp_%s.%s -time -node %i -dof 1 3 disp \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
+                end
+                if node.record_accel(i)
+                    fprintf(fileID,'recorder Node %s %s/nodal_accel_%s.%s -time -node %i -dof 1 3 accel \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
+                end
             end
         end
     end
     
     % Nodal Reaction Recorders
+    
     base_nodes = node.id(node.y == 0);
     fprintf(fileID,'recorder Node %s %s/nodal_base_reaction_x.%s -time -node %s -dof 1 reaction \n', file_type, write_dir, file_ext, num2str(base_nodes'));
-    if strcmp(dimension,'3D')
+    if strcmp(dimension,'3D') && ~analysis.simple_recorders 
         fprintf(fileID,'recorder Node %s %s/nodal_base_reaction_z.%s -time -node %s -dof 3 reaction \n', file_type, write_dir, file_ext, num2str(base_nodes'));
     end
 
     % Define Element Recorders
     % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
-    for i = 1:height(element)
-        if strcmp(dimension,'2D')
-            fprintf(fileID,'recorder Element %s %s/element_force_%s.%s -time -ele %i localForce \n', file_type, write_dir, num2str(element.id(i)), file_ext, element.id(i));
-        else
-            fprintf(fileID,'recorder Element %s %s/element_force_%s.%s -time -ele %i localForce \n', file_type, write_dir, num2str(element.id(i)), file_ext, element.id(i));
+    if ~analysis.simple_recorders 
+        for i = 1:height(element)
+            if strcmp(dimension,'2D')
+                fprintf(fileID,'recorder Element %s %s/element_force_%s.%s -time -ele %i localForce \n', file_type, write_dir, num2str(element.id(i)), file_ext, element.id(i));
+            else
+                fprintf(fileID,'recorder Element %s %s/element_force_%s.%s -time -ele %i localForce \n', file_type, write_dir, num2str(element.id(i)), file_ext, element.id(i));
+            end
         end
     end
     
@@ -70,14 +77,14 @@ if analysis.type == 1
         if strcmp(dimension,'3D')
             % Rotational Hinges x direction - oop
             hinge_ids = element.id(end) + hinge.id(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational'));
-            if ~isempty(hinge_ids)
+            if ~isempty(hinge_ids) && ~analysis.simple_recorders 
                 fprintf(fileID,'recorder Element %s %s/hinge_moment_x_oop.%s -time -ele %s localForce \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
                 fprintf(fileID,'recorder Element %s %s/hinge_rotation_x_oop.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
             end
             
             % Rotational Hinges z direction - oop
             hinge_ids = element.id(end) + hinge.id(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational'));
-            if ~isempty(hinge_ids)
+            if ~isempty(hinge_ids) && ~analysis.simple_recorders 
                 fprintf(fileID,'recorder Element %s %s/hinge_moment_z_oop.%s -time -ele %s localForce \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
                 fprintf(fileID,'recorder Element %s %s/hinge_rotation_z_oop.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(hinge_ids'));
             end
