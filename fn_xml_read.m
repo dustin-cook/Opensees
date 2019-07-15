@@ -5,13 +5,21 @@ function [ data ] = fn_xml_read( file_name )
 %% Import Packages
 import file_exchange.*
 
-%% Begin Method
+%% XML to Struct File Exchange Method
 xml_read = xmlread(file_name);
 [ xml_struct ] = xml2struct( xml_read );
-clear xml_read
-% filtered_txt = strrep(xml_struct.OpenSees.Data.Text,'-1.#QNAN','0');
-% filtered_txt = strrep(filtered_txt,'-1.#IND','0');
 data = str2num(xml_struct.OpenSees.Data.Text);
+
+%% Reg Exp Method
+% text = fileread(file_name);
+% expr = '(?<=<Data>).*';
+% text = regexp(text,expr,'match');
+% expr = '.*(?=</Data>)';
+% text = regexp(text,expr,'match');
+% expr = '\s*\S*';
+% matches = regexp(text{1},expr,'match');
+% data = str2double(matches{1});
+% data = data(1:(end-1)); % remove last NaN
 
 end
 

@@ -94,43 +94,46 @@ end
 %% Load hinge reactions and deformations
 % Load Hinge Data
 if analysis.nonlinear ~= 0 && ~isempty(hinge)
-    if exist([opensees_dir filesep 'hinge_rotation_x' '.xml'],'file')
-        [ hinge_deformation_x ] = fn_xml_read([opensees_dir filesep 'hinge_rotation_x' '.xml']);
-        [ hinge_force_x ] = fn_xml_read([opensees_dir filesep 'hinge_moment_x' '.xml']);
-        hinge_ids = hinge(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'rotational'),:);
-        for h = 1:height(hinge_ids)
-            hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_x(1:(end-clip),1+h);
-            hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_x(1:(end-clip),1+h);
-        end
-    end
-    if strcmp(model.dimension,'3D')
-        if exist([opensees_dir filesep 'hinge_deformation_z' '.xml'],'file')
-            [ hinge_deformation_z ] = fn_xml_read([opensees_dir filesep 'hinge_deformation_z' '.xml']);
-            [ hinge_force_z ] = fn_xml_read([opensees_dir filesep 'hinge_shear_z' '.xml']);
-            hinge_ids = hinge(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'shear'),:);
+    max_story = max(hinge.story);
+    for s = 1:max_story
+        if exist([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_x' '.xml'],'file')
+            [ hinge_deformation_x ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_x' '.xml']);
+            [ hinge_force_x ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_moment_x' '.xml']);
+            hinge_ids = hinge(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'rotational') & hinge.story == s,:);
             for h = 1:height(hinge_ids)
-                hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_z(1:(end-clip),1+h);
-                hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_z(1:(end-clip),1+h);
+                hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_x(1:(end-clip),1+h);
+                hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_x(1:(end-clip),1+h);
             end
         end
-
-        if exist([opensees_dir filesep 'hinge_rotation_z_oop' '.xml'],'file')
-            [ hinge_deformation_z_oop ] = fn_xml_read([opensees_dir filesep 'hinge_rotation_z_oop' '.xml']);
-            [ hinge_force_z_oop ] = fn_xml_read([opensees_dir filesep 'hinge_moment_z_oop' '.xml']);
-            hinge_ids = hinge(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational'),:);
-            for h = 1:height(hinge_ids)
-                hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_z_oop(1:(end-clip),1+h);
-                hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_z_oop(1:(end-clip),1+h);
+        if strcmp(model.dimension,'3D')
+            if exist([opensees_dir filesep 'S' num2str(s) '_hinge_deformation_z' '.xml'],'file')
+                [ hinge_deformation_z ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_deformation_z' '.xml']);
+                [ hinge_force_z ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_shear_z' '.xml']);
+                hinge_ids = hinge(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'shear') & hinge.story == s,:);
+                for h = 1:height(hinge_ids)
+                    hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_z(1:(end-clip),1+h);
+                    hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_z(1:(end-clip),1+h);
+                end
             end
-        end
 
-        if exist([opensees_dir filesep 'hinge_rotation_x_oop' '.xml'],'file')
-            [ hinge_deformation_x_oop ] = fn_xml_read([opensees_dir filesep 'hinge_rotation_x_oop' '.xml']);
-            [ hinge_force_x_oop ] = fn_xml_read([opensees_dir filesep 'hinge_moment_x_oop' '.xml']);
-            hinge_ids = hinge(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational'),:);
-            for h = 1:height(hinge_ids)
-                hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_x_oop(1:(end-clip),1+h);
-                hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_x_oop(1:(end-clip),1+h);
+            if exist([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_z_oop' '.xml'],'file')
+                [ hinge_deformation_z_oop ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_z_oop' '.xml']);
+                [ hinge_force_z_oop ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_moment_z_oop' '.xml']);
+                hinge_ids = hinge(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational') & hinge.story == s,:);
+                for h = 1:height(hinge_ids)
+                    hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_z_oop(1:(end-clip),1+h);
+                    hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_z_oop(1:(end-clip),1+h);
+                end
+            end
+
+            if exist([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_x_oop' '.xml'],'file')
+                [ hinge_deformation_x_oop ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_x_oop' '.xml']);
+                [ hinge_force_x_oop ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_moment_x_oop' '.xml']);
+                hinge_ids = hinge(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational') & hinge.story == s,:);
+                for h = 1:height(hinge_ids)
+                    hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_x_oop(1:(end-clip),1+h);
+                    hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_x_oop(1:(end-clip),1+h);
+                end
             end
         end
     end
