@@ -17,7 +17,8 @@ plot_dir = [write_dir filesep 'Scatter Plots'];
 
 %% Begin Method
 for s = 1:height(story)
-    ele_story = element(element.story == story.id(s),:); 
+    story_id = story.id(s);
+    ele_story = element(element.story == story_id,:); 
     % Elements of one type
     ele = ele_story(strcmp(ele_story.type,ele_type),:);
     ele2use = ele(ele.length >= 89,:); % Omit the nubs on the end of the frame (improve the way I am doing this)
@@ -30,35 +31,35 @@ for s = 1:height(story)
         side_2 = prim_hin(prim_hin.ele_side == 2,:);
         
         if strcmp(ele_type,'wall')
-            plot_name = ['d ratio - Primary - Side 1 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['d ratio - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_1, plot_dir, plot_name, 'd_ratio', 'Max(\Delta)/"d"', ele_type )
         else
             % a ratio
-            plot_name = ['a ratio - Primary - Side 1 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['a ratio - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_1, plot_dir, plot_name, 'a_ratio', 'Max(\theta)/"a"', ele_type )
 
-            plot_name = ['a ratio - Primary - Side 2 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['a ratio - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_2, plot_dir, plot_name, 'a_ratio', 'Max(\theta)/"a"', ele_type )
             
             % b ratio
-            plot_name = ['b ratio - Primary - Side 1 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['b ratio - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_1, plot_dir, plot_name, 'b_ratio', 'Max(\theta)/"b"', ele_type )
 
-            plot_name = ['b ratio - Primary - Side 2 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['b ratio - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_2, plot_dir, plot_name, 'b_ratio', 'Max(\theta)/"b"', ele_type )
             
             % V ratio
-            plot_name = ['V ratio - Primary - Side 1 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['V ratio - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_1, plot_dir, plot_name, 'V_ratio', 'Max(V)/Vn', ele_type )
 
-            plot_name = ['V ratio - Primary - Side 2 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['V ratio - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_2, plot_dir, plot_name, 'V_ratio', 'Max(V)/Vn', ele_type )
             
             % M ratio
-            plot_name = ['M ratio - Primary - Side 1 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['M ratio - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_1, plot_dir, plot_name, 'M_ratio_pos', 'Max(M)/Mn', ele_type )
 
-            plot_name = ['M ratio - Primary - Side 2 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['M ratio - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_2, plot_dir, plot_name, 'M_ratio_pos', 'Max(M)/Mn', ele_type )
         end
     end
@@ -71,37 +72,37 @@ for s = 1:height(story)
         
         if strcmp(ele_type,'wall')
             % a ratio
-            plot_name = ['a ratio - OOP - Side 1 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['a ratio - OOP - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_1, plot_dir, plot_name, 'a_ratio', 'Max(\theta)/"a"', ele_type )
 
             % b ratio
-            plot_name = ['b ratio - OOP - Side 1 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['b ratio - OOP - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_1, plot_dir, plot_name, 'b_ratio', 'Max(\theta)/"b"', ele_type )
 
             % V ratio
-            plot_name = ['V ratio - OOP - Side 1 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['V ratio - OOP - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_1, plot_dir, plot_name, 'V_ratio', 'Max(V)/Vn', ele_type )
 
         else
             % a ratio
-            plot_name = ['a ratio - OOP - Side 1 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['a ratio - OOP - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_1, plot_dir, plot_name, 'a_ratio', 'Max(\theta)/"a"', ele_type )
 
-            plot_name = ['a ratio - OOP - Side 2 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['a ratio - OOP - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_2, plot_dir, plot_name, 'a_ratio', 'Max(\theta)/"a"', ele_type )
 
             % b ratio
-            plot_name = ['b ratio - OOP - Side 1 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['b ratio - OOP - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_1, plot_dir, plot_name, 'b_ratio', 'Max(\theta)/"b"', ele_type )
 
-            plot_name = ['b ratio - OOP - Side 2 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['b ratio - OOP - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_2, plot_dir, plot_name, 'b_ratio', 'Max(\theta)/"b"', ele_type )
 
             % V ratio
-            plot_name = ['V ratio - OOP - Side 1 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['V ratio - OOP - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_1, plot_dir, plot_name, 'V_ratio', 'Max(V)/Vn', ele_type )
 
-            plot_name = ['V ratio - OOP - Side 2 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['V ratio - OOP - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_2, plot_dir, plot_name, 'V_ratio', 'Max(V)/Vn', ele_type )
         end
     end
@@ -110,7 +111,7 @@ for s = 1:height(story)
     srss_hin = hins(strcmp(hins.direction,'primary'),:);
     srss_hin_oop = hins(strcmp(hins.direction,'oop'),:);
     if ~isempty(srss_hin) && ~isempty(srss_hin_oop)
-        plot_name = ['SRSS - ' 'Story - ' num2str(s) ' - ' ele_type];
+        plot_name = ['SRSS - ' 'Story - ' num2str(story_id) ' - ' ele_type];
         srss_hin.a_ratio = sqrt(srss_hin.a_ratio.^2 + srss_hin_oop.a_ratio.^2);
         srss_hin.b_ratio = sqrt(srss_hin.b_ratio.^2 + srss_hin_oop.b_ratio.^2);
         srss_hin.V_ratio = sqrt(srss_hin.V_ratio.^2 + srss_hin_oop.V_ratio.^2);
@@ -122,28 +123,28 @@ for s = 1:height(story)
         
         if strcmp(ele_type,'wall')
             % V ratio
-            plot_name = ['V ratio - OOP - Side 1 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['V ratio - OOP - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_1, plot_dir, plot_name, 'V_ratio', 'Max(V)/Vn', ele_type )
         else
             % a ratio
-            plot_name = ['a ratio - SRSS - Side 1 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['a ratio - SRSS - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_1, plot_dir, plot_name, 'a_ratio', 'Max(\theta)/"a"', ele_type )
 
-            plot_name = ['a ratio - SRSS - Side 2 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['a ratio - SRSS - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_2, plot_dir, plot_name, 'a_ratio', 'Max(\theta)/"a"', ele_type )
 
             % b ratio
-            plot_name = ['b ratio - SRSS - Side 1 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['b ratio - SRSS - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_1, plot_dir, plot_name, 'b_ratio', 'Max(\theta)/"b"', ele_type )
 
-            plot_name = ['b ratio - SRSS - Side 2 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['b ratio - SRSS - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_2, plot_dir, plot_name, 'b_ratio', 'Max(\theta)/"b"', ele_type )
 
             % V ratio
-            plot_name = ['V ratio - SRSS - Side 1 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['V ratio - SRSS - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_1, plot_dir, plot_name, 'V_ratio', 'Max(V)/Vn', ele_type )
 
-            plot_name = ['V ratio - SRSS - Side 2 - Story - ' num2str(s) ' - ' ele_type];
+            plot_name = ['V ratio - SRSS - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_2, plot_dir, plot_name, 'V_ratio', 'Max(V)/Vn', ele_type )
         end
     end

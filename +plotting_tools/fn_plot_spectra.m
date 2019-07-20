@@ -1,4 +1,4 @@
-function [ ] = fn_plot_spectra(node, type, eq_dt, plot_dir, read_dir_opensees)
+function [ ] = fn_plot_spectra(node, type, eq_dt, plot_dir, read_dir_opensees, pile_model)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -18,11 +18,16 @@ matlab_colors =  [0, 0.4470, 0.7410;
                   0.6350, 0.0780, 0.1840];
 % Define Recorder channels
 if strcmp(type,'Roof')
-    channel.x = 4;
-    channel.z = 2;
+    channel.x = 'chan_4';
+    channel.z = 'chan_2';
 elseif strcmp(type,'Ground')
-    channel.x = 13;
-    channel.z = 11;
+    if pile_model
+        channel.x = 'free_field_1';
+        channel.z = 'free_field_3';
+    else
+        channel.x = 'chan_13';
+        channel.z = 'chan_11';
+    end
 end
 
 %% Run Spectra Tool to generate roof response spectra
@@ -57,8 +62,8 @@ if strcmp(type,'Roof')
     spectra_analysis_x = readtable([spectra_read_dir filesep 'roof_accel_x' filesep 'spectra.csv'],'ReadVariableNames', true);
     spectra_analysis_z = readtable([spectra_read_dir filesep 'roof_accel_z' filesep 'spectra.csv'],'ReadVariableNames', true);
 end
-spectra_record_x = readtable(['ground_motions' filesep 'ICSB_recordings' filesep 'chan_' num2str(channel.x) '_accel' filesep 'spectra.csv'],'ReadVariableNames', true);
-spectra_record_z = readtable(['ground_motions' filesep 'ICSB_recordings' filesep 'chan_' num2str(channel.z) '_accel' filesep 'spectra.csv'],'ReadVariableNames', true);
+spectra_record_x = readtable(['ground_motions' filesep 'ICSB_recordings' filesep channel.x '_accel' filesep 'spectra.csv'],'ReadVariableNames', true);
+spectra_record_z = readtable(['ground_motions' filesep 'ICSB_recordings' filesep channel.z '_accel' filesep 'spectra.csv'],'ReadVariableNames', true);
 
 %% Plot Spectra
 hold on

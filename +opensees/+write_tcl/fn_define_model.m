@@ -372,9 +372,11 @@ end
 
 %% Define Rigid Slabs
 if analysis.rigid_diaphram
-    for i = 1:height(story)
-        slab_nodes_at_story = node.id(node.on_slab == story.id(i))';
-        fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(slab_nodes_at_story));
+    for s = 1:height(story)
+%         if story.id(s) > 0
+            slab_nodes_at_story = node.id(node.on_slab == 1 & node.story == story.id(s))';
+            fprintf(fileID,'rigidDiaphragm 2 %s \n',num2str(slab_nodes_at_story));
+%         end
     end
 end
                 
@@ -397,13 +399,19 @@ if height(hinge) > 0
         hin = hinge(i,:);
         ele_hinge_id = element.id(end) + hin.id; % Element ID associated with this hinge
         if strcmp(hin.type,'foundation')
-            pile_rot_stiff = 6920602859; % Force-Displacement rotational Stiffness of Bundle of Piles
-            pile_lat_stiff = 11026800; % Force-Displacement lateral Stiffness of Bundle of Piles
-            pile_axial_stiff = 5884866; % Force-Displacement lateral Stiffness of Bundle of Piles
+            if strcmp(hin.direction,'pile')
+                foundation_rot_stiff = 6920602859; % Force-Displacement rotational Stiffness of Bundle of Piles
+                foundation_lat_stiff = 11026800; % Force-Displacement lateral Stiffness of Bundle of Piles
+                foundation_axial_stiff = 5884866; % Force-Displacement lateral Stiffness of Bundle of Piles
+            elseif strcmp(hin.direction,'wall')
+                foundation_rot_stiff = 9999999999; % essentially rigid rotational stiffness
+                foundation_lat_stiff = 1; % essentially no lateral stiffness
+                foundation_axial_stiff = 153876; % axial stiffness of the wall with a gravity load sitting on the soil
+            end
 %             pile_lat_stiff = 1; % Force-Displacement lateral Stiffness of Bundle of Piles
-            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',ele_hinge_id,pile_rot_stiff); % Elastic Material
-            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',ele_hinge_id+8000,pile_lat_stiff); % Elastic Material
-            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',ele_hinge_id+9000,pile_axial_stiff); % Elastic Material
+            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',ele_hinge_id,foundation_rot_stiff); % Elastic Material
+            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',ele_hinge_id+8000,foundation_lat_stiff); % Elastic Material
+            fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',ele_hinge_id+9000,foundation_axial_stiff); % Elastic Material
             if strcmp(dimension,'3D') % Input as rotational for now
 %                 fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 %i 2 %i -dir 1 2 3 4 5 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id, ele_hinge_id);
                 fprintf(fileID,'element zeroLength %i %i %i -mat %i %i %i %i 2 %i -dir 1 2 3 4 5 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id+8000, ele_hinge_id+9000, ele_hinge_id+8000, ele_hinge_id, ele_hinge_id);

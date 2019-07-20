@@ -35,54 +35,56 @@ ele_id = 0;
 for s = 1:height(story)
     story_props = story(s,:);
     story_group = story_group_table(story_group_table.story_group_id == story.story_group_id(s),:);
-    for g = 1:height(story_group)
-        element_group = element_group_table((element_group_table.id == story_group.element_group_id(g)),:);
-        for e = 1:height(element_group)
-            for nb = 1:element_group.num_bays
-                % Element Properties Column
-                if iscell(element_group.col_id)
-                    element_group.col_id = str2double(strsplit(strrep(strrep(element_group.col_id{1},'[',''),']',''),','));
+    if ~isempty(story_group)
+        for g = 1:height(story_group)
+            element_group = element_group_table((element_group_table.id == story_group.element_group_id(g)),:);
+            for e = 1:height(element_group)
+                for nb = 1:element_group.num_bays
+                    % Element Properties Column
+                    if iscell(element_group.col_id)
+                        element_group.col_id = str2double(strsplit(strrep(strrep(element_group.col_id{1},'[',''),']',''),','));
+                    end
+                    if iscell(element_group.beam_id)
+                        element_group.beam_id = str2double(strsplit(strrep(strrep(element_group.beam_id{1},'[',''),']',''),','));
+                    end
+                    if iscell(element_group.wall_id)
+                        element_group.wall_id = str2double(strsplit(strrep(strrep(element_group.wall_id{1},'[',''),']',''),','));
+                    end
+                    if iscell(element_group.trib_wt_1)
+                        element_group.trib_wt_1 = str2double(strsplit(strrep(strrep(element_group.trib_wt_1{1},'[',''),']',''),','));
+                    end
+                    if iscell(element_group.trib_wt_2)
+                        element_group.trib_wt_2 = str2double(strsplit(strrep(strrep(element_group.trib_wt_2{1},'[',''),']',''),','));
+                    end
+
+                    if element_group.col_id(nb) ~= 0
+                        ele_id = ele_id + 1;
+                        [ node, element ] = fn_create_element( 'col', ele_id, ele_props_table, element_group.col_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g}, element_group.trib_wt_1(nb), element_group.trib_wt_2(nb) );
+                    end
+                    if element_group.beam_id(nb) ~= 0
+                        ele_id = ele_id + 1;
+                        [ node, element ] = fn_create_element( 'beam', ele_id, ele_props_table, element_group.beam_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g}, element_group.trib_wt_1(nb), element_group.trib_wt_2(nb) );
+                    end
+                    if element_group.wall_id(nb) ~= 0
+                        ele_id = ele_id + 1;
+                        [ node, element ] = fn_create_element( 'wall', ele_id, ele_props_table, element_group.wall_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g}, element_group.trib_wt_1(nb), element_group.trib_wt_2(nb) );
+                    end
                 end
-                if iscell(element_group.beam_id)
-                    element_group.beam_id = str2double(strsplit(strrep(strrep(element_group.beam_id{1},'[',''),']',''),','));
-                end
-                if iscell(element_group.wall_id)
-                    element_group.wall_id = str2double(strsplit(strrep(strrep(element_group.wall_id{1},'[',''),']',''),','));
-                end
-                if iscell(element_group.trib_wt_1)
-                    element_group.trib_wt_1 = str2double(strsplit(strrep(strrep(element_group.trib_wt_1{1},'[',''),']',''),','));
-                end
-                if iscell(element_group.trib_wt_2)
-                    element_group.trib_wt_2 = str2double(strsplit(strrep(strrep(element_group.trib_wt_2{1},'[',''),']',''),','));
-                end
-                
-                if element_group.col_id(nb) ~= 0
+                % Last column in bay span
+                if sum(element_group.col_id ~=0) ~= 0 && element_group.col_id(nb+1) ~= 0
                     ele_id = ele_id + 1;
-                    [ node, element ] = fn_create_element( 'col', ele_id, ele_props_table, element_group.col_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g}, element_group.trib_wt_1(nb), element_group.trib_wt_2(nb) );
+                    [ node, element ] = fn_create_element( 'col', ele_id, ele_props_table, element_group.col_id(nb+1), element_group.num_bays+1, story_props, story_group(g,:), node, element, story_group.direction{g} );
                 end
-                if element_group.beam_id(nb) ~= 0
-                    ele_id = ele_id + 1;
-                    [ node, element ] = fn_create_element( 'beam', ele_id, ele_props_table, element_group.beam_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g}, element_group.trib_wt_1(nb), element_group.trib_wt_2(nb) );
-                end
-                if element_group.wall_id(nb) ~= 0
-                    ele_id = ele_id + 1;
-                    [ node, element ] = fn_create_element( 'wall', ele_id, ele_props_table, element_group.wall_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g}, element_group.trib_wt_1(nb), element_group.trib_wt_2(nb) );
-                end
-            end
-            % Last column in bay span
-            if sum(element_group.col_id ~=0) ~= 0 && element_group.col_id(nb+1) ~= 0
-                ele_id = ele_id + 1;
-                [ node, element ] = fn_create_element( 'col', ele_id, ele_props_table, element_group.col_id(nb+1), element_group.num_bays+1, story_props, story_group(g,:), node, element, story_group.direction{g} );
             end
         end
+
+        % Assign Gravity Load to Elements
+        sum_trib_wt = sum([element.trib_wt_1(element.story == story.id(s));element.trib_wt_2(element.story == story.id(s))]);
+        element.dead_load_1(element.story == story.id(s),1) = element.trib_wt_1(element.story == story.id(s))*story.story_dead_load(s)/sum_trib_wt;
+        element.live_load_1(element.story == story.id(s),1) = element.trib_wt_1(element.story == story.id(s))*story.story_live_load(s)/sum_trib_wt;
+        element.dead_load_2(element.story == story.id(s),1) = element.trib_wt_2(element.story == story.id(s))*story.story_dead_load(s)/sum_trib_wt;
+        element.live_load_2(element.story == story.id(s),1) = element.trib_wt_2(element.story == story.id(s))*story.story_live_load(s)/sum_trib_wt;
     end
-    
-    % Assign Gravity Load to Elements
-    sum_trib_wt = sum([element.trib_wt_1(element.story == story.id(s));element.trib_wt_2(element.story == story.id(s))]);
-    element.dead_load_1(element.story == story.id(s),1) = element.trib_wt_1(element.story == story.id(s))*story.story_dead_load(s)/sum_trib_wt;
-    element.live_load_1(element.story == story.id(s),1) = element.trib_wt_1(element.story == story.id(s))*story.story_live_load(s)/sum_trib_wt;
-    element.dead_load_2(element.story == story.id(s),1) = element.trib_wt_2(element.story == story.id(s))*story.story_dead_load(s)/sum_trib_wt;
-    element.live_load_2(element.story == story.id(s),1) = element.trib_wt_2(element.story == story.id(s))*story.story_live_load(s)/sum_trib_wt;
 end
 
 %% Define Joints (For each node created go through as say whats connected in)
@@ -132,136 +134,133 @@ node.record_disp = ones(length(node.id),1);
 node.record_accel = ones(length(node.id),1);
 
 %% Assign Joints
-% joint.id = [];
-% joint.x_neg = [];
-% joint.x_pos = [];
-% joint.y_neg = [];
-% joint.y_pos = [];
 if strcmp(model.dimension,'3D')
-%     joint.z_neg = [];
-%     joint.z_pos = [];
 end
 joint_id = 0;
 for s = 1:height(story)
-    story_node = node.id(node.y == (story.y_start(s)+story.story_ht(s)));
-    for n = 1:length(story_node)
-        n_id = story_node(n);
-        elements_at_node = element.id(((element.node_1 == n_id) | (element.node_2 == n_id)) & (element.story == s));
-        if length(elements_at_node) > 1
-            
-            bm_d_x = 0;
-            bm_d_z = 0;
-            col_d_x = 0;
-            col_d_z = 0;
-            for e = 1:length(elements_at_node)
-                e_id = elements_at_node(e);
-                ele = ele_props_table(ele_props_table.id == element.ele_id(e_id),:);
-                
-                % Find Joint properties based on elements that frame into the joint
-                if strcmp(element.type{e_id},'column')
-                    new_ele.col_y = e_id;
-                    if strcmp(element.direction{e_id},'x')
-                        col_d_x(e) = ele.h;
-                        col_d_z(e) = ele.w;
-                    elseif strcmp(element.direction{e_id},'z')
-                        col_d_x(e) = ele.w;
-                        col_d_z(e) = ele.h;
-                    else
-                        error('element direction not recognized')
-                    end
-                elseif strcmp(element.type{e_id},'beam')
-                    if strcmp(element.direction{e_id},'x')
-                        bm_d_x(e) = ele.h;
-                        if element.node_1(e_id) == n_id
-                            new_ele.bm_x_pos = e_id;
+    this_story = story.id(s);
+    node_y = story.y_start(s)+story.story_ht(s);
+    if node_y > 0
+        story_node = node.id(node.y == node_y);
+        for n = 1:length(story_node)
+            n_id = story_node(n);
+            elements_at_node = element.id(((element.node_1 == n_id) | (element.node_2 == n_id)) & (element.story == this_story));
+            if length(elements_at_node) > 1
+
+                bm_d_x = 0;
+                bm_d_z = 0;
+                col_d_x = 0;
+                col_d_z = 0;
+                for e = 1:length(elements_at_node)
+                    e_id = elements_at_node(e);
+                    ele = ele_props_table(ele_props_table.id == element.ele_id(e_id),:);
+
+                    % Find Joint properties based on elements that frame into the joint
+                    if strcmp(element.type{e_id},'column')
+                        new_ele.col_y = e_id;
+                        if strcmp(element.direction{e_id},'x')
+                            col_d_x(e) = ele.h;
+                            col_d_z(e) = ele.w;
+                        elseif strcmp(element.direction{e_id},'z')
+                            col_d_x(e) = ele.w;
+                            col_d_z(e) = ele.h;
                         else
-                            new_ele.bm_x_neg = e_id;
+                            error('element direction not recognized')
                         end
-                    elseif strcmp(element.direction{e_id},'z')
-                        bm_d_z(e) = ele.h;
-                        if element.node_1(e_id) == n_id
-                            new_ele.bm_z_pos = e_id;
+                    elseif strcmp(element.type{e_id},'beam')
+                        if strcmp(element.direction{e_id},'x')
+                            bm_d_x(e) = ele.h;
+                            if element.node_1(e_id) == n_id
+                                new_ele.bm_x_pos = e_id;
+                            else
+                                new_ele.bm_x_neg = e_id;
+                            end
+                        elseif strcmp(element.direction{e_id},'z')
+                            bm_d_z(e) = ele.h;
+                            if element.node_1(e_id) == n_id
+                                new_ele.bm_z_pos = e_id;
+                            else
+                                new_ele.bm_z_neg = e_id;
+                            end
                         else
-                            new_ele.bm_z_neg = e_id;
+                            error('element direction not recognized')
                         end
-                    else
-                        error('element direction not recognized')
                     end
                 end
-            end
-            joint_dim_y = max([bm_d_x,bm_d_z]);
-            joint_dim_x = max(col_d_x);
-            joint_dim_z = max(col_d_z);
-            
-            % Define Joints and joint Nodes for 2D representaton of the joint in the X direction Change elements to connect to new nodes
-            joint_id = joint_id + 1;
-            joint_node_id =  1 + node.id(end);
-            new_node.id = joint_node_id;
-            new_node.x = node.x(node.id == n_id);
-            new_node.y = node.y(node.id == n_id)-joint_dim_y;
-            new_node.z = node.z(node.id == n_id);
-            new_node.mass = 0;
-            new_node.record_disp = 0;
-            new_node.record_accel = 0;
-            element.node_2(new_ele.col_y,1) = new_node.id(1); % This breaks the joint 3D option
-            joint.y_neg(joint_id,1) = new_node.id(1);
-            joint.y_pos(joint_id,1) = n_id;  
+                joint_dim_y = max([bm_d_x,bm_d_z]);
+                joint_dim_x = max(col_d_x);
+                joint_dim_z = max(col_d_z);
 
-            if isfield(new_ele,'bm_x_neg') %&& element.ele_id(new_ele.bm_x_neg,1) ~= 16 && element.ele_id(new_ele.bm_x_neg,1) ~= 17
-                joint_node_id =  joint_node_id + 1;
-                new_node.id = [new_node.id; joint_node_id];
-                new_node.x = [new_node.x; node.x(node.id == n_id)-joint_dim_x/2];
-                new_node.y = [new_node.y; node.y(node.id == n_id)-joint_dim_y/2];
-                new_node.z = [new_node.z; node.z(node.id == n_id);];
-                new_node.mass = [new_node.mass; 0];
-                new_node.record_disp = [new_node.record_disp; 0];
-                new_node.record_accel = [new_node.record_accel; 0];
-                element.node_2(new_ele.bm_x_neg,1) = new_node.id(end);
-                joint.x_neg(joint_id,1) = new_node.id(end);
-            else
-                joint.x_neg(joint_id,1) = 0;
-            end
+                % Define Joints and joint Nodes for 2D representaton of the joint in the X direction Change elements to connect to new nodes
+                joint_id = joint_id + 1;
+                joint_node_id =  1 + node.id(end);
+                new_node.id = joint_node_id;
+                new_node.x = node.x(node.id == n_id);
+                new_node.y = node.y(node.id == n_id)-joint_dim_y;
+                new_node.z = node.z(node.id == n_id);
+                new_node.mass = 0;
+                new_node.record_disp = 0;
+                new_node.record_accel = 0;
+                element.node_2(new_ele.col_y,1) = new_node.id(1); % This breaks the joint 3D option
+                joint.y_neg(joint_id,1) = new_node.id(1);
+                joint.y_pos(joint_id,1) = n_id;  
 
-            if isfield(new_ele,'bm_x_pos') %&& element.ele_id(new_ele.bm_x_pos,1) ~= 16 && element.ele_id(new_ele.bm_x_pos,1) ~= 17
-                joint_node_id =  joint_node_id + 1;
-                new_node.id = [new_node.id; joint_node_id];
-                new_node.x = [new_node.x; node.x(node.id == n_id)+joint_dim_x/2];
-                new_node.y = [new_node.y; node.y(node.id == n_id)-joint_dim_y/2];
-                new_node.z = [new_node.z; node.z(node.id == n_id)];
-                new_node.mass = [new_node.mass; 0];
-                new_node.record_disp = [new_node.record_disp; 0];
-                new_node.record_accel = [new_node.record_accel; 0];
-                element.node_1(new_ele.bm_x_pos,1) = new_node.id(end);
-                joint.x_pos(joint_id,1) = new_node.id(end);
-            else
-                joint.x_pos(joint_id,1) = new_node.id(end);
-            end           
-            
-            % Define Joint Classification according to ASCE 41-17 figure 10-3
-            % ASSUMES THERE ARE NEVER ANY TRANSFER BEAMS (ie in the z
-            % direction) AND THAT THE PRIMARY DIRECTION IS ALWAYS THE X.
-            % ALSO THAT THERE WILL ALWAYS BE A COLUMN ABOVE UNLESS ITS THE
-            % TOP STORY.
-            if isfield(new_ele,'bm_x_pos') && isfield(new_ele,'bm_x_neg')
-                joint.class{joint_id,1} = 'b'; % interior joint without transfer beams
-            elseif s == height(story) % top story
-                joint.class{joint_id,1} = 'e'; % knee joint with or without transfer beams
-            else
-                joint.class{joint_id,1} = 'd'; % exterior joint without transfer beams
+                if isfield(new_ele,'bm_x_neg') %&& element.ele_id(new_ele.bm_x_neg,1) ~= 16 && element.ele_id(new_ele.bm_x_neg,1) ~= 17
+                    joint_node_id =  joint_node_id + 1;
+                    new_node.id = [new_node.id; joint_node_id];
+                    new_node.x = [new_node.x; node.x(node.id == n_id)-joint_dim_x/2];
+                    new_node.y = [new_node.y; node.y(node.id == n_id)-joint_dim_y/2];
+                    new_node.z = [new_node.z; node.z(node.id == n_id);];
+                    new_node.mass = [new_node.mass; 0];
+                    new_node.record_disp = [new_node.record_disp; 0];
+                    new_node.record_accel = [new_node.record_accel; 0];
+                    element.node_2(new_ele.bm_x_neg,1) = new_node.id(end);
+                    joint.x_neg(joint_id,1) = new_node.id(end);
+                else
+                    joint.x_neg(joint_id,1) = 0;
+                end
+
+                if isfield(new_ele,'bm_x_pos') %&& element.ele_id(new_ele.bm_x_pos,1) ~= 16 && element.ele_id(new_ele.bm_x_pos,1) ~= 17
+                    joint_node_id =  joint_node_id + 1;
+                    new_node.id = [new_node.id; joint_node_id];
+                    new_node.x = [new_node.x; node.x(node.id == n_id)+joint_dim_x/2];
+                    new_node.y = [new_node.y; node.y(node.id == n_id)-joint_dim_y/2];
+                    new_node.z = [new_node.z; node.z(node.id == n_id)];
+                    new_node.mass = [new_node.mass; 0];
+                    new_node.record_disp = [new_node.record_disp; 0];
+                    new_node.record_accel = [new_node.record_accel; 0];
+                    element.node_1(new_ele.bm_x_pos,1) = new_node.id(end);
+                    joint.x_pos(joint_id,1) = new_node.id(end);
+                else
+                    joint.x_pos(joint_id,1) = new_node.id(end);
+                end           
+
+                % Define Joint Classification according to ASCE 41-17 figure 10-3
+                % ASSUMES THERE ARE NEVER ANY TRANSFER BEAMS (ie in the z
+                % direction) AND THAT THE PRIMARY DIRECTION IS ALWAYS THE X.
+                % ALSO THAT THERE WILL ALWAYS BE A COLUMN ABOVE UNLESS ITS THE
+                % TOP STORY.
+                if isfield(new_ele,'bm_x_pos') && isfield(new_ele,'bm_x_neg')
+                    joint.class{joint_id,1} = 'b'; % interior joint without transfer beams
+                elseif s == height(story) % top story
+                    joint.class{joint_id,1} = 'e'; % knee joint with or without transfer beams
+                else
+                    joint.class{joint_id,1} = 'd'; % exterior joint without transfer beams
+                end
+
+
+                % Add new nodes to nodes list
+                node.id = [node.id; new_node.id];
+                node.x = [node.x; new_node.x];
+                node.y = [node.y; new_node.y];
+                node.z = [node.z; new_node.z];
+                node.mass = [node.mass; new_node.mass];
+                node.record_disp = [node.record_disp; new_node.record_disp];
+                node.record_accel = [node.record_accel; new_node.record_accel];
+
+                % Clear data
+                clear new_ele
             end
-                
-                
-            % Add new nodes to nodes list
-            node.id = [node.id; new_node.id];
-            node.x = [node.x; new_node.x];
-            node.y = [node.y; new_node.y];
-            node.z = [node.z; new_node.z];
-            node.mass = [node.mass; new_node.mass];
-            node.record_disp = [node.record_disp; new_node.record_disp];
-            node.record_accel = [node.record_accel; new_node.record_accel];
-            
-            % Clear data
-            clear new_ele
         end
     end
 end
@@ -319,34 +318,40 @@ for e = 1:length(element.id)
         
 end
 
-%% Find first nodes in each story and Nodes on Slab
+%% Find first nodes in each story and Nodes on Slab to connect to rigid diaphram
 node.story = zeros(length(node.id),1);
+node.on_slab = zeros(length(node.id),1);
 node.primary_story = zeros(length(node.id),1);
 for s = 1:height(story)
     slab_ht = story.y_start(s) + story.story_ht(s);
-    node.story(node.y == slab_ht) = s;
+    node.story(node.y == slab_ht) = story.id(s);
     node.primary_story(node.x == model.primary_node_offset & node.z == 0 & node.y == slab_ht) = 1;
-    nodes_on_slab{s} = node.id(node.y == slab_ht);
+    node.on_slab(node.y == slab_ht) = 1;
+%     nodes_on_slab{s} = node.id(node.y == slab_ht);
 end
 
 %% Define nodes to connect to rigid diaphram
-node.on_slab = zeros(length(node.id),1);
-if analysis.rigid_diaphram
-    for s = 1:height(story)
-        for i = 1:length(nodes_on_slab{s})
-            node.on_slab(node.id == nodes_on_slab{s}(i)) = s;
-        end
-    end
-end
+% node.on_slab = zeros(length(node.id),1);
+% if analysis.rigid_diaphram
+%     for s = 1:height(story)
+%         for i = 1:length(nodes_on_slab{s})
+%             node.on_slab(node.id == nodes_on_slab{s}(i)) = s;
+%         end
+%     end
+% end
 
 %% Offset Mass for Accidental Torsion
 % For X direction %%%% SHOULD CHANGE INTO FUNCTION AND RUN EACH DIR
 % INDEPENDANTLY
 if analysis.accidental_torsion == 1
-    for i = 1:height(story)
-        % Direction x
-        [ node ] = fn_update_mass( node, nodes_on_slab{i}, 'x' );
-        [ node ] = fn_update_mass( node, nodes_on_slab{i}, 'z' );
+    for s = 1:height(story)
+        slab_ht = story.y_start(s) + story.story_ht(s);
+        if slab_ht > 0
+            % Direction x
+            [ node ] = fn_update_mass( node, node.id(node.y == slab_ht), 'x' );
+            % Direction z
+            [ node ] = fn_update_mass( node, node.id(node.y == slab_ht), 'z' );
+        end
     end
 end
 
@@ -354,9 +359,9 @@ end
 node.fix = cell(length(node.id),1);
 node.fix(1:end) = {'[000000]'}; % All nodes
 foundation_nodes_filter = node.y == 0;
-% wall_base_nodes_filter = node.y == 0 & ismember(node.id,element.node_1(strcmp(element.type,'wall')));
-% foundation_nodes_ids = node.id(foundation_nodes_filter & ~wall_base_nodes_filter);
 foundation_nodes_ids = node.id(foundation_nodes_filter);
+wall_base_nodes_filter = node.y == 0 & ismember(node.id,element.node_1(strcmp(element.type,'wall')));
+wall_foundation_nodes_ids = node.id(wall_base_nodes_filter);
 % foundation nodes
 if model.foundation == 1
     node.fix(foundation_nodes_filter,:) = {'[111111]'}; % Fixed
@@ -374,8 +379,13 @@ hinge.id = [];
 if model.foundation == 2 % partial fixity such as pile hinge
     for f = 1:length(foundation_nodes_ids)
         hinge_id = hinge.id(end)+1;
+        if sum(ismember(wall_foundation_nodes_ids,foundation_nodes_ids(f))) > 0
+            direction_str = 'wall'; % base of a wall foundation
+        else
+            direction_str = 'pile'; % base of a column foundation
+        end
         % Define hinge at foundation
-        [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'NA', foundation_nodes_ids(f), hinge_id, foundation_nodes_filter, 'foundation' ); 
+        [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'NA', foundation_nodes_ids(f), hinge_id, foundation_nodes_filter, 'foundation', direction_str ); 
     end
 end
 
@@ -403,8 +413,9 @@ hinge = struct2table(hinge);
 
 %% Define Center Nodes
 node.center = zeros(length(node.id),1);
-for s = 0:height(story)
-    story_nodes = node(node.story == s & (node.record_accel == 1 | node.record_disp == 1),:);
+for s = 1:height(story)
+    this_story = story.id(s);
+    story_nodes = node(node.story == this_story & (node.record_accel == 1 | node.record_disp == 1),:);
     x_center = mean([min(story_nodes.x),max(story_nodes.x)]);
     z_center = mean([min(story_nodes.z),max(story_nodes.z)]);
     node_resultant_dist = sqrt((story_nodes.x-x_center).^2 + (story_nodes.z-z_center).^2);

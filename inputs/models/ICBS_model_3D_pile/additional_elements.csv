@@ -91,7 +91,15 @@ id,description,ele_id,x_start,x_end,z_start,z_end,y_start,y_end,direction,story
 90,exterior wall frame extention,16,1571,1642,300,300,980,980,x,6
 91,exterior wall frame extention,16,1571,1642,600,600,980,980,x,6
 92,exterior wall frame extention,15,1571,1642,900,900,980,980,x,6
-93,exterior wall top or bottom,2,1642,1642,0,300,980,980,z,6
-94,exterior wall top or bottom,2,1642,1642,300,450,980,980,z,6
-95,exterior wall top or bottom,2,1642,1642,450,600,980,980,z,6
-96,exterior wall top or bottom,2,1642,1642,600,900,980,980,z,6
+93,exterior wall top or bottom,22,1642,1642,0,300,980,980,z,6
+94,exterior wall top or bottom,22,1642,1642,300,450,980,980,z,6
+95,exterior wall top or bottom,22,1642,1642,450,600,980,980,z,6
+96,exterior wall top or bottom,22,1642,1642,600,900,980,980,z,6
+97,grade beam,22,71,71,300,450,0,0,z,1
+98,grade beam,22,71,71,450,600,0,0,z,1
+99,grade beam,22,671,671,300,450,0,0,z,1
+100,grade beam,22,671,671,450,600,0,0,z,1
+101,grade beam,22,971,971,300,450,0,0,z,1
+102,grade beam,22,971,971,450,600,0,0,z,1
+103,grade beam,22,1271,1271,300,450,0,0,z,1
+104,grade beam,22,1271,1271,450,600,0,0,z,1

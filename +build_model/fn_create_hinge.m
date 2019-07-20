@@ -46,14 +46,13 @@ hinge.id(hinge_id,1) = hinge_id;
 hinge.type{hinge_id,1} = type;
 hinge.node_1(hinge_id,1) = new_node_id;
 hinge.node_2(hinge_id,1) = old_node_id;
+hinge.direction{hinge_id,1} = direction;
 if strcmp(type,'foundation')
-    hinge.direction{hinge_id,1} = 'NA';
     hinge.ele_side(hinge_id,1) = 0;
     hinge.element_id(hinge_id,1) = 0;
     hinge.story(hinge_id,1) = 0;
     hinge.ele_direction{hinge_id,1} = 'NA';
 else
-    hinge.direction{hinge_id,1} = direction;
     hinge.ele_side(hinge_id,1) = ele_side;
     hinge.element_id(hinge_id,1) = element.id(ele_idx_or_node_id);
     hinge.story(hinge_id,1) = element.story(ele_idx_or_node_id);

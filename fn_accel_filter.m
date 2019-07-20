@@ -35,7 +35,7 @@ end
 
 for d = 1:2
     [ story.(['max_accel_' dirs_ran{d}]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' dirs_ran{d} '_abs']), story, node, 0 );
-    story.(['max_accel_center_' dirs_ran{d}]) = node.(['max_accel_' dirs_ran{d} '_abs'])(node.center == 1 & node.record_accel == 1 & node.story > 0);
+    story.(['max_accel_center_' dirs_ran{d}]) = node.(['max_accel_' dirs_ran{d} '_abs'])(node.center == 1 & node.record_accel == 1 & node.on_slab == 1);
 end
 
 

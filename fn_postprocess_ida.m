@@ -50,7 +50,7 @@ for i = 1:height(hinge)
             hinge.d_ratio(i) = hinge.tot_deform(i) / hinge.d_value_tot(i);
             hinge.e_value_tot(i) = ele.(['e_hinge_' num2str(hinge.ele_side(i))]);
             hinge.e_ratio(i) = hinge.tot_deform(i) / hinge.e_value_tot(i);
-        else % Everything Elase
+        else % Everything Else
             % Shear force Properties
             hinge.shear_demand(i) = ele.(['Vmax_' num2str(hinge.ele_side(i))]);
             hinge.asce41_shear_capacity(i) = ele.(['Vn_' num2str(hinge.ele_side(i))]);
@@ -115,26 +115,26 @@ end
 if summary.collapse > 0
     if summary.max_drift_x > summary.max_drift_z
         summary.collapse_direction = 'x';
-        if min(hinge.b_ratio(strcmp(hinge.ele_type,'beam') & strcmp(hinge.ele_direction,'x'))) > 1.5
+        if min(hinge.b_ratio(strcmp(hinge.ele_type,'beam') & strcmp(hinge.ele_direction,'x'))) > 1
             summary.collaspe_mech = 'beams';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 1)) > 1.5
+        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 1)) > 1
             summary.collaspe_mech = 'story 1';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 2)) > 1.5
+        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 2)) > 1
             summary.collaspe_mech = 'story 2';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 3)) > 1.5
+        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 3)) > 1
             summary.collaspe_mech = 'story 3';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 4)) > 1.5
+        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 4)) > 1
             summary.collaspe_mech = 'story 4';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 5)) > 1.5
+        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 5)) > 1
             summary.collaspe_mech = 'story 5';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 6)) > 1.5
+        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 6)) > 1
             summary.collaspe_mech = 'story 6';
         else
             summary.collaspe_mech = 'other';
         end
     else
         summary.collapse_direction = 'z';
-        if min(hinge.e_ratio(strcmp(hinge.ele_type,'wall') & strcmp(hinge.ele_direction,'z') & hinge.story == 1)) > 1.5
+        if min(hinge.e_ratio(strcmp(hinge.ele_type,'wall') & strcmp(hinge.ele_direction,'z') & hinge.story == 1)) > 1
             summary.collaspe_mech = 'story 1 walls';
         else
             summary.collaspe_mech = 'other';

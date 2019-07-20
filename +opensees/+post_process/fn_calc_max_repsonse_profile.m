@@ -3,11 +3,11 @@ function [ edp_profile ] = fn_calc_max_repsonse_profile( max_edp, story, node, a
 %   Detailed explanation goes here
 
 edp_profile = zeros(length(story.id),1);
-for i = 1:length(story.id)
+for s = 1:height(story)
     if ave == 1 % take the mean for all nodes at level
-        edp_profile(i) = mean(max_edp(node.story == i & ~isnan(max_edp)));
+        edp_profile(s) = mean(max_edp(node.story == story.id(s) & node.on_slab == 1 & ~isnan(max_edp)));
     else % Take the Max of all nodes at level
-        edp_profile(i) = max(abs(max_edp(node.story == i & ~isnan(max_edp))));
+        edp_profile(s) = max(abs(max_edp(node.story == story.id(s) & node.on_slab == 1 & ~isnan(max_edp))));
     end
 end
 

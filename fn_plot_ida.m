@@ -7,7 +7,6 @@ function [ ] = fn_plot_ida(analysis, model, IDA_scale_factors, gm_set_table, max
 import plotting_tools.fn_format_and_save_plot
 
 % Defined fixed parames
-col_ids = [1 3 5 7 9 11 12 14 16 18 20 22 23 25 27 29 31 33 34 36 38 40 42 44];
 params = {'b','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
 
 % Collect IDA data
@@ -42,20 +41,29 @@ for i = 1:length(IDA_scale_factors)
             if isfield(summary,'collapse_direction')
                 ida.collapse_direction{id,1} = summary.collapse_direction;
             end
-            col_base_filter = hinge.story == 1 & hinge.ele_side == 1 & strcmp(hinge.direction,'primary') & ismember(hinge.element_id,col_ids);
-            col_hinges = hinge(col_base_filter,:);
+            if isfield(summary,'collaspe_mech')
+                ida.collapse_mech{id,1} = summary.collaspe_mech;
+            end
+            col_base_filter = hinge.story == 1 & hinge.ele_side == 1 & strcmp(hinge.direction,'primary') & strcmp(hinge.ele_type,'column');
+            first_story_col_filter = hinge.story == 1 & strcmp(hinge.direction,'primary') & strcmp(hinge.ele_type,'column');
+            first_story_beam_filter = hinge.story == 1 & strcmp(hinge.direction,'primary')  & strcmp(hinge.ele_type,'beam');
+            col_hinges_base = hinge(col_base_filter,:);
+            col_hinges_story_1 = hinge(first_story_col_filter,:);
+            bm_hinges_story_1 = hinge(first_story_beam_filter,:);
 
             % For Each accetance criteria listed above
             for p = 1:length(params)
-                [ ida.(['num_' params{p}])(id,1), ida.(['percent_' params{p}])(id,1), ida.(['num_' params{p} '_15'])(id,1) ] = fn_collect_ida_data([params{p} '_ratio'], col_hinges, summary.collapse);
+                [ ida.(['num_' params{p}])(id,1), ida.(['percent_' params{p}])(id,1), ida.(['num_' params{p} '_15'])(id,1) ] = fn_collect_ida_data([params{p} '_ratio'], col_hinges_base, summary.collapse);
+                [ ida.(['num_' params{p} '_cols_1'])(id,1), ida.(['percent_' params{p} '_cols_1'])(id,1), ida.(['num_' params{p} '_15' '_cols_1'])(id,1) ] = fn_collect_ida_data([params{p} '_ratio'], col_hinges_story_1, summary.collapse);
+                [ ida.(['num_' params{p} '_bms_1'])(id,1), ida.(['percent_' params{p} '_bms_1'])(id,1), ida.(['num_' params{p} '_15' '_bms_1'])(id,1) ] = fn_collect_ida_data([params{p} '_ratio'], bm_hinges_story_1, summary.collapse);
             end
 
             % Shear ASCE 41
-            col_hinges.shear_ratio = col_hinges.shear_demand ./ col_hinges.asce41_shear_capacity;
-            [ ida.num_shear_asce41(id,1), ida.percent_shear_asce41(id,1), ~ ] = fn_collect_ida_data('shear_ratio', col_hinges, summary.collapse);
+            col_hinges_base.shear_ratio = col_hinges_base.shear_demand ./ col_hinges_base.asce41_shear_capacity;
+            [ ida.num_shear_asce41(id,1), ida.percent_shear_asce41(id,1), ~ ] = fn_collect_ida_data('shear_ratio', col_hinges_base, summary.collapse);
 
             % Shear Eurocode
-            ida.shear_asce41_v_euro(id,1) = sum((hinge.euro_V_NC(col_base_filter) ./ hinge.asce41_shear_capacity(col_base_filter)) > 1);
+            ida.shear_asce41_v_euro(id,1) = sum((col_hinges_base.euro_V_NC ./ col_hinges_base.asce41_shear_capacity) > 1);
 
         else
             id_missing = id_missing + 1;
@@ -74,7 +82,9 @@ ida_table(ida_table.collapse == 5,:) = [];
 
 % Save Tabular Results as CSVs
 writetable(ida_table,[plot_dir filesep 'ida_table.csv'])
-writetable(struct2table(missing_ida),[plot_dir filesep 'idas_missing.csv'])
+if exist('missing_ida','var')
+    writetable(struct2table(missing_ida),[plot_dir filesep 'idas_missing.csv'])
+end
 writetable(failed_convergence,[plot_dir filesep 'idas_failed_convergence.csv'])
 
 %% Calculate Median Drifts and Accels

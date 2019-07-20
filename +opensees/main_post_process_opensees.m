@@ -286,13 +286,13 @@ for i = 1:length(dirs_ran)
    
     % EDP Profiles
     [ story.(['max_disp_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' fld_names{i}]), story, node, 0 );
-    story.(['max_disp_center_' fld_names{i}]) = node.(['max_disp_' fld_names{i}])(node.center == 1 & node.record_disp == 1 & node.story > 0);
+    story.(['max_disp_center_' fld_names{i}]) = node.(['max_disp_' fld_names{i}])(node.center == 1 & node.record_disp == 1 & node.on_slab == 1);
     [ story.(['ave_disp_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' fld_names{i}]), story, node, 1 );
     [ story.(['residual_disp_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['residual_disp_' fld_names{i}]), story, node, 1 );
     story.(['torsional_factor_' fld_names{i}]) = story.(['max_disp_' fld_names{i}]) ./ story.(['ave_disp_' fld_names{i}]);
     if ~analysis.simple_recorders && analysis.type == 1 % Dynamic Analysis
         [ story.(['max_accel_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' fld_names{i} '_abs']), story, node, 0 );
-        story.(['max_accel_center_' fld_names{i}]) = node.(['max_accel_' fld_names{i} '_abs'])(node.center == 1 & node.record_accel == 1 & node.story > 0);
+        story.(['max_accel_center_' fld_names{i}]) = node.(['max_accel_' fld_names{i} '_abs'])(node.center == 1 & node.record_accel == 1 & node.on_slab == 1);
     end
     if analysis.simple_recorders
         [ story.(['max_drift_' fld_names{i}]) ] = fn_drift_profile( node_TH, story, node(node.primary_story == 1,:), fld_names{i} );
@@ -316,14 +316,14 @@ for i = 1:length(dirs_ran)
             % Save mode shapes
             [ mode_shape_raw ] = fn_xml_read([opensees_dir filesep 'mode_shape_1.xml']);
             mode_shape_norm = mode_shape_raw(1:2:end)/mode_shape_raw(end-1); % Extract odd rows and normalize by roof
-            story.(['mode_shape_x']) = mode_shape_norm';
+            story.(['mode_shape_x'])(story.id > 0) = mode_shape_norm';
         elseif strcmp(dirs_ran{i},'z')
             % Save periods
             model.(['T1_' dirs_ran{i}]) = periods(2);
             % Save mode shapes
             [ mode_shape_raw ] = fn_xml_read([opensees_dir filesep 'mode_shape_2.xml']);
             mode_shape_norm = mode_shape_raw(1:2:end)/mode_shape_raw(end-1); % Extract odd rows and normalize by roof
-            story.(['mode_shape_z']) = mode_shape_norm';
+            story.(['mode_shape_z'])(story.id > 0) = mode_shape_norm';
         end
     end
     

@@ -1,4 +1,4 @@
-function [ ] = fn_plot_profile( profile_x, profile_z, story_ids, plot_dir, plot_name, name, target_disp, num_stories, additional_data )
+function [ ] = fn_plot_profile( profile_x, profile_z, story_ids, plot_dir, plot_name, name, target_disp, additional_data )
 %UNTITLED9 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -31,7 +31,7 @@ end
 plot(profile_z,story_ids,'color',matlab_colors(1,:),'linewidth',1.5,'DisplayName','Analysis')
 % Add target dispalcement
 if isstruct(target_disp)
-    scatter(target_disp.z,num_stories,75,matlab_colors(1,:),'*','DisplayName','Target Displacement')
+    scatter(target_disp.z,max(story_ids),75,matlab_colors(1,:),'*','DisplayName','Target Displacement')
 end
 xlabel(['NS ' name])
 if strcmp(name,'Interstory Drift')
@@ -61,7 +61,7 @@ end
 plot(profile_x,story_ids,'color',matlab_colors(2,:),'linewidth',1.5,'DisplayName','Analysis')
 % Add target dispalcement
 if isstruct(target_disp)
-    scatter(target_disp.x,num_stories,75,matlab_colors(2,:),'*','DisplayName','Target Displacement')
+    scatter(target_disp.x,max(story_ids),75,matlab_colors(2,:),'*','DisplayName','Target Displacement')
 end
 xlabel(['EW ' name])
 xlim([0,max_data])

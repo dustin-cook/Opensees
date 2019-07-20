@@ -65,10 +65,12 @@ if analysis.type == 2 || analysis.type == 3
     % define nodes to push
     force_nodes = [];
     node.lateral_load = zeros(height(node),1);
-    for i = 1:height(story)
-        force_nodes_this_story = node.id(node.story == i & node.mass > 0);
-        node.lateral_load(ismember(node.id,force_nodes_this_story)) = story.lateral_force(i)/length(force_nodes_this_story);
-        force_nodes = [force_nodes;force_nodes_this_story];
+    for s = 1:height(story)
+        if story.id(s) > 0
+            force_nodes_this_story = node.id(node.story == story.id(s) & node.mass > 0);
+            node.lateral_load(ismember(node.id,force_nodes_this_story)) = story.lateral_force(s)/length(force_nodes_this_story);
+            force_nodes = [force_nodes;force_nodes_this_story];
+        end
     end
     
     % Define Static Lateral Load Pattern

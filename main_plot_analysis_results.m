@@ -133,7 +133,7 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         fn_plot_plan_view( hinge, element, node, 1, 'Story 1 - Column Bases', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
         fn_plot_plan_view( hinge, element, node, 2, 'Story 1 - Top of Columns', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
 
-        %% Plot Element Scatter
+        % Plot Element Scatter
         fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
         fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
         fn_plot_element_scatter( element, 'wall', story, hinge, plot_dir )
@@ -156,6 +156,11 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     
     %% Load in Recordings to compare with EDPs and Time Histories
     if analysis.plot_recordings
+        pile_model = 0;
+        if model.foundation == 2
+            record_edp = ff_edp;
+            pile_model = 1;
+        end
         % Plot EDP Profiles
         fn_plot_edp_profiles( plot_dir, ground_motion, model, story, target_disp_in, record_edp)
 
@@ -163,8 +168,8 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         fn_plot_main_response_history( plot_dir, read_dir_TH, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, record_edp )
         
         % Plot Spectra
-        fn_plot_spectra(node, 'Ground', ground_motion.x.eq_dt, plot_dir, read_dir_TH)
-        fn_plot_spectra(node, 'Roof', ground_motion.x.eq_dt, plot_dir, read_dir_TH)
+        fn_plot_spectra(node, 'Ground', ground_motion.x.eq_dt, plot_dir, read_dir_TH, pile_model)
+        fn_plot_spectra(node, 'Roof', ground_motion.x.eq_dt, plot_dir, read_dir_TH, pile_model)
     else
 %         Plot EDP Profiles
         fn_plot_edp_profiles( plot_dir, ground_motion, model, story, target_disp_in)
