@@ -13,8 +13,8 @@ analysis.proceedure = 'NDP';
 analysis.id = 2;
 analysis.summit = 0;
 analysis.run_ida = 0;
-analysis.post_process_ida = 1;
-analysis.plot_ida = 0;
+analysis.post_process_ida = 0;
+analysis.plot_ida = 1;
 analysis.gm_set = 'FEMA_far_field';
 
 % IDA Inputs

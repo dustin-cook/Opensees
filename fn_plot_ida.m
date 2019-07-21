@@ -175,6 +175,10 @@ for i = 1:length(IDA_scale_factors)
         frag.(params{p})(i,:) = new_row;
     end
 
+    % All fist story columns
+    [new_row] = fn_exceedance_values(stripe.(['num_b_cols_1']), stripe.(['percent_b_cols_1']));
+    frag.b_cols_1(i,:) = new_row;
+            
     % Shear Capacity
     [new_row] = fn_exceedance_values(stripe.num_shear_asce41, stripe.percent_shear_asce41);
     frag.shear_asce41(i,:) = new_row;
@@ -195,7 +199,9 @@ x_points = 0:0.01:3;
 for p = 1:length(params)
     [frag_curves.(params{p})] = fn_multi_frag_curves(x_points, frag.(params{p}), frag.asce41_sa_ew, frag.num_gms);
 end
+[frag_curves.b_cols_1] = fn_multi_frag_curves(x_points, frag.b_cols_1, frag.asce41_sa_ew, frag.num_gms);
 [frag_curves.shear_asce41] = fn_multi_frag_curves(x_points, frag.shear_asce41, frag.asce41_sa_ew, frag.num_gms);
+[frag_curves.(params{p})] = fn_multi_frag_curves(x_points, frag.(params{p}), frag.asce41_sa_ew, frag.num_gms);
 
 %% Calculate Post Fragulity Curve P695 factors
 % Collapse Median Sa
@@ -349,6 +355,11 @@ for p = 1:length(params)
     plot_name = ['Collapse Fragility - ' params{p} ' - EW'];
     fn_plot_frag_curves(x_points, frag.(params{p}), frag_curves.(params{p}), frag.asce41_sa_ew, col_frag_curve_ew_tot, ida_results.spectra(1), plot_name, plot_dir, plot_title)
 end
+
+% Columns both sides - first story mechanism
+plot_title = 'First Story Columns b Fragility: EW';
+plot_name = 'Collapse Fragility - first story b - EW';
+fn_plot_frag_curves(x_points, frag.b_cols_1, frag_curves.b_cols_1, frag.asce41_sa_ew, col_frag_curve_ew_tot, ida_results.spectra(1), plot_name, plot_dir, plot_title)
 
 % Column Shear ASCE 41
 plot_title = 'First Story Column Base ASCE 41 Shear Capacity Fragility: EW';
