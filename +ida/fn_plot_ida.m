@@ -5,6 +5,7 @@ function [ ] = fn_plot_ida(analysis, model, IDA_scale_factors, gm_set_table, max
 %% Initial Setup
 % Import packages
 import plotting_tools.fn_format_and_save_plot
+import ida.fn_mle_pc
 
 % Defined fixed parames
 params = {'b','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
@@ -194,8 +195,8 @@ x_points = 0:0.01:3;
 [col_frag_curve_ns_b_15, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms, frag.num_b_15);
 [col_frag_curve_ew_tot, col_frag_curve_full_ew_tot] = fn_calc_frag_curve(x_points, frag.asce41_sa_ew, frag.num_gms, frag.num_collapse_tot);
 [col_frag_curve_ns_tot, col_frag_curve_full_ns_tot] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms, frag.num_collapse_tot);
-[col_frag_curve_ew_unacceptable_response, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ew, frag.num_gms, frag.num_unacceptable_response);
-[col_frag_curve_ns_unacceptable_response, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms, frag.num_unacceptable_response);
+[col_frag_curve_ew_unacceptable_response, col_frag_curve_full_ew_unacceptable_response] = fn_calc_frag_curve(x_points, frag.asce41_sa_ew, frag.num_gms, frag.num_unacceptable_response);
+[col_frag_curve_ns_unacceptable_response, col_frag_curve_full_ns_unacceptable_response] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms, frag.num_unacceptable_response);
 for p = 1:length(params)
     [frag_curves.(params{p})] = fn_multi_frag_curves(x_points, frag.(params{p}), frag.asce41_sa_ew, frag.num_gms);
 end
@@ -235,6 +236,8 @@ ida_results.p_col_mce_adjust(1,1) = col_frag_curve_full_ew_tot(idx_ew);
 ida_results.p_col_mce_adjust(2,1) = col_frag_curve_full_ns_tot(idx_ns);
 [~, idx_UR] = min(abs(x_points - ida_results.mce(1)));
 p_UR_mce = col_frag_curve_ew_unacceptable_response(idx_UR);
+[~, idx_UR] = min(abs(x_points_adjused_x - ida_results.mce(1)));
+p_UR_mce_adjusted = col_frag_curve_full_ew_unacceptable_response(idx_UR);
 
 % Save IDA results as table
 ida_results_table = struct2table(ida_results);

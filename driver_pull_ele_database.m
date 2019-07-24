@@ -122,9 +122,9 @@ for i = 1:height(columns)
         columns.yield_rotation(i) = columns.Mn(i)/columns.K0(i);
         columns.max_element_hinge_rotation(i) = max(abs(hin_TH.deformation_TH));
         if columns.max_element_hinge_rotation(i) < columns.yield_rotation(i)/11
-            columns.max_element_total_rotation(i) = columns.max_element_hinge_rotation(i)*11;
+            columns.max_element_rotation_or_drift(i) = columns.max_element_hinge_rotation(i)*11;
         else
-            columns.max_element_total_rotation(i) = columns.max_element_hinge_rotation(i) + (10/11)*columns.yield_rotation(i);
+            columns.max_element_rotation_or_drift(i) = columns.max_element_hinge_rotation(i) + (10/11)*columns.yield_rotation(i);
         end
         columns.max_story_drift_analysis(i) = this_story.(['max_drift_' ele.direction{1}]);
         columns.max_story_drift_record(i) = record_edp.max_disp.(ele.direction{1})(ele.story+1)/story.story_ht(story.id == 1); % Update this to read from story
