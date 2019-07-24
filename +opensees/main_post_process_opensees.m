@@ -379,6 +379,7 @@ save([opensees_dir filesep 'story_analysis.mat'],'story')
 if ~analysis.simple_recorders && analysis.type == 1 % Dynamic Analysis
     save([opensees_dir filesep 'gm_data.mat'],'eq','dirs_ran','ground_motion','eq_analysis_timespace','eq_analysis')
 elseif analysis.type == 2 % Pushover Analysis
+    save([pushover_dir filesep 'element_analysis.mat'],'element')
     save([pushover_dir filesep 'node_analysis.mat'],'node') 
     save([pushover_dir filesep 'hinge_analysis.mat'],'hinge')
     save([pushover_dir filesep 'analysis_options.mat'],'analysis')
