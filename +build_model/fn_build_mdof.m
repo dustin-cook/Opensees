@@ -321,6 +321,7 @@ end
 %% Find first nodes in each story and Nodes on Slab to connect to rigid diaphram
 node.story = zeros(length(node.id),1);
 node.on_slab = zeros(length(node.id),1);
+node.on_slab(node.y == 0) = 1; % Set base nodes to be on the slab
 node.primary_story = zeros(length(node.id),1);
 for s = 1:height(story)
     slab_ht = story.y_start(s) + story.story_ht(s);

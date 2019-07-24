@@ -53,7 +53,7 @@ for i =1:length(joint.id)
     jnt.height = mean([beam_left_props.h,beam_right_props.h]) ; % Average of the two beam heights
     
     % Calculate whether the joint has conforming or non conforming reinforcement
-    jnt.S = 999; % Set to non conforming for ISCB (update this to be database driven)
+    jnt.S = column_low_props.S_2; % Set to the spacing in the columns below for ISCB (update this to be database driven)
     h_c = mean([column_low_props.h,column_high_props.h]);
     if jnt.S <= h_c/2
         jnt.trans_rien = 'C';
@@ -97,7 +97,7 @@ for i =1:length(joint.id)
         jnt.Vmax = Ts1 + C2 - Vcol; % From Moehle Book EQ 9.2 Assumes the same as above.
         jnt.V_grav = 0; % doesnt matter for now since only used to determine acceptance
     else
-        Vcol = max([column_low.Vmax_2,0]); % Shear from the column above
+        Vcol = max([column_low.Vmax_2,0]); % Shear from the column below
         Ts1 = max([beam_left.Mmax_2 / (beam_left_props.d_eff),0]);
         C2 = max([beam_right.Mmax_1 / (beam_right_props.d_eff),0]); % Assuming jd is 75% of d, rough assumption for now until I take this further, also need to consider both directions
         jnt.Vmax = Ts1 + C2 - Vcol; % From Moehle Book EQ 9.2 Assumes the same as above.

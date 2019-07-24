@@ -1,4 +1,4 @@
-function [ ] = fn_plot_spectra(node, type, eq_dt, plot_dir, read_dir_opensees, pile_model)
+function [ ] = fn_plot_spectra(node, type, gm, plot_dir, read_dir_opensees, pile_model)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -27,6 +27,7 @@ elseif strcmp(type,'Ground')
     else
         channel.x = 'chan_13';
         channel.z = 'chan_11';
+        channel.y = 'chan_12';
     end
 end
 
@@ -39,11 +40,11 @@ if strcmp(type,'Roof')
     node_roof_center_id = node.id(node.x == center_x & node.z == center_z & node.story == 6);
     roof_center_id_TH = load([read_dir_opensees filesep 'node_TH_' num2str(node_roof_center_id) '.mat']);
     fileID = fopen([spectra_write_dir filesep 'roof_accel_x.txt'],'w');
-    fprintf(fileID,'%d\n',eq_dt);
+    fprintf(fileID,'%d\n',gm.x.eq_dt);
     fprintf(fileID,'%d\n',roof_center_id_TH.nd_TH.accel_x_abs_TH');
     fclose(fileID);
     fileID = fopen([spectra_write_dir filesep 'roof_accel_z.txt'],'w');
-    fprintf(fileID,'%d\n',eq_dt);
+    fprintf(fileID,'%d\n',gm.x.eq_dt);
     fprintf(fileID,'%d\n',roof_center_id_TH.nd_TH.accel_z_abs_TH');
     fclose(fileID);
 
@@ -64,25 +65,32 @@ if strcmp(type,'Roof')
 end
 spectra_record_x = readtable(['ground_motions' filesep 'ICSB_recordings' filesep channel.x '_accel' filesep 'spectra.csv'],'ReadVariableNames', true);
 spectra_record_z = readtable(['ground_motions' filesep 'ICSB_recordings' filesep channel.z '_accel' filesep 'spectra.csv'],'ReadVariableNames', true);
+if isfield(gm,'y') && isfield(channel,'y')
+    spectra_record_y = readtable(['ground_motions' filesep 'ICSB_recordings' filesep channel.y '_accel' filesep 'spectra.csv'],'ReadVariableNames', true);
+end
 
 %% Plot Spectra
 hold on
 if strcmp(type,'Roof')
-    plot(spectra_analysis_z.period,spectra_analysis_z.psa_3,'color',matlab_colors(1,:),'LineWidth',1,'DisplayName','NS Analysis')
-    plot(spectra_record_z.period,spectra_record_z.psa_3,'--','color',matlab_colors(1,:),'LineWidth',1,'DisplayName','NS Recording')
+    plot(spectra_analysis_z.period,spectra_analysis_z.psa_5,'color',matlab_colors(1,:),'LineWidth',1,'DisplayName','NS Analysis')
+    plot(spectra_record_z.period,spectra_record_z.psa_5,'--','color',matlab_colors(1,:),'LineWidth',1,'DisplayName','NS Recording')
 else
-    plot(spectra_record_z.period,spectra_record_z.psa_3,'color',matlab_colors(1,:),'LineWidth',1,'DisplayName','Plan NS (Y)')
+    plot(spectra_record_z.period,spectra_record_z.psa_5,'color',matlab_colors(1,:),'LineWidth',1,'DisplayName','Plan NS (Y)')
 end
 
 if strcmp(type,'Roof')
-    plot(spectra_analysis_x.period,spectra_analysis_x.psa_3,'color',matlab_colors(2,:),'LineWidth',1,'DisplayName','EW Analysis')
-    plot(spectra_record_x.period,spectra_record_x.psa_3,'--','color',matlab_colors(2,:),'LineWidth',1,'DisplayName','EW Recording')
+    plot(spectra_analysis_x.period,spectra_analysis_x.psa_5,'color',matlab_colors(2,:),'LineWidth',1,'DisplayName','EW Analysis')
+    plot(spectra_record_x.period,spectra_record_x.psa_5,'--','color',matlab_colors(2,:),'LineWidth',1,'DisplayName','EW Recording')
 else
-    plot(spectra_record_x.period,spectra_record_x.psa_3,'color',matlab_colors(2,:),'LineWidth',1,'DisplayName','Plan EW (X)')
+    plot(spectra_record_x.period,spectra_record_x.psa_5,'color',matlab_colors(2,:),'LineWidth',1,'DisplayName','Plan EW (X)')
 end
 
+if isfield(gm,'y') && isfield(channel,'y')
+    plot(spectra_record_y.period,spectra_record_y.psa_5,'color',matlab_colors(3,:),'LineWidth',1,'DisplayName','Plan Vertical (Y)')
+end
+        
 xlabel('Period, T_1(s)')
-ylabel('Spectral Acceleration, Sa (\xi = 3%) (g)')
+ylabel('Spectral Acceleration, Sa (\xi = 5%) (g)')
 box on 
 legend('Location','northeast')
 legend boxoff

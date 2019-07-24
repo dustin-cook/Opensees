@@ -6,6 +6,7 @@ function [ ] = fn_postprocess_ida(analysis, model, story, element, node, hinge, 
 % import packages
 import opensees.main_post_process_opensees
 import opensees.post_process.*
+import ida.*
 
 % Load element properties table
 ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);

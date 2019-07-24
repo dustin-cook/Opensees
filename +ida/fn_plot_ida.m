@@ -5,6 +5,7 @@ function [ ] = fn_plot_ida(analysis, model, IDA_scale_factors, gm_set_table, max
 %% Initial Setup
 % Import packages
 import plotting_tools.fn_format_and_save_plot
+import ida.fn_mle_pc
 
 % Defined fixed parames
 params = {'b','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
@@ -175,6 +176,10 @@ for i = 1:length(IDA_scale_factors)
         frag.(params{p})(i,:) = new_row;
     end
 
+    % All fist story columns
+    [new_row] = fn_exceedance_values(stripe.(['num_b_cols_1']), stripe.(['percent_b_cols_1']));
+    frag.b_cols_1(i,:) = new_row;
+            
     % Shear Capacity
     [new_row] = fn_exceedance_values(stripe.num_shear_asce41, stripe.percent_shear_asce41);
     frag.shear_asce41(i,:) = new_row;
@@ -190,12 +195,14 @@ x_points = 0:0.01:3;
 [col_frag_curve_ns_b_15, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms, frag.num_b_15);
 [col_frag_curve_ew_tot, col_frag_curve_full_ew_tot] = fn_calc_frag_curve(x_points, frag.asce41_sa_ew, frag.num_gms, frag.num_collapse_tot);
 [col_frag_curve_ns_tot, col_frag_curve_full_ns_tot] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms, frag.num_collapse_tot);
-[col_frag_curve_ew_unacceptable_response, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ew, frag.num_gms, frag.num_unacceptable_response);
-[col_frag_curve_ns_unacceptable_response, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms, frag.num_unacceptable_response);
+[col_frag_curve_ew_unacceptable_response, col_frag_curve_full_ew_unacceptable_response] = fn_calc_frag_curve(x_points, frag.asce41_sa_ew, frag.num_gms, frag.num_unacceptable_response);
+[col_frag_curve_ns_unacceptable_response, col_frag_curve_full_ns_unacceptable_response] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms, frag.num_unacceptable_response);
 for p = 1:length(params)
     [frag_curves.(params{p})] = fn_multi_frag_curves(x_points, frag.(params{p}), frag.asce41_sa_ew, frag.num_gms);
 end
+[frag_curves.b_cols_1] = fn_multi_frag_curves(x_points, frag.b_cols_1, frag.asce41_sa_ew, frag.num_gms);
 [frag_curves.shear_asce41] = fn_multi_frag_curves(x_points, frag.shear_asce41, frag.asce41_sa_ew, frag.num_gms);
+[frag_curves.(params{p})] = fn_multi_frag_curves(x_points, frag.(params{p}), frag.asce41_sa_ew, frag.num_gms);
 
 %% Calculate Post Fragulity Curve P695 factors
 % Collapse Median Sa
@@ -229,6 +236,8 @@ ida_results.p_col_mce_adjust(1,1) = col_frag_curve_full_ew_tot(idx_ew);
 ida_results.p_col_mce_adjust(2,1) = col_frag_curve_full_ns_tot(idx_ns);
 [~, idx_UR] = min(abs(x_points - ida_results.mce(1)));
 p_UR_mce = col_frag_curve_ew_unacceptable_response(idx_UR);
+[~, idx_UR] = min(abs(x_points_adjused_x - ida_results.mce(1)));
+p_UR_mce_adjusted = col_frag_curve_full_ew_unacceptable_response(idx_UR);
 
 % Save IDA results as table
 ida_results_table = struct2table(ida_results);
@@ -349,6 +358,11 @@ for p = 1:length(params)
     plot_name = ['Collapse Fragility - ' params{p} ' - EW'];
     fn_plot_frag_curves(x_points, frag.(params{p}), frag_curves.(params{p}), frag.asce41_sa_ew, col_frag_curve_ew_tot, ida_results.spectra(1), plot_name, plot_dir, plot_title)
 end
+
+% Columns both sides - first story mechanism
+plot_title = 'First Story Columns b Fragility: EW';
+plot_name = 'Collapse Fragility - first story b - EW';
+fn_plot_frag_curves(x_points, frag.b_cols_1, frag_curves.b_cols_1, frag.asce41_sa_ew, col_frag_curve_ew_tot, ida_results.spectra(1), plot_name, plot_dir, plot_title)
 
 % Column Shear ASCE 41
 plot_title = 'First Story Column Base ASCE 41 Shear Capacity Fragility: EW';

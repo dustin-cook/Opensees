@@ -499,16 +499,16 @@ if height(hinge) > 0
                         K0 = force_vec(1)/disp_vec(1);
                         residual_strength = 0.05; % fix to 5% 
                         % Have it go past the shear kink with the initial stiffness and check how far it goes in post process
-                        f_yield = force_vec(2);
-                        f_ult_ratio = 1;
-                        theta_p = disp_vec(3)-force_vec(2)/K0; % Correct theta P based initial elastic stiffness
-                        theta_pc = disp_vec(4) - disp_vec(3) + (hinge_props.(['c_hinge_' ele_side])-residual_strength)*(disp_vec(4) - disp_vec(3))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
-%                         
+%                         f_yield = force_vec(2);
+%                         f_ult_ratio = 1;
+%                         theta_p = disp_vec(3)-force_vec(2)/K0; % Correct theta P based initial elastic stiffness
+%                         theta_pc = disp_vec(4) - disp_vec(3) + (hinge_props.(['c_hinge_' ele_side])-residual_strength)*(disp_vec(4) - disp_vec(3))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
+% %                         
                         % Have it go straight from yeild to residual
-%                         f_yield = force_vec(1);
-%                         f_ult_ratio = force_vec(2)/force_vec(1);
-%                         theta_p = disp_vec(2)-disp_vec(1); % Theta P is the disp of the first kink
-%                         theta_pc = disp_vec(4) - disp_vec(2) + (hinge_props.(['c_hinge_' ele_side])-residual_strength)*(disp_vec(4) - disp_vec(2))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
+                        f_yield = force_vec(1);
+                        f_ult_ratio = force_vec(2)/force_vec(1);
+                        theta_p = disp_vec(2)-disp_vec(1); % Theta P is the disp of the first kink
+                        theta_pc = disp_vec(4) - disp_vec(2) + (hinge_props.(['c_hinge_' ele_side])-residual_strength)*(disp_vec(4) - disp_vec(2))/(1-hinge_props.(['c_hinge_' ele_side])); % theta pc defined all the way to zero where b defined to residual kink
 %                         as_sping = (force_vec(2)-force_vec(1))/(disp_vec(2)-disp_vec(1))/K0;
 
                         % if analysis.type == 1 % Dynamic

@@ -192,8 +192,8 @@ for i = 1:2 % Calc properiteis on each side of the element
     if strcmp(ele.(['critical_mode_' num2str(i)]),'shear') && ~strcmp(ele.type,'wall')
         ele.(['Mn_pos_' num2str(i)]) = ele.(['Mn_pos_' num2str(i)])*ele.(['Vn_' num2str(i)])/ele.(['vye_' num2str(i)]);
         ele.(['Mn_neg_' num2str(i)]) = ele.(['Mn_neg_' num2str(i)])*ele.(['Vn_' num2str(i)])/ele.(['vye_' num2str(i)]);
-        ele.(['Mp_pos_' num2str(i)]) = ele.(['Mp_pos_' num2str(i)])*ele.(['Vn_' num2str(i)])/ele.(['vye_' num2str(i)]);
-        ele.(['Mp_neg_' num2str(i)]) = ele.(['Mp_neg_' num2str(i)])*ele.(['Vn_' num2str(i)])/ele.(['vye_' num2str(i)]);
+        ele.(['Mp_pos_' num2str(i)]) = ele.(['Mn_pos_' num2str(i)])*ele.(['Vn_' num2str(i)])/ele.(['vye_' num2str(i)]); % no strain hardening if shear controlled
+        ele.(['Mp_neg_' num2str(i)]) = ele.(['Mn_neg_' num2str(i)])*ele.(['Vn_' num2str(i)])/ele.(['vye_' num2str(i)]); % no strain hardening if shear controlled
     end
 
     if strcmp(ele.(['critical_mode_oop_' num2str(i)]),'shear') && ~strcmp(ele.type,'wall')

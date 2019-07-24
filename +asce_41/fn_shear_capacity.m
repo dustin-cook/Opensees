@@ -1,7 +1,7 @@
 function [ Vn, V0 ] = fn_shear_capacity( Av, fy, d_eff, s, lambda, fc, Ag, M_TH, V_TH, Nug, ductility_factor )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
-mv_ratio = min([max([max(abs(M_TH/(V_TH*d_eff))),2]),4]);
+mv_ratio = min([max([max(abs(M_TH./(V_TH*d_eff))),2]),4]);
 
 % If Nu is in tension, set to zero
 Nug = max([Nug,0]); % based on gravity load of asce 41-17 eq 7-3
