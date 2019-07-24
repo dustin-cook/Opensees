@@ -5,6 +5,7 @@ function [ ] = main_opensees_analysis( model, analysis )
 %% Initial Setup
 % Import Packages
 import opensees.*
+import asce_41.*
 
 % Create Write Directory
 write_dir_opensees = ['outputs/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/opensees_data']; % TCL or Opensees does not like filesep command on windows, therefore must manually define forward slash seperators
@@ -23,6 +24,19 @@ story = readtable([read_dir_model filesep 'story.csv'],'ReadVariableNames',true)
 joint = readtable([read_dir_model filesep 'joint.csv'],'ReadVariableNames',true);
 hinge = readtable([read_dir_model filesep 'hinge.csv'],'ReadVariableNames',true);
 
+% Define element hinge properties if not already defined
+if analysis.nonlinear ~= 0 && analysis.model_type == 2 && ~exist([read_dir_analysis filesep 'element_analysis.mat'],'file')
+    % Nonlinear MDOF with no capacities calculated
+    ele_props_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
+    [ element, joint ] = main_element_capacity( story, ele_props_table, element, analysis, joint, read_dir_analysis );
+    [ element, ~ ] = main_hinge_properties( ele_props_table, element, joint );
+    if ~exist(read_dir_analysis,'dir')
+        fn_make_directory( read_dir_analysis )
+    end
+    save([read_dir_analysis filesep 'element_analysis.mat'],'element')
+    save([read_dir_analysis filesep 'joint_analysis.mat'],'joint')
+end
+
 %% Run Opensees
 % Define Number of Opensees runs to be performed
 pushover_directions = {'x', '-x', 'z', '-z'};
@@ -34,6 +48,7 @@ else
     num_OS_runs = 1;
 end
 
+% Run for each specified run
 for i = 1:num_OS_runs
     % Define inputs for this run
     analysis.pushover_direction = pushover_directions{i};
