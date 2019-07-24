@@ -117,24 +117,24 @@ if summary.collapse > 0
         summary.collapse_direction = 'x';
         if min(hinge.b_ratio(strcmp(hinge.ele_type,'beam') & strcmp(hinge.ele_direction,'x'))) > 1
             summary.collaspe_mech = 'beams';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 1)) > 1
+        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & hinge.story == 1)) > 1
             summary.collaspe_mech = 'story 1';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 2)) > 1
+        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & hinge.story == 2)) > 1
             summary.collaspe_mech = 'story 2';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 3)) > 1
+        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & hinge.story == 3)) > 1
             summary.collaspe_mech = 'story 3';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 4)) > 1
+        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & hinge.story == 4)) > 1
             summary.collaspe_mech = 'story 4';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 5)) > 1
+        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & hinge.story == 5)) > 1
             summary.collaspe_mech = 'story 5';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & hinge.story == 6)) > 1
+        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & hinge.story == 6)) > 1
             summary.collaspe_mech = 'story 6';
         else
             summary.collaspe_mech = 'other';
         end
     else
         summary.collapse_direction = 'z';
-        if min(hinge.e_ratio(strcmp(hinge.ele_type,'wall') & strcmp(hinge.ele_direction,'z') & hinge.story == 1)) > 1
+        if min(hinge.e_ratio(strcmp(hinge.ele_type,'wall') & strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'primary') & hinge.story == 1)) > 1
             summary.collaspe_mech = 'story 1 walls';
         else
             summary.collaspe_mech = 'other';
