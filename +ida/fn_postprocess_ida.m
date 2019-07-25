@@ -15,9 +15,11 @@ ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',
 ground_motion.x = gm_set_table(gm_idx,:);
 ground_motion.x.eq_dir = {['ground_motions' '/' analysis.gm_set '/' ground_motion.x.eq_name{1}]};
 ground_motion.x.eq_name = {[ground_motion.x.eq_name{1} '.tcl']};
-ground_motion.z = gm_set_table(gm_set_table.set_id == ground_motion.x.set_id & gm_set_table.pair ~= ground_motion.x.pair,:);
-ground_motion.z.eq_dir = {['ground_motions' '/' analysis.gm_set '/' ground_motion.z.eq_name{1}]};
-ground_motion.z.eq_name = {[ground_motion.z.eq_name{1} '.tcl']};
+if analysis.run_z_motion
+    ground_motion.z = gm_set_table(gm_set_table.set_id == ground_motion.x.set_id & gm_set_table.pair ~= ground_motion.x.pair,:);
+    ground_motion.z.eq_dir = {['ground_motions' '/' analysis.gm_set '/' ground_motion.z.eq_name{1}]};
+    ground_motion.z.eq_name = {[ground_motion.z.eq_name{1} '.tcl']};
+end
 
 % Create Directories
 opensees_outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Scale_' num2str(scale_factor) '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair)];
@@ -33,7 +35,9 @@ load([ida_outputs_dir filesep 'summary_results.mat'])
 % Max Story Drifts
 load([opensees_outputs_dir filesep 'story_analysis.mat']);
 summary.max_drift_x = max(story.max_drift_x);
-summary.max_drift_z = max(story.max_drift_z);
+if analysis.run_z_motion
+    summary.max_drift_z = max(story.max_drift_z);
+end
 
 % Hinge Ratios and Acceptance Criteria
 load([opensees_outputs_dir filesep 'hinge_analysis.mat'])
@@ -114,7 +118,7 @@ end
 
 % Collapse Direction and mechanism
 if summary.collapse > 0
-    if summary.max_drift_x > summary.max_drift_z
+    if ~analysis.run_z_motion || (summary.max_drift_x > summary.max_drift_z)
         summary.collapse_direction = 'x';
         if min(hinge.b_ratio(strcmp(hinge.ele_type,'beam') & strcmp(hinge.ele_direction,'x'))) > 1
             summary.collaspe_mech = 'beams';

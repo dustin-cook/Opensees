@@ -8,14 +8,15 @@ clc
 
 %% User Inputs
 % Define Model
-analysis.model_id = 6;
+analysis.model_id = 11;
 analysis.proceedure = 'NDP';
-analysis.id = 1;
+analysis.id = 2;
 analysis.summit = 0;
 analysis.run_ida = 1;
 analysis.post_process_ida = 1;
-analysis.plot_ida = 1;
+analysis.plot_ida = 0;
 analysis.gm_set = 'FEMA_far_field';
+analysis.run_z_motion = 0;
 
 % IDA Inputs
 % hazard.curve.rp = [22, 35];%, 64, 108, 144];
@@ -40,6 +41,8 @@ analysis.simple_recorders = 1;
 analysis.solution_algorithm = 1;
 analysis.initial_timestep_factor = 1;
 analysis.suppress_outputs = 1;
+analysis.play_movie = 0;
+analysis.movie_scale = 0;
 analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 
@@ -93,13 +96,13 @@ IDA_scale_factors = hazard.curve.pga ./ gm_median_pga;
 
 %% Run Opensees Models
 if analysis.run_ida || analysis.post_process_ida
-% parpool; % Set up Parallel Workers
+parpool; % Set up Parallel Workers
 for i = 1:length(IDA_scale_factors)
     error_count = 0;
     scale_factor = IDA_scale_factors(i);
     analysis.ground_motion_scale_factor = scale_factor;
     run_ida = analysis.run_ida;
-    for gms = 1:height(gm_set_table)
+    parfor gms = 1:height(gm_set_table)
         % Run Opensees
         if run_ida
             % Suppress MATLAB warnings

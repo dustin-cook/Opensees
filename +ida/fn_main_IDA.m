@@ -8,28 +8,30 @@ import opensees.write_tcl.*
 ground_motion.x = gm_set_table(gm_idx,:);
 ground_motion.x.eq_dir = {['ground_motions' '/' analysis.gm_set '/' ground_motion.x.eq_name{1}]};
 ground_motion.x.eq_name = {[ground_motion.x.eq_name{1} '.tcl']};
-ground_motion.z = gm_set_table(gm_set_table.set_id == ground_motion.x.set_id & gm_set_table.pair ~= ground_motion.x.pair,:);
-ground_motion.z.eq_dir = {['ground_motions' '/' analysis.gm_set '/' ground_motion.z.eq_name{1}]};
-ground_motion.z.eq_name = {[ground_motion.z.eq_name{1} '.tcl']};
+if analysis.run_z_motion
+    ground_motion.z = gm_set_table(gm_set_table.set_id == ground_motion.x.set_id & gm_set_table.pair ~= ground_motion.x.pair,:);
+    ground_motion.z.eq_dir = {['ground_motions' '/' analysis.gm_set '/' ground_motion.z.eq_name{1}]};
+    ground_motion.z.eq_name = {[ground_motion.z.eq_name{1} '.tcl']};
+end
 
 % Create Directories
 ida_opensees_outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Scale_' num2str(scale_factor) '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair)];
-if exist(ida_opensees_outputs_dir,'dir')
-    rmdir(ida_opensees_outputs_dir,'s')
+if ~exist(ida_opensees_outputs_dir,'dir')
+    mkdir(ida_opensees_outputs_dir)
 end
-mkdir(ida_opensees_outputs_dir)
 
 ida_summary_outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Summary Data' '/' 'Scale_' num2str(scale_factor) '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair)];
-if exist(ida_summary_outputs_dir,'dir')
-    rmdir(ida_summary_outputs_dir,'s')
+if ~exist(ida_summary_outputs_dir,'dir')
+    mkdir(ida_summary_outputs_dir)
 end
-mkdir(ida_summary_outputs_dir)
 
 % Load spectral info and save Sa
 spectra_table = readtable([ground_motion.x.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
 summary.sa_x = interp1(spectra_table.period,spectra_table.psa_5,building_period(1))*scale_factor;
-spectra_table = readtable([ground_motion.z.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
-summary.sa_z = interp1(spectra_table.period,spectra_table.psa_5,building_period(2))*scale_factor;
+if analysis.run_z_motion
+    spectra_table = readtable([ground_motion.z.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
+    summary.sa_z = interp1(spectra_table.period,spectra_table.psa_5,building_period(2))*scale_factor;
+end
 
 % Write Recorders File
 fn_define_recorders( ida_opensees_outputs_dir, model.dimension, node, element, [], hinge, analysis )
