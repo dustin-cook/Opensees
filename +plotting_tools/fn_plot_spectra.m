@@ -35,6 +35,8 @@ end
 if strcmp(type,'Roof')
     % Set Inputs
     spectra_write_dir = '..\toolbelt\Spectra Tool\inputs\ICSB_analysis';
+    rmdir(spectra_write_dir,'s')
+    mkdir(spectra_write_dir)
     center_x = 671;
     center_z = 300;
     node_roof_center_id = node.id(node.x == center_x & node.z == center_z & node.story == 6);
@@ -43,10 +45,12 @@ if strcmp(type,'Roof')
     fprintf(fileID,'%d\n',gm.x.eq_dt);
     fprintf(fileID,'%d\n',roof_center_id_TH.nd_TH.accel_x_abs_TH');
     fclose(fileID);
-    fileID = fopen([spectra_write_dir filesep 'roof_accel_z.txt'],'w');
-    fprintf(fileID,'%d\n',gm.x.eq_dt);
-    fprintf(fileID,'%d\n',roof_center_id_TH.nd_TH.accel_z_abs_TH');
-    fclose(fileID);
+    if isfield(gm,'z')
+        fileID = fopen([spectra_write_dir filesep 'roof_accel_z.txt'],'w');
+        fprintf(fileID,'%d\n',gm.z.eq_dt);
+        fprintf(fileID,'%d\n',roof_center_id_TH.nd_TH.accel_z_abs_TH');
+        fclose(fileID);
+    end
 
     % Run Method
     gm_set_name = 'ICSB_analysis';
@@ -61,21 +65,27 @@ end
 spectra_read_dir = '..\toolbelt\Spectra Tool\outputs\ICSB_analysis';
 if strcmp(type,'Roof')
     spectra_analysis_x = readtable([spectra_read_dir filesep 'roof_accel_x' filesep 'spectra.csv'],'ReadVariableNames', true);
-    spectra_analysis_z = readtable([spectra_read_dir filesep 'roof_accel_z' filesep 'spectra.csv'],'ReadVariableNames', true);
+    if isfield(gm,'z')
+        spectra_analysis_z = readtable([spectra_read_dir filesep 'roof_accel_z' filesep 'spectra.csv'],'ReadVariableNames', true);
+    end
 end
 spectra_record_x = readtable(['ground_motions' filesep 'ICSB_recordings' filesep channel.x '_accel' filesep 'spectra.csv'],'ReadVariableNames', true);
-spectra_record_z = readtable(['ground_motions' filesep 'ICSB_recordings' filesep channel.z '_accel' filesep 'spectra.csv'],'ReadVariableNames', true);
+if isfield(gm,'z')
+    spectra_record_z = readtable(['ground_motions' filesep 'ICSB_recordings' filesep channel.z '_accel' filesep 'spectra.csv'],'ReadVariableNames', true);
+end
 if isfield(gm,'y') && isfield(channel,'y')
     spectra_record_y = readtable(['ground_motions' filesep 'ICSB_recordings' filesep channel.y '_accel' filesep 'spectra.csv'],'ReadVariableNames', true);
 end
 
 %% Plot Spectra
 hold on
-if strcmp(type,'Roof')
-    plot(spectra_analysis_z.period,spectra_analysis_z.psa_5,'color',matlab_colors(1,:),'LineWidth',1,'DisplayName','NS Analysis')
-    plot(spectra_record_z.period,spectra_record_z.psa_5,'--','color',matlab_colors(1,:),'LineWidth',1,'DisplayName','NS Recording')
-else
-    plot(spectra_record_z.period,spectra_record_z.psa_5,'color',matlab_colors(1,:),'LineWidth',1,'DisplayName','Plan NS (Y)')
+if isfield(gm,'z')
+    if strcmp(type,'Roof')
+        plot(spectra_analysis_z.period,spectra_analysis_z.psa_5,'color',matlab_colors(1,:),'LineWidth',1,'DisplayName','NS Analysis')
+        plot(spectra_record_z.period,spectra_record_z.psa_5,'--','color',matlab_colors(1,:),'LineWidth',1,'DisplayName','NS Recording')
+    else
+        plot(spectra_record_z.period,spectra_record_z.psa_5,'color',matlab_colors(1,:),'LineWidth',1,'DisplayName','Plan NS (Y)')
+    end
 end
 
 if strcmp(type,'Roof')

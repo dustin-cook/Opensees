@@ -116,7 +116,7 @@ elseif discrete
             252 160 98;
             241 95 95]/255;
     colormap(cmap);
-    caxis([0 3])
+    caxis([1 4])
 else
     div_colors = [0,60,48;
               1,102,94;
@@ -143,7 +143,7 @@ if discrete == 0
     c = colorbar('south');
     c.AxisLocation = 'out';
     c.Label.String = x_lab;
-    scatter(node_2_use.x(recorded_damage >= 2),node_2_use.z(recorded_damage >= 2),350,'k','s','LineWidth',1.15)
+%     scatter(node_2_use.x(recorded_damage >= 2),node_2_use.z(recorded_damage >= 2),350,'k','s','LineWidth',1.15)
     set(gca,'FontSize',14)
 elseif discrete == 2
     c = colorbar('south');
@@ -151,10 +151,10 @@ elseif discrete == 2
     c.Ticks = [0.4 1.1 1.9 2.6];
     c.TickLabels = {'IO', 'LS', 'CP', 'Fail All'};
     c.Label.String = x_lab;
-    scatter(node_2_use.x(recorded_damage >= 2),node_2_use.z(recorded_damage >= 2),350,'k','s','LineWidth',1.15)
+%     scatter(node_2_use.x(recorded_damage >= 2),node_2_use.z(recorded_damage >= 2),350,'k','s','LineWidth',1.15)
     set(gca,'FontSize',14)
 elseif discrete == 3
-    scatter(node_2_use.x(recorded_damage >= 2),node_2_use.z(recorded_damage >= 2),350,'k','s','LineWidth',1.15)
+%     scatter(node_2_use.x(recorded_damage >= 2),node_2_use.z(recorded_damage >= 2),350,'k','s','LineWidth',1.15)
 end
 % Format and save plot
 fn_format_and_save_plot( plot_dir, plot_name, 0 )

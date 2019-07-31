@@ -134,8 +134,6 @@ node.record_disp = ones(length(node.id),1);
 node.record_accel = ones(length(node.id),1);
 
 %% Assign Joints
-if strcmp(model.dimension,'3D')
-end
 joint_id = 0;
 for s = 1:height(story)
     this_story = story.id(s);
@@ -328,23 +326,12 @@ for s = 1:height(story)
     node.story(node.y == slab_ht) = story.id(s);
     node.primary_story(node.x == model.primary_node_offset & node.z == 0 & node.y == slab_ht) = 1;
     node.on_slab(node.y == slab_ht) = 1;
-%     nodes_on_slab{s} = node.id(node.y == slab_ht);
 end
-
-%% Define nodes to connect to rigid diaphram
-% node.on_slab = zeros(length(node.id),1);
-% if analysis.rigid_diaphram
-%     for s = 1:height(story)
-%         for i = 1:length(nodes_on_slab{s})
-%             node.on_slab(node.id == nodes_on_slab{s}(i)) = s;
-%         end
-%     end
-% end
 
 %% Offset Mass for Accidental Torsion
 % For X direction %%%% SHOULD CHANGE INTO FUNCTION AND RUN EACH DIR
 % INDEPENDANTLY
-if analysis.accidental_torsion == 1
+if strcmp(model.dimension,'3D') && analysis.accidental_torsion == 1
     for s = 1:height(story)
         slab_ht = story.y_start(s) + story.story_ht(s);
         if slab_ht > 0
@@ -388,22 +375,6 @@ if model.foundation == 2 % partial fixity such as pile hinge
         % Define hinge at foundation
         [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'NA', foundation_nodes_ids(f), hinge_id, foundation_nodes_filter, 'foundation', direction_str ); 
     end
-end
-
-%% Remove any Z dimension Nodes for 2D Analysis
-clear new_node
-if strcmp(model.dimension,'2D')
-    non_z_nodes = (node.z == 0);
-    new_node.id = node.id(non_z_nodes);
-    new_node.x = node.x(non_z_nodes);
-    new_node.y = node.y(non_z_nodes);
-    new_node.mass = node.mass(non_z_nodes);
-    new_node.record_disp = node.record_disp(non_z_nodes);
-    new_node.record_accel = node.record_accel(non_z_nodes);
-    new_node.fix = node.fix(non_z_nodes,:);
-    new_node.story = node.story(non_z_nodes,:);
-    new_node.primary_story = node.primary_story(non_z_nodes,:);
-    node = new_node;
 end
 
 %% Convert outputs to tables

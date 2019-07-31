@@ -47,38 +47,32 @@ ff_accel_TH.z = dlmread(['free_field_3_accel' filesep 'gm_ns_free_field.tcl']);
 ff_disp_TH.z = dlmread(['free_field_3_disp' filesep 'disp_ns_free_field.tcl']);
 
 % EDP TH
-ff_edp.accel_TH_foundation.x = ff_accel_TH.x;
-ff_edp.accel_TH_foundation.z = ff_accel_TH.z;
-ff_edp.disp_TH_foundation.x = (ff_disp_TH.x(1:5600)-ff_disp_TH.x(1:5600));
-ff_edp.disp_TH_foundation.z = (ff_disp_TH.z(1:5600)-ff_disp_TH.z(1:5600));
-ff_edp.disp_TH_ground.x = (disp_TH.chan_13(1:5600)/2.54-ff_disp_TH.x(1:5600));
+ff_edp.accel_TH_ground.x = ff_accel_TH.x;
+ff_edp.accel_TH_ground.z = ff_accel_TH.z;
+ff_edp.disp_TH_ground.x = (ff_disp_TH.x(1:5600)-ff_disp_TH.x(1:5600));
 ff_edp.disp_TH_second.x = (disp_TH.chan_6(1:5600)/2.54-ff_disp_TH.x(1:5600));
 ff_edp.disp_TH_roof.x = (disp_TH.chan_4(1:5600)/2.54-ff_disp_TH.x(1:5600));
-ff_edp.disp_TH_ground.z = (disp_TH.chan_11(1:5600)/2.54-ff_disp_TH.z(1:5600));
+ff_edp.disp_TH_ground.z = (ff_disp_TH.z(1:5600)-ff_disp_TH.z(1:5600));
 ff_edp.disp_TH_second.z = (disp_TH.chan_8(1:5600)/2.54-ff_disp_TH.z(1:5600));
 ff_edp.disp_TH_second_east.z = (disp_TH.chan_9(1:5600)/2.54-ff_disp_TH.z(1:5600));
 ff_edp.disp_TH_roof.z = (disp_TH.chan_2(1:5600)/2.54-ff_disp_TH.z(1:5600));
 ff_edp.disp_TH_roof_east.z = (disp_TH.chan_3(1:5600)/2.54-ff_disp_TH.z(1:5600));
 
 % Max Profiles
-ff_edp.max_accel.x = [max(abs(ff_accel_TH.x)); record_edp.max_accel.x];
-ff_edp.max_accel.z = [max(abs(ff_accel_TH.z)); record_edp.max_accel.z];
-ff_edp.max_accel_center.x = [max(abs(ff_accel_TH.x)); record_edp.max_accel_center.x];
-ff_edp.max_accel_center.z = [max(abs(ff_accel_TH.z)); record_edp.max_accel_center.z];
+ff_edp.max_accel.x = [max(abs(ff_accel_TH.x)); record_edp.max_accel.x(2:end)];
+ff_edp.max_accel.z = [max(abs(ff_accel_TH.z)); record_edp.max_accel.z(2:end)];
+ff_edp.max_accel_center.x = [max(abs(ff_accel_TH.x)); record_edp.max_accel_center.x(2:end)];
+ff_edp.max_accel_center.z = [max(abs(ff_accel_TH.z)); record_edp.max_accel_center.z(2:end)];
 
-ff_edp.max_disp.x = [0; max(abs(disp_TH.chan_13(1:5600)/2.54-ff_disp_TH.x(1:5600)));...
-                        max(abs(disp_TH.chan_6(1:5600)/2.54-ff_disp_TH.x(1:5600)));...
+ff_edp.max_disp.x = [0; max(abs(disp_TH.chan_6(1:5600)/2.54-ff_disp_TH.x(1:5600)));...
                     nan;max(abs(disp_TH.chan_5(1:5600)/2.54-ff_disp_TH.x(1:5600)));...
                     nan;nan;max(abs(disp_TH.chan_4(1:5600)/2.54-ff_disp_TH.x(1:5600)))];
-ff_edp.max_disp.z = [0; max(abs(disp_TH.chan_11(1:5600)/2.54-ff_disp_TH.z(1:5600)));...
-                        max(abs([disp_TH.chan_7(1:5600)/2.54-ff_disp_TH.z(1:5600);disp_TH.chan_8(1:5600)/2.54-ff_disp_TH.z(1:5600);disp_TH.chan_9(1:5600)/2.54-ff_disp_TH.z(1:5600)]));...
+ff_edp.max_disp.z = [0; max(abs([disp_TH.chan_7(1:5600)/2.54-ff_disp_TH.z(1:5600);disp_TH.chan_8(1:5600)/2.54-ff_disp_TH.z(1:5600);disp_TH.chan_9(1:5600)/2.54-ff_disp_TH.z(1:5600)]));...
                         nan;nan;nan;nan;max(abs([disp_TH.chan_1(1:5600)/2.54-ff_disp_TH.z(1:5600);disp_TH.chan_2(1:5600)/2.54-ff_disp_TH.z(1:5600);disp_TH.chan_3(1:5600)/2.54-ff_disp_TH.z(1:5600)]))];
-ff_edp.max_disp_center.x = [0; max(abs(disp_TH.chan_13(1:5600)/2.54-ff_disp_TH.x(1:5600)));...
-                              max(abs(disp_TH.chan_6(1:5600)/2.54-ff_disp_TH.x(1:5600)));...
+ff_edp.max_disp_center.x = [0; max(abs(disp_TH.chan_6(1:5600)/2.54-ff_disp_TH.x(1:5600)));...
                             nan;max(abs(disp_TH.chan_5(1:5600)/2.54-ff_disp_TH.x(1:5600)));...
                             nan;nan;max(abs(disp_TH.chan_4(1:5600)/2.54-ff_disp_TH.x(1:5600)))]; % Convert from cm to in (should do this earlier)
-ff_edp.max_disp_center.z = [0; max(abs(disp_TH.chan_11(1:5600)/2.54-ff_disp_TH.z(1:5600)));...
-                               max(abs(disp_TH.chan_8(1:5600)/2.54-ff_disp_TH.z(1:5600)));...
+ff_edp.max_disp_center.z = [0; max(abs(disp_TH.chan_8(1:5600)/2.54-ff_disp_TH.z(1:5600)));...
                             nan;nan;nan;nan;max(abs(disp_TH.chan_2(1:5600)/2.54-ff_disp_TH.z(1:5600)))];
 
 %% Save Recorded EDPS to matlab datafile

@@ -61,8 +61,10 @@ if analysis.asce_41_post_process
             element.Pmin = OS_demands.Pmin;
             element.Vmax_1 = OS_demands.Vmax_1;
             element.Vmax_2 = OS_demands.Vmax_2;
-            element.Vmax_oop_1 = OS_demands.Vmax_oop_1;
-            element.Vmax_oop_2 = OS_demands.Vmax_oop_2;
+            if strcmp(model.dimension,'3D')
+                element.Vmax_oop_1 = OS_demands.Vmax_oop_1;
+                element.Vmax_oop_2 = OS_demands.Vmax_oop_2;
+            end
             element.Mmax_1 = OS_demands.Mmax_1;
             element.Mmax_2 = OS_demands.Mmax_2;
             [ OS_joint ] = fn_joint_capacity( OS_joint, element, ele_prop_table );

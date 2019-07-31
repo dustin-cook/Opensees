@@ -12,9 +12,9 @@ analysis.model_id = 11;
 analysis.proceedure = 'NDP';
 analysis.id = 2;
 analysis.summit = 0;
-analysis.run_ida = 1;
-analysis.post_process_ida = 1;
-analysis.plot_ida = 0;
+analysis.run_ida = 0;
+analysis.post_process_ida = 0;
+analysis.plot_ida = 1;
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 0;
 
@@ -59,9 +59,9 @@ mu_t_ns = 0.004 / 0.001; % rough estimate from pushover (may be slightly higher)
 
 % MCE
 ida_results.direction = {'EW'; 'NS'};
-ida_results.period = [1.14; 0.44];
-ida_results.spectra = [0.56; 0.79]; % max direction spectra
-ida_results.mce = [0.53; 1.36]; % MCE Max from SP3, fixed to this site and model period
+ida_results.period = [1.14; 0.35];
+ida_results.spectra = [0.56; 1.18]; % max direction spectra of ICSB motion
+ida_results.mce = [0.79; 1.55]; % MCE Max from SP3, fixed to this site and model period
 
 % SSF (based on table 7-1b)
 % SSF_ew = interp1([3,4], [1.27, 1.32],mu_t_ew);

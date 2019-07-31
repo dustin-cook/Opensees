@@ -42,7 +42,7 @@ end
 pushover_directions = {'x', '-x', 'z', '-z'};
 if (analysis.type == 2 || analysis.type == 3) && strcmp(model.dimension,'3D') % 3D pushover or cyclic
     num_OS_runs = 4;
-elseif (analysis.type == 2 || analysis.type == 3) && strcmp(model.dimension,'2D') % 3D pushover or cyclic
+elseif (analysis.type == 2 || analysis.type == 3) && strcmp(model.dimension,'2D') % 2D pushover or cyclic
     num_OS_runs = 2;
 else
     num_OS_runs = 1;

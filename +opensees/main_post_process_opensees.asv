@@ -37,7 +37,7 @@ if ~analysis.simple_recorders
             if strcmp(element.direction{i},'x')
                 ele_force_TH_pos = fn_xml_read([opensees_dir filesep 'element_force_x_' num2str(i) '.xml']);
                 ele_force_TH_neg = fn_xml_read([opensees_dir filesep 'element_force_-x_' num2str(i) '.xml']);
-                if strcmp(model.dimension,'3D')
+                if strcmp(dimension,'3D')
                     ele_force_TH_oop_pos = fn_xml_read([opensees_dir filesep 'element_force_z_' num2str(i) '.xml']);
                     ele_force_TH_oop_neg = fn_xml_read([opensees_dir filesep 'element_force_-z_' num2str(i) '.xml']);
                 end
@@ -49,13 +49,13 @@ if ~analysis.simple_recorders
             end
             min_push_length = min(length(ele_force_TH_pos(:,1)),length(ele_force_TH_neg(:,1)));
             ele_force_TH = max(abs(ele_force_TH_pos(1:min_push_length,:)),abs(ele_force_TH_neg(1:min_push_length,:)));
-            if strcmp(model.dimension,'3D')
+            if strcmp(dimension,'3D')
                 min_push_length_oop = min(length(ele_force_TH_oop_pos(:,1)),length(ele_force_TH_oop_neg(:,1)));
                 ele_force_TH_oop = max(abs(ele_force_TH_oop_pos(1:min_push_length_oop,:)),abs(ele_force_TH_oop_neg(1:min_push_length_oop,:)));
             end
         end
         for j = 1:length(comp_names)
-            if strcmp(model.dimension,'3D') && contains(comp_names{j},'oop') && analysis.type == 2 % Pushover out of plane
+            if contains(comp_names{j},'oop') && analysis.type == 2 % Pushover out of plane
                 element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH_oop(1:(end-clip),comp_keys(j))';
             else
                 element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH(1:(end-clip),comp_keys(j))';

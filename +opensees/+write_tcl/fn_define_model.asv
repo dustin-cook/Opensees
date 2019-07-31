@@ -507,8 +507,13 @@ if height(hinge) > 0
                 %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
                 if strcmp(dimension,'2D')
                     if strcmp(ele.direction,'x') && strcmp(hin.direction,'primary') % Out of plane for the X direction  
-                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 3 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
-                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 -dir 1 2 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
+                        if strcmp(ele_props.type,'column')
+                            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir %i \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id, rot_dof_x);
+                            fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 2 -dir 1 2 3 5 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
+                        elseif strcmp(ele_props.type,'beam')
+                            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir %i \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id, rot_dof_x);
+                            fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 2 2 -dir 1 2 3 4 5 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
+                        end
                     end
                 elseif strcmp(dimension,'3D')
                     if strcmp(ele.direction,'x') && strcmp(hin.direction,'oop') % Out of plane for the X direction  

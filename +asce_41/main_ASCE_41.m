@@ -37,8 +37,15 @@ if analysis.run_opensees && ~analysis.skip_2_outputs % Don't clear the file if y
 end
 
 if ~analysis.skip_2_outputs % Don't skip to plotters
-    % Run through all the steps of the procedure
-    for i = 1:length(analysis.type_list)
+    if analysis.run_opensees
+        % Run through all the steps of the procedure
+        start_idx = 1;
+    else
+        % Run through just the end
+        start_idx = length(analysis.type_list);
+    end
+    
+    for i = start_idx:length(analysis.type_list)
         analysis.type = analysis.type_list(i);
         analysis.nonlinear = analysis.nonlinear_list(i);
         analysis.dead_load = analysis.dead_load_list(i);
@@ -56,7 +63,9 @@ if ~analysis.skip_2_outputs % Don't skip to plotters
 
         %% Run and Postprocess Opensees Analysis
         disp('Running Opensees ...')
-        main_opensees_analysis( model, analysis )
+        if analysis.run_opensees || analysis.run_opensees_post_process
+            main_opensees_analysis( model, analysis )
+        end
 
         %% Postprocess ASCE 41 data
         disp('Post Processing Via ASCE 41 ...')
@@ -76,6 +85,9 @@ end
 %% Compile Results and Create Visuals
 disp('Plotting Analysis Results ...')
 main_plot_analysis_results( model, analysis, ele_prop_table )
+
+%% Write Element Tables
+fn_pull_ele_database(model, analysis, ele_prop_table)
 
 %% LaTeX Report Writer
 

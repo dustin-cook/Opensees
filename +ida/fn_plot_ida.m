@@ -5,7 +5,6 @@ function [ ] = fn_plot_ida(analysis, model, IDA_scale_factors, gm_set_table, max
 %% Initial Setup
 % Import packages
 import plotting_tools.fn_format_and_save_plot
-import ida.fn_mle_pc
 
 % Defined fixed parames
 params = {'b','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
@@ -30,21 +29,29 @@ for i = 1:length(IDA_scale_factors)
             ida.id(id,1) = id;
             ida.scale(id,1) = IDA_scale_factors(i);
             ida.gm_name{id,1} = gm_set_table.eq_name{gms};
+            
+            % X direction
             ida.sa_x(id,1) = summary.sa_x;
-            ida.sa_z(id,1) = summary.sa_z;
+            ida.mce_ratio_x(id,1) = ida.sa_x(id,1)/ida_results.mce(1);
             ida.drift_x(id,1) = summary.max_drift_x;
-            ida.drift_z(id,1) = summary.max_drift_z;
-            if ida.drift_x(id,1) > 0.1 || ida.drift_z(id,1) > 0.1
-                ida.collapse(id,1) = 5; % Omit case of extreme drift that doesnt make sense
-            else
-                ida.collapse(id,1) = summary.collapse;
+            
+            % z direction 
+            if analysis.run_z_motion
+                ida.sa_z(id,1) = summary.sa_z;
+                ida.mce_ratio_z(id,1) = ida.sa_z(id,1)/ida_results.mce(2);
+                ida.drift_z(id,1) = summary.max_drift_z;
             end
+            
+            % Collapse metrics
+            ida.collapse(id,1) = summary.collapse;
             if isfield(summary,'collapse_direction')
                 ida.collapse_direction{id,1} = summary.collapse_direction;
             end
             if isfield(summary,'collaspe_mech')
                 ida.collapse_mech{id,1} = summary.collaspe_mech;
             end
+            
+            % Get element group filters
             col_base_filter = hinge.story == 1 & hinge.ele_side == 1 & strcmp(hinge.direction,'primary') & strcmp(hinge.ele_type,'column');
             first_story_col_filter = hinge.story == 1 & strcmp(hinge.direction,'primary') & strcmp(hinge.ele_type,'column');
             first_story_beam_filter = hinge.story == 1 & strcmp(hinge.direction,'primary')  & strcmp(hinge.ele_type,'beam');
@@ -90,27 +97,38 @@ writetable(failed_convergence,[plot_dir filesep 'idas_failed_convergence.csv'])
 
 %% Calculate Median Drifts and Accels
 for i = 1:length(IDA_scale_factors)
+    %% X Direction
     % Lognormal Mean Spectral Accelration
     frag.p695_sa_ew(i,1) = exp(mean(log(ida_table.sa_x(ida_table.scale == IDA_scale_factors(i)))));
     frag.p_15_sa_ew(i,1) = prctile(ida_table.sa_x(ida_table.scale == IDA_scale_factors(i)),15);
     frag.p_85_sa_ew(i,1) = prctile(ida_table.sa_x(ida_table.scale == IDA_scale_factors(i)),85);
-    frag.p695_sa_ns(i,1) = exp(mean(log(ida_table.sa_z(ida_table.scale == IDA_scale_factors(i)))));
-    frag.p_15_sa_ns(i,1) = prctile(ida_table.sa_z(ida_table.scale == IDA_scale_factors(i)),15);
-    frag.p_85_sa_ns(i,1) = prctile(ida_table.sa_z(ida_table.scale == IDA_scale_factors(i)),85);
 
     % Max Direction Spectral Acceleration
     [~,idx_ew] = min(abs(max_dir_spectra.period - ida_results.period(1)));
     frag.asce41_sa_ew(i,1) = max_dir_spectra.sa(idx_ew)*IDA_scale_factors(i);
-    [~,idx_ns] = min(abs(max_dir_spectra.period - ida_results.period(2)));
-    frag.asce41_sa_ns(i,1) = max_dir_spectra.sa(idx_ns)*IDA_scale_factors(i);
 
     % Drift
     frag.mean_idr_ew(i,1) = mean(ida_table.drift_x(ida_table.scale == IDA_scale_factors(i)));
-    frag.mean_idr_ns(i,1) = exp(mean(log(ida_table.drift_z(ida_table.scale == IDA_scale_factors(i)))));
+    
+    %% Z Direction
+    if analysis.run_z_motion
+        % Lognormal Mean Spectral Accelration
+        frag.p695_sa_ns(i,1) = exp(mean(log(ida_table.sa_z(ida_table.scale == IDA_scale_factors(i)))));
+        frag.p_15_sa_ns(i,1) = prctile(ida_table.sa_z(ida_table.scale == IDA_scale_factors(i)),15);
+        frag.p_85_sa_ns(i,1) = prctile(ida_table.sa_z(ida_table.scale == IDA_scale_factors(i)),85);
+
+        % Max Direction Spectral Acceleration
+        [~,idx_ns] = min(abs(max_dir_spectra.period - ida_results.period(2)));
+        frag.asce41_sa_ns(i,1) = max_dir_spectra.sa(idx_ns)*IDA_scale_factors(i);
+
+        % Drift
+        frag.mean_idr_ns(i,1) = exp(mean(log(ida_table.drift_z(ida_table.scale == IDA_scale_factors(i)))));
+    end
 end
 
 %% Plot IDA curves
 fprintf('Saving IDA Summary Data and Figures to Directory: %s',plot_dir)
+% Plot X direction IDA curves
 hold on
 title('Plan EW (x)')
 for gms = 1:height(gm_set_table)
@@ -126,20 +144,23 @@ xlabel('Max Drift')
 ylabel('Sa(T_1=1.14s) (g)')
 fn_format_and_save_plot( plot_dir, 'IDA Plot EW Frame Direction', 3 )
 
-hold on
-title('Plan NS (y)')
-for gms = 1:height(gm_set_table)
-    ida_plt = plot(ida_table.drift_z(strcmp(ida_table.gm_name,gm_set_table.eq_name{gms})),ida_table.sa_z(strcmp(ida_table.gm_name,gm_set_table.eq_name{gms})),'color',[0.75 0.75 0.75]);
-    set(get(get(ida_plt,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+% Plot Z direction IDA curves
+if analysis.run_z_motion
+    hold on
+    title('Plan NS (y)')
+    for gms = 1:height(gm_set_table)
+        ida_plt = plot(ida_table.drift_z(strcmp(ida_table.gm_name,gm_set_table.eq_name{gms})),ida_table.sa_z(strcmp(ida_table.gm_name,gm_set_table.eq_name{gms})),'color',[0.75 0.75 0.75]);
+        set(get(get(ida_plt,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+    end
+    plot(frag.mean_idr_ns,frag.p695_sa_ns,'b','lineWidth',1.5,'DisplayName','Mean Drift')
+    plot(frag.mean_idr_ns,frag.p_15_sa_ns,'--b','lineWidth',1.5,'DisplayName','15th Percentile')
+    plot(frag.mean_idr_ns,frag.p_85_sa_ns,'--b','lineWidth',1.5,'DisplayName','85th Percentile')
+    plot([0,0.08],[ida_results.spectra(2),ida_results.spectra(2)],'--k','lineWidth',1.5,'DisplayName','ICSB Motion')
+    xlim([0 0.08])
+    xlabel('Max Drift')
+    ylabel('Sa(T_1=0.44s) (g)')
+    fn_format_and_save_plot( plot_dir, 'IDA Plot NS Wall Direction', 3 )
 end
-plot(frag.mean_idr_ns,frag.p695_sa_ns,'b','lineWidth',1.5,'DisplayName','Mean Drift')
-plot(frag.mean_idr_ns,frag.p_15_sa_ns,'--b','lineWidth',1.5,'DisplayName','15th Percentile')
-plot(frag.mean_idr_ns,frag.p_85_sa_ns,'--b','lineWidth',1.5,'DisplayName','85th Percentile')
-plot([0,0.08],[ida_results.spectra(2),ida_results.spectra(2)],'--k','lineWidth',1.5,'DisplayName','ICSB Motion')
-xlim([0 0.08])
-xlabel('Max Drift')
-ylabel('Sa(T_1=0.44s) (g)')
-fn_format_and_save_plot( plot_dir, 'IDA Plot NS Wall Direction', 3 )
 
 %% Collect frag curve info
 % Collect Stripe info
@@ -187,16 +208,12 @@ end
 
 %% Create Fragility Curves based on Baker MLE
 x_points = 0:0.01:3;
+% X direction Curves
 [col_frag_curve_ew_drift, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ew, frag.num_gms_drift, frag.num_collapse_drift);
-[col_frag_curve_ns_drift, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms_drift, frag.num_collapse_drift);
 [col_frag_curve_ew_convergence, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ew, frag.num_gms_convergence, frag.num_collapse_convergence);
-[col_frag_curve_ns_convergence, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms_convergence, frag.num_collapse_convergence);
 [col_frag_curve_ew_b_15, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ew, frag.num_gms, frag.num_b_15);
-[col_frag_curve_ns_b_15, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms, frag.num_b_15);
 [col_frag_curve_ew_tot, col_frag_curve_full_ew_tot] = fn_calc_frag_curve(x_points, frag.asce41_sa_ew, frag.num_gms, frag.num_collapse_tot);
-[col_frag_curve_ns_tot, col_frag_curve_full_ns_tot] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms, frag.num_collapse_tot);
 [col_frag_curve_ew_unacceptable_response, col_frag_curve_full_ew_unacceptable_response] = fn_calc_frag_curve(x_points, frag.asce41_sa_ew, frag.num_gms, frag.num_unacceptable_response);
-[col_frag_curve_ns_unacceptable_response, col_frag_curve_full_ns_unacceptable_response] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms, frag.num_unacceptable_response);
 for p = 1:length(params)
     [frag_curves.(params{p})] = fn_multi_frag_curves(x_points, frag.(params{p}), frag.asce41_sa_ew, frag.num_gms);
 end
@@ -204,40 +221,72 @@ end
 [frag_curves.shear_asce41] = fn_multi_frag_curves(x_points, frag.shear_asce41, frag.asce41_sa_ew, frag.num_gms);
 [frag_curves.(params{p})] = fn_multi_frag_curves(x_points, frag.(params{p}), frag.asce41_sa_ew, frag.num_gms);
 
+% Z direction curves
+if analysis.run_z_motion
+    [col_frag_curve_ns_drift, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms_drift, frag.num_collapse_drift);
+    [col_frag_curve_ns_convergence, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms_convergence, frag.num_collapse_convergence);
+    [col_frag_curve_ns_b_15, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms, frag.num_b_15);
+    [col_frag_curve_ns_tot, col_frag_curve_full_ns_tot] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms, frag.num_collapse_tot);
+    [col_frag_curve_ns_unacceptable_response, col_frag_curve_full_ns_unacceptable_response] = fn_calc_frag_curve(x_points, frag.asce41_sa_ns, frag.num_gms, frag.num_unacceptable_response);
+end
 %% Calculate Post Fragulity Curve P695 factors
+if analysis.run_z_motion
+    factor_3D = 1.2;
+else
+    factor_3D = 1.0;
+end
+% X direction
 % Collapse Median Sa
 [~, idx_med_ew] = min(abs(col_frag_curve_ew_tot - 0.5));
 ida_results.sa_med_col(1,1) = x_points(idx_med_ew);
-[~, idx_med_ns] = min(abs(col_frag_curve_ns_tot - 0.5));
-ida_results.sa_med_col(2,1) = x_points(idx_med_ns);
 
 % Collapse Margin Ratio
 ida_results.cmr(1,1) = ida_results.sa_med_col(1) / ida_results.mce(1);
-ida_results.cmr(2,1) = ida_results.sa_med_col(2) / ida_results.mce(2);
 
 % Adjust for SSF and 3D
-ida_results.acmr(1,1) = 1.2*SSF_ew*ida_results.cmr(1);
-ida_results.acmr(2,1) = 1.2*SSF_ns*ida_results.cmr(2);
-median_adjustment(1) = ida_results.sa_med_col(1)*(1.2*SSF_ew - 1);
-median_adjustment(2) = ida_results.sa_med_col(2)*(1.2*SSF_ns - 1);
+ida_results.acmr(1,1) = factor_3D*SSF_ew*ida_results.cmr(1);
+median_adjustment(1) = ida_results.sa_med_col(1)*(factor_3D*SSF_ew - 1);
+
 
 % Create Fragility curves based on P695
 x_points_adjused_x = x_points + median_adjustment(1);
-x_points_adjused_z = x_points + median_adjustment(2);
 
 % Find P[C|MCE]
 [~, idx_ew] = min(abs(x_points - ida_results.mce(1)));
 ida_results.p_col_mce(1,1) = col_frag_curve_ew_tot(idx_ew);
-[~, idx_ns] = min(abs(x_points - ida_results.mce(2)));
-ida_results.p_col_mce(2,1) = col_frag_curve_ns_tot(idx_ns);
 [~, idx_ew] = min(abs(x_points_adjused_x - ida_results.mce(1)));
 ida_results.p_col_mce_adjust(1,1) = col_frag_curve_full_ew_tot(idx_ew);
-[~, idx_ns] = min(abs(x_points_adjused_z - ida_results.mce(2)));
-ida_results.p_col_mce_adjust(2,1) = col_frag_curve_full_ns_tot(idx_ns);
 [~, idx_UR] = min(abs(x_points - ida_results.mce(1)));
-p_UR_mce = col_frag_curve_ew_unacceptable_response(idx_UR);
+p_UR_mce(1,1) = col_frag_curve_ew_unacceptable_response(idx_UR);
 [~, idx_UR] = min(abs(x_points_adjused_x - ida_results.mce(1)));
-p_UR_mce_adjusted = col_frag_curve_full_ew_unacceptable_response(idx_UR);
+p_UR_mce_adjusted(1,1) = col_frag_curve_full_ew_unacceptable_response(idx_UR);
+
+% Z direction
+if analysis.run_z_motion
+    % Collapse Median Sa
+    [~, idx_med_ns] = min(abs(col_frag_curve_ns_tot - 0.5));
+    ida_results.sa_med_col(2,1) = x_points(idx_med_ns);
+
+    % Collapse Margin Ratio
+    ida_results.cmr(2,1) = ida_results.sa_med_col(2) / ida_results.mce(2);
+
+    % Adjust for SSF and 3D
+    ida_results.acmr(2,1) = factor_3D*SSF_ns*ida_results.cmr(2);
+    median_adjustment(2) = ida_results.sa_med_col(2)*(factor_3D*SSF_ns - 1);
+
+    % Create Fragility curves based on P695
+    x_points_adjused_z = x_points + median_adjustment(2);
+
+    % Find P[C|MCE]
+    [~, idx_ns] = min(abs(x_points - ida_results.mce(2)));
+    ida_results.p_col_mce(2,1) = col_frag_curve_ns_tot(idx_ns);
+    [~, idx_ns] = min(abs(x_points_adjused_z - ida_results.mce(2)));
+    ida_results.p_col_mce_adjust(2,1) = col_frag_curve_full_ns_tot(idx_ns);
+    [~, idx_UR] = min(abs(x_points - ida_results.mce(2)));
+    p_UR_mce(2,1) = col_frag_curve_ns_unacceptable_response(idx_UR);
+    [~, idx_UR] = min(abs(x_points_adjused_x - ida_results.mce(2)));
+    p_UR_mce_adjusted(2,1) = col_frag_curve_full_ns_unacceptable_response(idx_UR);
+end
 
 % Save IDA results as table
 ida_results_table = struct2table(ida_results);
@@ -414,7 +463,7 @@ fn_format_and_save_plot( plot_dir, 'Collapse Fragility - 50% Acceptance Criteria
 end
 
 function [frag_curve_MLE, frag_curve_full_uncertainty] = fn_calc_frag_curve(x_points, med_sa, num_gms, num_collapse)
-
+import ida.fn_mle_pc
 [MLE_theta, MLE_beta] = fn_mle_pc(med_sa, num_gms, num_collapse);
 frag_curve_MLE = logncdf(x_points,log(MLE_theta),MLE_beta);
 frag_curve_full_uncertainty = logncdf(x_points,log(MLE_theta),0.6);
