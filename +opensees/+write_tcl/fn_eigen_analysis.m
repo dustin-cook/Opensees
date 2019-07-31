@@ -22,7 +22,7 @@ if strcmp(analysis.damping,'simple')
     num_modes = 2;
 else
     if strcmp(dims,'3D')
-        num_modes = min([6,num_stories+1]);
+        num_modes = min([12,2*num_stories+1]);
     else
         num_modes = min([6,num_stories]);
     end
@@ -33,7 +33,7 @@ fprintf(fileID,'wipeAnalysis \n');
 
 % Record eigenvectors
 for i = 1:num_modes
-    fprintf(fileID,'recorder Node %s %s/mode_shape_%i.%s -dT %f -node %s -dof 1 3 "eigen %s" \n', file_type, write_dir, i, file_ext, 1, num2str(prim_story_nodes), num2str(i));
+    fprintf(fileID,'recorder Node %s %s/mode_shape_%i.%s -dT %f -node %s -dof 1 2 3 "eigen %s" \n', file_type, write_dir, i, file_ext, 1, num2str(prim_story_nodes), num2str(i));
 end
 
 % Perform Eigen Analysis

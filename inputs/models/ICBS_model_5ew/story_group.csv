@@ -1,11 +1,11 @@
-id,story_group_id,element_group_id,description,direction,x_start,z_start,offset_start,offset_end,trib_wt
-1,1,5,story 1 exterior line,x,0,0,0,0,0.5
-2,1,1,story 1 interior line,x,1600,0,0,0,1
-9,2,6,story 2 exterior line,x,0,0,0,0,0.5
-10,2,2,story 2 interior line,x,1600,0,0,0,1
-15,3,6,story 3 exterior line,x,0,0,0,0,0.5
-16,3,3,story 3 interior line,x,1600,0,0,0,1
-21,4,6,story 4-5 exterior line,x,0,0,0,0,0.5
-22,4,4,story 4-5 interior line,x,1600,0,0,0,1
-27,5,7,story 6 exterior line,x,0,0,0,0,0.5
-28,5,4,story 6 interior line,x,1600,0,0,0,1
+id,story_group_id,element_group_id,description,direction,x_start,z_start,offset_start,offset_end
+1,1,5,story 1 exterior line,x,0,0,0,0
+2,1,1,story 1 interior line,x,1600,0,0,0
+9,2,6,story 2 exterior line,x,0,0,0,0
+10,2,2,story 2 interior line,x,1600,0,0,0
+15,3,6,story 3 exterior line,x,0,0,0,0
+16,3,3,story 3 interior line,x,1600,0,0,0
+21,4,6,story 4-5 exterior line,x,0,0,0,0
+22,4,4,story 4-5 interior line,x,1600,0,0,0
+27,5,7,story 6 exterior line,x,0,0,0,0
+28,5,4,story 6 interior line,x,1600,0,0,0

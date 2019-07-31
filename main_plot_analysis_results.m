@@ -34,17 +34,23 @@ load([read_dir filesep 'element_analysis.mat'])
 load([read_dir filesep 'story_analysis.mat'])
 load([read_dir filesep 'hinge_analysis.mat'])
 load([read_dir filesep 'model_analysis.mat'])
-load([read_dir filesep 'node_analysis.mat'])
+load([read_dir filesep 'node_analysis.mat']);
 load([read_dir filesep 'joint_analysis.mat'])
 % node = readtable([analysis.out_dir filesep 'model_data' filesep 'node.csv'], 'ReadVariableNames', true);
 % load([read_dir_opensees filesep 'node_analysis.mat']) % Could probably change these to read from model inputs instead of the opensses analysis
 
 if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this proceedure
-    load([read_dir_opensees filesep 'gm_data.mat'])
+    temp = load([read_dir_opensees filesep 'gm_data.mat']);
+    ground_motion = temp.ground_motion;
+    eq = temp.eq;
+    eq_analysis_timespace = temp.eq_analysis_timespace;
+    dirs_ran = temp.dirs_ran;
 end
 
 if analysis.plot_recordings
-    load([pwd filesep 'ground_motions' filesep 'ICSB_recordings' filesep 'recorded_edp_profile.mat']);
+    temp = load([pwd filesep 'ground_motions' filesep 'ICSB_recordings' filesep 'recorded_edp_profile.mat']);
+    record_edp = temp.record_edp;
+    ff_edp =  temp.ff_edp;
 end
 
 if exist([analysis.out_dir filesep 'backbones'],'dir')
@@ -112,7 +118,7 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         end
     elseif strcmp(analysis.proceedure,'NDP') % Nonlinear Procedures
         %% Plot Hinge accpetance
-%         % Elevation
+        % Elevation
 %         fn_plot_building_nl_3d( hinge, element, node, 'Frame 1', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 0, 0 )
 %         fn_plot_building_nl_3d( hinge, element, node, 'Frame 2', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 300, 300 )
 %         fn_plot_building_nl_3d( hinge, element, node, 'Frame 3', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 600, 600 )
@@ -162,14 +168,14 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
             pile_model = 1;
         end
         % Plot EDP Profiles
-%         fn_plot_edp_profiles( plot_dir, ground_motion, model, story, target_disp_in, record_edp)
+        fn_plot_edp_profiles( plot_dir, ground_motion, model, story, target_disp_in, record_edp)
 
         % Plot specific TH comparisons
-%         fn_plot_main_response_history( plot_dir, read_dir_TH, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt, record_edp )
+%         fn_plot_main_response_history( plot_dir, read_dir_TH, node, analysis, eq_analysis_timespace, eq, ground_motion.x.eq_dt, record_edp )
         
         % Plot Spectra
-        fn_plot_spectra(node, 'Ground', ground_motion, plot_dir, read_dir_TH, pile_model)
-        fn_plot_spectra(node, 'Roof', ground_motion, plot_dir, read_dir_TH, pile_model)
+%         fn_plot_spectra(node, 'Ground', ground_motion, plot_dir, read_dir_TH, pile_model)
+%         fn_plot_spectra(node, 'Roof', ground_motion, plot_dir, read_dir_TH, pile_model)
     else
 %         Plot EDP Profiles
         fn_plot_edp_profiles( plot_dir, ground_motion, model, story, target_disp_in)

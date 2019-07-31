@@ -19,9 +19,13 @@ end
 
 for s = 1:height(story)
     node.TAR_x(node.story == s & node.on_slab == 1) = node.max_disp_x(node.story == s & node.on_slab == 1) ./ story.ave_disp_x(s);
-    node.TAR_z(node.story == s & node.on_slab == 1) = node.max_disp_z(node.story == s & node.on_slab == 1) ./ story.ave_disp_z(s);
+    if any(strcmp(node.Properties.VariableNames,'max_disp_z'))
+        node.TAR_z(node.story == s & node.on_slab == 1) = node.max_disp_z(node.story == s & node.on_slab == 1) ./ story.ave_disp_z(s);
+    end
 end
 
-node.TAR_srss = sqrt(node.TAR_x.^2 + node.TAR_z.^2);
+if any(strcmp(node.Properties.VariableNames,'max_disp_z'))
+    node.TAR_srss = sqrt(node.TAR_x.^2 + node.TAR_z.^2);
+end
 end
 

@@ -89,6 +89,21 @@ for i = 1:height(hinge)
         hinge.P_ratio_expected(i) = ele.Pmax/(ele_prop.fc_e*ele_prop.a);
         hinge.P_ratio_nominal(i) = ele.Pmax/(ele_prop.fc_n*ele_prop.a);
         hinge.P_ratio_asce41(i) = ele.Pmax/ele.Pn_c;
+        
+        % Determine if fails in axial
+        force_control_demands_CP = 1*1.3*(ele.Pmax - ele.P_grav) + ele.P_grav;
+        force_control_demands_LS = 1.3*force_control_demands_CP;
+        force_control_demands_IO = force_control_demands_LS;
+
+        if force_control_demands_IO/ele.Pn_c < 1.0
+            hinge.accept_axial(i) = 1; % Passes IO
+        elseif force_control_demands_LS/ele.Pn_c < 1.0
+            hinge.accept_axial(i) = 2; % Passes LS
+        elseif force_control_demands_CP/ele.Pn_c < 1.0
+            hinge.accept_axial(i) = 3; % Passes CP
+        else
+            hinge.accept_axial(i) = 4; % Fails all Acceptance Criteria
+        end
     end
 end
 

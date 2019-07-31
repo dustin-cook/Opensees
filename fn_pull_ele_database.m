@@ -1,42 +1,81 @@
+function [] = fn_pull_ele_database(model, analysis, ele_props_table)
 % Script to pull info from ATC 134 run and format into element collection
 % database
 
-clear all
-close all
-clc
-
-
-%% User inputs
-analysis.model_id = 11;
-analysis.proceedure = 'NDP'; % LDP or NDP or test
-analysis.id = 1; % ID of the analysis for it to create its own directory
-
 %% Define data directories
-model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
-model = model_table(model_table.id == analysis.model_id,:);
 analysis_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' num2str(analysis.id) filesep 'asce_41_data'];
 opensees_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' num2str(analysis.id) filesep 'opensees_data'];
-% write_dir = 'C:\Users\DustinCook\Dropbox (HB Risk)\PhD\ATC 134\P-58 Analysis\inputs';
-write_dir = 'C:\Users\Dustin\Dropbox (HB Risk)\PhD\ATC 134\P-58 Analysis\inputs';
+write_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' num2str(analysis.id) filesep 'element_data'];
 
 %% Import Packages
-import asce_41.fn_define_backbone_rot
-import asce_41.fn_define_backbone_shear
+import asce_41.*
 
 %% Load Inputs
 ele_inputs = readtable('element_collection_key_story_1.csv','ReadVariableNames',true);
-ele_props_table = readtable('inputs/element.csv','ReadVariableNames',true);
 load([analysis_dir filesep 'joint_analysis.mat'])
 load([analysis_dir filesep 'element_analysis.mat'])
 load([analysis_dir filesep 'story_analysis.mat'])
 load([analysis_dir filesep 'hinge_analysis.mat'])
 load(['ground_motions' filesep 'ICSB_recordings' filesep 'recorded_edp_profile.mat'])
 
+%% Build element table
+prime_hinges = hinge(strcmp(hinge.direction,'primary'),:);
+for i = 1:height(prime_hinges)
+    element2write.id(i,:) = i;
+    element2write.element_id(i,:) = prime_hinges.element_id(i);
+    element2write.hinge_side(i,:) = prime_hinges.ele_side(i);
+    element2write.element_type{i,:} = element.type{element.id == prime_hinges.element_id(i)};
+    element2write.member_id{i,:} = [num2str(prime_hinges.element_id(i)) '_' num2str(prime_hinges.ele_side(i))];
+    if prime_hinges.ele_side(i) == 1
+        jnt_filter = joint.column_high == prime_hinges.element_id(i) | joint.beam_right == prime_hinges.element_id(i);
+    elseif prime_hinges.ele_side(i) == 2
+        jnt_filter = joint.column_low == prime_hinges.element_id(i) | joint.beam_left == prime_hinges.element_id(i);
+    end
+    if any(jnt_filter)
+        element2write.joint_id(i,:) = joint.id(jnt_filter);
+    else
+        element2write.joint_id(i,:) = 1000 + prime_hinges.element_id(i);
+    end
+    element2write.system_type(i,:) = 1; % Assume Nonconforming for now
+    element2write.story(i,:) = prime_hinges.story(i);
+end
+% Add joints to the mix
+c = i;
+for j = 1:height(joint)
+%     col_low = element(element.id == joint.column_low(j),:);
+%     if col_low.story == 1
+        c = c + 1;
+        element2write.id(c,:) = c;
+        element2write.element_id(c,:) = joint.id(j);
+        element2write.hinge_side(c,:) = 0;
+        element2write.element_type{c,:} = 'joint';
+        element2write.member_id{c,:} = ['jnt-' num2str(joint.id(j));];
+        element2write.joint_id(c,:) = joint.id(j);
+        element2write.system_type(c,:) = 1; % Assume Nonconforming for now
+        element2write.story(c,:) = element.story(element.id == joint.column_low(j));
+%     end
+end
+% Add column base joints
+base_columns = element(strcmp(element.type,'column') & element.story == 1,:);
+b = c;
+for col = 1:height(base_columns)
+    b = b + 1;
+    element2write.id(b,:) = b;
+    element2write.element_id(b,:) = 1000+base_columns.id(col);
+    element2write.hinge_side(b,:) = 0;
+    element2write.element_type{b,:} = 'joint';
+    element2write.member_id{b,:} = ['jnt-base' num2str(1000+base_columns.id(col));];
+    element2write.joint_id(b,:) = 1000+base_columns.id(col);
+    element2write.system_type(b,:) = 1; % Assume Nonconforming for now
+    element2write.story(b,:) = 0;
+end
+ele_inputs = struct2table(element2write);
+
 %% Formulate Beam Table
 beams = ele_inputs(strcmp(ele_inputs.element_type,'beam'),:);
 for i = 1:height(beams)
     hin_side = num2str(beams.hinge_side(i));
-    ele = element(element.id == beams.id(i),:);
+    ele = element(element.id == beams.element_id(i),:);
     hin = hinge(hinge.element_id == ele.id & strcmp(hinge.direction,'primary') & hinge.ele_side == str2double(hin_side),:);
     load([opensees_dir filesep 'hinge_TH_' num2str(hin.id)])
     if ~isempty(ele)
@@ -44,6 +83,11 @@ for i = 1:height(beams)
         ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
         beams.ld_req(i) = ele.ld_req;
         beams.ld_avail{i} = ele.ld_avail;
+        if ele.ld_req < ele.ld_avail
+            beams.development(i) = 1;
+        else
+            beams.development(i) = 0;
+        end
         beams.rho_ratio(i) = (ele_props.row - ele_props.row_prime)/ele.row_bal;
         beams.shear_stress_ratio(i) = ele.(['Vmax_' hin_side])/(ele_props.w*ele_props.d_eff*sqrt(ele_props.fc_e));
         beams.shear_demand_ratio(i) = ele.(['Vmax_' hin_side])/ele.(['Vn_' hin_side]);
@@ -68,7 +112,8 @@ for i = 1:height(beams)
             beams.condition(i) = 2;
         else   
             beams.condition(i) = 1;
-        end 
+        end
+        beams.length(i) = ele.length;
         beams.max_element_rotation_or_drift(i) = max(abs(hin_TH.deformation_TH));
         beams.max_story_drift_analysis(i) = this_story.(['max_drift_' ele.direction{1}]); % Need to fix elment story drift read such that it does not come in as NaN
         beams.max_story_drift_record(i) = record_edp.max_disp.(ele.direction{1})(ele.story+1);
@@ -88,7 +133,7 @@ end
 columns = ele_inputs(strcmp(ele_inputs.element_type,'column'),:);
 for i = 1:height(columns)
     hin_side = num2str(columns.hinge_side(i));
-    ele = element(element.id == columns.id(i),:);
+    ele = element(element.id == columns.element_id(i),:);
     hin = hinge(hinge.element_id == ele.id & strcmp(hinge.direction,'primary') & hinge.ele_side == str2double(hin_side),:);
     load([opensees_dir filesep 'hinge_TH_' num2str(hin.id)])
     if ~isempty(ele)
@@ -119,6 +164,7 @@ for i = 1:height(columns)
         else   
             columns.condition(i) = 1;
         end 
+        columns.length(i) = ele.length;
         columns.yield_rotation(i) = columns.Mn(i)/columns.K0(i);
         columns.max_element_hinge_rotation(i) = max(abs(hin_TH.deformation_TH));
         if columns.max_element_hinge_rotation(i) < columns.yield_rotation(i)/11
@@ -144,8 +190,8 @@ end
 joints = ele_inputs(strcmp(ele_inputs.element_type,'joint'),:);
 joints.joint_id = [];
 for i = 1:height(joints)
-    jnt = joint(joint.id == joints.id(i),:);
-    if ~isempty(jnt)
+    jnt = joint(joint.id == joints.element_id(i),:);
+    if ~isempty(jnt) % this is a real joint
         joints.axial_load_ratio(i) = jnt.Pmax/(jnt.a*jnt.fc_e);
         joints.shear_ratio(i) = jnt.Vmax/jnt.Vj;
         joints.scwb(i) = jnt.col_bm_ratio;
@@ -175,9 +221,8 @@ for i = 1:height(joints)
         joints.io(i) = jnt.io;
         joints.ls(i) = jnt.ls;
         joints.cp(i) = jnt.cp;
-    else
-        ele_id = columns.id(strcmp(columns.joint_id,joints.member_id(i)));
-        ele = element(element.id == ele_id,:);
+    else % This is a fake joint (ie ground joint)
+        ele = element(element.id == (joints.element_id(i)-1000),:);
         ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
         joints.axial_load_ratio(i) = ele.Pmax/(ele_props.a*ele_props.fc_e);
         joints.shear_ratio(i) = 0;
@@ -206,50 +251,50 @@ end
 walls = ele_inputs(strcmp(ele_inputs.element_type,'wall'),:);
 walls.joint_id = [];
 for i = 1:height(walls)
-    ele = element(element.id == walls.id(i),:);
+    ele = element(element.id == walls.element_id(i),:);
+    hin = hinge(hinge.element_id == ele.id & strcmp(hinge.direction,'primary') & hinge.ele_side == 1,:);
+    load([opensees_dir filesep 'hinge_TH_' num2str(hin.id)])
     if ~isempty(ele)
         this_story = story(story.id == ele.story,:);
         ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
         As = sum(str2double(strsplit(strrep(strrep(ele_props.As{1},']',''),'[',''))))/2; % Assume 1/2 tensiona and 1/2 compression just like in wall hinge selection
         As_prime = As;
-        walls.axial_load_ratio(i) = ((As-As_prime)*ele_props.fy_e+ele.Pmax)/(ele_props.w*ele_props.d*ele_props.fc_e);
-        if strcmp(ele.critical_mode,'shear')
+        walls.axial_load_ratio(i) = ((As-As_prime)*ele_props.fy_e+ele.Pmax)/(ele_props.w*ele_props.d_eff*ele_props.fc_e);
+        if strcmp(ele.critical_mode_1,'shear')
             walls.condition(i) = 2;
-        elseif strcmp(ele.critical_mode,'flexure') 
+        elseif strcmp(ele.critical_mode_1,'flexure') 
             walls.condition(i) = 1;
         end 
-        walls.shear_stress_ratio(i) = ele.Vmax/(ele_props.w*ele_props.d*sqrt(ele_props.fc_e));
+        walls.length(i) = ele.length;
+        walls.shear_stress_ratio(i) = ele.Vmax_1/(ele_props.w*ele_props.d_eff*sqrt(ele_props.fc_e));
         walls.confined_boundary(i) = 0; % Assume they are unconfined (doens't matter for shear controlled walls)
-        [ force_vec, disp_vec ] = fn_define_backbone_shear( ele.Vn, ele.length, ele_props.g, ele_props.av, ele ); % Assumes walls are shear controlled, probably should check explicitly
+        [ force_vec, disp_vec ] = fn_define_backbone_shear( ele.Vn_1, ele.length, ele_props.g, ele_props.av, ele.c_hinge_1, ele.d_hinge_1, ele.e_hinge_1, ele.f_hinge_1, ele.g_hinge_1 ); % Assumes walls are shear controlled, probably should check explicitly
         walls.K0(i) = (1/1000)*force_vec(1)/disp_vec(1);
         walls.Mn(i) = force_vec(2)*(1/1000);
         walls.Mp(i) = force_vec(3)*(1/1000);
-        if sum(strcmp('rot_1',ele.Properties.VariableNames)) > 0
-            walls.max_element_rotation_or_drift(i) = ele.rot_1;
-        end
-        if sum(strcmp(['drift_' ele.direction{1}],ele.Properties.VariableNames)) > 0
-            walls.max_story_drift_analysis(i) = ele.(['drift_' ele.direction{1}]);
-        else
-            walls.max_story_drift_analysis(i) = 0;
-        end
+        walls.max_element_rotation_or_drift(i) = max(abs(hin_TH.deformation_TH))/ele.length;
+        walls.max_story_drift_analysis(i) = max(abs(hin_TH.deformation_TH))/ele.length;
         walls.max_story_drift_record(i) = record_edp.max_disp.(ele.direction{1})(ele.story+1);
         walls.failure_mech_analysis{i} = 'No Failure'; % Need to dynamically check this
         walls.failure_mech_recorded{i} = 'No Failure'; % hard coded from ICSB documentation
         walls.damage_image{i} = 'NA';
-        walls.a(i) = ele.a_hinge;
-        walls.b(i) = ele.b_hinge;
-        walls.c(i) = ele.c_hinge;
-        walls.d(i) = ele.d_hinge;
-        walls.e(i) = ele.e_hinge;
-        walls.f(i) = ele.f_hinge;
-        walls.g(i) = ele.g_hinge;
-        walls.io(i) = ele.io;
-        walls.ls(i) = ele.ls;
-        walls.cp(i) = ele.cp;
+        walls.a(i) = ele.a_hinge_1;
+        walls.b(i) = ele.b_hinge_1;
+        walls.c(i) = ele.c_hinge_1;
+        walls.d(i) = ele.d_hinge_1;
+        walls.e(i) = ele.e_hinge_1;
+        walls.f(i) = ele.f_hinge_1;
+        walls.g(i) = ele.g_hinge_1;
+        walls.io(i) = ele.io_1;
+        walls.ls(i) = ele.ls_1;
+        walls.cp(i) = ele.cp_1;
     end
 end
 
 % Save Data
+if ~exist(write_dir,'dir')
+    mkdir(write_dir)
+end
 if ~isempty(beams)
     writetable(beams,[write_dir filesep 'raw_beams_database.csv'])
 end
@@ -261,4 +306,6 @@ if ~isempty(joints)
 end
 if ~isempty(walls)
     writetable(walls,[write_dir filesep 'raw_walls_database.csv'])
+end
+
 end
