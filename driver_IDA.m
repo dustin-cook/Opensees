@@ -16,7 +16,7 @@ analysis.run_ida = 0;
 analysis.post_process_ida = 0;
 analysis.plot_ida = 1;
 analysis.gm_set = 'FEMA_far_field';
-analysis.run_z_motion = 0;
+analysis.run_z_motion = 1;
 
 % IDA Inputs
 % hazard.curve.rp = [22, 35];%, 64, 108, 144];
@@ -66,8 +66,8 @@ ida_results.mce = [0.79; 1.55]; % MCE Max from SP3, fixed to this site and model
 % SSF (based on table 7-1b)
 % SSF_ew = interp1([3,4], [1.27, 1.32],mu_t_ew);
 % SSF_ns = interp1([1.0 1.1 1.5 2 3 4 6 8], [1.00 1.05 1.1 1.13 1.18 1.22 1.28 1.33],mu_t_ew);
-SSF_ew = interp1([3,4], [1.15, 1.18],mu_t_ew);
-SSF_ns = interp1([1.0 1.1 1.5 2 3 4 6 8], [1.00 1.02 1.04 1.06 1.08 1.09 1.12 1.14],mu_t_ew);
+SSF_ew = interp1([1.0 1.1 1.5 2 3 4 6 8], [1.00 1.07 1.14 1.19 1.27 1.32 1.41 1.49], mu_t_ew);
+SSF_ns = interp1([1.0 1.1 1.5 2 3 4 6 8], [1.00 1.05 1.10 1.13 1.18 1.22 1.28 1.33], mu_t_ns);
 
 % Dispersion
 beta_rtr = 0.4;
