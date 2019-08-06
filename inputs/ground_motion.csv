@@ -15,3 +15,5 @@ id,eq_dir,eq_dt,eq_length,eq_name,pga
 14,ground_motions/ICSB_1979,0.01,5688,gm_ew_free_field.tcl,0.2359
 15,ground_motions/ICSB_1979,0.01,5688,gm_ns_free_field.tcl,0.2131
 16,ground_motions/ICSB_1979,0.01,5688,gm_vert_free_field.tcl,0.2353
+17,ground_motions/FEMA_far_field/13_CAPITOLA000,0.005,7991,13_CAPITOLA000.tcl,0.576775
+18,ground_motions/FEMA_far_field/13_CAPITOLA090,0.005,7991,13_CAPITOLA090.tcl,0.483768

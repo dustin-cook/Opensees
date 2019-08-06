@@ -14,7 +14,8 @@ analysis.id = 2;
 analysis.summit = 0;
 analysis.run_ida = 0;
 analysis.post_process_ida = 0;
-analysis.plot_ida = 1;
+analysis.plot_ida = 0;
+analysis.detialed_post_process = 1;
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 1;
 
@@ -45,6 +46,11 @@ analysis.play_movie = 0;
 analysis.movie_scale = 0;
 analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
+
+% Single GM plots inputs
+analysis.single_gm_scale = 2.9717;
+analysis.single_gm_set_id = 13;
+analysis.single_gm_pair_id = 2;
 
 %% Import Packages
 import ida.*
@@ -130,6 +136,11 @@ end
 %% Plot Results
 if analysis.plot_ida
     fn_plot_ida(analysis, model, IDA_scale_factors, gm_set_table, max_dir_spectra, ida_results, SSF_ew, SSF_ns)
+end
+
+%% Post Process Details of Specific GMs
+if analysis.detialed_post_process
+    fn_postprocess_single_IDA(analysis, model, gm_set_table)
 end
 
 

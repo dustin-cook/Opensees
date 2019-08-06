@@ -139,10 +139,10 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
 %         fn_plot_plan_view( hinge, element, node, 1, 'Story 1 - Column Bases', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
 %         fn_plot_plan_view( hinge, element, node, 2, 'Story 1 - Top of Columns', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
 % 
-%         % Plot Element Scatter
-%         fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
-%         fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
-%         fn_plot_element_scatter( element, 'wall', story, hinge, plot_dir )
+        % Plot Element Scatter
+        fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
+        fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
+        fn_plot_element_scatter( element, 'wall', story, hinge, plot_dir )
     end
 
     %% ASCE 41 Target Displacement
@@ -171,7 +171,7 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         fn_plot_edp_profiles( plot_dir, ground_motion, model, story, target_disp_in, record_edp)
 
         % Plot specific TH comparisons
-%         fn_plot_main_response_history( plot_dir, read_dir_TH, node, analysis, eq_analysis_timespace, eq, ground_motion.x.eq_dt, record_edp )
+        fn_plot_main_response_history( plot_dir, read_dir_TH, node, analysis, eq_analysis_timespace, eq, ground_motion.x.eq_dt, record_edp )
         
         % Plot Spectra
 %         fn_plot_spectra(node, 'Ground', ground_motion, plot_dir, read_dir_TH, pile_model)

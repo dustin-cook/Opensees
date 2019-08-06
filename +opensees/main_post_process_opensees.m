@@ -17,6 +17,10 @@ end
 % Define how much of the end to clip
 clip = 5;
 
+% Load timespace of analysis
+converge_tol_data = readmatrix([opensees_dir filesep 'converge_tol_file.txt']);
+eq_analysis_timespace = converge_tol_data(:,1);
+
 %% Element Forces
 if ~analysis.simple_recorders   
     % Force component IDs
@@ -199,7 +203,6 @@ for i = 1:length(dirs_ran)
                    eq_length = ground_motion.(dirs_ran{i}).eq_length;
                    eq_dt = ground_motion.(dirs_ran{i}).eq_dt;
                    eq_timespace = linspace(eq_dt,eq_length*eq_dt,eq_length);
-                   eq_analysis_timespace = node_accel_raw(1,:);
                    if strcmp(dirs_ran{i},'x')
                         node_accel_interp = interp1(eq_analysis_timespace,node_accel_raw(2,:),eq_timespace);
                    else

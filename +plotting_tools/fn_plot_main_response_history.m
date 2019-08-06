@@ -39,7 +39,7 @@ if exist('record_edp','var')
     % Define Accelerometer Nodes (Currently Specific to ICSB, NEED TO UPDATE)
     center_x = 671;
     center_z = 300;
-    ground_x = 1271;
+    ground_x = 671;
     ground_z = 450;
     east_x = 1571;
     east_z = 300;
@@ -94,18 +94,27 @@ if exist('record_edp','var')
         fn_plot_response_history( roof_center_id_TH.nd_TH.accel_x_abs_TH, [], eq_timespace, eq.x, eq_dt, rh_plot_dir, 'Roof Acceleration Center (g)', max_time2plot, record_edp.accel_TH_roof.x )
     end
 else
-    roof_nodes = node(node.y == roof_ht,:);
-    mid_x = (max(roof_nodes.x) - min(roof_nodes.x)) / 2;
-    mid_z = (max(roof_nodes.z) - min(roof_nodes.z)) / 2;
-    for i = 1:height(roof_nodes)
-        hyp_dist(i) = sqrt((roof_nodes.x(i) - mid_x)^2 + (roof_nodes.z(i) - mid_z)^2);
-    end
-    [~, idx] = min(hyp_dist);
-    node_roof_center_id = roof_nodes.id(idx);
+%     roof_nodes = node(node.y == roof_ht,:);
+%     mid_x = (max(roof_nodes.x) - min(roof_nodes.x)) / 2;
+%     mid_z = (max(roof_nodes.z) - min(roof_nodes.z)) / 2;
+%     for i = 1:height(roof_nodes)
+%         hyp_dist(i) = sqrt((roof_nodes.x(i) - mid_x)^2 + (roof_nodes.z(i) - mid_z)^2);
+%     end
+%     [~, idx] = min(hyp_dist);
+%     node_roof_center_id = roof_nodes.id(idx);
+    
+    node_roof_center_id = node.id(node.y == roof_ht & node.primary_story == 1);
     roof_center_id_TH = load([read_dir_opensees filesep 'node_TH_' num2str(node_roof_center_id) '.mat']);
-    fn_plot_response_history( roof_center_id_TH.nd_TH.disp_x_TH, roof_center_id_TH.nd_TH.disp_z_TH, eq_analysis_timespace, eq.x, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, 'Roof Displacement Center (in)', max_time2plot)
-    fn_plot_response_history( roof_center_id_TH.nd_TH.disp_x_TH/roof_ht, roof_center_id_TH.nd_TH.disp_z_TH/roof_ht, eq_analysis_timespace, eq.x, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, 'Roof Drift Center (in)', max_time2plot)
-    fn_plot_response_history( roof_center_id_TH.nd_TH.accel_x_abs_TH, roof_center_id_TH.nd_TH.accel_z_abs_TH, eq_timespace, eq.x, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, 'Roof Acceleration Center (g)', max_time2plot)
+    if isfield(roof_center_id_TH.nd_TH,'disp_z_TH')
+        fn_plot_response_history( roof_center_id_TH.nd_TH.disp_x_TH, roof_center_id_TH.nd_TH.disp_z_TH, eq_analysis_timespace, eq.x, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, 'Roof Displacement Center (in)', max_time2plot)
+        fn_plot_response_history( roof_center_id_TH.nd_TH.disp_x_TH/roof_ht, roof_center_id_TH.nd_TH.disp_z_TH/roof_ht, eq_analysis_timespace, eq.x, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, 'Roof Drift Center (in)', max_time2plot)
+    else
+        fn_plot_response_history( roof_center_id_TH.nd_TH.disp_x_TH, [], eq_analysis_timespace, eq.x, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, 'Roof Displacement Center (in)', max_time2plot)
+        fn_plot_response_history( roof_center_id_TH.nd_TH.disp_x_TH/roof_ht, [], eq_analysis_timespace, eq.x, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, 'Roof Drift Center (in)', max_time2plot)
+    end
+    if ~isempty(roof_center_id_TH.nd_TH.accel_x_abs_TH)
+        fn_plot_response_history( roof_center_id_TH.nd_TH.accel_x_abs_TH, roof_center_id_TH.nd_TH.accel_z_abs_TH, eq_timespace, eq.x, eq_dt/analysis.initial_timestep_factor^2, rh_plot_dir, 'Roof Acceleration Center (g)', max_time2plot)
+    end
 end
 
 end
