@@ -94,7 +94,7 @@ elseif strcmp(analysis.proceedure,'NDP')
     analysis.pushover_drift_list_x = [0.02, 0.02, NaN]; % Drift limit where the pushover will go till
     analysis.pushover_drift_list_z = [0.01, 0.01, NaN];
     analysis.accidental_torsion_list = [0, 0, 1];
-    analysis.damp_ratio_list = [0.005, 0.005, 0.005]; % Analysis damping ratio
+    analysis.damp_ratio_list = [0.03, 0.03, 0.03]; % Analysis damping ratio
    
 elseif strcmp(analysis.proceedure,'LDP') % Linear Test
     analysis.type_list = [1, 1]; % 1 = dynamic, 2 = pushover % 3 = static cyclic
