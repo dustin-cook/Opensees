@@ -18,7 +18,7 @@ end
 clip = 5;
 
 % Load timespace of analysis
-converge_tol_data = readmatrix([opensees_dir filesep 'converge_tol_file.txt']);
+converge_tol_data = load([opensees_dir filesep 'converge_tol_file.txt'],'-ascii');
 eq_analysis_timespace = converge_tol_data(:,1);
 
 %% Element Forces
