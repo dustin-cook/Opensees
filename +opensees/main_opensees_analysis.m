@@ -8,7 +8,7 @@ import opensees.*
 import asce_41.*
 
 % Create Write Directory
-write_dir_opensees = ['outputs/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/opensees_data']; % TCL or Opensees does not like filesep command on windows, therefore must manually define forward slash seperators
+write_dir_opensees = ['outputs/' model.name{1} '/' analysis.proceedure '_' analysis.id '/opensees_data']; % TCL or Opensees does not like filesep command on windows, therefore must manually define forward slash seperators
 if analysis.run_opensees % Don't clear the file if you don't want to run opensees
     fn_make_directory( write_dir_opensees )
 end

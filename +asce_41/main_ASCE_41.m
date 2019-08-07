@@ -31,7 +31,7 @@ ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',
 model = model_table(model_table.id == analysis.model_id,:);
 
 % Create Analysis Directory
-analysis.out_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' num2str(analysis.id)];
+analysis.out_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' analysis.id];
 if analysis.run_opensees && ~analysis.skip_2_outputs % Don't clear the file if you don't want to run opensees
     fn_make_directory( analysis.out_dir )
 end

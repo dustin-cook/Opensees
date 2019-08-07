@@ -3,9 +3,9 @@ function [] = fn_pull_ele_database(model, analysis, ele_props_table)
 % database
 
 %% Define data directories
-analysis_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' num2str(analysis.id) filesep 'asce_41_data'];
-opensees_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' num2str(analysis.id) filesep 'opensees_data'];
-write_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' num2str(analysis.id) filesep 'element_data'];
+analysis_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' analysis.id filesep 'asce_41_data'];
+opensees_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' analysis.id filesep 'opensees_data'];
+write_dir = ['outputs' filesep model.name{1} filesep analysis.proceedure '_' analysis.id filesep 'element_data'];
 
 %% Import Packages
 import asce_41.*

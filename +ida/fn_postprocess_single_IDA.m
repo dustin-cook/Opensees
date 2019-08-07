@@ -7,9 +7,9 @@ import asce_41.*
 import plotting_tools.*
 
 % IDA directory
-outputs_read_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'scale_' num2str(analysis.single_gm_scale) '/' 'GM_' num2str(analysis.single_gm_set_id) '_' num2str(analysis.single_gm_pair_id)];
-summary_read_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Summary Data' '/' 'Scale_' num2str(analysis.single_gm_scale) '/' 'GM_' num2str(analysis.single_gm_set_id) '_' num2str(analysis.single_gm_pair_id)];
-plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'IDA Plots' '/' 'scale_' num2str(analysis.single_gm_scale) '/' 'GM_' num2str(analysis.single_gm_set_id) '_' num2str(analysis.single_gm_pair_id)];
+outputs_read_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'scale_' num2str(analysis.single_gm_scale) '/' 'GM_' num2str(analysis.single_gm_set_id) '_' num2str(analysis.single_gm_pair_id)];
+summary_read_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Summary Data' '/' 'Scale_' num2str(analysis.single_gm_scale) '/' 'GM_' num2str(analysis.single_gm_set_id) '_' num2str(analysis.single_gm_pair_id)];
+plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'IDA Plots' '/' 'scale_' num2str(analysis.single_gm_scale) '/' 'GM_' num2str(analysis.single_gm_set_id) '_' num2str(analysis.single_gm_pair_id)];
 
 %% Load in Data
 % Pull in Element Database

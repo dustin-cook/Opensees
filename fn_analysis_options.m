@@ -24,7 +24,7 @@ analysis.rigid_diaphram = 1; % Default the model to assume rigid diaphrams (0 = 
 analysis.fiber_walls = 0;
 
 % Opensees Analysis Options
-analysis.ground_motion_scale_factor = 1.167259; % Scale the GM amplitude   2.9717
+analysis.ground_motion_scale_factor = 1.0; % Scale the GM amplitude   
 analysis.damping = 'rayleigh'; % rayleigh, modal, or simple
 analysis.hinge_stiff_mod = 10; % Scale up stiffnes of hinges for a lumped plasticiy model. n value from Ibarra paper.
 analysis.run_eigen = 1; % Run the eignen anlayis to get mode shapes and periods for the opensees analysis
@@ -93,7 +93,7 @@ elseif strcmp(analysis.proceedure,'NDP')
     analysis.case_list = {'backbones_pushover', 'backbones', 'NA'};
     analysis.pushover_drift_list_x = [0.02, 0.02, NaN]; % Drift limit where the pushover will go till
     analysis.pushover_drift_list_z = [0.01, 0.01, NaN];
-    analysis.accidental_torsion_list = [0, 0, 1];
+    analysis.accidental_torsion_list = [0, 0, 0];
     analysis.damp_ratio_list = [0.03, 0.03, 0.03]; % Analysis damping ratio
    
 elseif strcmp(analysis.proceedure,'LDP') % Linear Test

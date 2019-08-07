@@ -10,7 +10,7 @@ import plotting_tools.fn_format_and_save_plot
 params = {'b','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
 
 % Collect IDA data
-plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'IDA Plots'];
+plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'IDA Plots'];
 if ~exist(plot_dir,'dir')
     mkdir(plot_dir)
 end
@@ -19,7 +19,7 @@ id_missing = 0;
 for i = 1:length(IDA_scale_factors)
     for gms = 1:height(gm_set_table)   
         % Load data
-        outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'IDA' '/' 'Summary Data' '/' 'Scale_' num2str(IDA_scale_factors(i)) '/' 'GM_' num2str(gm_set_table.set_id(gms)) '_' num2str(gm_set_table.pair(gms))];
+        outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Summary Data' '/' 'Scale_' num2str(IDA_scale_factors(i)) '/' 'GM_' num2str(gm_set_table.set_id(gms)) '_' num2str(gm_set_table.pair(gms))];
         outputs_file = [outputs_dir filesep 'summary_results.mat'];
         hinge_file = [outputs_dir filesep 'hinge_analysis.mat'];
         if exist(outputs_file,'file') && exist(hinge_file,'file')

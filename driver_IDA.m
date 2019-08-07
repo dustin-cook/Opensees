@@ -10,7 +10,7 @@ clc
 % Define Model
 analysis.model_id = 8;
 analysis.proceedure = 'NDP';
-analysis.id = 1;
+analysis.id = '1';
 analysis.summit = 0;
 analysis.run_ida = 0;
 analysis.post_process_ida = 0;
@@ -87,9 +87,9 @@ model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true)
 model = model_table(model_table.id == analysis.model_id,:);
 
 %% Define read and write directories
-model_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'model_data'];
-tcl_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'opensees_data'];
-asce41_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' num2str(analysis.id) '/' 'asce_41_data'];
+model_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'model_data'];
+tcl_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'opensees_data'];
+asce41_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'asce_41_data'];
 
 % Load in Model Tables
 node = readtable([model_dir filesep 'node.csv'],'readVariableNames',true);
