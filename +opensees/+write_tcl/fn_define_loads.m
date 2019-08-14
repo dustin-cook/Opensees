@@ -14,23 +14,25 @@ fprintf(fileID,'puts "Defining Loads ..." \n');
 %% Define Gravity Loads (node id, axial, shear, moment)
 fprintf(fileID,'pattern Plain 1 Linear {  \n');
 for i = 1:height(element) 
-        if strcmp(element.type{i},'beam')
-            % eleLoad -ele $eleTag1 <$eleTag2 ....> -type -beamUniform $Wy <$Wx>
-            % eleLoad -ele $eleTag1 <$eleTag2 ....> -type -beamUniform $Wy $Wz <$Wx>
-            fprintf(fileID,'   eleLoad -ele %i -type -beamUniform -%d 0.0 \n', element.id(i), element.gravity_load(i)/element.length(i));
-        elseif strcmp(element.type{i},'wall')
-            if strcmp(dimension,'2D')
-                % eleLoad -range $eleTag1 $eleTag2 -type -beamPoint $Py $xL <$Px>
-                fprintf(fileID,'   eleLoad -ele %d -type -beamPoint 0.0 1.0 -%d \n', element.id(i), element.gravity_load(i)); 
-            elseif strcmp(dimension,'3D')
-                % eleLoad -range $eleTag1 $eleTag2 -type -beamPoint $Py $Pz $xL <$Px>
-                fprintf(fileID,'   eleLoad -ele %d -type -beamPoint 0.0 0.0 1.0 -%d \n', element.id(i), element.gravity_load(i)); 
-            end
+    if strcmp(element.type{i},'beam')
+        % eleLoad -ele $eleTag1 <$eleTag2 ....> -type -beamUniform $Wy <$Wx>
+        % eleLoad -ele $eleTag1 <$eleTag2 ....> -type -beamUniform $Wy $Wz <$Wx>
+        fprintf(fileID,'   eleLoad -ele %i -type -beamUniform -%d 0.0 \n', element.id(i), element.gravity_load(i)/element.length(i));
+    else % walls and columns
+        if strcmp(dimension,'2D')
+            % eleLoad -range $eleTag1 $eleTag2 -type -beamPoint $Py $xL <$Px>
+            fprintf(fileID,'   eleLoad -ele %d -type -beamPoint 0.0 0.0 -%d \n', element.id(i), element.gravity_load_1(i)); 
+            fprintf(fileID,'   eleLoad -ele %d -type -beamPoint 0.0 1.0 -%d \n', element.id(i), element.gravity_load_2(i));
+        elseif strcmp(dimension,'3D')
+            % eleLoad -range $eleTag1 $eleTag2 -type -beamPoint $Py $Pz $xL <$Px>
+            fprintf(fileID,'   eleLoad -ele %d -type -beamPoint 0.0 0.0 0.0 -%d \n', element.id(i), element.gravity_load_1(i)); 
+            fprintf(fileID,'   eleLoad -ele %d -type -beamPoint 0.0 0.0 1.0 -%d \n', element.id(i), element.gravity_load_2(i)); 
         end
+    end
 end
 fprintf(fileID,'} \n');
 
-% Write Gravity System Analysis
+%% Write Gravity System Analysis
 fprintf(fileID,'constraints Transformation \n');
 fprintf(fileID,'numberer RCM \n'); % renumber dof's to minimize band-width (optimization)
 if analysis.opensees_SP
@@ -58,7 +60,7 @@ fprintf(fileID,'loadConst -time 0.0 \n');
 %% Static Lateral Loading
 if analysis.type == 2 || analysis.type == 3
      % equivalent lateral force vertical distribution
-     w = story.story_dead_load;
+     w = story.seismic_wt;
      h = story.story_ht + story.y_start;
     [ ~, ~, story.lateral_force, ~ ] = fn_equivalent_lateral_force( w, h );
     

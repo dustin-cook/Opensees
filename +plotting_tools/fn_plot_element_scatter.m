@@ -31,36 +31,85 @@ for s = 1:height(story)
         side_2 = prim_hin(prim_hin.ele_side == 2,:);
         
         if strcmp(ele_type,'wall')
-            plot_name = ['d ratio - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
-            fn_plot_results_scatter( side_1, plot_dir, plot_name, 'd_ratio', 'Max(\Delta)/"d"', ele_type )
+            if any(strcmp('d_ratio',side_1.Properties.VariableNames))
+                plot_name = ['d ratio - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
+                fn_plot_results_scatter( side_1, plot_dir, plot_name, 'd_ratio', 'Max(\Delta)/"d"', ele_type )
+            end
         else
             % a ratio
-            plot_name = ['a ratio - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
-            fn_plot_results_scatter( side_1, plot_dir, plot_name, 'a_ratio', 'Max(\theta)/"a"', ele_type )
+            if any(strcmp('a_ratio',side_1.Properties.VariableNames))
+                plot_name = ['a ratio - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
+                fn_plot_results_scatter( side_1, plot_dir, plot_name, 'a_ratio', 'Max(\theta)/"a"', ele_type )
 
-            plot_name = ['a ratio - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
-            fn_plot_results_scatter( side_2, plot_dir, plot_name, 'a_ratio', 'Max(\theta)/"a"', ele_type )
+                plot_name = ['a ratio - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
+                fn_plot_results_scatter( side_2, plot_dir, plot_name, 'a_ratio', 'Max(\theta)/"a"', ele_type )
+            end
             
             % b ratio
-            plot_name = ['b ratio - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
-            fn_plot_results_scatter( side_1, plot_dir, plot_name, 'b_ratio', 'Max(\theta)/"b"', ele_type )
+            if any(strcmp('b_ratio',side_1.Properties.VariableNames))
+                plot_name = ['b ratio - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
+                fn_plot_results_scatter( side_1, plot_dir, plot_name, 'b_ratio', 'Max(\theta)/"b"', ele_type )
 
-            plot_name = ['b ratio - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
-            fn_plot_results_scatter( side_2, plot_dir, plot_name, 'b_ratio', 'Max(\theta)/"b"', ele_type )
-            
-            % V ratio
-            plot_name = ['V ratio - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
-            fn_plot_results_scatter( side_1, plot_dir, plot_name, 'V_ratio', 'Max(V)/Vn', ele_type )
+                plot_name = ['b ratio - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
+                fn_plot_results_scatter( side_2, plot_dir, plot_name, 'b_ratio', 'Max(\theta)/"b"', ele_type )
+            end
+        end
+        
+        % V ratio
+        plot_name = ['V ratio - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
+        fn_plot_results_scatter( side_1, plot_dir, plot_name, 'V_ratio', 'Max(V)/Vn', ele_type )
 
+        if ~strcmp(ele_type,'wall')
             plot_name = ['V ratio - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_2, plot_dir, plot_name, 'V_ratio', 'Max(V)/Vn', ele_type )
-            
-            % M ratio
+        end
+
+        % M ratio
+        if any(strcmp('M_ratio_pos',side_1.Properties.VariableNames))
             plot_name = ['M ratio - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
             fn_plot_results_scatter( side_1, plot_dir, plot_name, 'M_ratio_pos', 'Max(M)/Mn', ele_type )
-
-            plot_name = ['M ratio - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
-            fn_plot_results_scatter( side_2, plot_dir, plot_name, 'M_ratio_pos', 'Max(M)/Mn', ele_type )
+            if ~strcmp(ele_type,'wall')
+                plot_name = ['M ratio - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
+                fn_plot_results_scatter( side_2, plot_dir, plot_name, 'M_ratio_pos', 'Max(M)/Mn', ele_type )
+            end
+        end
+        if any(strcmp('M_ratio',side_1.Properties.VariableNames))
+            plot_name = ['M ratio - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
+            fn_plot_results_scatter( side_1, plot_dir, plot_name, 'M_ratio', 'Max(M)/Mn', ele_type )
+            if ~strcmp(ele_type,'wall')
+                plot_name = ['M ratio - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
+                fn_plot_results_scatter( side_2, plot_dir, plot_name, 'M_ratio', 'Max(M)/Mn', ele_type )
+            end
+        end
+        
+        % Linear DCRs
+        if any(strcmp('V_ratio_mod',side_1.Properties.VariableNames))
+            % Modified Demands
+            plot_name = ['V ratio mod - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
+            fn_plot_results_scatter( side_1, plot_dir, plot_name, 'V_ratio_mod', 'Max(V)/V_n', ele_type )
+            plot_name = ['V ratio mod - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
+            fn_plot_results_scatter( side_2, plot_dir, plot_name, 'V_ratio_mod', 'Max(V)/V_n', ele_type )
+            
+            plot_name = ['M ratio mod - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
+            fn_plot_results_scatter( side_1, plot_dir, plot_name, 'M_ratio_mod', 'Max(M)/M_n', ele_type )
+            plot_name = ['M ratio mod - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
+            fn_plot_results_scatter( side_2, plot_dir, plot_name, 'M_ratio_mod', 'Max(M)/M_n', ele_type )
+            
+            % Acceptance DCRs
+            plot_name = ['DCR V Accept CP - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
+            fn_plot_results_scatter( side_1, plot_dir, plot_name, 'V_ratio_accept_cp', 'Max(V)/V_n', ele_type )
+            plot_name = ['DCR V Accept CP - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
+            fn_plot_results_scatter( side_2, plot_dir, plot_name, 'V_ratio_accept_cp', 'Max(V)/V_n', ele_type )
+            
+            plot_name = ['DCR M Accept CP - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
+            fn_plot_results_scatter( side_1, plot_dir, plot_name, 'M_ratio_accept_cp', 'Max(M)/M_n', ele_type )
+            plot_name = ['DCR M Accept CP - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
+            fn_plot_results_scatter( side_2, plot_dir, plot_name, 'M_ratio_accept_cp', 'Max(M)/M_n', ele_type )
+            
+            plot_name = ['DCR P Accept CP - Primary - Side 1 - Story - ' num2str(story_id) ' - ' ele_type];
+            fn_plot_results_scatter( side_1, plot_dir, plot_name, 'P_ratio_accept_cp', 'Max(P)/M_n', ele_type )
+            plot_name = ['DCR P Accept CP - Primary - Side 2 - Story - ' num2str(story_id) ' - ' ele_type];
+            fn_plot_results_scatter( side_2, plot_dir, plot_name, 'P_ratio_accept_cp', 'Max(P)/M_n', ele_type )
         end
     end
 

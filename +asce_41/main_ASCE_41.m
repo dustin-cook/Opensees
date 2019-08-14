@@ -51,8 +51,10 @@ if ~analysis.skip_2_outputs % Don't skip to plotters
         analysis.dead_load = analysis.dead_load_list(i);
         analysis.live_load = analysis.live_load_list(i);
         analysis.case = analysis.case_list{i};
-        analysis.pushover_drift_x = analysis.pushover_drift_list_x(i);
-        analysis.pushover_drift_z = analysis.pushover_drift_list_z(i);
+        if isfield(analysis,'pushover_drift_list_x')
+            analysis.pushover_drift_x = analysis.pushover_drift_list_x(i);
+            analysis.pushover_drift_z = analysis.pushover_drift_list_z(i);
+        end
         analysis.accidental_torsion = analysis.accidental_torsion_list(i);
         analysis.damp_ratio = analysis.damp_ratio_list(i);
         disp(['Running ' analysis.proceedure ' step ' num2str(i) ' of ' num2str(length(analysis.type_list)) ' ...'])
@@ -75,11 +77,11 @@ if ~analysis.skip_2_outputs % Don't skip to plotters
 %         disp('Validating Analysis Results ...')
 %         main_check_analysis( analysis, ele_prop_table, capacity, torsion, i )
     end
+end
 
-    %% Combine Load Cases
-    if strcmp(analysis.proceedure,'LDP')
-        main_combine_load_case( analysis )
-    end
+%% Combine Load Cases
+if strcmp(analysis.proceedure,'LDP')
+    main_combine_load_case( analysis, ele_prop_table )
 end
 
 %% Compile Results and Create Visuals
@@ -87,7 +89,9 @@ disp('Plotting Analysis Results ...')
 main_plot_analysis_results( model, analysis, ele_prop_table )
 
 %% Write Element Tables
-fn_pull_ele_database(model, analysis, ele_prop_table)
+if strcmp(analysis.proceedure,'NDP')
+    fn_pull_ele_database(model, analysis, ele_prop_table)
+end
 
 %% LaTeX Report Writer
 

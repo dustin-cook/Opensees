@@ -103,3 +103,11 @@ id,description,ele_id,x_start,x_end,z_start,z_end,y_start,y_end,direction,story
 102,grade beam,22,971,971,450,600,0,0,z,1
 103,grade beam,22,1271,1271,300,450,0,0,z,1
 104,grade beam,22,1271,1271,450,600,0,0,z,1
+105,first story wall upper fixity,2,71,71,300,450,174,174,z,1
+106,first story wall upper fixity,2,71,71,450,600,174,174,z,1
+107,first story wall upper fixity,2,671,671,300,450,174,174,z,1
+108,first story wall upper fixity,2,671,671,450,600,174,174,z,1
+109,first story wall upper fixity,2,971,971,300,450,174,174,z,1
+110,first story wall upper fixity,2,971,971,450,600,174,174,z,1
+111,first story wall upper fixity,2,1271,1271,300,450,174,174,z,1
+112,first story wall upper fixity,2,1271,1271,450,600,174,174,z,1

@@ -27,17 +27,15 @@ else
     read_dir_TH = [analysis.out_dir filesep 'opensees_data'];
 end
 
-% fn_make_directory( plot_dir )
-
 % Load Analysis Data
 load([read_dir filesep 'element_analysis.mat'])
 load([read_dir filesep 'story_analysis.mat'])
-load([read_dir filesep 'hinge_analysis.mat'])
 load([read_dir filesep 'model_analysis.mat'])
 load([read_dir filesep 'node_analysis.mat']);
 load([read_dir filesep 'joint_analysis.mat'])
-% node = readtable([analysis.out_dir filesep 'model_data' filesep 'node.csv'], 'ReadVariableNames', true);
-% load([read_dir_opensees filesep 'node_analysis.mat']) % Could probably change these to read from model inputs instead of the opensses analysis
+if exist([read_dir filesep 'hinge_analysis.mat'],'file')
+    load([read_dir filesep 'hinge_analysis.mat'])
+end
 
 if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this proceedure
     temp = load([read_dir_opensees filesep 'gm_data.mat']);
@@ -45,12 +43,6 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     eq = temp.eq;
     eq_analysis_timespace = temp.eq_analysis_timespace;
     dirs_ran = temp.dirs_ran;
-end
-
-if analysis.plot_recordings
-    temp = load([pwd filesep 'ground_motions' filesep 'ICSB_recordings' filesep 'recorded_edp_profile.mat']);
-    record_edp = temp.record_edp;
-    ff_edp =  temp.ff_edp;
 end
 
 if exist([analysis.out_dir filesep 'backbones'],'dir')
@@ -81,7 +73,7 @@ if sum(analysis.type_list == 2) > 0 % Pushover was run as part of this proceedur
     pushover_analysis = load([pushover_read_dir filesep 'analysis_options.mat']);
     pushover_story_TH = load([pushover_read_dir filesep 'story_TH.mat']);
     % Plot Building Pushovers
-    fn_plot_pushover( pushover_read_dir, story.story_dead_load, pushover_story_TH.story_TH )
+    [ model ] = fn_plot_pushover( pushover_read_dir, story.seismic_wt, pushover_story_TH.story_TH, model );
 
     if analysis.element_plots
         % Plot PM Diagrams for each element
@@ -98,52 +90,31 @@ end
 %% Dynamic Analysis
 if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this proceedure 
     %% ASCE 41 Acceptance Plots
-    if strcmp(analysis.proceedure,'LDP') % Linear Procedures
-        %% Plot DCR
-        plot_variable = {'all', 'M', 'V', 'P'};
-        frame_lines = {'ext', 'int'};
-        if strcmp(model.dimension,'3D')% for 3D linear analysis
-            for i = 1:length(plot_variable)
-                for j = 1:length(frame_lines)
-                    fn_plot_building( element.(['DCR_max_' plot_variable{i}]), element, node, ['DCR_view_' plot_variable{i} '_' frame_lines{j}], plot_dir, '3D', 'linear', frame_lines{j} )
-                    fn_plot_building( element.(['DCR_raw_max_' plot_variable{i}]), element, node, ['DCR_view_' plot_variable{i} '_' frame_lines{j} '_raw'], plot_dir, '3D', 'raw', frame_lines{j} )
-                end
-            end
+    %% Plot Hinge accpetance
+    % Elevation
+    fn_plot_elevation( hinge, element, node, 'Frame 1', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 0, 0 )
+    fn_plot_elevation( hinge, element, node, 'Frame 2', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 300, 300 )
+    fn_plot_elevation( hinge, element, node, 'Frame 3', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 600, 600 )
+    fn_plot_elevation( hinge, element, node, 'Frame 4', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 900, 900 )
+    fn_plot_elevation( hinge, element, node, 'West Upper Wall', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 0, 0, 0, 900 )
+    fn_plot_elevation( hinge, element, node, 'Lower Wall 1', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 71, 71, 0, 900 )
+    fn_plot_elevation( hinge, element, node, 'Lower Wall 2', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 671, 671, 0, 900 )
+    fn_plot_elevation( hinge, element, node, 'Lower Wall 3', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 971, 971, 0, 900 )
+    fn_plot_elevation( hinge, element, node, 'Lower Wall 4', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 1271, 1271, 0, 900 )
+    fn_plot_elevation( hinge, element, node, 'East Upper Wall', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 1500, 2000, 0, 900 )
+    fn_plot_elevation( joint, element, node, 'Frame 1 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 0, 0 )
+    fn_plot_elevation( joint, element, node, 'Frame 2 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 300, 300 )
+    fn_plot_elevation( joint, element, node, 'Frame 3 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 600, 600 )
+    fn_plot_elevation( joint, element, node, 'Frame 4 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 900, 900 )
 
-        else
-            for i = 1:length(plot_variable)
-                fn_plot_building_2D( element.(['DCR_max_' plot_variable{i}]), element, node, ['DCR_view_' plot_variable{i}], plot_dir,  'linear' )
-                fn_plot_building_2D( element.(['DCR_raw_max_' plot_variable{i}]), element, node, ['DCR_view_' plot_variable{i} '_raw'], plot_dir,  'raw' )
-            end
-        end
-    elseif strcmp(analysis.proceedure,'NDP') % Nonlinear Procedures
-        %% Plot Hinge accpetance
-        % Elevation
-%         fn_plot_building_nl_3d( hinge, element, node, 'Frame 1', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 0, 0 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Frame 2', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 300, 300 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Frame 3', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 600, 600 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Frame 4', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 900, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'West Upper Wall', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 0, 0, 0, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Lower Wall 1', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 71, 71, 0, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Lower Wall 2', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 671, 671, 0, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Lower Wall 3', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 971, 971, 0, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'Lower Wall 4', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 1271, 1271, 0, 900 )
-%         fn_plot_building_nl_3d( hinge, element, node, 'East Upper Wall', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 1500, 2000, 0, 900 )
-%         fn_plot_building_nl_3d( joint, element, node, 'Frame 1 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 0, 0 )
-%         fn_plot_building_nl_3d( joint, element, node, 'Frame 2 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 300, 300 )
-%         fn_plot_building_nl_3d( joint, element, node, 'Frame 3 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 600, 600 )
-%         fn_plot_building_nl_3d( joint, element, node, 'Frame 4 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 900, 900 )
-%         
-% 
-%         % Plan View
-%         fn_plot_plan_view( hinge, element, node, 1, 'Story 1 - Column Bases', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
-%         fn_plot_plan_view( hinge, element, node, 2, 'Story 1 - Top of Columns', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
-% 
-        % Plot Element Scatter
-        fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
-        fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
-        fn_plot_element_scatter( element, 'wall', story, hinge, plot_dir )
-    end
+    % Plan View
+    fn_plot_plan_view( hinge, element, node, 1, 'Story 1 - Column Bases', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
+    fn_plot_plan_view( hinge, element, node, 2, 'Story 1 - Top of Columns', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
+
+    % Plot Element Scatter
+    fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
+    fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
+    fn_plot_element_scatter( element, 'wall', story, hinge, plot_dir )
 
     %% ASCE 41 Target Displacement
     if analysis.run_eigen
@@ -162,29 +133,27 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     
     %% Load in Recordings to compare with EDPs and Time Histories
     if analysis.plot_recordings
+        temp = load([pwd filesep 'ground_motions' filesep 'ICSB_recordings' filesep 'recorded_edp_profile.mat']);
+        record_edp = temp.record_edp;
         pile_model = 0;
         if model.foundation == 2
-            record_edp = ff_edp;
+            record_edp = temp.ff_edp;
             pile_model = 1;
         end
-        % Plot EDP Profiles
-        fn_plot_edp_profiles( plot_dir, ground_motion, model, story, target_disp_in, record_edp)
-
-        % Plot specific TH comparisons
-%         fn_plot_main_response_history( plot_dir, read_dir_TH, node, analysis, eq_analysis_timespace, eq, ground_motion.x.eq_dt, record_edp )
         
         % Plot Spectra
-%         fn_plot_spectra(node, 'Ground', ground_motion, plot_dir, read_dir_TH, pile_model)
-%         fn_plot_spectra(node, 'Roof', ground_motion, plot_dir, read_dir_TH, pile_model)
+        fn_plot_spectra(node, 'Ground', ground_motion, plot_dir, read_dir_TH, pile_model)
+        fn_plot_spectra(node, 'Roof', ground_motion, plot_dir, read_dir_TH, pile_model)
     else
-%         Plot EDP Profiles
-        fn_plot_edp_profiles( plot_dir, ground_motion, model, story, target_disp_in)
-
-%         Plot specific TH comparisons
-        fn_plot_main_response_history( plot_dir, read_dir_TH, node, analysis, eq_analysis_timespace, eq.x, ground_motion.x.eq_dt)
-
+        record_edp = [];
     end
+    
+    % Plot EDP Profiles
+    fn_plot_edp_profiles( plot_dir, ground_motion, story, target_disp_in, record_edp)
 
+    % Plot specific TH comparisons
+    fn_plot_main_response_history( plot_dir, read_dir_TH, node, analysis, eq_analysis_timespace, eq, ground_motion.x.eq_dt, record_edp )
+        
     %% Plots Element results for Dynamic analysis
     if analysis.element_plots
         % Plot PM Diagrams for each element

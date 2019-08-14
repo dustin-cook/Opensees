@@ -14,7 +14,7 @@ else
 end
 if strcmp(seismicity,'high')
     j = 2;
-elseif strcmp(seismicity,'high')
+elseif strcmp(seismicity,'moderate')
     j = 1.5;
 else
     j = 1;

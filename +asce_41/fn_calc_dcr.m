@@ -1,4 +1,4 @@
-function [ element, DCR_raw_max ] = fn_calc_dcr( element, perform_level, read_dir )
+function [ element, DCR_raw_max ] = fn_calc_dcr( element, perform_level )
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -7,45 +7,38 @@ function [ element, DCR_raw_max ] = fn_calc_dcr( element, perform_level, read_di
 % 2. Axial compression is force controlled while axial tension is
 % deformation controlled
 
-% Initialize Variable
-DCR_P_raw_TH = ones(length(element.id),length(element_TH.ele_1.P_TH_1));
-DCR_V_raw_TH = ones(length(element.id),length(element_TH.ele_1.V_TH_1));
-DCR_M_raw_TH_1 = ones(length(element.id),length(element_TH.ele_1.M_TH_1));
-DCR_M_raw_TH_2 = ones(length(element.id),length(element_TH.ele_1.M_TH_2));
+import asce_41.fn_force_controlled_action
 
 for i = 1:height(element)
-    load([read_dir filesep 'element_TH_' num2str(element.id(i)) '.mat'])
-
-    %% Calculate raw DCRs (multipled by C factors)
-    DCR_P_raw_TH(i,:) = element.c1(i) * element.c2(i) * ele_TH.P_TH_1 ./ ele_TH.Pn;
-    DCR_V_raw_TH(i,:) = element.c1(i) * element.c2(i) * ele_TH.V_TH_1 ./ ele_TH.Vn(i);
-    filter = (ele_TH.M_TH_1 >= 0);
-    DCR_M_raw_TH_1(i,filter) = element.c1(i) * element.c2(i) * abs(ele_TH.M_TH_1(filter)) ./ ele_TH.Mn_pos_linear(filter);
-    DCR_M_raw_TH_1(i,~filter) = element.c1(i) * element.c2(i) * abs(ele_TH.M_TH_1(~filter)) ./ ele_TH.Mn_neg_linear(~filter);
-    filter = (ele_TH.M_TH_2 >= 0);
-    DCR_M_raw_TH_2(i,filter) = element.c1(i) * element.c2(i) * abs(ele_TH.M_TH_2(filter)) ./ ele_TH.Mn_pos_linear(filter);
-    DCR_M_raw_TH_2(i,~filter) = element.c1(i) * element.c2(i) * abs(ele_TH.M_TH_2(~filter)) ./ ele_TH.Mn_neg_linear(~filter);
-
-    %% Calc Max DCR for Each Element
-    element.DCR_raw_max_M(i) = max([DCR_M_raw_TH_1(i,:),DCR_M_raw_TH_2(i,:)]);
-    element.DCR_raw_max_V(i) = max(DCR_V_raw_TH(i,:));
-    element.DCR_raw_max_P(i) = max(DCR_P_raw_TH(i,:));
-    element.DCR_raw_max_all(i) = max([element.DCR_raw_max_M(i),element.DCR_raw_max_V(i),element.DCR_raw_max_P(i)]);
+    ele = element(i,:);
     
-    if ~strcmp(perform_level,'NA')
-        %% Modify DCR by m factor for deformation controlled actions
-        DCR_M_TH_1(i,:) = DCR_M_raw_TH_1(i,:) / element.(['m_' perform_level])(i);
-        DCR_M_TH_2(i,:) = DCR_M_raw_TH_2(i,:) / element.(['m_' perform_level])(i);
-        DCR_V_TH(i,:) = DCR_V_raw_TH(i,:) / element.(['m_' perform_level])(i);
+    if ~ele.elastic && ~ele.rigid
+        %% Calculate raw DCRs (straight from analysis)
+        element.DCR_raw_max_P(i) = ele.Pmax / ele.Pn_c; % Assumes compression contolled
+        element.DCR_raw_max_V_1(i) = ele.Vmax_1 / ele.Vn_1;
+        element.DCR_raw_max_V_2(i) = ele.Vmax_2 / ele.Vn_2;
+        element.DCR_raw_max_M_1(i) = ele.Mmax_1 ./ min(ele.Mn_pos_1,ele.Mn_neg_1);
+        element.DCR_raw_max_M_2(i) = ele.Mmax_2 ./ min(ele.Mn_pos_2,ele.Mn_neg_2);
+        element.DCR_raw_max_all(i) = max([element.DCR_raw_max_M_1(i),element.DCR_raw_max_M_2(i),element.DCR_raw_max_V_1(i),element.DCR_raw_max_V_2(i),element.DCR_raw_max_P(i)]);
 
-        %% Calculate Quf for force controlled actions
-        DCR_P_TH(i,:) = ele_TH.P_TH_linear ./ ele_TH.Pn;
+        %% Calculated modified DCRs (c1c2 and torsion modifications)
+        element.DCR_mod_max_P(i) = ele.Pmax_mod / ele.Pn_c; % Assumes compression contolled
+        element.DCR_mod_max_V_1(i) = ele.Vmax_1_mod / ele.Vn_1;
+        element.DCR_mod_max_V_2(i) = ele.Vmax_2_mod / ele.Vn_2;
+        element.DCR_mod_max_M_1(i) = ele.Mmax_1_mod ./ min(ele.Mn_pos_1,ele.Mn_neg_1);
+        element.DCR_mod_max_M_2(i) = ele.Mmax_2_mod ./ min(ele.Mn_pos_2,ele.Mn_neg_2);
+        element.DCR_mod_max_all(i) = max([element.DCR_raw_max_M_1(i),element.DCR_raw_max_M_2(i),element.DCR_raw_max_V_1(i),element.DCR_raw_max_V_2(i),element.DCR_raw_max_P(i)]);
 
-        %% Calc Max DCR for Each Element
-        element.DCR_max_M(i) = max([DCR_M_TH_1(i,:),DCR_M_TH_2(i,:)]);
-        element.DCR_max_V(i) = max(DCR_V_TH(i,:));
-        element.DCR_max_P(i) = max(DCR_P_TH(i,:));
-        element.DCR_max_all(i) = max([element.DCR_max_M(i),element.DCR_max_V(i),element.DCR_max_P(i)]);
+        if ~strcmp(perform_level,'NA')
+            %% Modify DCR by m factor for deformation controlled actions
+            element.DCR_max_M_1(i) = element.DCR_mod_max_M_1(i) / ele.(['m_' perform_level '_1']);
+            element.DCR_max_M_2(i) = element.DCR_mod_max_M_2(i) / ele.(['m_' perform_level '_2']);
+            element.DCR_max_V_1(i) = element.DCR_mod_max_V_1(i) / ele.(['m_' perform_level '_1']);
+            element.DCR_max_V_2(i) = element.DCR_mod_max_V_2(i) / ele.(['m_' perform_level '_2']);
+            [ element.Pmax_fc(i) ] = fn_force_controlled_action( ele.Pmax_mod, ele.P_grav, perform_level, 'high', ele.c1, ele.c2 );
+            element.DCR_max_P(i) = element.Pmax_fc(i) / ele.Pn_c; % assumes compression
+            element.DCR_max_all(i) = max([element.DCR_max_M_1(i),element.DCR_max_M_2(i),element.DCR_max_V_1(i),element.DCR_max_V_2(i),element.DCR_max_P(i)]);
+        end
     end
 end
 

@@ -5,11 +5,12 @@ function [ ele ] = fn_m_factors_beams( m_factor_table, ele, ele_props )
 %% Import Packages
 import asce_41.*
 
+for ele_side = 1:2
 %% Find M factors 
 % Calculate condition
-if strcmp(ele.critical_mode,'flexure')
+if strcmp(ele.(['critical_mode_' num2str(ele_side)]),'flexure')
     condition(1) = 1; 
-elseif strcmp(ele.critical_mode,'shear')
+elseif strcmp(ele.(['critical_mode_' num2str(ele_side)]),'shear')
     condition(1) = 2; 
 end
 if ele.pass_aci_dev_length == 0 % Controlled by inadequate development (assuming no embedment issues)
@@ -23,11 +24,11 @@ for i = 1:length(condition)
     
     if condition(i) == 1
         % Filter table for transverse reinforcement
-        if ele_props.S <= ele_props.d_eff/3
+        if ele_props.(['S_' num2str(ele_side)]) <= ele_props.d_eff/3
             if ele.DCR_raw_max_all < 2
                 % Conforming Transverse Reinforcement
                 trans_rien = 'C';
-            elseif ele.Vs > 0.75*ele.Vmax
+            elseif ele.(['Vs_' num2str(ele_side)])  > 0.75*ele.(['Vmax_' num2str(ele_side)])
                 % Conforming Transverse Reinforcement
                 trans_rien = 'C'; 
             else
@@ -45,11 +46,11 @@ for i = 1:length(condition)
         [ m_factor ] = fn_filter_asce41_table( m_factor, row_ratio, 'row_ratio', {'m_io','m_ls','m_cp'} );
 
         % Filter table based on V/bw*d*sqrt(f'ce)
-        v_ratio = ele.Vmax/(ele_props.w*ele_props.d_eff*sqrt(ele_props.fc_e)); % NEED TO FIGURE OUT WHAT VcolOE is and UPDATE THIS
+        v_ratio = ele.(['Vmax_' num2str(ele_side)])/(ele_props.w*ele_props.d_eff*sqrt(ele_props.fc_e)); % NEED TO FIGURE OUT WHAT VcolOE is and UPDATE THIS
         [ m_factor ] = fn_filter_asce41_table( m_factor, v_ratio, 'v_ratio', {'m_io','m_ls','m_cp'} );
     elseif condition(i) == 2 || condition(i) == 3
         %% Filter table based on S
-        [ m_factor ] = fn_filter_asce41_table( m_factor, ele_props.S, 's', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
+        [ m_factor ] = fn_filter_asce41_table( m_factor, ele_props.(['S_' num2str(ele_side)]), 's', {'a_hinge','b_hinge','c_hinge','io','ls','cp'} );
     end
 
     % Double Check only 1 row of the table remains
@@ -63,14 +64,14 @@ end
 
 %% If multiple conditions existed pick the smallest values
 if length(condition) > 1
-    ele.m_io = min(m_factor_temp.m_io);
-    ele.m_ls = min(m_factor_temp.m_ls);
-    ele.m_cp = min(m_factor_temp.m_cp);
+    ele.(['m_io_' num2str(ele_side)]) = min(m_factor_temp.m_io);
+    ele.(['m_ls_' num2str(ele_side)]) = min(m_factor_temp.m_ls);
+    ele.(['m_cp_' num2str(ele_side)]) = min(m_factor_temp.m_cp);
 else
-    ele.m_io = m_factor.m_io;
-    ele.m_ls = m_factor.m_ls;
-    ele.m_cp = m_factor.m_cp;
+    ele.(['m_io_' num2str(ele_side)]) = m_factor.m_io;
+    ele.(['m_ls_' num2str(ele_side)]) = m_factor.m_ls;
+    ele.(['m_cp_' num2str(ele_side)]) = m_factor.m_cp;
 end
 
 end
-
+end

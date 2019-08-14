@@ -21,27 +21,37 @@ for i = 1:length(condition)
     [ m_factor ] = fn_filter_asce41_table( m_factor, p_ratio, 'p_ratio', {'m_io','m_ls','m_cp'} );
 
     % Filter table based on row
-    row = ele_props.Av/(ele_props.w*ele_props.S);
-    [ m_factor ] = fn_filter_asce41_table( m_factor, row, 'row', {'m_io','m_ls','m_cp'} );
+    row_1 = ele_props.Av_1/(ele_props.w*ele_props.S_1);
+    [ m_factor_1 ] = fn_filter_asce41_table( m_factor, row_1, 'row', {'m_io','m_ls','m_cp'} );
+    row_2 = ele_props.Av_2/(ele_props.w*ele_props.S_2);
+    [ m_factor_2 ] = fn_filter_asce41_table( m_factor, row_2, 'row', {'m_io','m_ls','m_cp'} );
 
     % Filter table based on Vye/VcolOE
-    v_ratio = ele.Vn/ele.V0;
-    [ m_factor ] = fn_filter_asce41_table( m_factor, v_ratio, 'v_ratio', {'m_io','m_ls','m_cp'} );
+    v_ratio_1 = ele.Vn_1/ele.V0_1;
+    [ m_factor_1 ] = fn_filter_asce41_table( m_factor_1, v_ratio_1, 'v_ratio', {'m_io','m_ls','m_cp'} );
+    v_ratio_2 = ele.Vn_2/ele.V0_2;
+    [ m_factor_2 ] = fn_filter_asce41_table( m_factor_2, v_ratio_2, 'v_ratio', {'m_io','m_ls','m_cp'} );
 
     % Double Check only 1 row of the table remains
-    if length(m_factor{:,1}) ~= 1
+    if length(m_factor_1{:,1}) ~= 1 || length(m_factor_2{:,1}) ~= 1
         error('Table filtering failed to find unique result')
     end
 
     % save to elements table
-    m_factor_temp.m_io(i) = m_factor.m_io;
-    m_factor_temp.m_ls(i) = m_factor.m_ls;
-    m_factor_temp.m_cp(i) = m_factor.m_cp;
+    m_factor_temp_1.m_io(i) = m_factor_1.m_io;
+    m_factor_temp_1.m_ls(i) = m_factor_1.m_ls;
+    m_factor_temp_1.m_cp(i) = m_factor_1.m_cp;
+    m_factor_temp_2.m_io(i) = m_factor_2.m_io;
+    m_factor_temp_2.m_ls(i) = m_factor_2.m_ls;
+    m_factor_temp_2.m_cp(i) = m_factor_2.m_cp;
 end
 
 % Find Min values of cases run
-ele.m_io = min(m_factor_temp.m_io);
-ele.m_ls = min(m_factor_temp.m_ls);
-ele.m_cp = min(m_factor_temp.m_cp);
+ele.m_io_1 = min(m_factor_temp_1.m_io);
+ele.m_ls_1 = min(m_factor_temp_1.m_ls);
+ele.m_cp_1 = min(m_factor_temp_1.m_cp);
+ele.m_io_2 = min(m_factor_temp_2.m_io);
+ele.m_ls_2 = min(m_factor_temp_2.m_ls);
+ele.m_cp_2 = min(m_factor_temp_2.m_cp);
 end
 

@@ -1,4 +1,4 @@
-function [ ] = fn_plot_pushover( read_dir, seismic_wt, base_shear )
+function [ model ] = fn_plot_pushover( read_dir, seismic_wt, base_shear, model )
 % Description: Fn to plot all things pushover
 
 % Created By: Dustin Cook
@@ -31,11 +31,13 @@ roof_drift_x = abs(nd_TH.disp_x_TH)/roof_node.y;
 roof_drift_x_neg = abs(nd_TH.disp_x_neg_TH)/roof_node.y;
 v_ratio_x = abs(base_shear.base_shear_x_TH)/sum(seismic_wt);
 v_ratio_x_neg = abs(base_shear.base_shear_x_neg_TH)/sum(seismic_wt);
+model.Vy_x = max([v_ratio_x,v_ratio_x_neg]);
 if isfield(nd_TH,'disp_z_TH')
     roof_drift_z = abs(nd_TH.disp_z_TH)/roof_node.y;
     roof_drift_z_neg = abs(nd_TH.disp_z_neg_TH)/roof_node.y;
     v_ratio_z = abs(base_shear.base_shear_z_TH)/sum(seismic_wt);
     v_ratio_z_neg = abs(base_shear.base_shear_z_neg_TH)/sum(seismic_wt);
+    model.Vy_z = max([v_ratio_z,v_ratio_z_neg]);
 end
 
 % Plot Roof Drift Pushover Normalized by Building Weight

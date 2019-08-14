@@ -26,7 +26,7 @@ roof_ht = max(node.y);
 second_floor_ht = max(node.y(node.story == 1 & node.on_slab == 1));
 
 % Plot recorded vs analysis signals
-if exist('record_edp','var')
+if ~isempty(record_edp)
     % Define Recored Drift
     if isfield(eq,'z')
         record_edp.drift_TH_roof.z = record_edp.disp_TH_roof.z/roof_ht;
@@ -94,15 +94,6 @@ if exist('record_edp','var')
         fn_plot_response_history( roof_center_id_TH.nd_TH.accel_x_abs_TH, [], eq_timespace, eq.x, eq_dt, rh_plot_dir, 'Roof Acceleration Center (g)', max_time2plot, record_edp.accel_TH_roof.x )
     end
 else
-%     roof_nodes = node(node.y == roof_ht,:);
-%     mid_x = (max(roof_nodes.x) - min(roof_nodes.x)) / 2;
-%     mid_z = (max(roof_nodes.z) - min(roof_nodes.z)) / 2;
-%     for i = 1:height(roof_nodes)
-%         hyp_dist(i) = sqrt((roof_nodes.x(i) - mid_x)^2 + (roof_nodes.z(i) - mid_z)^2);
-%     end
-%     [~, idx] = min(hyp_dist);
-%     node_roof_center_id = roof_nodes.id(idx);
-    
     node_roof_center_id = node.id(node.y == roof_ht & node.primary_story == 1);
     roof_center_id_TH = load([read_dir_opensees filesep 'node_TH_' num2str(node_roof_center_id) '.mat']);
     if isfield(roof_center_id_TH.nd_TH,'disp_z_TH')

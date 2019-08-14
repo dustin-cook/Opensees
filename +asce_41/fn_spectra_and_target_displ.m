@@ -21,8 +21,8 @@ spectra_table = readtable([ground_motion.(direction).eq_dir{1} filesep 'spectra_
 Sa = interp1(spectra_table.period,spectra_table.psa_5,model.(['T1_' direction]));
 
 % Calculate Target Displacement
-strength_ratio = model.DCR_raw_max; % We have no Vy for linear analysis, therefor use DCR max as a proxy for strength ratio
 [ c_m ] = fn_cm( model.num_stories, model.(['T1_' direction]), model.(['hazus_class_' direction]) );
+strength_ratio = (Sa/model.(['Vy_' direction]))*c_m; % We have no Vy for linear analysis, therefor use DCR max as a proxy for strength ratio
 [ target_disp_in ] = fn_target_disp( strength_ratio, model.site_class{1}, story.(['mode_shape_' direction]), model.num_stories, model.(['T1_' direction]), Sa, c_m );
 
 end

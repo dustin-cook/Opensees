@@ -16,9 +16,12 @@ m_table.col.id = [];
 m_table.beam.id = [];
 
 % Preallocate table
-ele.m_io = 1;
-ele.m_ls = 1;
-ele.m_cp = 1;
+ele.m_io_1 = 1;
+ele.m_ls_1 = 1;
+ele.m_cp_1 = 1;
+ele.m_io_2 = 1;
+ele.m_ls_2 = 1;
+ele.m_cp_2 = 1;
 
 % Primary or secondary component
 m_table.col = m_table.col(strcmp(m_table.col.comp_type, 'primary'),:); % ASSUME ONLY PRIMARY FOR NOW

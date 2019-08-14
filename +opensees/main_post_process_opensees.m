@@ -358,12 +358,14 @@ for i = 1:height(node)
     end
 end
 
-for i = 1:height(hinge)
-    if isfield(hinge_TH,['hinge_' num2str(hinge.id(i))])
-        hin_TH = hinge_TH.(['hinge_' num2str(hinge.id(i))]);
-        save([opensees_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'hin_TH')
-        if analysis.type == 2 % Pushover Analysis
-            save([pushover_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'hin_TH')
+if analysis.nonlinear
+    for i = 1:height(hinge)
+        if isfield(hinge_TH,['hinge_' num2str(hinge.id(i))])
+            hin_TH = hinge_TH.(['hinge_' num2str(hinge.id(i))]);
+            save([opensees_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'hin_TH')
+            if analysis.type == 2 % Pushover Analysis
+                save([pushover_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'hin_TH')
+            end
         end
     end
 end

@@ -1,4 +1,4 @@
-function [ ] = fn_plot_building_nl_3d( hinge_or_joint, element, node, elev_title, plot_dir, direction, x_start, x_end, z_start, z_end )
+function [ ] = fn_plot_elevation( hinge_or_joint, element, node, elev_title, plot_dir, direction, x_start, x_end, z_start, z_end )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -60,7 +60,9 @@ if contains(elev_title,'Joint')
     plot_joint_elevation(ele_new, direction, new_node, hinge_or_joint, cmap3, 1, plot_dir, ['Yield Check - ' elev_title], 'yield')
 else
     plot_elevation(ele_new, direction, new_node, hinge_or_joint, cmap1, 4, plot_dir, ['ASCE 41 Acceptance - ' elev_title], 'accept')
-    plot_elevation(ele_new, direction, new_node, hinge_or_joint, cmap2, 1, plot_dir, ['b Hinge Rotation - ' elev_title], 'b_ratio')
+    if any(strcmp('b_ratio',hinge_or_joint.Properties.VariableNames))
+        plot_elevation(ele_new, direction, new_node, hinge_or_joint, cmap2, 1, plot_dir, ['b Hinge Rotation - ' elev_title], 'b_ratio')
+    end
 end
 
 
@@ -90,9 +92,15 @@ cmap_length = length(cmap(:,1));
 for e = 1:length(ele_new.id)
     hinges = hinge(hinge.element_id == ele_new.id(e) & strcmp(hinge.direction,'primary'),:);
     for h = 1:height(hinges)
-        hinge_new_node_1 = ele_new.node_1(ele_new.old_node_1 == hinges.node_1(h) | ele_new.old_node_1 == hinges.node_2(h));
-        hinge_new_node_2 = ele_new.node_2(ele_new.old_node_2 == hinges.node_1(h) | ele_new.old_node_1 == hinges.node_2(h));
-        hinge_new_node = max([hinge_new_node_1, hinge_new_node_2]);
+        if any(strcmp('node',hinges.Properties.VariableNames))
+            hinge_new_node_1 = ele_new.node_1(ele_new.old_node_1 == hinges.node(h));
+            hinge_new_node_2 = ele_new.node_2(ele_new.old_node_2 == hinges.node(h));
+            hinge_new_node = max([hinge_new_node_1, hinge_new_node_2]);
+        else
+            hinge_new_node_1 = ele_new.node_1(ele_new.old_node_1 == hinges.node_1(h) | ele_new.old_node_1 == hinges.node_2(h));
+            hinge_new_node_2 = ele_new.node_2(ele_new.old_node_2 == hinges.node_1(h) | ele_new.old_node_1 == hinges.node_2(h));
+            hinge_new_node = max([hinge_new_node_1, hinge_new_node_2]);
+        end
         cmap_idx = max([min([round(hinges.(target)(h)*cmap_length/cmap_max),cmap_length]),1]);
         highlight(H,hinge_new_node) % Make hinge bigger
         highlight(H,hinge_new_node,'NodeColor',cmap(cmap_idx,:)) % Highlight hinges

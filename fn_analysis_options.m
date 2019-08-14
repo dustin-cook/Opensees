@@ -93,18 +93,19 @@ elseif strcmp(analysis.proceedure,'NDP')
     analysis.case_list = {'backbones_pushover', 'backbones', 'NA'};
     analysis.pushover_drift_list_x = [0.02, 0.02, NaN]; % Drift limit where the pushover will go till
     analysis.pushover_drift_list_z = [0.01, 0.01, NaN];
-    analysis.accidental_torsion_list = [0, 0, 0];
+    analysis.accidental_torsion_list = [0, 0, 1];
     analysis.damp_ratio_list = [0.03, 0.03, 0.03]; % Analysis damping ratio
    
 elseif strcmp(analysis.proceedure,'LDP') % Linear Test
-    analysis.type_list = [1, 1]; % 1 = dynamic, 2 = pushover % 3 = static cyclic
-    analysis.nonlinear_list = [0, 0]; % 0 = linear, 1 = IMK Rotational Hinge, 2 = strain hardening hinges
-    analysis.dead_load_list = [1.1, 0.9]; % Dead load factor for linear analysis
-    analysis.live_load_list = [1.1, 0.0]; % Live load factor for linear analysis
-    analysis.case_list = {'load_case_1', 'load_case_2'};
-    analysis.pushover_drift_list = [NaN, NaN];
-    analysis.accidental_torsion_list = [0, 0];
-    analysis.damp_ratio = [0.05, 0.05]; % Analysis damping ratio
+    analysis.type_list = [2, 2, 1, 1, 1]; % 1 = dynamic, 2 = pushover % 3 = static cyclic
+    analysis.nonlinear_list = [1, 1, 0, 0, 0]; % 0 = linear, 1 = IMK Rotational Hinge, 2 = strain hardening hinges
+    analysis.dead_load_list = [1, 1, 1.1, 0.9, 1.1]; % Dead load factor for linear analysis
+    analysis.live_load_list = [1, 1, 1.1, 0.0, 1.1]; % Live load factor for linear analysis
+    analysis.case_list = {'backbones_pushover', 'backbones', 'load_case_1', 'load_case_2', 'load_case_3'};
+    analysis.pushover_drift_list_x = [0.02, 0.02, NaN, NaN, NaN]; % Drift limit where the pushover will go till
+    analysis.pushover_drift_list_z = [0.01, 0.01, NaN, NaN, NaN];
+    analysis.accidental_torsion_list = [0, 0, 1, 1, 0];
+    analysis.damp_ratio_list = [0.05, 0.05, 0.05, 0.05, 0.05]; % Analysis damping ratio
 end
 
 

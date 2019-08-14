@@ -12,6 +12,9 @@ story = readtable([read_dir filesep 'story.csv'],'ReadVariableNames',true);
 story_group_table = readtable([read_dir filesep 'story_group.csv'],'ReadVariableNames',true);
 element_group_table = readtable([read_dir filesep 'element_group.csv'],'ReadVariableNames',true);
 additional_elements = readtable([read_dir filesep 'additional_elements.csv'],'ReadVariableNames',true);
+if exist([read_dir filesep 'additional_weight.csv'],'file')
+    additional_weight = readtable([read_dir filesep 'additional_weight.csv'],'ReadVariableNames',true);
+end
 
 % Story property calculations
 for s = 1:height(story)
@@ -84,6 +87,23 @@ for s = 1:height(story)
         element.live_load_1(element.story == story.id(s),1) = element.trib_wt_1(element.story == story.id(s))*story.story_live_load(s)/sum_trib_wt;
         element.dead_load_2(element.story == story.id(s),1) = element.trib_wt_2(element.story == story.id(s))*story.story_dead_load(s)/sum_trib_wt;
         element.live_load_2(element.story == story.id(s),1) = element.trib_wt_2(element.story == story.id(s))*story.story_live_load(s)/sum_trib_wt;
+        
+        % Assign additional weight
+        if exist('additional_weight','var')
+            add_weight_this_story = additional_weight(additional_weight.story == s,:);
+            for aw = 1:height(add_weight_this_story)
+                node_1 = node.id(node.x == additional_weight.x_start(aw) & node.z == additional_weight.z_start(aw) & node.y == additional_weight.y_start(aw));
+                node_2 = node.id(node.x == additional_weight.x_end(aw) & node.z == additional_weight.z_end(aw) & node.y == additional_weight.y_end(aw));
+                this_ele_id = element.id(element.node_1 == node_1 & element.node_2 == node_2);
+                if ~isempty(this_ele_id)
+                    element.dead_load_1(element.id == this_ele_id) = element.dead_load_1(element.id == this_ele_id) + additional_weight.weight_lbs(aw)/2;
+                    element.dead_load_2(element.id == this_ele_id) = element.dead_load_2(element.id == this_ele_id) + additional_weight.weight_lbs(aw)/2;
+                end
+            end
+        end
+        
+        % Find Story Seismic Wt
+        story.seismic_wt(s) = sum(element.dead_load_1(element.story == s) + element.dead_load_2(element.story == s));
     end
 end
 
@@ -118,9 +138,11 @@ for i = 1:length(node.id)
 end
 
 %% Calculate Total Element Gravity Load
+element.gravity_load_1 = element.dead_load_1*analysis.dead_load + element.live_load_1*analysis.live_load;
+element.gravity_load_2 = element.dead_load_2*analysis.dead_load + element.live_load_2*analysis.live_load;
 element.dead_load = element.dead_load_1 + element.dead_load_2;
 element.live_load = element.live_load_1 + element.live_load_2;
-element.gravity_load = element.dead_load*analysis.dead_load + element.live_load*analysis.live_load;
+element.gravity_load = element.gravity_load_1 + element.gravity_load_2;
 
 %% Define Mass
 node.mass = zeros(length(node.id),1);
@@ -282,6 +304,8 @@ for ae = 1:height(additional_elements)
     element.live_load_2(ele_id,1) = 0;
     element.dead_load(ele_id,1) = 0;
     element.live_load(ele_id,1) = 0;
+    element.gravity_load_1(ele_id,1) = 0;
+    element.gravity_load_2(ele_id,1) = 0;
     element.gravity_load(ele_id,1) = 0;
     element.elastic(ele_id,1) = 1;
     
