@@ -55,6 +55,12 @@ for i = 1:height(hinge)
             hinge.d_ratio(i) = hinge.tot_deform(i) / hinge.d_value_tot(i);
             hinge.e_value_tot(i) = ele.(['e_hinge_' num2str(hinge.ele_side(i))]);
             hinge.e_ratio(i) = hinge.tot_deform(i) / hinge.e_value_tot(i);
+            hinge.io_value_tot(i) = ele.(['io_' num2str(hinge.ele_side(i))]);
+            hinge.io_ratio(i) = hinge.tot_deform(i) / hinge.io_value_tot(i);
+            hinge.ls_value_tot(i) = ele.(['ls_' num2str(hinge.ele_side(i))]);
+            hinge.ls_ratio(i) = hinge.tot_deform(i) / hinge.ls_value_tot(i);
+            hinge.cp_value_tot(i) = ele.(['cp_' num2str(hinge.ele_side(i))]);
+            hinge.cp_ratio(i) = hinge.tot_deform(i) / hinge.cp_value_tot(i);
         else % Everything Else
             % Shear force Properties
             hinge.shear_demand(i) = ele.(['Vmax_' num2str(hinge.ele_side(i))]);

@@ -221,7 +221,7 @@ for i = 1:length(IDA_scale_factors)
 end
 
 %% Create Fragility Curves based on Baker MLE
-x_points = 0:0.01:4;
+x_points = 0:0.01:3;
 % X direction Curves
 [col_frag_curve_ew_drift, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ew, frag.num_gms_drift, frag.num_collapse_drift);
 [col_frag_curve_ew_convergence, ~] = fn_calc_frag_curve(x_points, frag.asce41_sa_ew, frag.num_gms_convergence, frag.num_collapse_convergence);
