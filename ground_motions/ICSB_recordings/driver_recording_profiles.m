@@ -26,6 +26,7 @@ record_edp.disp_TH_second.z = (disp_TH.chan_8(1:5800)-disp_TH.chan_11(1:5800))/2
 record_edp.disp_TH_second_east.z = (disp_TH.chan_9(1:5800)-disp_TH.chan_11(1:5800))/2.54;
 record_edp.disp_TH_roof.z = (disp_TH.chan_2(1:5800)-disp_TH.chan_11(1:5800))/2.54;
 record_edp.disp_TH_roof_east.z = (disp_TH.chan_3(1:5800)-disp_TH.chan_11(1:5800))/2.54;
+record_edp.disp_TH_roof_west.z = (disp_TH.chan_1(1:5800)-disp_TH.chan_11(1:5800))/2.54;
 
 % Max Profiles
 record_edp.max_accel.x = [max(abs(accel_TH.chan_13));max(abs(accel_TH.chan_6));nan;max(abs(accel_TH.chan_5));nan;nan;max(abs(accel_TH.chan_4))];
@@ -36,6 +37,7 @@ record_edp.max_accel_center.x = [max(abs(accel_TH.chan_13));max(abs(accel_TH.cha
 record_edp.max_accel_center.z = [max(abs(accel_TH.chan_11));max(abs(accel_TH.chan_8));nan;nan;nan;nan;max(abs(accel_TH.chan_2))];
 record_edp.max_disp_center.x = [max(abs(disp_TH.chan_13-disp_TH.chan_13));max(abs(disp_TH.chan_6-disp_TH.chan_13(1:5806)));nan;max(abs(disp_TH.chan_5-disp_TH.chan_13(1:5808)));nan;nan;max(abs(disp_TH.chan_4-disp_TH.chan_13(1:5806)))]/2.54; % Convert from cm to in (should do this earlier)
 record_edp.max_disp_center.z = [max(abs(disp_TH.chan_11-disp_TH.chan_11));max(abs(disp_TH.chan_8-disp_TH.chan_11(1:5807)));nan;nan;nan;nan;max(abs(disp_TH.chan_2-disp_TH.chan_11))]/2.54;
+record_edp.max_twist.z = [0;max(abs((disp_TH.chan_9(1:5800)-disp_TH.chan_11(1:5800)) - (disp_TH.chan_8(1:5800)-disp_TH.chan_11(1:5800))));nan;nan;nan;nan;max(abs((disp_TH.chan_3(1:5800)-disp_TH.chan_11(1:5800)) - (disp_TH.chan_2(1:5800)-disp_TH.chan_11(1:5800))))]/2.54;
 
 %% Free Field Profiles
 ff_edp = record_edp;
@@ -74,6 +76,7 @@ ff_edp.max_disp_center.x = [0; max(abs(disp_TH.chan_6(1:5600)/2.54-ff_disp_TH.x(
                             nan;nan;max(abs(disp_TH.chan_4(1:5600)/2.54-ff_disp_TH.x(1:5600)))]; % Convert from cm to in (should do this earlier)
 ff_edp.max_disp_center.z = [0; max(abs(disp_TH.chan_8(1:5600)/2.54-ff_disp_TH.z(1:5600)));...
                             nan;nan;nan;nan;max(abs(disp_TH.chan_2(1:5600)/2.54-ff_disp_TH.z(1:5600)))];
+record_edp.max_twist.z = [0;max(abs((disp_TH.chan_9(1:5600)-ff_disp_TH.z(1:5600)) - (disp_TH.chan_8(1:5600)-ff_disp_TH.z(1:5600))));nan;nan;nan;nan;max(abs((disp_TH.chan_3(1:5600)-ff_disp_TH.z(1:5600)) - (disp_TH.chan_2(1:5600)-ff_disp_TH.z(1:5600))))]/2.54;
 
 %% Save Recorded EDPS to matlab datafile
 save([pwd filesep 'recorded_edp_profile.mat'],'record_edp','ff_edp')

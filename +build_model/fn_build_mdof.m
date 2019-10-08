@@ -134,6 +134,7 @@ for i = 1:length(node.id)
                 end
             end
         end
+        joint.story(joint_id,1) = element.story(element.id == joint.column_low(joint_id,1));
     end
 end
 

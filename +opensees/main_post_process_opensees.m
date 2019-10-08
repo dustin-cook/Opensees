@@ -145,6 +145,31 @@ if analysis.nonlinear ~= 0 && ~isempty(hinge)
             end
         end
     end
+    
+    % Calculate Dissapated Hinge Engery
+    for h = 1:height(hinge)
+        if analysis.simple_recorders && strcmp(hinge.direction(h),'oop')
+            hinge.total_engergy_ft_lbs(h) = NaN;
+        else
+            hinge.total_engergy_ft_lbs(h) = (1/12)*trapz(hinge_TH.(['hinge_' num2str(hinge.id(h))]).deformation_TH, hinge_TH.(['hinge_' num2str(hinge.id(h))]).force_TH);
+            hinge_TH.(['hinge_' num2str(hinge.id(h))]).energy_ft_lbs = (1/12)*cumtrapz(hinge_TH.(['hinge_' num2str(hinge.id(h))]).deformation_TH, hinge_TH.(['hinge_' num2str(hinge.id(h))]).force_TH);
+        end
+    end
+end
+
+%% Load Joint reactions and deformations
+joint_TH = [];
+if analysis.nonlinear ~= 0 && analysis.joint_explicit == 1 && ~analysis.simple_recorders % Nonlinear Joints
+    % Rotational Hinges x direction - primary
+    if exist([opensees_dir filesep 'joint_rotation' '.xml'],'file')
+        [ joint_deformation ] = fn_xml_read([opensees_dir filesep 'joint_rotation' '.xml']);
+        [ joint_force ] = fn_xml_read([opensees_dir filesep 'joint_moment' '.xml']);
+        nonlin_joints = joint(joint.story <= analysis.stories_nonlinear,:);
+        for j = 1:height(nonlin_joints)
+            joint_TH.(['joint_' num2str(nonlin_joints.id(j))]).deformation_TH = joint_deformation(1:(end-clip),1+j);
+            joint_TH.(['joint_' num2str(nonlin_joints.id(j))]).force_TH = joint_force(1:(end-clip),1+j);
+        end
+    end
 end
 
 %% Calculate Nodal Displacments, Accels, Reactions and Eigen values and vectors
@@ -170,7 +195,7 @@ for i = 1:length(dirs_ran)
    % EDP response history at each node
    if analysis.type == 1 % Dynamic Analysis       
        for n = 1:height(node)
-           if (analysis.simple_recorders && node.primary_story(n)) || (~analysis.simple_recorders && node.record_disp(n))
+           if node.record_disp(n)
                [ node_disp_raw ] = fn_xml_read([opensees_dir filesep 'nodal_disp_' num2str(node.id(n)) '.xml']);
                node_disp_raw = node_disp_raw'; % flip to be node per row
 
@@ -259,14 +284,13 @@ for i = 1:length(dirs_ran)
         [ story.(['max_drift_' fld_names{i}]) ] = fn_drift_profile( node_TH, story, node(node.primary_story == 1,:), fld_names{i} );
     else
         [ story.(['max_drift_' fld_names{i}]) ] = fn_drift_profile( node_TH, story, node, fld_names{i} );
+        [ story.(['max_twist_' fld_names{i}]) ] = fn_twist_profile( node_TH, story, node, fld_names{i} );
     end
 
     % Base shear reactions
-    if ~analysis.simple_recorders
-        [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
-        story_TH.(['base_shear_' fld_names{i} '_TH']) = sum(base_node_reactions(1:(end-clip),2:end),2)';
-        story.(['max_reaction_' fld_names{i}])(1) = max(abs(story_TH.(['base_shear_' fld_names{i} '_TH'])));
-    end
+    [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
+    story_TH.(['base_shear_' fld_names{i} '_TH']) = sum(base_node_reactions(1:(end-clip),2:end),2)';
+    story.(['max_reaction_' fld_names{i}])(1) = max(abs(story_TH.(['base_shear_' fld_names{i} '_TH'])));
     
     % Load Mode shape data and period
     if analysis.run_eigen
@@ -368,13 +392,22 @@ if analysis.nonlinear
             end
         end
     end
+    if analysis.joint_explicit == 1
+        for i = 1:height(joint)
+            if isfield(joint_TH,['joint_' num2str(joint.id(i))])
+                jnt_TH = joint_TH.(['joint_' num2str(joint.id(i))]);
+                save([opensees_dir filesep 'joint_TH_' num2str(joint.id(i)) '.mat'],'jnt_TH')
+                if analysis.type == 2 % Pushover Analysis
+                    save([pushover_dir filesep 'joint_TH_' num2str(joint.id(i)) '.mat'],'jnt_TH')
+                end
+            end
+        end
+    end
 end
 
-if ~analysis.simple_recorders
-    save([opensees_dir filesep 'story_TH.mat'],'story_TH')
-    if analysis.type == 2 % Pushover Analysis
-        save([pushover_dir filesep 'story_TH.mat'],'story_TH')
-    end
+save([opensees_dir filesep 'story_TH.mat'],'story_TH')
+if analysis.type == 2 % Pushover Analysis
+    save([pushover_dir filesep 'story_TH.mat'],'story_TH')
 end
 
 

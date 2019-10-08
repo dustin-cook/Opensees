@@ -29,7 +29,7 @@ if analysis.nonlinear ~= 0 && analysis.model_type == 2 && ~exist([read_dir_analy
     % Nonlinear MDOF with no capacities calculated
     ele_props_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
     [ element, joint ] = main_element_capacity( story, ele_props_table, element, analysis, joint, read_dir_analysis );
-    [ element, ~ ] = main_hinge_properties( ele_props_table, element, joint );
+    [ element, joint ] = main_hinge_properties( ele_props_table, element, joint );
     if ~exist(read_dir_analysis,'dir')
         fn_make_directory( read_dir_analysis )
     end

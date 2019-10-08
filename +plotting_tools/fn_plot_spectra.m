@@ -24,6 +24,7 @@ elseif strcmp(type,'Ground')
     if pile_model
         channel.x = 'free_field_1';
         channel.z = 'free_field_3';
+        channel.y = 'free_field_2';
     else
         channel.x = 'chan_13';
         channel.z = 'chan_11';
@@ -106,6 +107,7 @@ legend('Location','northeast')
 legend boxoff
 set(gca,'FontSize',14)
 xlim([0,3])
+% ylim([0,1.2])
 fn_format_and_save_plot( [plot_dir filesep 'Spectra Plots'], [type ' Spectra'], 0 )
 hold off
 close

@@ -42,11 +42,12 @@ if analysis.asce_41_post_process
     if strcmp(analysis.proceedure,'NDP') && analysis.type == 1 % Nonlinear Dynamic Proceedure
         % Merge demands from analysis into capacities from pushover
         [element] = fn_merge_demands(element, write_dir, model);
-        [joint] = fn_merge_joint_demands(joint, element, ele_prop_table, write_dir);
+        [joint] = fn_merge_joint_demands(joint, element, ele_prop_table, write_dir, read_dir);
         
         % calculate hinge demand to capacity ratios
         load([read_dir filesep 'hinge_analysis.mat'])
         [ hinge ] = fn_accept_hinge( element, ele_prop_table, hinge, read_dir, node );
+        [ joint ] = fn_accept_joint( joint, analysis.joint_explicit, read_dir);
             
     elseif strcmp(analysis.proceedure,'LDP') && analysis.type == 1 % Linear Dynamic Proceedure
         % Merge demands from analysis into capacities from pushover
@@ -110,7 +111,7 @@ element.node_2 = OS_demands.node_2;
 
 end
 
-function [joint] = fn_merge_joint_demands(joint, element, ele_prop_table, write_dir)
+function [joint] = fn_merge_joint_demands(joint, element, ele_prop_table, write_dir, read_dir)
 %% Joints
 % import packages
 import asce_41.fn_joint_capacity
@@ -122,9 +123,20 @@ load([write_dir filesep 'joint_analysis.mat'])
 OS_joint = joint;
 
 % Determine Joint demands based on element capacities
-[ OS_joint ] = fn_joint_capacity( OS_joint, element, ele_prop_table );
+for i = 1:height(OS_joint)
+    OS_jnt = OS_joint(i,:);
+    TH_file = [read_dir filesep 'joint_TH_' num2str(OS_jnt.id) '.mat'];
+    if ~exist(TH_file,'file')
+        jnt_TH = [];
+    else
+        load(TH_file)
+    end
+    [ OS_jnt ] = fn_joint_capacity( OS_jnt, element, ele_prop_table, jnt_TH );
 
-% Merge joint demands into capacity table
-joint.Pmax = OS_joint.Pmax;
-joint.Vmax = OS_joint.Vmax;
+    % Merge joint demands into capacity table
+    joint.Pmax(i) = OS_jnt.Pmax;
+    joint.Vmax(i) = OS_jnt.Vmax;
+end
+
+
 end

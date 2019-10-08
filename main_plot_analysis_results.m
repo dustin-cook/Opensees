@@ -62,7 +62,7 @@ if sum(analysis.type_list == 3) > 0 % Cyclic was run as part of this proceedure
         if cyclic_analysis.analysis.nonlinear ~= 0 && exist('backbones','var') % Is the pushover nonlinear?
             % Plot Hinge Response
             cyclic_hinge = load([cyclic_read_dir filesep 'hinge_analysis.mat']);
-            fn_plot_hinge_response( cyclic_read_dir, cyclic_read_dir, cyclic_hinge.hinge, backbones_pushover.element, ele_prop_table, node, analysis.hinge_stories_2_plot )
+            fn_plot_hinge_response( cyclic_read_dir, cyclic_read_dir, cyclic_hinge.hinge, backbones_pushover.element, ele_prop_table, node, analysis, joint  )
         end
     end
 end
@@ -82,7 +82,7 @@ if sum(analysis.type_list == 2) > 0 % Pushover was run as part of this proceedur
         % Plot Hinge Response
         if pushover_analysis.analysis.nonlinear ~= 0 && exist('backbones_pushover','var') % Is the pushover nonlinear?
             pushover_hinge = load([pushover_read_dir filesep 'hinge_analysis.mat']);
-            fn_plot_hinge_response( pushover_read_dir, pushover_read_dir, pushover_hinge.hinge, backbones_pushover.element, ele_prop_table, node, analysis.hinge_stories_2_plot )
+            fn_plot_hinge_response( pushover_read_dir, pushover_read_dir, pushover_hinge.hinge, backbones_pushover.element, ele_prop_table, node, analysis, joint  )
         end
     end
 end
@@ -92,29 +92,29 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     %% ASCE 41 Acceptance Plots
     %% Plot Hinge accpetance
     % Elevation
-    fn_plot_elevation( hinge, element, node, 'Frame 1', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 0, 0 )
-    fn_plot_elevation( hinge, element, node, 'Frame 2', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 300, 300 )
-    fn_plot_elevation( hinge, element, node, 'Frame 3', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 600, 600 )
-    fn_plot_elevation( hinge, element, node, 'Frame 4', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 900, 900 )
-    fn_plot_elevation( hinge, element, node, 'West Upper Wall', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 0, 0, 0, 900 )
-    fn_plot_elevation( hinge, element, node, 'Lower Wall 1', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 71, 71, 0, 900 )
-    fn_plot_elevation( hinge, element, node, 'Lower Wall 2', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 671, 671, 0, 900 )
-    fn_plot_elevation( hinge, element, node, 'Lower Wall 3', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 971, 971, 0, 900 )
-    fn_plot_elevation( hinge, element, node, 'Lower Wall 4', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 1271, 1271, 0, 900 )
-    fn_plot_elevation( hinge, element, node, 'East Upper Wall', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 1500, 2000, 0, 900 )
-    fn_plot_elevation( joint, element, node, 'Frame 1 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 0, 0 )
-    fn_plot_elevation( joint, element, node, 'Frame 2 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 300, 300 )
-    fn_plot_elevation( joint, element, node, 'Frame 3 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 600, 600 )
-    fn_plot_elevation( joint, element, node, 'Frame 4 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 900, 900 )
-
-    % Plan View
-    fn_plot_plan_view( hinge, element, node, 1, 'Story 1 - Column Bases', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
-    fn_plot_plan_view( hinge, element, node, 2, 'Story 1 - Top of Columns', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
-
-    % Plot Element Scatter
-    fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
-    fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
-    fn_plot_element_scatter( element, 'wall', story, hinge, plot_dir )
+%     fn_plot_elevation( hinge, element, node, 'Frame 1', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 0, 0 )
+%     fn_plot_elevation( hinge, element, node, 'Frame 2', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 300, 300 )
+%     fn_plot_elevation( hinge, element, node, 'Frame 3', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 600, 600 )
+%     fn_plot_elevation( hinge, element, node, 'Frame 4', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 900, 900 )
+%     fn_plot_elevation( hinge, element, node, 'West Upper Wall', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 0, 0, 0, 900 )
+%     fn_plot_elevation( hinge, element, node, 'Lower Wall 1', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 71, 71, 0, 900 )
+%     fn_plot_elevation( hinge, element, node, 'Lower Wall 2', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 671, 671, 0, 900 )
+%     fn_plot_elevation( hinge, element, node, 'Lower Wall 3', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 971, 971, 0, 900 )
+%     fn_plot_elevation( hinge, element, node, 'Lower Wall 4', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 1271, 1271, 0, 900 )
+%     fn_plot_elevation( hinge, element, node, 'East Upper Wall', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'z', 1500, 2000, 0, 900 )
+%     fn_plot_elevation( joint, element, node, 'Frame 1 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 0, 0 )
+%     fn_plot_elevation( joint, element, node, 'Frame 2 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 300, 300 )
+%     fn_plot_elevation( joint, element, node, 'Frame 3 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 600, 600 )
+%     fn_plot_elevation( joint, element, node, 'Frame 4 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 900, 900 )
+% 
+%     % Plan View
+%     fn_plot_plan_view( hinge, element, node, 1, 'Story 1 - Column Bases', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
+%     fn_plot_plan_view( hinge, element, node, 2, 'Story 1 - Top of Columns', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
+% 
+%     % Plot Element Scatter
+%     fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
+%     fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
+%     fn_plot_element_scatter( element, 'wall', story, hinge, plot_dir )
 
     %% ASCE 41 Target Displacement
     if analysis.run_eigen
@@ -153,6 +153,9 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
 
     % Plot specific TH comparisons
     fn_plot_main_response_history( plot_dir, read_dir_TH, node, analysis, eq_analysis_timespace, eq, ground_motion.x.eq_dt, record_edp )
+    
+    % Plan view twist
+    fn_plot_plan_twist( node, read_dir_opensees, [plot_dir filesep 'EDP Profiles'], 'Roof Max Twist - Plan', record_edp )
         
     %% Plots Element results for Dynamic analysis
     if analysis.element_plots
@@ -162,7 +165,7 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
         % Plot Hinge Response
         if exist('backbones','var')
             load([read_dir filesep 'hinge_analysis.mat'])
-            fn_plot_hinge_response( plot_dir, read_dir_opensees, hinge, backbones.element, ele_prop_table, node, analysis.hinge_stories_2_plot, eq_analysis_timespace )
+            fn_plot_hinge_response( plot_dir, read_dir_opensees, hinge, backbones.element, ele_prop_table, node, analysis, joint )
         end
     end
     

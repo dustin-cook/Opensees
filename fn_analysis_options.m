@@ -18,7 +18,7 @@ analysis.asce_41_post_process = 1; % 1 = run asce 41 post process logic
 analysis.opensees_SP = 1; % 0 = Standard OpenSees; 1 = OpenseesSP
 
 % Model Options
-analysis.stories_nonlinear = inf; % Default to all modeling all stories as nonlinear when doing NDP
+analysis.stories_nonlinear = 3; % Default to all modeling all stories as nonlinear when doing NDP
 analysis.model_type = 2; % 1 = SDOF, 2 = MDOF (default)
 analysis.rigid_diaphram = 1; % Default the model to assume rigid diaphrams (0 = non-rigid assuption)
 analysis.fiber_walls = 0;
@@ -30,9 +30,9 @@ analysis.hinge_stiff_mod = 10; % Scale up stiffnes of hinges for a lumped plasti
 analysis.run_eigen = 1; % Run the eignen anlayis to get mode shapes and periods for the opensees analysis
 analysis.initial_timestep_factor = 1; % reduction from eq timestep to analysis timestep
 analysis.solution_algorithm = 1; % Run the opensees solution algorthm which will try different things 
-analysis.collapse_drift = 0.06; % stop analysis at this drift and say collapse
+analysis.collapse_drift = 0.10; % stop analysis at this drift and say collapse
 analysis.joint_model = 1; % 1 = beam/column elements, 2 = joint 3D
-analysis.joint_explicit = 0; % 0 = rigid, 1 = model joint nonlinearity (could automate this based on first assessment of joints)
+analysis.joint_explicit = 1; % 0 = rigid, 1 = model joint nonlinearity (could automate this based on first assessment of joints)
 analysis.write_xml = 1; % Write and read opensees out files as xml files (0 = .txt files, which is currently broken, on purpose)
 analysis.pushover_num_steps = 200; % Number of steps a pushover will take to get to the dirft limit
 analysis.cyclic_pushover_peak_drifts = [0.4, 0.5, 0.6]; % Percent of the final Pushover drift of each cycle
@@ -47,7 +47,7 @@ analysis.integrator = 'Newmark 0.5 0.25';
 analysis.element_plots = 1; % Plot hinge backnones and other per element visualizations
 analysis.plot_recordings = 1; % Plot analysis results v recorded results
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
-analysis.movie_scale = 1; % Visual scale of the movie playback
+analysis.movie_scale = 10; % Visual scale of the movie playback
 analysis.hinge_stories_2_plot = 2;
 analysis.suppress_outputs = 0;
 

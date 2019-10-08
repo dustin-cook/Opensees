@@ -56,8 +56,8 @@ cmap2 = [0,60,48;
     
 %% Plot DCR on elevation of building
 if contains(elev_title,'Joint')
-    plot_joint_elevation(ele_new, direction, new_node, hinge_or_joint, cmap1, 4, plot_dir, ['ASCE 41 Acceptance - ' elev_title], 'accept')
-    plot_joint_elevation(ele_new, direction, new_node, hinge_or_joint, cmap3, 1, plot_dir, ['Yield Check - ' elev_title], 'yield')
+    plot_joint_elevation(ele_new, direction, new_node, hinge_or_joint, cmap1, 4, plot_dir, ['ASCE 41 Acceptance - ' elev_title], 'accept', node)
+    plot_joint_elevation(ele_new, direction, new_node, hinge_or_joint, cmap3, 1, plot_dir, ['Yield Check - ' elev_title], 'yield', node)
 else
     plot_elevation(ele_new, direction, new_node, hinge_or_joint, cmap1, 4, plot_dir, ['ASCE 41 Acceptance - ' elev_title], 'accept')
     if any(strcmp('b_ratio',hinge_or_joint.Properties.VariableNames))
@@ -113,7 +113,7 @@ fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 end
 
-function [] = plot_joint_elevation(ele_new, direction, new_node, joint, cmap, cmap_max, plot_dir, plot_name, target)
+function [] = plot_joint_elevation(ele_new, direction, new_node, joint, cmap, cmap_max, plot_dir, plot_name, target, node)
 % Import Packages
 import plotting_tools.*
 
@@ -135,18 +135,29 @@ axis off
 %% Highlight Performance
 % Highlight elemets that pass Acceptance Criteria
 cmap_length = length(cmap(:,1));
+hold on
 for e = 1:length(ele_new.id)
     jnt_1 = joint(joint.column_high == ele_new.id(e) | joint.beam_right == ele_new.id(e),:);
     if ~isempty(jnt_1)
+        x_val = node.x(node.id == jnt_1.y_neg);
+        y_up = node.y(node.id == jnt_1.y_pos);
+        y_low = node.y(node.id == jnt_1.y_neg);
+        y_val = mean([y_up,y_low]);
         cmap_idx = max([min([round(jnt_1.(target)*cmap_length/cmap_max),cmap_length]),1]);
-        highlight(H,ele_new.node_1(e)) % Make hinge bigger
-        highlight(H,ele_new.node_1(e),'NodeColor',cmap(cmap_idx,:)) % Highlight hinges
+        scatter(x_val,y_val,100,cmap(cmap_idx,:),'filled','s')
+%         highlight(H,ele_new.node_1(e)) % Make hinge bigger
+%         highlight(H,ele_new.node_1(e),'NodeColor',cmap(cmap_idx,:)) % Highlight hinges
     end
     jnt_2 = joint(joint.column_low == ele_new.id(e) | joint.beam_left == ele_new.id(e),:);
     if ~isempty(jnt_2)
+        x_val = node.x(node.id == jnt_2.y_neg);
+        y_up = node.y(node.id == jnt_2.y_pos);
+        y_low = node.y(node.id == jnt_2.y_neg);
+        y_val = mean([y_up,y_low]);
         cmap_idx = max([min([round(jnt_2.(target)*cmap_length/cmap_max),cmap_length]),1]);
-        highlight(H,ele_new.node_2(e)) % Make hinge bigger
-        highlight(H,ele_new.node_2(e),'NodeColor',cmap(cmap_idx,:)) % Highlight hinges
+        scatter(x_val,y_val,100,cmap(cmap_idx,:),'filled','s')
+%         highlight(H,ele_new.node_2(e)) % Make hinge bigger
+%         highlight(H,ele_new.node_2(e),'NodeColor',cmap(cmap_idx,:)) % Highlight hinges
     end
 end
 

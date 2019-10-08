@@ -62,7 +62,20 @@ element = ele_to_save;
 
 %% Calculate Joint Properties;
 if ~isempty(joint)
-    [ joint ] = fn_joint_capacity( joint, element, ele_prop_table );
+    for i = 1:height(joint)
+        jnt = joint(i,:);
+        TH_file = [read_dir filesep 'joint_TH_' num2str(jnt.id) '.mat'];
+        if ~exist(TH_file,'file')
+            jnt_TH = [];
+        else
+            load(TH_file)
+        end
+        [ jnt ] = fn_joint_capacity( jnt, element, ele_prop_table, jnt_TH );
+        
+        % Save joint data to table
+        joint_to_save(i,:) = jnt;
+    end
+    joint = joint_to_save;
 end
 
 end

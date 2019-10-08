@@ -81,7 +81,7 @@ element.Pmax_mod = element.Pmax + element_cases.load_case_1.Pmax*(max(story.A_ma
 
 %% Acceptance
 % Determine amplificaton factors
-[ model, element ] = fn_linear_capacity_and_c_factors( model, story, element );
+[ model, element, story ] = fn_linear_capacity_and_c_factors( model, story, element );
 
 % Determine acceptance factors
 [ element ] = main_m_factors( ele_prop_table, element );

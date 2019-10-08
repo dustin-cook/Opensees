@@ -1,4 +1,4 @@
-function [ ] = fn_plot_hinge_response( plot_dir, read_dir, hinge, element, ele_prop_table, node, stories2plot, eq_analysis_timespace )
+function [ ] = fn_plot_hinge_response( plot_dir, read_dir, hinge, element, ele_prop_table, node, analysis, joint )
 % Description: Fn to plot hinge backbone along with hinge response.
 
 % Created By: Dustin Cook
@@ -19,12 +19,12 @@ import asce_41.fn_define_backbone_rot
 % Define plot directory
 hinge_plot_dir = [plot_dir filesep 'Hinge_Plots'];
 
-%% Begin Method
+%% Plot Element Hinges
 for i = 1:height(hinge)
     % Grab Element Properties
     ele = element(element.id == hinge.element_id(i),:);
     ele_side = num2str(hinge.ele_side(i));
-    if ele.story <= stories2plot
+    if ele.story <= analysis.hinge_stories_2_plot
         ele_props = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
         if exist([read_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'file')
             load([read_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'])
@@ -88,6 +88,22 @@ for i = 1:height(hinge)
                 plot_name = [ele.type{1} '_' num2str(hinge.element_id(i)) ' - Shear Response'];
                 fn_plot_backbone( ele, ele_side, ele_props, read_dir, hinge_plot_dir, plot_name, 2, hin_TH.deformation_TH, hin_TH.force_TH, crit_mode, hinge.direction{i})
             end
+        end
+    end
+end
+
+
+%% Plot Element Hinges
+if analysis.joint_explicit
+    for i = 1:height(joint)
+        if exist([read_dir filesep 'joint_TH_' num2str(joint.id(i)) '.mat'],'file')
+            load([read_dir filesep 'joint_TH_' num2str(joint.id(i)) '.mat'])
+            hinge_plot_dir = [plot_dir filesep 'Hinge_Plots' filesep 'Joints'];
+            plot_name = ['joint - ' num2str(joint.id(i)) ' - Rotation Response'];
+            jnt = joint(i,:);
+            jnt.direction = 'x';
+            jnt.type = 'joint';
+            fn_plot_backbone( jnt, [], [], read_dir, hinge_plot_dir, plot_name, 2, jnt_TH.deformation_TH, jnt_TH.force_TH, 'shear')
         end
     end
 end

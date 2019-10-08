@@ -1,0 +1,32 @@
+function [ ] = fn_master_IDA(analysis, model, story, element, node, hinge, joint, IDA_scale_factors,gm_set_table, ida_results, tcl_dir)
+%UNTITLED Summary of this function goes here
+%   Detailed explanation goes here
+import ida.fn_run_gm_stripe
+
+if analysis.run_parallel
+    parpool; % Set up Parallel Workers
+end
+
+% Loop through each ground motion
+tim_start = tic;
+if analysis.run_parallel
+parfor gms = 1:height(gm_set_table)
+    scale_factor = IDA_scale_factors(i);
+    analysis.ground_motion_scale_factor = scale_factor;
+    
+        % Loop through each scale of the GM
+        for i = 1:1%length(IDA_scale_factors)
+            fn_run_gm_stripe(analysis, model, story, element, node, hinge, joint, scale_factor, gm_set_table, gms, ida_results, tcl_dir)
+        end
+
+
+
+end
+else
+end
+tim_elapsed = toc(tim_start);
+fprintf('IDA finished with a run time of %4.2f seconds \n', tim_elapsed)
+
+delete(gcp('nocreate')) % End Any Parallel Process
+end
+

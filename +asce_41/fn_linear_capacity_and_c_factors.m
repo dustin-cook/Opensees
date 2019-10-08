@@ -1,4 +1,4 @@
-function [ model, element ] = fn_linear_capacity_and_c_factors( model, story, element )
+function [ model, element, story ] = fn_linear_capacity_and_c_factors( model, story, element )
 % Description: Main script that post process an ASCE 41 analysis
 
 % Created By: Dustin Cook
@@ -45,7 +45,7 @@ story.max_drift_x_mod = story.max_drift_x_mod*c_factor_modifier;
 story.max_disp_center_x_mod = story.max_disp_center_x_mod*c_factor_modifier;
 
 % Z Displacements
-if isfield(story,'max_disp_z')
+if ismember('max_disp_z',story.Properties.VariableNames)
     filter = strcmp(element.direction,'z');
     c_factor_modifier = max(element.c1(filter))*max(element.c2(filter));
     story.max_disp_z_mod = story.max_disp_z_mod*c_factor_modifier;

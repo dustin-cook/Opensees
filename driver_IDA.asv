@@ -8,9 +8,9 @@ clc
 
 %% User Inputs
 % Define Model
-analysis.model_id = 11;
+analysis.model_id = 6;
 analysis.proceedure = 'NDP';
-analysis.id = 'IDA_new';
+analysis.id = 'ida_test';
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 1;
 
@@ -90,7 +90,7 @@ gm_median_pga = median(gm_set_table.pga);
 
 %% Run Opensees Models
 if analysis.run_ida || analysis.post_process_ida
-    fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir)
+    fn_master_IDA(analysis, model, story, element, node, hinge, joint, IDA_scale_factors, gm_set_table, ida_results, tcl_dir)
 end
 
 %% Create Response and Consequence Fragilities

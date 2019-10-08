@@ -43,6 +43,11 @@ if isfield(ground_motion,'z')
     % Z disps
     edp_disp_z = [0; story.max_disp_z];
     edp_disp_z_center = [0; story.max_disp_center_z];
+    if ismember('max_twist_z',story.Properties.VariableNames)
+        edp_disp_z_twist = [0; story.max_twist_z];
+    else
+        edp_disp_z_twist = [];
+    end
     if any(strcmp('max_disp_z_mod',story.Properties.VariableNames))
         edp_mods.max_disp.z = [0; story.max_disp_z_mod];
         edp_mods.max_disp_center.z = [0; story.max_disp_center_z_mod];
@@ -52,6 +57,7 @@ else
     edp_accel_z_center = [];
     edp_disp_z = [];
     edp_disp_z_center = [];
+    edp_disp_z_twist = [];
 end
 
 if isempty(record_edp)
@@ -59,18 +65,19 @@ if isempty(record_edp)
     record_edp.max_accel_center = [];
     record_edp.max_disp = [];
     record_edp.max_disp_center = [];
+    record_edp.max_twist = [];
 end
 
 %% Plot Profiles
 % Acceleration
 if any(strcmp('max_accel_x',story.Properties.VariableNames))
-    fn_plot_profile( edp_accel_x, edp_accel_z, [min(story.id)-1;story.id], edp_plot_dir, 'Acceleration Profile', 'Acceleration (g)', NaN, record_edp.max_accel, [])
-    fn_plot_profile( edp_accel_x_center, edp_accel_z_center, [min(story.id)-1;story.id], edp_plot_dir, 'Acceleration Profile Center', 'Acceleration (g)', NaN, record_edp.max_accel_center, [])
+    fn_plot_profile( edp_accel_x, edp_accel_z, [min(story.id);(story.id+1)], edp_plot_dir, 'Acceleration Profile', 'Acceleration (g)', NaN, record_edp.max_accel, [])
+    fn_plot_profile( edp_accel_x_center, edp_accel_z_center,  [min(story.id);(story.id+1)], edp_plot_dir, 'Acceleration Profile Center', 'Acceleration (g)', NaN, record_edp.max_accel_center, [])
 end
 % Displacement
-fn_plot_profile( edp_disp_x, edp_disp_z, [min(story.id)-1;story.id], edp_plot_dir, 'Displacement Profile', 'Displacement (in)', target_disp_in, record_edp.max_disp, edp_mods.max_disp)
+fn_plot_profile( edp_disp_x, edp_disp_z, [min(story.id);(story.id+1)], edp_plot_dir, 'Displacement Profile', 'Displacement (in)', target_disp_in, record_edp.max_disp, edp_mods.max_disp)
 if ~any(isnan(edp_disp_x_center))
-    fn_plot_profile( edp_disp_x_center, edp_disp_z_center, [min(story.id)-1;story.id], edp_plot_dir, 'Displacement Profile Center', 'Displacement (in)', target_disp_in, record_edp.max_disp_center, edp_mods.max_disp_center)
+    fn_plot_profile( edp_disp_x_center, edp_disp_z_center, [min(story.id);(story.id+1)], edp_plot_dir, 'Displacement Profile Center', 'Displacement (in)', target_disp_in, record_edp.max_disp_center, edp_mods.max_disp_center)
 end
     
 % Drift
@@ -78,6 +85,11 @@ if isfield(ground_motion,'z')
     fn_plot_profile( story.max_drift_x, story.max_drift_z, story.id, edp_plot_dir, 'Drift Profile', 'Interstory Drift', NaN, [], [] )
 else
     fn_plot_profile( story.max_drift_x, [], story.id, edp_plot_dir, 'Drift Profile', 'Interstory Drift', NaN, [], [] )
+end
+
+% Twist
+if ~isempty(edp_disp_z_twist)
+    fn_plot_profile( [], edp_disp_z_twist, [min(story.id);(story.id+1)], edp_plot_dir, 'Twist Profile', 'Twist (in)', NaN, record_edp.max_twist, [])
 end
 
 end
@@ -103,7 +115,7 @@ matlab_colors =  [0, 0.4470, 0.7410;
 
 %% NS Plot
 if ~isempty(profile_z)
-    if strcmp(name,'Interstory Drift')
+    if strcmp(name,'Interstory Drift') || strcmp(name,'Twist (in)')
         subplot(1,2,1)
     else
         subplot(1,3,1)
@@ -142,36 +154,38 @@ if ~isempty(profile_z)
     % Subplot space for EW plot
     if strcmp(name,'Interstory Drift')
         subplot(1,2,2)
-    else
+    elseif ~strcmp(name,'Twist (in)')
         subplot(1,3,2)
     end
 end
 
 %% EW Plot
-hold on
-max_data = ceil(120*max(profile_x))/100;
+if ~isempty(profile_x)
+    hold on
+    max_data = ceil(120*max(profile_x))/100;
 
-% Additional data
-if ~isempty(recording)
-   plot(recording.x(~isnan(recording.x)),story_ids(~isnan(recording.x)),'k--o','MarkerFaceColor','k','DisplayName','Recorded')
-   max_data = ceil(1.2*max([profile_x;recording.x]));
-end
-if ~isempty(mod_profile)
-   plot(mod_profile.x,story_ids,'--','color',matlab_colors(2,:),'linewidth',1.5,'DisplayName','Linear Modifications')
-end
+    % Additional data
+    if ~isempty(recording)
+       plot(recording.x(~isnan(recording.x)),story_ids(~isnan(recording.x)),'k--o','MarkerFaceColor','k','DisplayName','Recorded')
+       max_data = ceil(1.2*max([profile_x;recording.x]));
+    end
+    if ~isempty(mod_profile)
+       plot(mod_profile.x,story_ids,'--','color',matlab_colors(2,:),'linewidth',1.5,'DisplayName','Linear Modifications')
+    end
 
-% Main data
-plot(profile_x,story_ids,'color',matlab_colors(2,:),'linewidth',1.5,'DisplayName','Analysis')
+    % Main data
+    plot(profile_x,story_ids,'color',matlab_colors(2,:),'linewidth',1.5,'DisplayName','Analysis')
 
-% Add target dispalcement
-if isstruct(target_disp)
-    scatter(target_disp.x,max(story_ids),75,matlab_colors(2,:),'*','DisplayName','Target Displacement')
+    % Add target dispalcement
+    if isstruct(target_disp)
+        scatter(target_disp.x,max(story_ids),75,matlab_colors(2,:),'*','DisplayName','Target Displacement')
+    end
+    xlabel(['EW ' name])
+    xlim([0,max_data])
+    ylim([min(story_ids),max(story_ids)])
+    yticks(story_ids)
+    box on
 end
-xlabel(['EW ' name])
-xlim([0,max_data])
-ylim([min(story_ids),max(story_ids)])
-yticks(story_ids)
-box on
 
 if ~strcmp(name,'Interstory Drift')
     hL = legend('location','east');

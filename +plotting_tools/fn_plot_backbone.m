@@ -86,7 +86,19 @@ elseif strcmp(ele.type,'wall') && strcmp(crit_mode,'shear')
         ylabel('Shear Force (k)')
         xlim([-max(disp_vec)*1.25,max(disp_vec)*1.25])
         ylim([-max(force_vec)*1.25/1000,max(force_vec)*1.25/1000])
-    end    
+    end
+elseif strcmp(ele.type,'joint')
+    [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.Mn, ele.Mn, ele.Mn, ele.Mn, ele.h, ele.e, ele.iz, ele.a_hinge, ele.b_hinge, ele.c_hinge, 100, 0, 'shear' );
+    hold on
+    yax = plot([0,0],[-5e4,5e4],'color',[0.5, 0.5, 0.5]);
+    set(get(get(yax,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+    xax = plot([-5e-2,5e-2],[0,0],'color',[0.5, 0.5, 0.5]);
+    set(get(get(xax,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
+    plot([fliplr(-(rot_vec_neg)),0,rot_vec_pos],[fliplr(-moment_vec_neg),0,moment_vec_pos]/1000,'Color','k','LineWidth',2,'DisplayName','ASCE 41 Backone') % Don't need to worry about negative bending because this plot is normalized by Qy
+    elastic_rotation = (hinge_force_to_plot*ele.h / (6*ele.e*ele.iz))*(100/101);
+    plot(hinge_disp_to_plot + elastic_rotation,hinge_force_to_plot/1000,'color', plt_color, 'LineWidth',1.25,'DisplayName','Analysis'); % transform from lb-in to kip-in
+    xlabel('Total Rotation (rad)')
+    ylabel('Moment (k-in)')
 end
 
 % Format and save plot

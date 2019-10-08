@@ -1,4 +1,4 @@
-function [ ] = fn_postprocess_ida(analysis, model, story, element, node, hinge, joint, ground_motion, ida_opensees_dir, ida_summary_dir)
+function [ ] = fn_postprocess_ida(analysis, model, story, element, node, hinge, joint, ground_motion, idaopensees_outputs_dir, ida_summary_dir)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -12,26 +12,26 @@ import ida.*
 ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
 
 %% Post process IDA using opensees post processor
-main_post_process_opensees( analysis, model, story, node, element, joint, hinge, ground_motion, ida_opensees_dir )
+main_post_process_opensees( analysis, model, story, node, element, joint, hinge, ground_motion, opensees_outputs_dir )
 
 %% Create IDA Summary DATA
 % Load existing summary data
-load([ida_summary_dir filesep 'summary_results.mat'])
+load([ida_outputs_dir filesep 'summary_results.mat'])
 
 % Max Story Drifts
-load([ida_opensees_dir filesep 'story_analysis.mat']);
+load([opensees_outputs_dir filesep 'story_analysis.mat']);
 summary.max_drift_x = max(story.max_drift_x);
 if analysis.run_z_motion
     summary.max_drift_z = max(story.max_drift_z);
 end
 
 % Hinge Ratios and Acceptance Criteria
-load([ida_opensees_dir filesep 'hinge_analysis.mat'])
+load([opensees_outputs_dir filesep 'hinge_analysis.mat'])
 for i = 1:height(hinge)
     ele = element(element.id == hinge.element_id(i),:);
     ele_prop = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
-    if exist([ida_opensees_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'file')
-        load([ida_opensees_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat']);
+    if exist([opensees_outputs_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'file')
+        load([opensees_outputs_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat']);
         hinge.hinge_deform(i) = max(abs(hin_TH.deformation_TH));
         hinge.ele_type(i) = ele_prop.type;
 
@@ -146,10 +146,10 @@ if summary.collapse > 0
 end
 
 % Save data for this run
-fprintf('Writing IDA Results to Directory: %s \n',ida_summary_dir)
-save([ida_summary_dir filesep 'hinge_analysis.mat'],'hinge')
-save([ida_summary_dir filesep 'story_analysis.mat'],'story')
-save([ida_summary_dir filesep 'summary_results.mat'],'summary')
+fprintf('Writing IDA Results to Directory: %s \n',ida_outputs_dir)
+save([ida_outputs_dir filesep 'hinge_analysis.mat'],'hinge')
+save([ida_outputs_dir filesep 'story_analysis.mat'],'story')
+save([ida_outputs_dir filesep 'summary_results.mat'],'summary')
 
 end %function
 

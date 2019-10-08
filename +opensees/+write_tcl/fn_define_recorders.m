@@ -25,32 +25,27 @@ end
 if analysis.type == 1 
     % Define Node recorders
     for i = 1:height(node)
-        if analysis.simple_recorders && node.primary_story(i)
-            fprintf(fileID,'recorder Node %s %s/nodal_disp_%s.%s -time -node %i -dof 1 3 disp \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
-        else
-            if strcmp(dimension,'2D')
-                if node.record_disp(i)
-                    fprintf(fileID,'recorder Node %s %s/nodal_disp_%s.%s -time -node %i -dof 1 disp \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
-                end
-                if node.record_accel(i)
-                    fprintf(fileID,'recorder Node %s %s/nodal_accel_%s.%s -time -node %i -dof 1 accel \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
-                end
-            elseif strcmp(dimension,'3D')
-                if node.record_disp(i)
-                    fprintf(fileID,'recorder Node %s %s/nodal_disp_%s.%s -time -node %i -dof 1 3 disp \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
-                end
-                if node.record_accel(i)
-                    fprintf(fileID,'recorder Node %s %s/nodal_accel_%s.%s -time -node %i -dof 1 3 accel \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
-                end
+        if strcmp(dimension,'2D')
+            if node.record_disp(i)
+                fprintf(fileID,'recorder Node %s %s/nodal_disp_%s.%s -time -node %i -dof 1 disp \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
+            end
+            if node.record_accel(i) && ~analysis.simple_recorders
+                fprintf(fileID,'recorder Node %s %s/nodal_accel_%s.%s -time -node %i -dof 1 accel \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
+            end
+        elseif strcmp(dimension,'3D')
+            if node.record_disp(i)
+                fprintf(fileID,'recorder Node %s %s/nodal_disp_%s.%s -time -node %i -dof 1 3 disp \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
+            end
+            if node.record_accel(i) && ~analysis.simple_recorders
+                fprintf(fileID,'recorder Node %s %s/nodal_accel_%s.%s -time -node %i -dof 1 3 accel \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
             end
         end
     end
     
     % Nodal Reaction Recorders
-    
     base_nodes = node.id(node.y == 0);
     fprintf(fileID,'recorder Node %s %s/nodal_base_reaction_x.%s -time -node %s -dof 1 reaction \n', file_type, write_dir, file_ext, num2str(base_nodes'));
-    if strcmp(dimension,'3D') && ~analysis.simple_recorders 
+    if strcmp(dimension,'3D')
         fprintf(fileID,'recorder Node %s %s/nodal_base_reaction_z.%s -time -node %s -dof 3 reaction \n', file_type, write_dir, file_ext, num2str(base_nodes'));
     end
 
@@ -100,7 +95,6 @@ if analysis.type == 1
             end
         end
     end
-    
 %% Pushover and Cyclic Recorders
 elseif analysis.type == 2 || analysis.type == 3 
     if strcmp(analysis.pushover_direction,'x') || strcmp(analysis.pushover_direction,'-x')
@@ -160,10 +154,14 @@ elseif analysis.type == 2 || analysis.type == 3
 end
 
 %% Joints
-% if ~isempty(joint)
-%     fprintf(fileID,'recorder Element %s %s/joint_force_all.%s -time -ele %s force \n', file_type, write_dir, file_ext, num2str(joint.id' + 10000));
-%     fprintf(fileID,'recorder Element %s %s/joint_deformation_all.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(joint.id' + 10000));
-% end
+if analysis.nonlinear ~= 0 && analysis.joint_explicit == 1 && ~analysis.simple_recorders % Nonlinear Joints
+    % Rotational Hinges x direction - primary
+    nonlin_joints = joint.id(joint.story <= analysis.stories_nonlinear) + 10000;
+    if ~isempty(nonlin_joints)
+        fprintf(fileID,'recorder Element %s %s/joint_moment.%s -time -ele %s localForce \n', file_type, write_dir, file_ext, num2str(nonlin_joints'));
+        fprintf(fileID,'recorder Element %s %s/joint_rotation.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(nonlin_joints'));
+    end
+end
 
 %% Visual Outputs
 if ~analysis.suppress_outputs

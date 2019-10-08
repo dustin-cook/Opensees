@@ -37,17 +37,15 @@ if ~isempty(record_edp)
     
 
     % Define Accelerometer Nodes (Currently Specific to ICSB, NEED TO UPDATE)
-    center_x = 671;
-    center_z = 300;
     ground_x = 671;
     ground_z = 450;
-    east_x = 1571;
-    east_z = 300;
+    east_x = 1642;
+    east_z = 450;
     node_ground_id = node.id(node.x == ground_x & node.z == ground_z & node.y == 0 & node.on_slab == 1);
-    node_second_east_id = node.id(node.x == east_x & node.z == east_z & node.story == 2);
+    node_second_east_id = node.id(node.x == east_x & node.z == east_z & node.story == 1);
     node_roof_east_id = node.id(node.x == east_x & node.z == east_z & node.story == 6);
-    node_second_center_id = node.id(node.x == center_x & node.z == center_z & node.story == 1);
-    node_roof_center_id = node.id(node.x == center_x & node.z == center_z & node.story == 6);
+    node_second_center_id = node.id(node.center == 1 & node.story == 1);
+    node_roof_center_id = node.id(node.center == 1 & node.story == 6);
     ground_id_TH = load([read_dir_opensees filesep 'node_TH_' num2str(node_ground_id) '.mat']);
     second_east_id_TH = load([read_dir_opensees filesep 'node_TH_' num2str(node_second_east_id) '.mat']);
     roof_east_id_TH = load([read_dir_opensees filesep 'node_TH_' num2str(node_roof_east_id) '.mat']);
