@@ -24,67 +24,67 @@ consequence_beta = frag_curves.collapse.beta;
 collapse_target = ida_table_full.collapse;
 
 %% Do some tests
-x_points = 0:0.01:2;
-hold on
-plot(x_points,logncdf(x_points,log(consequence_theta),consequence_beta))
-scatter(stripe.asce41_sa_ew,stripe.num_collapse_tot ./ stripe.num_gms)
-gms = unique(ida_table.gm_name);
-idx = 1;
-for gm = 1:length(gms)
-    gm_collapse_sas = ida_table.sa_x(ida_table.collapse > 0 & strcmp(ida_table.gm_name,gms{gm}));
-    if ~isempty(gm_collapse_sas)
-        collapse_sas(idx) = min(gm_collapse_sas);
-        idx = idx + 1;
-    end
-end
-collapse_sa_dist = sort(collapse_sas);
-collapse_sa_rank = (1:length(collapse_sa_dist)) / length(collapse_sa_dist);
-plot(collapse_sa_dist,collapse_sa_rank)
-scatter(ida_table_full.sa_x,collapse_target)
-B = mnrfit(log(ida_table_full.sa_x),categorical(~collapse_target),'model','ordinal','link','logit');
-% B = glmfit(log(ida_table_full.sa_x),collapse_target,'binomial','link','probit');
-z_val = B(1) + log(x_points)*B(2);
-prob_val = 1 ./ (1+exp(-z_val));
-plot(x_points,prob_val)
-
-prediction = zeros(length(collapse_target),1);
-prediction(prob_val > 0.5) = 1;
-LR_accuracy = sum(collapse_target == prediction)/length(collapse_target);
-TP = sum(and(prediction,collapse_target));
-TN = sum(and(~prediction,~collapse_target));
-FP = sum(and(prediction,~collapse_target));
-FN = sum(and(~prediction,collapse_target));
-LR_precision = TP / (TP+FP);
-LR_recall = TP / (FN+TP);
-LR_F1 = 2*LR_precision*LR_recall / (LR_precision + LR_recall);
+% x_points = 0:0.01:2;
+% hold on
+% plot(x_points,logncdf(x_points,log(consequence_theta),consequence_beta))
+% scatter(stripe.asce41_sa_ew,stripe.num_collapse_tot ./ stripe.num_gms)
+% gms = unique(ida_table.gm_name);
+% idx = 1;
+% for gm = 1:length(gms)
+%     gm_collapse_sas = ida_table.sa_x(ida_table.collapse > 0 & strcmp(ida_table.gm_name,gms{gm}));
+%     if ~isempty(gm_collapse_sas)
+%         collapse_sas(idx) = min(gm_collapse_sas);
+%         idx = idx + 1;
+%     end
+% end
+% collapse_sa_dist = sort(collapse_sas);
+% collapse_sa_rank = (1:length(collapse_sa_dist)) / length(collapse_sa_dist);
+% plot(collapse_sa_dist,collapse_sa_rank)
+% scatter(ida_table_full.sa_x,collapse_target)
+% B = mnrfit(log(ida_table_full.sa_x),categorical(~collapse_target));
+% % B = glmfit(log(ida_table_full.sa_x),collapse_target,'binomial','link','probit');
+% z_val = B(1) + log(x_points)*B(2);
+% prob_val = 1 ./ (1+exp(-z_val));
+% plot(x_points,prob_val)
+% 
+% prediction = zeros(length(collapse_target),1);
+% prediction(prob_val > 0.5) = 1;
+% LR_accuracy = sum(collapse_target == prediction)/length(collapse_target);
+% TP = sum(and(prediction,collapse_target));
+% TN = sum(and(~prediction,~collapse_target));
+% FP = sum(and(prediction,~collapse_target));
+% FN = sum(and(~prediction,collapse_target));
+% LR_precision = TP / (TP+FP);
+% LR_recall = TP / (FN+TP);
+% LR_F1 = 2*LR_precision*LR_recall / (LR_precision + LR_recall);
 
 %% For each component metrics, quantify comparison
-metrics = table;
-idx = 0;
-for p = 1:length(params)
-    for n = 1:length(frag_curves.(mechanism{p}).(params{p}).theta)
-        idx = idx + 1;
-        metrics.id(idx,1) = idx;
-        metrics.mechanism{idx,1} = mechanism{p};
-        metrics.parameter{idx,1} = params{p};
-        if ~strcmp(mechanism{p},'cols_walls_1')
-            metrics.num_components(idx,1) = NaN;
-            metrics.percent_mechanism(idx,1) = NaN;
-            plot_dir = [write_dir filesep mechanism{p} '_' params{p}];
-        else
-            metrics.num_components(idx,1) = frag_curves.(mechanism{p}).(params{p}).num_comp(n);
-            metrics.percent_mechanism(idx,1) = frag_curves.(mechanism{p}).(params{p}).prct_mech(n);
-            plot_dir = [write_dir filesep mechanism{p} '_' params{p} '_' num2str(metrics.num_components(idx,1)) '_comps'];
-        end
-        component_theta = frag_curves.(mechanism{p}).(params{p}).theta(n);
-        component_beta = frag_curves.(mechanism{p}).(params{p}).beta(n);
-        [metrics_data(idx,:)] = fn_comparison_metrics(consequence_theta, consequence_beta, component_theta, component_beta, plot_dir);
-    end
-end
-
-% Write Table of Metrics
-metrics_table = [metrics, metrics_data];
-writetable(metrics_table,[write_dir filesep 'metrics_table.csv'])
+% metrics = table;
+% idx = 0;
+% for p = 1:length(params)
+%     for n = 1:length(frag_curves.(mechanism{p}).(params{p}).theta)
+%         idx = idx + 1;
+%         metrics.id(idx,1) = idx;
+%         metrics.mechanism{idx,1} = mechanism{p};
+%         metrics.parameter{idx,1} = params{p};
+%         if ~strcmp(mechanism{p},'cols_walls_1')
+%             metrics.num_components(idx,1) = NaN;
+%             metrics.percent_mechanism(idx,1) = NaN;
+%             plot_dir = [write_dir filesep mechanism{p} '_' params{p}];
+%         else
+%             metrics.num_components(idx,1) = frag_curves.(mechanism{p}).(params{p}).num_comp(n);
+%             metrics.percent_mechanism(idx,1) = frag_curves.(mechanism{p}).(params{p}).prct_mech(n);
+%             plot_dir = [write_dir filesep mechanism{p} '_' params{p} '_' num2str(metrics.num_components(idx,1)) '_comps'];
+%         end
+%         component_theta = frag_curves.(mechanism{p}).(params{p}).theta(n);
+%         component_beta = frag_curves.(mechanism{p}).(params{p}).beta(n);
+%         [metrics_data(idx,:)] = fn_comparison_metrics(consequence_theta, consequence_beta, component_theta, component_beta, plot_dir);
+%     end
+% end
+% 
+% % Write Table of Metrics
+% metrics_table = [metrics, metrics_data];
+% writetable(metrics_table,[write_dir filesep 'metrics_table.csv'])
 
 %% For each component metric, quantify comparison logistic regression
 mechanism = {'cols_walls_1','cols_walls_1','drift', 'gravity'};
@@ -109,13 +109,13 @@ for p = 1:length(params)
         LR_metrics.parameter{idx,1} = params{p};
         LR_metrics.metric{idx,1} = LR_parameters{lr};
         if strcmp(mechanism{p},'drift')
-            component_response_param = max(ida_table.drift_x,ida_table.drift_z);
+            component_response_param = max(ida_table_full.drift_x,ida_table_full.drift_z);
             plot_dir = [write_dir filesep 'LR_' mechanism{p}];
         elseif strcmp(mechanism{p},'gravity')
-            component_response_param = ida_table.gravity_load_lost_ratio;
+            component_response_param = ida_table_full.gravity_load_lost_ratio;
             plot_dir = [write_dir filesep 'LR_' mechanism{p}];
         else
-            component_response_param = ida_table.([mechanism{p} '_' LR_parameters{lr} '_' params{p}]);
+            component_response_param = ida_table_full.([mechanism{p} '_' LR_parameters{lr} '_' params{p}]);
             plot_dir = [write_dir filesep 'LR_' mechanism{p} '_' params{p} '_' LR_parameters{lr}];
         end
         [LR_metrics_data(idx,:)] = fn_logistic_regression(component_response_param, collapse_target, plot_dir, LR_x_names{lr});
@@ -188,8 +188,8 @@ import plotting_tools.fn_format_and_save_plot
 % ida_table = readtable([read_dir filesep 'ida_table.csv']);
 % collapse_target = ida_table.collapse;
 % max_component_response = ida_table.max_cp_cols_walls_1;
-B = mnrfit(max_component_response,categorical(~collapse_target));
-z_val = B(1) + max_component_response*B(2);
+B = mnrfit(log(max_component_response),categorical(~collapse_target));
+z_val = B(1) + log(max_component_response)*B(2);
 prob_val = 1 ./ (1+exp(-z_val));
 metrics.LR_value_coef = B(1);
 metrics.LR_correlation_coef = B(2);

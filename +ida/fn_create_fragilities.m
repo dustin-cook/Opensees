@@ -1,4 +1,4 @@
-function [ ] = fn_create_fragilities(analysis, model, IDA_scale_factors, gm_set_table, max_dir_spectra, ida_results)
+function [ ] = fn_create_fragilities(analysis, model, gm_set_table, max_dir_spectra, ida_results)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -23,10 +23,12 @@ if ~exist(write_dir,'dir')
 end
 id = 0;
 id_missing = 0;
-for i = 1:length(IDA_scale_factors)
-    for gms = 1:height(gm_set_table)   
+for gm = 1:height(gm_set_table)
+    gm_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_table.set_id(gm)) '_' num2str(gm_set_table.pair(gm))];
+    scale_folders = dir([gm_dir filesep 'Scale_*']);
+    for s = 1:length(scale_folders)
         % Load data
-        outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Summary Data' '/' 'Scale_' num2str(IDA_scale_factors(i)) '/' 'GM_' num2str(gm_set_table.set_id(gms)) '_' num2str(gm_set_table.pair(gms))];
+        outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_table.set_id(gm)) '_' num2str(gm_set_table.pair(gm)) '/' scale_folders(s).name];
         outputs_file = [outputs_dir filesep 'summary_results.mat'];
         hinge_file = [outputs_dir filesep 'hinge_analysis.mat'];
         story_file = [outputs_dir filesep 'story_analysis.mat'];
@@ -36,8 +38,8 @@ for i = 1:length(IDA_scale_factors)
             load(hinge_file)
             load(story_file)
             ida.id(id,1) = id;
-            ida.scale(id,1) = IDA_scale_factors(i);
-            ida.gm_name{id,1} = gm_set_table.eq_name{gms};
+            ida.eq_name{id,1} = gm_set_table.eq_name{gm};
+            ida.scale(id,1) = str2double(regexp(scale_folders(s).name,'(?<=_).+$','match'));
             
             % X direction
             ida.sa_x(id,1) = summary.sa_x;
@@ -52,14 +54,6 @@ for i = 1:length(IDA_scale_factors)
             end
             
             % Collapse metrics
-            if i > 1
-                gm_prev_stripe_collapse = ida.collapse(strcmp(ida.gm_name(1:end-1),gm_set_table.eq_name{gms}));
-                if summary.collapse > 0 && any(gm_prev_stripe_collapse)
-                    ida.collapse_prev_stripe(id,1) = 1;
-                else
-                    ida.collapse_prev_stripe(id,1) = 0;
-                end
-            end
             ida.collapse(id,1) = summary.collapse;
             if isfield(summary,'collapse_direction')
                 ida.collapse_direction{id,1} = summary.collapse_direction;
@@ -72,16 +66,12 @@ for i = 1:length(IDA_scale_factors)
             
             % Get element group filters
             first_story_col_filter = hinge.story == 1 & strcmp(hinge.direction,'primary') & strcmp(hinge.ele_type,'column');
-%             first_story_beam_filter = hinge.story == 1 & strcmp(hinge.direction,'primary')  & strcmp(hinge.ele_type,'beam');
             first_story_wall_filter = hinge.story == 1 & strcmp(hinge.direction,'primary')  & strcmp(hinge.ele_type,'wall');
             num_comps_cols_1 = sum(first_story_col_filter);
-%             num_comps_bms_1 = sum(first_story_beam_filter);
             num_comps_walls_1 = sum(first_story_wall_filter);
             num_comps_cols_walls_1 = sum(first_story_col_filter | first_story_wall_filter);
             mech_hinges{1}.prime = hinge(first_story_col_filter,:);
             mech_hinges{1}.second = [];
-%             mech_hinges{2}.prime = hinge(first_story_beam_filter,:);
-%             mech_hinges{2}.second = [];
             mech_hinges{2}.prime = hinge(first_story_wall_filter,:);
             mech_hinges{2}.second = [];
             mech_hinges{3}.prime = hinge(first_story_col_filter,:);
@@ -106,7 +96,6 @@ for i = 1:length(IDA_scale_factors)
             grav_load_lost = sum(elements_lost_grav.P_grav);
             total_grav_load = sum(story.story_dead_load + story.story_live_load); % take the whole build wt since I am assessing the first story
             ida.gravity_load_lost_ratio(id,1) = grav_load_lost / total_grav_load;
-%             cols_walls_1_elements = element(ismember(element.id,mech_hinges{3}.prime.element_id) | ismember(element.id,mech_hinges{3}.second.element_id),:);
 
             % Adjacent components (focus on just columns for now)
             cols_walls_1_hinge_nodes = node(ismember(node.id,cols_walls_1_hinges.node_1),:);
@@ -144,9 +133,9 @@ for i = 1:length(IDA_scale_factors)
             end
         else
             id_missing = id_missing + 1;
-            missing_ida.scale(id_missing,1) = IDA_scale_factors(i);
-            missing_ida.gm_set_id(id_missing,1) = gm_set_table.set_id(gms);
-            missing_ida.gm_set_pair_id(id_missing,1) = gm_set_table.pair(gms);
+            missing_ida.scale(id_missing,1) = IDA_scale_factors(s);
+            missing_ida.gm_set_id(id_missing,1) = gm_set_table.set_id(gm);
+            missing_ida.gm_set_pair_id(id_missing,1) = gm_set_table.pair(gm);
         end
     end
 end
@@ -156,8 +145,6 @@ end
 ida_table = struct2table(ida);
 failed_convergence = ida_table(ida_table.collapse == 5,:);
 ida_table(ida_table.collapse == 5,:) = []; % filter out failed models
-ida_table_full = ida_table;
-ida_table(ida_table.collapse_prev_stripe == 1,:) = []; % fitler out models where it previously collapsed
 
 % Save Tabular Results as CSVs
 writetable(ida_table,[write_dir filesep 'ida_table.csv'])
@@ -165,125 +152,103 @@ if exist('missing_ida','var')
     writetable(struct2table(missing_ida),[write_dir filesep 'idas_missing.csv'])
 end
 writetable(failed_convergence,[write_dir filesep 'idas_failed_convergence.csv'])
-writetable(ida_table_full,[write_dir filesep 'ida_table_full.csv'])
 
-% %% Collect Stripe Info
-% for i = 1:length(IDA_scale_factors)
-%     this_stripe = ida_table(ida_table.scale == IDA_scale_factors(i),:);
-%     
-%     %% Regular Collapse
-%     stripe.num_gms(i,1) = height(this_stripe);
-%     stripe.num_gms_drift(i,1) = sum(this_stripe.collapse ~= 3);
-%     stripe.num_gms_convergence(i,1) = sum(this_stripe.collapse ~= 1);
-%     stripe.num_gms_ew(i,1) = sum(~strcmp(this_stripe.collapse_direction,'z'));
-%     stripe.num_gms_ns(i,1) = sum(~strcmp(this_stripe.collapse_direction,'x'));
-%     stripe.num_collapse_drift(i,1) = sum(this_stripe.collapse == 1);
-%     stripe.num_collapse_convergence(i,1) = sum(this_stripe.collapse == 3);
-%     stripe.num_collapse_tot(i,1) = stripe.num_collapse_drift(i,1) + stripe.num_collapse_convergence(i,1);
-%     stripe.num_collapse_ew(i,1) =  sum(strcmp(this_stripe.collapse_direction,'x'));
-%     stripe.num_collapse_ns(i,1) =  sum(strcmp(this_stripe.collapse_direction,'z'));
-%     stripe.num_accept_15(i,1) = sum(this_stripe.cols_walls_1_num_b_e_15 > 0);
-%     stripe.num_unacceptable_response(i,1) = sum(this_stripe.collapse == 1 | this_stripe.collapse == 3 | this_stripe.cols_walls_1_num_b_e_15 > 0);
-% 
-%     %% Drift checks
-%     for d = 1:5
-%         stripe.(['num_drift_' num2str(d) '_percent'])(i,1) = sum(this_stripe.drift_x >= d/100 | this_stripe.drift_z >= d/100);
-%     end
-%     
-%     %% Gravity Load lost
-%     for f = 1:length(frag_probs)
-%         stripe.(['num_grav_lost_' num2str(frag_probs(f)) '_percent'])(i,1) = sum(this_stripe.gravity_load_lost_ratio >= frag_probs(f)/100);
-%     end
-%     
-%     %% Adjacent Components
-%     stripe.adjacent_failure_any(i,1) = sum(this_stripe.adjacent_failure_any == 1);
-%     stripe.adjacent_failure_any_frame(i,1) = sum(this_stripe.adjacent_failure_any_frame == 1);
-%     stripe.adjacent_failure_all(i,1) = sum(this_stripe.adjacent_failure_all == 1);
-%     
-%     %% X Direction
-%     % Lognormal Mean Spectral Accelration
-%     stripe.p695_sa_ew(i,1) = exp(mean(log(this_stripe.sa_x)));
-%     stripe.p_15_sa_ew(i,1) = prctile(this_stripe.sa_x,15);
-%     stripe.p_85_sa_ew(i,1) = prctile(this_stripe.sa_x,85);
-% 
-%     % Max Direction Spectral Acceleration
-%     [~,idx] = min(abs(max_dir_spectra.period - ida_results.period(1)));
-%     stripe.asce41_sa_ew(i,1) = max_dir_spectra.sa(idx)*IDA_scale_factors(i);
-% 
-%     % Drift
-%     stripe.mean_idr_ew(i,1) = mean(this_stripe.drift_x);
-%     
-%     %% Z Direction
-%     if analysis.run_z_motion
-%         % Lognormal Mean Spectral Accelration
-%         stripe.p695_sa_ns(i,1) = exp(mean(log(this_stripe.sa_z)));
-%         stripe.p_15_sa_ns(i,1) = prctile(this_stripe.sa_z,15);
-%         stripe.p_85_sa_ns(i,1) = prctile(this_stripe.sa_z,85);
-% 
-%         % Max Direction Spectral Acceleration
-%         [~,idx_ns] = min(abs(max_dir_spectra.period - ida_results.period(2)));
-%         stripe.asce41_sa_ns(i,1) = max_dir_spectra.sa(idx_ns)*IDA_scale_factors(i);
-% 
-%         % Drift
-%         stripe.mean_idr_ns(i,1) = exp(mean(log(this_stripe.drift_z)));
-%     end
-%     
-%     %% Component mechanisms
-%     for m = 1:length(mechs)
-%         for p = 1:length(params)
-%             stripe.([mechs{m} '_' 'num_first_' params{p}])(i,1) = sum(this_stripe.([mechs{m} '_num_' params{p}]) >= 1);
-%             for pr = 1:length(frag_probs)
-%                 stripe.([mechs{m} '_' 'num_' num2str(frag_probs(pr)) '_' params{p}])(i,1) = sum(this_stripe.([mechs{m} '_percent_' params{p}]) >= frag_probs(pr)/100);
-%             end
-%         end
-%     end
-% end
-% 
-% % Save frag data
-% stripe = struct2table(stripe);
-% save([write_dir filesep 'stripe_table.mat'],'stripe')
+%% Collect info for each ground motion
+for gm = 1:height(gm_set_table)
+    gm_response = ida_table(strcmp(ida_table.eq_name,gm_set_table.eq_name(gm)),:);
+    gm_set_table.sa_collapse(gm) = max([min(gm_response.sa_x(gm_response.collapse > 0)),NaN]);
+    gm_set_table.sa_collapse_drift(gm) = max([min(gm_response.sa_x(gm_response.collapse == 1)),NaN]);
+    gm_set_table.sa_collapse_convergence(gm) = max([min(gm_response.sa_x(gm_response.collapse == 3)),NaN]);
+    gm_set_table.sa_UR_accept_15(gm) = max([min(gm_response.sa_x(gm_response.cols_walls_1_num_b_e_15 > 0)),NaN]);
+    gm_set_table.sa_UR(gm) = max([min(gm_response.sa_x(gm_response.collapse == 1 | gm_response.collapse == 3 | gm_response.cols_walls_1_num_b_e_15 > 0)),NaN]);
+    
+    % filter out collapse cases
+    gm_response_no_collapse = gm_response(gm_response.collapse == 0,:);
+    
+    % non directional component fragilities 
+    for p = 1:length(params)
+        gm_set_table.(['sa_cols_walls_1_first_' params{p}])(gm) = max([min(gm_response_no_collapse.sa_x(gm_response_no_collapse.(['cols_walls_1_num_' params{p}]) > 0)),NaN]);
+        for pr = 1:length(frag_probs)
+            gm_set_table.(['sa_cols_walls_1_' num2str(frag_probs(pr)) '_percent_' params{p}])(gm) = max([min(gm_response_no_collapse.sa_x(gm_response_no_collapse.(['cols_walls_1_percent_' params{p}]) > frag_probs(pr)/100)),NaN]);
+        end
+    end
+    
+    % 1% to 5% drift fragilities
+    for d = 1:10 
+        gm_set_table.(['sa_drift_' num2str(d)])(gm) = max([min(gm_response_no_collapse.sa_x(gm_response_no_collapse.drift_x >= d/100 | gm_response_no_collapse.drift_z >= d/100)),NaN]);
+    end
+    
+    % grav load lost fragilities
+    for f = 1:length(frag_probs)
+        gm_set_table.(['sa_gravity_percent_lost_' num2str(frag_probs(f))])(gm) = max([min(gm_response_no_collapse.sa_x(gm_response_no_collapse.gravity_load_lost_ratio >= frag_probs(f)/100)),NaN]);
+    end
+    
+    % adjacent components
+    gm_set_table.sa_adjacent_component_any(gm) = max([min(gm_response_no_collapse.sa_x(gm_response_no_collapse.adjacent_failure_any == 1)),NaN]);
+    gm_set_table.sa_adjacent_component_any_frame(gm) = max([min(gm_response_no_collapse.sa_x(gm_response_no_collapse.adjacent_failure_any_frame == 1)),NaN]);
+    gm_set_table.sa_adjacent_component_all(gm) = max([min(gm_response_no_collapse.sa_x(gm_response_no_collapse.adjacent_failure_all == 1)),NaN]);
+    
+    % X direction Curves
+    gm_set_table.sa_collapse_x(gm) = max([min(gm_response_no_collapse.sa_x(strcmp(gm_response_no_collapse.collapse_direction,'x'))),NaN]);
+    for p = 1:length(params)
+        gm_set_table.(['sa_cols_1_first_' params{p}])(gm) = max([min(gm_response_no_collapse.sa_x(gm_response_no_collapse.(['cols_1_num_' params{p}]) > 0)),NaN]);
+        for pr = 1:length(frag_probs)
+            gm_set_table.(['sa_cols_1_' num2str(frag_probs(pr)) '_percent_' params{p}])(gm) = max([min(gm_response_no_collapse.sa_x(gm_response_no_collapse.(['cols_1_percent_' params{p}]) > frag_probs(pr)/100)),NaN]);
+        end
+    end
+
+    % Z direction curves
+    if analysis.run_z_motion
+        gm_set_table.sa_collapse_z(gm) = max([min(gm_response_no_collapse.sa_x(strcmp(gm_response_no_collapse.collapse_direction,'z'))),NaN]);
+        for p = 1:length(params)
+            gm_set_table.(['sa_walls_1_first_' params{p}])(gm) = max([min(gm_response_no_collapse.sa_x(gm_response_no_collapse.(['walls_1_num_' params{p}]) > 0)),NaN]);
+            for pr = 1:length(frag_probs)
+                gm_set_table.(['sa_walls_1_' num2str(frag_probs(pr)) '_percent_' params{p}])(gm) = max([min(gm_response_no_collapse.sa_x(gm_response_no_collapse.(['walls_1_percent_' params{p}]) > frag_probs(pr)/100)),NaN]);
+            end
+        end
+    end
+
+end
 
 %% Create Fragility Curves based on Baker MLE
-% sa_points = stripe.asce41_sa_ew; % fix use EW period based spectral acceleration points
-
 % collape and unnacceptable response
-[frag_curves.collapse.theta, frag_curves.collapse.beta] = fn_fit_fragility_MOM(ida_table.sa_x(ida_table.collapse > 0));
-[frag_curves.collapse_drift.theta, frag_curves.collapse_drift.beta] = fn_fit_fragility_MOM(ida_table.sa_x(ida_table.collapse == 1));
-[frag_curves.collapse_convergence.theta, frag_curves.collapse_convergence.beta] = fn_fit_fragility_MOM(ida_table.sa_x(ida_table.collapse == 3));
-[frag_curves.UR_accept_15.theta, frag_curves.UR_accept_15.beta] = fn_fit_fragility_MOM(ida_table.sa_x(ida_table.cols_walls_1_num_b_e_15 > 0));
-[frag_curves.UR.theta, frag_curves.UR.beta] = fn_fit_fragility_MOM(ida_table.sa_x(ida_table.collapse == 1 | ida_table.collapse == 3 | ida_table.cols_walls_1_num_b_e_15 > 0));
+[frag_curves.collapse.theta, frag_curves.collapse.beta] = fn_fit_fragility_MOM(gm_set_table.sa_collapse);
+[frag_curves.collapse_drift.theta, frag_curves.collapse_drift.beta] = fn_fit_fragility_MOM(gm_set_table.sa_collapse_drift);
+[frag_curves.collapse_convergence.theta, frag_curves.collapse_convergence.beta] = fn_fit_fragility_MOM(gm_set_table.sa_collapse_convergence);
+[frag_curves.UR_accept_15.theta, frag_curves.UR_accept_15.beta] = fn_fit_fragility_MOM(gm_set_table.sa_UR_accept_15);
+[frag_curves.UR.theta, frag_curves.UR.beta] = fn_fit_fragility_MOM(gm_set_table.sa_UR);
 
 % non directional component fragilities 
 for p = 1:length(params)
-    [frag_curves.cols_walls_1.(params{p})] = fn_multi_frag_curves(ida_table, 'cols_walls_1', params{p}, frag_probs, num_comps_cols_walls_1);
+    [frag_curves.cols_walls_1.(params{p})] = fn_multi_frag_curves(gm_set_table, 'cols_walls_1', params{p}, frag_probs, num_comps_cols_walls_1);
 end
 
 % 1% to 5% drift fragilities
-for d = 1:5 
-    [frag_curves.drift.(['idr_' num2str(d)]).theta, frag_curves.drift.(['idr_' num2str(d)]).beta] = fn_fit_fragility_MOM(ida_table.sa_x(ida_table.drift_x >= d/100 | ida_table.drift_z >= d/100));
+for d = 1:10 
+    [frag_curves.drift.(['idr_' num2str(d)]).theta, frag_curves.drift.(['idr_' num2str(d)]).beta] = fn_fit_fragility_MOM(gm_set_table.(['sa_drift_' num2str(d)]));
 end
 
 % grav load lost fragilities
 for f = 1:length(frag_probs) 
-    [frag_curves.gravity.(['percent_lost_' num2str(frag_probs(f))]).theta, frag_curves.gravity.(['percent_lost_' num2str(frag_probs(f))]).beta] = fn_fit_fragility_MOM(ida_table.sa_x(ida_table.gravity_load_lost_ratio >= frag_probs(f)/100));
+    [frag_curves.gravity.(['percent_lost_' num2str(frag_probs(f))]).theta, frag_curves.gravity.(['percent_lost_' num2str(frag_probs(f))]).beta] = fn_fit_fragility_MOM(gm_set_table.(['sa_gravity_percent_lost_' num2str(frag_probs(f))]));
 end
 
 % adjacent components
-[frag_curves.adjacent_comp.any.theta, frag_curves.adjacent_comp.any.beta] = fn_fit_fragility_MOM(ida_table.sa_x(ida_table.adjacent_failure_any == 1));
-[frag_curves.adjacent_comp.any_frame.theta, frag_curves.adjacent_comp.any_frame.beta] = fn_fit_fragility_MOM(ida_table.sa_x(ida_table.adjacent_failure_any_frame == 1));
-[frag_curves.adjacent_comp.all.theta, frag_curves.adjacent_comp.all.beta] = fn_fit_fragility_MOM(ida_table.sa_x(ida_table.adjacent_failure_all == 1));
+[frag_curves.adjacent_comp.any.theta, frag_curves.adjacent_comp.any.beta] = fn_fit_fragility_MOM(gm_set_table.sa_adjacent_component_any);
+[frag_curves.adjacent_comp.any_frame.theta, frag_curves.adjacent_comp.any_frame.beta] = fn_fit_fragility_MOM(gm_set_table.sa_adjacent_component_any_frame);
+[frag_curves.adjacent_comp.all.theta, frag_curves.adjacent_comp.all.beta] = fn_fit_fragility_MOM(gm_set_table.sa_adjacent_component_all);
 
 % X direction Curves
-[frag_curves.ew_collapse.theta, frag_curves.ew_collapse.beta] = fn_fit_fragility_MOM(ida_table.sa_x(strcmp(ida_table.collapse_direction,'x')));
+[frag_curves.ew_collapse.theta, frag_curves.ew_collapse.beta] = fn_fit_fragility_MOM(gm_set_table.sa_collapse_x);
 for p = 1:length(params)
-    [frag_curves.cols_1.(params{p})] = fn_multi_frag_curves(ida_table, 'cols_1', params{p}, frag_probs, num_comps_cols_1);
+    [frag_curves.cols_1.(params{p})] = fn_multi_frag_curves(gm_set_table, 'cols_1', params{p}, frag_probs, num_comps_cols_1);
 end
 
 % Z direction curves
 if analysis.run_z_motion
-    [frag_curves.ns_collapse.theta, frag_curves.ns_collapse.beta] = fn_fit_fragility_MOM(ida_table.sa_x(strcmp(ida_table.collapse_direction,'z')));
+    [frag_curves.ns_collapse.theta, frag_curves.ns_collapse.beta] = fn_fit_fragility_MOM(gm_set_table.sa_collapse_z);
     for p = 1:length(params)
-        [frag_curves.walls_1.(params{p})] = fn_multi_frag_curves(ida_table, 'walls_1', params{p}, frag_probs, num_comps_walls_1);
+        [frag_curves.walls_1.(params{p})] = fn_multi_frag_curves(gm_set_table, 'walls_1', params{p}, frag_probs, num_comps_walls_1);
     end
 end
 
@@ -293,20 +258,26 @@ save([write_dir filesep 'frag_curves.mat'],'frag_curves')
 end
 
 function [theta, beta] = fn_fit_fragility_MOM(limit_state_dist)
-[pHat, ~] = lognfit(limit_state_dist);
-theta = exp(pHat(1));
-beta = pHat(2);
+limit_state_dist(isnan(limit_state_dist)) = [];
+if ~isempty(limit_state_dist)
+    [pHat, ~] = lognfit(limit_state_dist);
+    theta = exp(pHat(1));
+    beta = pHat(2);
+else
+    theta = NaN;
+    beta = NaN;
+end
 end
 
-function [frag_curves] = fn_multi_frag_curves(ida_table, mech, param, frag_probs, num_comp_mech)
+function [frag_curves] = fn_multi_frag_curves(gm_set_table, mech, param, frag_probs, num_comp_mech)
 frag_curves = table;
 frag_curves.num_comp(1) = 1;
 frag_curves.prct_mech(1) = round(1/num_comp_mech,3);
-[frag_curves.theta(1), frag_curves.beta(1)] = fn_fit_fragility_MOM(ida_table.sa_x(ida_table.([mech '_num_' param]) > 0));
+[frag_curves.theta(1), frag_curves.beta(1)] = fn_fit_fragility_MOM(gm_set_table.(['sa_' mech '_first_' param]));
 for pr = 1:length(frag_probs)
     frag_curves.num_comp(pr+1) = ceil(num_comp_mech*frag_probs(pr)/100);
     frag_curves.prct_mech(pr+1) = frag_probs(pr)/100;
-    [frag_curves.theta(pr+1), frag_curves.beta(pr+1)] = fn_fit_fragility_MOM(ida_table.sa_x(ida_table.([mech '_percent_' param]) >= frag_probs(pr)/100));
+    [frag_curves.theta(pr+1), frag_curves.beta(pr+1)] = fn_fit_fragility_MOM(gm_set_table.(['sa_' mech '_' num2str(frag_probs(pr)) '_percent_' param]));
 end
 end
 

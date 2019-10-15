@@ -1,4 +1,4 @@
-function [] = fn_run_gm_ida(analysis, model, story, element, node, hinge, joint, gm_set_table, gm_idx, ida_results, tcl_dir)
+function [] = fn_run_gm_ida(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gm_idx, ida_results, tcl_dir)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 import ida.fn_main_IDA
@@ -15,7 +15,7 @@ while scale_factor < analysis.scale_increment*20
     scale_factor = scale_factor + scale_increment;
     
     % Define Ground Motion Data
-    ground_motion.x = gm_set_table(gm_idx,:);
+    ground_motion.x = gms2run(gm_idx,:);
     ground_motion.x.eq_dir = {['ground_motions' '/' analysis.gm_set '/' ground_motion.x.eq_name{1}]};
     ground_motion.x.eq_name = {[ground_motion.x.eq_name{1} '.tcl']};
     if analysis.run_z_motion
@@ -37,14 +37,14 @@ while scale_factor < analysis.scale_increment*20
 
     % Run Opensees
     if analysis.run_ida
-        fprintf('Running GM ID: %i Pair: %i for Scale Factor %4.2f \n', gm_set_table.set_id(gm_idx), gm_set_table.pair(gm_idx), scale_factor)
+        fprintf('Running GM ID: %i Pair: %i for Scale Factor %4.2f \n', gms2run.set_id(gm_idx), gms2run.pair(gm_idx), scale_factor)
         tim_start = tic;
         [exit_status] = fn_main_IDA(analysis, model, story, element, node, hinge, joint, ground_motion, scale_factor, ida_results.period, tcl_dir, ida_opensees_dir, ida_summary_dir);
         tim_elapsed = toc(tim_start);
         if exit_status == 1
-            fprintf('Failed GM ID: %i Pair: %i for Scale Factor %4.2f \n', gm_set_table.set_id(gm_idx), gm_set_table.pair(gm_idx), scale_factor)
+            fprintf('Failed GM ID: %i Pair: %i for Scale Factor %4.2f \n', gms2run.set_id(gm_idx), gms2run.pair(gm_idx), scale_factor)
         else
-            fprintf('Successful run time of %4.2f seconds for GM ID: %i Pair: %i for Scale Factor %4.2f \n', tim_elapsed, gm_set_table.set_id(gm_idx), gm_set_table.pair(gm_idx), scale_factor)
+            fprintf('Successful run time of %4.2f seconds for GM ID: %i Pair: %i for Scale Factor %4.2f \n', tim_elapsed, gms2run.set_id(gm_idx), gms2run.pair(gm_idx), scale_factor)
         end
     else
         exit_status = 0;
@@ -70,5 +70,10 @@ while scale_factor < analysis.scale_increment*20
         break
     end
 end
+
+% Write flag idicating that the ground motion has finished
+fileID = fopen(['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair) '/' 'gm_complete.txt'],'w');
+fprintf(fileID,'1');
+fclose(fileID);
 end
 

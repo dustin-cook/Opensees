@@ -8,22 +8,23 @@ clc
 
 %% User Inputs
 % Define Model
-analysis.model_id = 11;
+analysis.model_id = 6;
 analysis.proceedure = 'NDP';
-analysis.id = 'IDA_new';
+analysis.id = 'ida_test';
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 1;
 
 % Analysis options
 analysis.summit = 0;
 analysis.run_parallel = 0;
-analysis.run_ida = 1;
-analysis.post_process_ida = 1;
-analysis.create_fragilities = 0;
+analysis.run_ida = 0;
+analysis.post_process_ida = 0;
+analysis.create_fragilities = 1;
 analysis.plot_ida = 0;
 analysis.detialed_post_process = 0;
-analysis.scale_increment = 0.25;
+analysis.scale_increment = 5;
 analysis.collapse_drift = 0.10;
+analysis.clear_existing_data = 0;
 
 % Secondary options
 analysis.dead_load = 1;
@@ -95,7 +96,7 @@ end
 
 %% Create Response and Consequence Fragilities
 if analysis.create_fragilities
-    fn_create_fragilities(analysis, model, IDA_scale_factors, gm_set_table, max_dir_spectra, ida_results)
+    fn_create_fragilities(analysis, model, gm_set_table, max_dir_spectra, ida_results)
     fn_post_process_fragility_curves(analysis,model)
 end
 
