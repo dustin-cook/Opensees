@@ -405,9 +405,11 @@ if analysis.nonlinear
     end
 end
 
-save([opensees_dir filesep 'story_TH.mat'],'story_TH')
-if analysis.type == 2 % Pushover Analysis
-    save([pushover_dir filesep 'story_TH.mat'],'story_TH')
+if ~analysis.simple_recorders
+    save([opensees_dir filesep 'story_TH.mat'],'story_TH')
+    if analysis.type == 2 % Pushover Analysis
+        save([pushover_dir filesep 'story_TH.mat'],'story_TH')
+    end
 end
 
 

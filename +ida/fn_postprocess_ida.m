@@ -151,5 +151,15 @@ save([ida_summary_dir filesep 'hinge_analysis.mat'],'hinge')
 save([ida_summary_dir filesep 'story_analysis.mat'],'story')
 save([ida_summary_dir filesep 'summary_results.mat'],'summary')
 
+% Delete post processed middle man opensees data
+delete([ida_opensees_dir filesep 'story_analysis.mat'])
+delete([ida_opensees_dir filesep 'node_analysis.mat'])
+delete([ida_opensees_dir filesep 'model_analysis.mat'])
+delete([ida_opensees_dir filesep 'joint_analysis.mat'])
+delete([ida_opensees_dir filesep 'hinge_analysis.mat'])
+delete([ida_opensees_dir filesep 'element_analysis.mat'])
+delete([ida_opensees_dir filesep 'node_TH_*.mat'])
+delete([ida_opensees_dir filesep 'hinge_TH_*.mat'])
+
 end %function
 
