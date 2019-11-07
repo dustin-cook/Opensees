@@ -92,6 +92,7 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
     %% ASCE 41 Acceptance Plots
     %% Plot Hinge accpetance
     % Elevation
+        fn_plot_elevation( hinge, element, node, 'Frame 1', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 0, 4000, 0, 0 )
 %     fn_plot_elevation( hinge, element, node, 'Frame 1', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 0, 0 )
 %     fn_plot_elevation( hinge, element, node, 'Frame 2', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 300, 300 )
 %     fn_plot_elevation( hinge, element, node, 'Frame 3', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 600, 600 )
@@ -107,29 +108,29 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
 %     fn_plot_elevation( joint, element, node, 'Frame 3 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 600, 600 )
 %     fn_plot_elevation( joint, element, node, 'Frame 4 - Joint', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 71, 1571, 900, 900 )
 % 
-%     % Plan View
-%     fn_plot_plan_view( hinge, element, node, 1, 'Story 1 - Column Bases', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
-%     fn_plot_plan_view( hinge, element, node, 2, 'Story 1 - Top of Columns', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
+    % Plan View
+%     fn_plot_plan_view( hinge, element, ele_prop_table, node, 1, 'Story 1 - Column Bases', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
+%     fn_plot_plan_view( hinge, element, ele_prop_table, node, 2, 'Story 1 - Top of Columns', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
 % 
 %     % Plot Element Scatter
-%     fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
-%     fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
+    fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
+    fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
 %     fn_plot_element_scatter( element, 'wall', story, hinge, plot_dir )
 
     %% ASCE 41 Target Displacement
-    if analysis.run_eigen
-        [ target_disp_in.x ] = fn_spectra_and_target_displ( model, story, ground_motion, 'x' );
-        if strcmp(model.dimension,'3D')
-            if isfield(ground_motion,'z')
-                [ target_disp_in.z ] = fn_spectra_and_target_displ( model, story, ground_motion, 'z' );
-            else
-              target_disp_in.z = NaN;
-            end
-        end  
-    else
+%     if analysis.run_eigen
+%         [ target_disp_in.x ] = fn_spectra_and_target_displ( model, story, ground_motion, 'x' );
+%         if strcmp(model.dimension,'3D')
+%             if isfield(ground_motion,'z')
+%                 [ target_disp_in.z ] = fn_spectra_and_target_displ( model, story, ground_motion, 'z' );
+%             else
+%               target_disp_in.z = NaN;
+%             end
+%         end  
+%     else
         target_disp_in.x = NaN;
         target_disp_in.z = NaN;
-    end
+%     end
     
     %% Load in Recordings to compare with EDPs and Time Histories
     if analysis.plot_recordings
@@ -141,21 +142,21 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
             pile_model = 1;
         end
         
-        % Plot Spectra
-        fn_plot_spectra(node, 'Ground', ground_motion, plot_dir, read_dir_TH, pile_model)
-        fn_plot_spectra(node, 'Roof', ground_motion, plot_dir, read_dir_TH, pile_model)
+%         % Plot Spectra
+%         fn_plot_spectra(node, 'Ground', ground_motion, plot_dir, read_dir_TH, pile_model)
+%         fn_plot_spectra(node, 'Roof', ground_motion, plot_dir, read_dir_TH, pile_model)
     else
         record_edp = [];
     end
     
     % Plot EDP Profiles
     fn_plot_edp_profiles( plot_dir, ground_motion, story, target_disp_in, record_edp)
-
-    % Plot specific TH comparisons
-    fn_plot_main_response_history( plot_dir, read_dir_TH, node, analysis, eq_analysis_timespace, eq, ground_motion.x.eq_dt, record_edp )
-    
-    % Plan view twist
-    fn_plot_plan_twist( node, read_dir_opensees, [plot_dir filesep 'EDP Profiles'], 'Roof Max Twist - Plan', record_edp )
+% 
+%     % Plot specific TH comparisons
+%     fn_plot_main_response_history( plot_dir, read_dir_TH, node, analysis, eq_analysis_timespace, eq, ground_motion.x.eq_dt, record_edp )
+%     
+%     % Plan view twist
+%     fn_plot_plan_twist( node, read_dir_opensees, [plot_dir filesep 'EDP Profiles'], 'Roof Max Twist - Plan', record_edp )
         
     %% Plots Element results for Dynamic analysis
     if analysis.element_plots

@@ -10,17 +10,17 @@ clc
 % Define Model
 analysis.model_id = 11;
 analysis.proceedure = 'NDP';
-analysis.id = 'Uniform_1';
+analysis.id = 'IDA_new';
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 1;
 
 % Analysis options
 analysis.summit = 0;
 analysis.run_parallel = 0;
-analysis.run_ida = 1;
-analysis.post_process_ida = 1;
-analysis.create_fragilities = 0;
-analysis.plot_ida = 0;
+analysis.run_ida = 0;
+analysis.post_process_ida = 0;
+analysis.create_fragilities = 1;
+analysis.plot_ida = 1;
 analysis.detialed_post_process = 0;
 analysis.scale_increment = 0.25;
 analysis.collapse_drift = 0.10;
@@ -96,14 +96,20 @@ end
 
 %% Create Response and Consequence Fragilities
 if analysis.create_fragilities
-    fn_create_fragilities(analysis, model, gm_set_table, max_dir_spectra, ida_results)
-    fn_post_process_fragility_curves(analysis,model)
+    write_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Fragility Data'];
+    if ~exist(write_dir,'dir')
+        mkdir(write_dir)
+    end
+%     fn_collect_ida_data(analysis, model, gm_set_table, ida_results, write_dir)
+    fn_create_fragilities(analysis, gm_set_table, write_dir)
+%     fn_LR_classification(analysis, model, gm_set_table)
 end
 
 %% Plot Results
 if analysis.plot_ida
-    fn_plot_ida(analysis, model, gm_set_table, ida_results, SSF_ew)
-    fn_plot_hinge_values(analysis, model, IDA_scale_factors, gm_set_table)
+%     fn_plot_ida(analysis, model, gm_set_table, ida_results, SSF_ew)
+    fn_plot_new_frags(analysis, model)
+%     fn_plot_hinge_values(analysis, model, IDA_scale_factors, gm_set_table)
 end
 
 %% Post Process Details of Specific GMs
