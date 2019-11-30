@@ -7,7 +7,8 @@ function [ ] = fn_plot_ida(analysis, model, gm_set_table, ida_results, SSF_ew)
 import plotting_tools.*
 
 % Defined fixed parames
-params = {'b','e','b_e','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
+params = {'b','cp'};
+% params = {'b','e','b_e','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
 frag_probs = [10 25 50 75 100];
 
 % Define Directiries
@@ -24,22 +25,23 @@ load([read_dir filesep 'frag_curves.mat'])
 
 %% Plot IDA curves
 fprintf('Saving IDA Summary Data and Figures to Directory: %s \n',plot_dir)
-drs = {'x','z'};
-for d = 1:2
-    % Plot X direction IDA curves
-    hold on
-    for gms = 1:height(gm_set_table)
-        ida_plt = plot(ida_table.(['drift_' drs{d}])(strcmp(ida_table.eq_name,gm_set_table.eq_name{gms})),ida_table.(['sa_' drs{d}])(strcmp(ida_table.eq_name,gm_set_table.eq_name{gms})),'-o','color',[0.75 0.75 0.75],'HandleVisibility','off');
-    end
-    % plot(frag.mean_idr_ew,frag.p695_sa_ew,'b','lineWidth',1.5,'DisplayName','Mean Drift')
-    % plot(frag.mean_idr_ew,frag.p_15_sa_ew,'--b','lineWidth',1.5,'DisplayName','15th Percentile')
-    % plot(frag.mean_idr_ew,frag.p_85_sa_ew,'--b','lineWidth',1.5,'DisplayName','85th Percentile')
-    plot([0,0.1],[ida_results.spectra(d),ida_results.spectra(d)],'--k','lineWidth',1.5,'DisplayName','ICSB Motion')
-    xlim([0 0.1])
-    xlabel('Max Drift')
-    ylabel(['Sa(T_1=' num2str(ida_results.period(d)) 's) (g)'])
-    fn_format_and_save_plot( plot_dir, ['IDA Plot ' drs{d} ' Frame Direction'], 3 )
-end
+drs = {'x'};
+% drs = {'x','z'};
+% for d = 1:length(drs)
+%     % Plot X direction IDA curves
+%     hold on
+%     for gms = 1:height(gm_set_table)
+%         ida_plt = plot(ida_table.(['drift_' drs{d}])(strcmp(ida_table.eq_name,gm_set_table.eq_name{gms})),ida_table.(['sa_' drs{d}])(strcmp(ida_table.eq_name,gm_set_table.eq_name{gms})),'-o','color',[0.75 0.75 0.75],'HandleVisibility','off');
+%     end
+%     % plot(frag.mean_idr_ew,frag.p695_sa_ew,'b','lineWidth',1.5,'DisplayName','Mean Drift')
+%     % plot(frag.mean_idr_ew,frag.p_15_sa_ew,'--b','lineWidth',1.5,'DisplayName','15th Percentile')
+%     % plot(frag.mean_idr_ew,frag.p_85_sa_ew,'--b','lineWidth',1.5,'DisplayName','85th Percentile')
+%     plot([0,0.1],[ida_results.spectra(d),ida_results.spectra(d)],'--k','lineWidth',1.5,'DisplayName','ICSB Motion')
+%     xlim([0 0.1])
+%     xlabel('Max Drift')
+%     ylabel(['Sa(T_1=' num2str(ida_results.period(d)) 's) (g)'])
+%     fn_format_and_save_plot( plot_dir, ['IDA Plot ' drs{d} ' Frame Direction'], 3 )
+% end
 
 %% Calculate Post Fragulity Curve P695 factors
 if analysis.run_z_motion
@@ -96,189 +98,189 @@ matlab_colors = [matlab_colors;matlab_colors;matlab_colors]; % stack matlab colo
 % Sa points to plot fragility curves
 x_points = 0.01:0.01:4;
       
-% Total Collapse with discrete scatter
-figure
-hold on
-rank_sa = sort(gm_table.sa_collapse(~isnan(gm_table.sa_collapse)));
-rank_val = 1:length(rank_sa);
-sct = scatter(rank_sa,rank_val./length(rank_sa),'b','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
-plot(x_points,cdf,'b','DisplayName','Collapse Fragility')
-xlabel('Sa(T_{1-EW}) (g)')
-ylabel('P[Collapse]')
-xlim([0,ceil(max(rank_sa))])
-fn_format_and_save_plot( plot_dir, 'Collapse Fragility', 6 )
+% % Total Collapse with discrete scatter
+% figure
+% hold on
+% rank_sa = sort(gm_table.sa_collapse(~isnan(gm_table.sa_collapse)));
+% rank_val = 1:length(rank_sa);
+% sct = scatter(rank_sa,rank_val./length(rank_sa),'b','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
+% plot(x_points,cdf,'b','DisplayName','Collapse Fragility')
+% xlabel('Sa(T_{1-EW}) (g)')
+% ylabel('P[Collapse]')
+% xlim([0,ceil(max(rank_sa))])
+% fn_format_and_save_plot( plot_dir, 'Collapse Fragility', 6 )
+% 
+% % Total Collapse with 695 adjustments
+% figure
+% hold on
+% cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
+% plot(x_points,cdf,'b','lineWidth',1,'DisplayName','Collapse Fragility')
+% cdf = logncdf(x_points,log(frag_curves.collapse.theta + median_adjustment),frag_curves.collapse.beta);
+% plot(x_points,cdf,'--b','lineWidth',1,'DisplayName','Adjustment')
+% cdf = logncdf(x_points,log(frag_curves.collapse.theta + median_adjustment),0.6);
+% plot(x_points,cdf,':b','lineWidth',1.25,'DisplayName','With Uncertainty')
+% plot([ida_results.mce(1),ida_results.mce(1)],[0,1],'--k','lineWidth',0.5,'DisplayName','MCE_R')
+% xlabel('Sa(T_{1-EW}) (g)')
+% ylabel('P[Collapse]')
+% xlim([0,2])
+% fn_format_and_save_plot( plot_dir, 'Collapse Fragility with 695 Uncertainty', 6 )
 
-% Total Collapse with 695 adjustments
-figure
-hold on
-cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
-plot(x_points,cdf,'b','lineWidth',1,'DisplayName','Collapse Fragility')
-cdf = logncdf(x_points,log(frag_curves.collapse.theta + median_adjustment),frag_curves.collapse.beta);
-plot(x_points,cdf,'--b','lineWidth',1,'DisplayName','Adjustment')
-cdf = logncdf(x_points,log(frag_curves.collapse.theta + median_adjustment),0.6);
-plot(x_points,cdf,':b','lineWidth',1.25,'DisplayName','With Uncertainty')
-plot([ida_results.mce(1),ida_results.mce(1)],[0,1],'--k','lineWidth',0.5,'DisplayName','MCE_R')
-xlabel('Sa(T_{1-EW}) (g)')
-ylabel('P[Collapse]')
-xlim([0,2])
-fn_format_and_save_plot( plot_dir, 'Collapse Fragility with 695 Uncertainty', 6 )
-
-% Total Collapse with breakdown in each direction
-figure
-hold on
-rank_sa = sort(gm_table.sa_collapse(~isnan(gm_table.sa_collapse)));
-rank_val = (1:length(rank_sa))/length(rank_sa);
-scatter(rank_sa,rank_val,'k','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
-plot(x_points,cdf,'k','DisplayName','Total Collapse Fragility')
-rank_sa = sort(gm_table.sa_collapse_x(~isnan(gm_table.sa_collapse_x)));
-rank_val = (1:length(rank_sa))/length(rank_sa);
-scatter(rank_sa,rank_val,'b','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(frag_curves.ew_collapse.theta),frag_curves.ew_collapse.beta);
-plot(x_points,cdf,'b','DisplayName','EW Frame Fragility')
-rank_sa = sort(gm_table.sa_collapse_z(~isnan(gm_table.sa_collapse_z)));
-rank_val = (1:length(rank_sa))/length(rank_sa);
-scatter(rank_sa,rank_val,'r','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(frag_curves.ns_collapse.theta),frag_curves.ns_collapse.beta);
-plot(x_points,cdf,'r','DisplayName','NS Wall Fragility')
-xlabel('Sa(T_{1-EW}) (g)')
-ylabel('P[Collapse]')
-xlim([0,2])
-fn_format_and_save_plot( plot_dir, 'Collapse Fragility Both Directions', 6 )
-
-% ASCE 41 Unacceptable Response v Total Collapse with 695 adjustments
-figure
-hold on
-cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
-plot(x_points,cdf,'b','DisplayName','Collapse Fragility')
-cdf = logncdf(x_points,log(frag_curves.UR.theta),frag_curves.UR.beta);
-plot(x_points,cdf,'-.r','DisplayName','Unacceptable Response')
-plot([ida_results.mce(1),ida_results.mce(1)],[0,1],'--k','lineWidth',0.5,'DisplayName','MCE_R')
-xlabel('Sa(T_{1-EW}) (g)')
-ylabel('P[Exceedance]')
-xlim([0,2])
-fn_format_and_save_plot( plot_dir, 'Unacceptable Response Fragility', 6 )
+% % Total Collapse with breakdown in each direction
+% figure
+% hold on
+% rank_sa = sort(gm_table.sa_collapse(~isnan(gm_table.sa_collapse)));
+% rank_val = (1:length(rank_sa))/length(rank_sa);
+% scatter(rank_sa,rank_val,'k','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
+% plot(x_points,cdf,'k','DisplayName','Total Collapse Fragility')
+% rank_sa = sort(gm_table.sa_collapse_x(~isnan(gm_table.sa_collapse_x)));
+% rank_val = (1:length(rank_sa))/length(rank_sa);
+% scatter(rank_sa,rank_val,'b','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(frag_curves.ew_collapse.theta),frag_curves.ew_collapse.beta);
+% plot(x_points,cdf,'b','DisplayName','EW Frame Fragility')
+% rank_sa = sort(gm_table.sa_collapse_z(~isnan(gm_table.sa_collapse_z)));
+% rank_val = (1:length(rank_sa))/length(rank_sa);
+% scatter(rank_sa,rank_val,'r','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(frag_curves.ns_collapse.theta),frag_curves.ns_collapse.beta);
+% plot(x_points,cdf,'r','DisplayName','NS Wall Fragility')
+% xlabel('Sa(T_{1-EW}) (g)')
+% ylabel('P[Collapse]')
+% xlim([0,2])
+% fn_format_and_save_plot( plot_dir, 'Collapse Fragility Both Directions', 6 )
+% 
+% % ASCE 41 Unacceptable Response v Total Collapse with 695 adjustments
+% figure
+% hold on
+% cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
+% plot(x_points,cdf,'b','DisplayName','Collapse Fragility')
+% cdf = logncdf(x_points,log(frag_curves.UR.theta),frag_curves.UR.beta);
+% plot(x_points,cdf,'-.r','DisplayName','Unacceptable Response')
+% plot([ida_results.mce(1),ida_results.mce(1)],[0,1],'--k','lineWidth',0.5,'DisplayName','MCE_R')
+% xlabel('Sa(T_{1-EW}) (g)')
+% ylabel('P[Exceedance]')
+% xlim([0,2])
+% fn_format_and_save_plot( plot_dir, 'Unacceptable Response Fragility', 6 )
 
 % Plot Each acceptance Criteria
 for p = 1:length(params)
-    plot_name = ['First Story Column ' params{p} ' Fragilities'];
-    fn_plot_frag_curves(x_points, frag_curves.cols_1.(params{p}), frag_curves.ew_collapse, frag_curves.UR, ida_results.spectra(1), plot_name, plot_dir, [0,1.5], params{p} )
+%     plot_name = ['First Story Column ' params{p} ' Fragilities'];
+%     fn_plot_frag_curves(x_points, frag_curves.cols_1.(params{p}), frag_curves.ew_collapse, frag_curves.UR, ida_results.spectra(1), plot_name, plot_dir, [0,1.5], params{p} )
 
-    plot_name = ['First Story Wall ' params{p} ' Fragilities'];
-    fn_plot_frag_curves(x_points, frag_curves.walls_1.(params{p}), frag_curves.ns_collapse, frag_curves.UR, ida_results.spectra(1), plot_name, plot_dir, [0,1.5], params{p})
-    
+%     plot_name = ['First Story Wall ' params{p} ' Fragilities'];
+%     fn_plot_frag_curves(x_points, frag_curves.walls_1.(params{p}), frag_curves.ns_collapse, frag_curves.UR, ida_results.spectra(1), plot_name, plot_dir, [0,1.5], params{p})
+%     
     plot_name = ['First Story Mechanism ' params{p} ' Fragilities'];
     fn_plot_frag_curves(x_points, frag_curves.cols_walls_1.(params{p}), frag_curves.collapse, frag_curves.UR, ida_results.spectra(1), plot_name, plot_dir, [0,1.5], params{p}  )
 end
 
 % First Acceptance criteria met
-figure
-hold on
-cdf = logncdf(x_points,log(frag_curves.cols_1.cp.theta(1)),frag_curves.cols_1.cp.beta(1));
-plot(x_points,cdf,'color',matlab_colors(1,:),'lineWidth',1.5,'DisplayName','ASCE 41 CP')
-cdf = logncdf(x_points,log(frag_curves.cols_1.euro_th_NC.theta(1)),frag_curves.cols_1.euro_th_NC.beta(1));
-plot(x_points,cdf,'--','color',matlab_colors(2,:),'lineWidth',1.5,'DisplayName','EuroCode NC')
-xlabel('Sa(T_{1-EW}) (g)')
-ylabel('P[Exceedance]')
-xlim([0,2])
-fn_format_and_save_plot( plot_dir, 'EuroCode - First Acceptance Criteria', 6 )
+% figure
+% hold on
+% cdf = logncdf(x_points,log(frag_curves.cols_1.cp.theta(1)),frag_curves.cols_1.cp.beta(1));
+% plot(x_points,cdf,'color',matlab_colors(1,:),'lineWidth',1.5,'DisplayName','ASCE 41 CP')
+% cdf = logncdf(x_points,log(frag_curves.cols_1.euro_th_NC.theta(1)),frag_curves.cols_1.euro_th_NC.beta(1));
+% plot(x_points,cdf,'--','color',matlab_colors(2,:),'lineWidth',1.5,'DisplayName','EuroCode NC')
+% xlabel('Sa(T_{1-EW}) (g)')
+% ylabel('P[Exceedance]')
+% xlim([0,2])
+% fn_format_and_save_plot( plot_dir, 'EuroCode - First Acceptance Criteria', 6 )
+% 
+% % 50% Acceptance criteria met
+% figure
+% hold on
+% cdf = logncdf(x_points,log(frag_curves.cols_1.cp.theta(4)),frag_curves.cols_1.cp.beta(4));
+% plot(x_points,cdf,'color',matlab_colors(1,:),'lineWidth',1.5,'DisplayName','ASCE 41 CP')
+% cdf = logncdf(x_points,log(frag_curves.cols_1.euro_th_NC.theta(4)),frag_curves.cols_1.euro_th_NC.beta(4));
+% plot(x_points,cdf,'--','color',matlab_colors(2,:),'lineWidth',1.5,'DisplayName','EuroCode NC')
+% xlabel('Sa(T_{1-EW}) (g)')
+% ylabel('P[Exceedance]')
+% xlim([0,2])
+% fn_format_and_save_plot( plot_dir, 'EuroCode - 50% Acceptance Criteria', 6 )
 
-% 50% Acceptance criteria met
-figure
-hold on
-cdf = logncdf(x_points,log(frag_curves.cols_1.cp.theta(4)),frag_curves.cols_1.cp.beta(4));
-plot(x_points,cdf,'color',matlab_colors(1,:),'lineWidth',1.5,'DisplayName','ASCE 41 CP')
-cdf = logncdf(x_points,log(frag_curves.cols_1.euro_th_NC.theta(4)),frag_curves.cols_1.euro_th_NC.beta(4));
-plot(x_points,cdf,'--','color',matlab_colors(2,:),'lineWidth',1.5,'DisplayName','EuroCode NC')
-xlabel('Sa(T_{1-EW}) (g)')
-ylabel('P[Exceedance]')
-xlim([0,2])
-fn_format_and_save_plot( plot_dir, 'EuroCode - 50% Acceptance Criteria', 6 )
-
-% Plot For Gravity Load Lost
-figure
-hold on
-for f = 1:length(frag_probs) 
-    cdf = logncdf(x_points,log(frag_curves.gravity.(['percent_lost_' num2str(frag_probs(f))]).theta),frag_curves.gravity.(['percent_lost_' num2str(frag_probs(f))]).beta);
-    plot(x_points,cdf,'color',matlab_colors(f+1,:),'lineWidth',1.5,'DisplayName',[num2str(frag_probs(f)) '% Gravity Capacity Lost'])
-end
-cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
-plot(x_points,cdf,'-k','lineWidth',2,'DisplayName','Collapse Fragility')
-cdf = logncdf(x_points,log(frag_curves.UR.theta),frag_curves.UR.beta);
-plot(x_points,cdf,'-.r','lineWidth',2,'DisplayName','Unacceptable Response')
-plot([ida_results.spectra(1) ida_results.spectra(1)],[0 1],'--k','lineWidth',1.5,'DisplayName','ICSB Motion')
-xlabel('Sa(T_{1-EW}) (g)')
-ylabel('P[Exceedance]')
-xlim([0,2])
-fn_format_and_save_plot( plot_dir, 'Gravity Load Lost Fragilities', 6 )
-
-% Plot For Drift Fragilities
-figure
-hold on
-for d = 1:10
-    cdf = logncdf(x_points,log(frag_curves.drift.(['idr_' num2str(d)]).theta),frag_curves.drift.(['idr_' num2str(d)]).beta);
-    plot(x_points,cdf,'color',matlab_colors(d,:),'lineWidth',1.5,'DisplayName',[num2str(d) '% Max Drift'])
-end
-cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
-plot(x_points,cdf,'-k','lineWidth',2,'DisplayName','Collapse Fragility')
-cdf = logncdf(x_points,log(frag_curves.UR.theta),frag_curves.UR.beta);
-plot(x_points,cdf,'-.r','lineWidth',2,'DisplayName','Unacceptable Response')
-plot([ida_results.spectra(1) ida_results.spectra(1)],[0 1],'--k','lineWidth',1.5,'DisplayName','ICSB Motion')
-xlabel('Sa(T_{1-EW}) (g)')
-ylabel('P[Exceedance]')
-xlim([0,2])
-fn_format_and_save_plot( plot_dir, 'Max Drift Fragilities', 6 )
-
-
-% Plot For Adjacent Components
-figure
-hold on
-cdf = logncdf(x_points,log(frag_curves.adjacent_comp.any.theta),frag_curves.adjacent_comp.any.beta);
-plot(x_points,cdf,'color',matlab_colors(1,:),'DisplayName','Any Adjacent Component')
-cdf = logncdf(x_points,log(frag_curves.adjacent_comp.any_frame.theta),frag_curves.adjacent_comp.any_frame.beta);
-plot(x_points,cdf,'color',matlab_colors(2,:),'DisplayName','Any Adjacent Frame Component')
-cdf = logncdf(x_points,log(frag_curves.adjacent_comp.all.theta),frag_curves.adjacent_comp.all.beta);
-plot(x_points,cdf,'color',matlab_colors(3,:),'DisplayName','All Adjacent Components')
-cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
-plot(x_points,cdf,'-k','DisplayName','Collapse Fragility')
-xlabel('Sa(T_{1-EW}) (g)')
-ylabel('P[Exceedance]')
-xlim([0,2])
-fn_format_and_save_plot( plot_dir, 'Adjacent Component Fragilities', 6 )
-
-% Plot For Percent of Collapse Energy
-figure
-hold on
-for f = 1:length(frag_probs) 
-    cdf = logncdf(x_points,log(frag_curves.energy.(['percent_collapse_' num2str(frag_probs(f))]).theta),frag_curves.energy.(['percent_collapse_' num2str(frag_probs(f))]).beta);
-    plot(x_points,cdf,'color',matlab_colors(f,:),'DisplayName',[num2str(frag_probs(f)) '% of Collapse Energy'])
-end
-cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
-plot(x_points,cdf,'-k','DisplayName','Collapse Fragility')
-xlabel('Sa(T_{1-EW}) (g)')
-ylabel('P[Exceedance]')
-xlim([0,2])
-fn_format_and_save_plot( plot_dir, 'Collapse Energy Fragilities', 6 )
-
-% Plot Multiple trigger types together
-% Plot For Adjacent Components
-figure
-hold on
-cdf = logncdf(x_points,log(frag_curves.cols_walls_1.b_e.theta(1)),frag_curves.cols_walls_1.b_e.beta(1));
-plot(x_points,cdf,'color',matlab_colors(1,:),'DisplayName','ASCE 41 CP')
-cdf = logncdf(x_points,log(frag_curves.adjacent_comp.any.theta),frag_curves.adjacent_comp.any.beta);
-plot(x_points,cdf,'color',matlab_colors(2,:),'DisplayName','Any Adjacent Component')
-cdf = logncdf(x_points,log(frag_curves.gravity.percent_lost_25.theta),frag_curves.gravity.percent_lost_25.beta);
-plot(x_points,cdf,'color',matlab_colors(3,:),'DisplayName','25% Load Capacity Lost')
-cdf = logncdf(x_points,log(frag_curves.drift.idr_2.theta),frag_curves.drift.idr_2.beta);
-plot(x_points,cdf,'color',matlab_colors(4,:),'DisplayName','2% Max Interstory Drift')
-cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
-plot(x_points,cdf,'-k','DisplayName','Collapse Fragility')
-xlabel('Sa(T_{1-EW}) (g)')
-ylabel('P[Exceedance]')
-xlim([0,2])
-fn_format_and_save_plot( plot_dir, 'Multi Fragility Compare', 6 )
+% % Plot For Gravity Load Lost
+% figure
+% hold on
+% for f = 1:length(frag_probs) 
+%     cdf = logncdf(x_points,log(frag_curves.gravity.(['percent_lost_' num2str(frag_probs(f))]).theta),frag_curves.gravity.(['percent_lost_' num2str(frag_probs(f))]).beta);
+%     plot(x_points,cdf,'color',matlab_colors(f+1,:),'lineWidth',1.5,'DisplayName',[num2str(frag_probs(f)) '% Gravity Capacity Lost'])
+% end
+% cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
+% plot(x_points,cdf,'-k','lineWidth',2,'DisplayName','Collapse Fragility')
+% cdf = logncdf(x_points,log(frag_curves.UR.theta),frag_curves.UR.beta);
+% plot(x_points,cdf,'-.r','lineWidth',2,'DisplayName','Unacceptable Response')
+% plot([ida_results.spectra(1) ida_results.spectra(1)],[0 1],'--k','lineWidth',1.5,'DisplayName','ICSB Motion')
+% xlabel('Sa(T_{1-EW}) (g)')
+% ylabel('P[Exceedance]')
+% xlim([0,2])
+% fn_format_and_save_plot( plot_dir, 'Gravity Load Lost Fragilities', 6 )
+% 
+% % Plot For Drift Fragilities
+% figure
+% hold on
+% for d = 1:10
+%     cdf = logncdf(x_points,log(frag_curves.drift.(['idr_' num2str(d)]).theta),frag_curves.drift.(['idr_' num2str(d)]).beta);
+%     plot(x_points,cdf,'color',matlab_colors(d,:),'lineWidth',1.5,'DisplayName',[num2str(d) '% Max Drift'])
+% end
+% cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
+% plot(x_points,cdf,'-k','lineWidth',2,'DisplayName','Collapse Fragility')
+% cdf = logncdf(x_points,log(frag_curves.UR.theta),frag_curves.UR.beta);
+% plot(x_points,cdf,'-.r','lineWidth',2,'DisplayName','Unacceptable Response')
+% plot([ida_results.spectra(1) ida_results.spectra(1)],[0 1],'--k','lineWidth',1.5,'DisplayName','ICSB Motion')
+% xlabel('Sa(T_{1-EW}) (g)')
+% ylabel('P[Exceedance]')
+% xlim([0,2])
+% fn_format_and_save_plot( plot_dir, 'Max Drift Fragilities', 6 )
+% 
+% 
+% % Plot For Adjacent Components
+% figure
+% hold on
+% cdf = logncdf(x_points,log(frag_curves.adjacent_comp.any.theta),frag_curves.adjacent_comp.any.beta);
+% plot(x_points,cdf,'color',matlab_colors(1,:),'DisplayName','Any Adjacent Component')
+% cdf = logncdf(x_points,log(frag_curves.adjacent_comp.any_frame.theta),frag_curves.adjacent_comp.any_frame.beta);
+% plot(x_points,cdf,'color',matlab_colors(2,:),'DisplayName','Any Adjacent Frame Component')
+% cdf = logncdf(x_points,log(frag_curves.adjacent_comp.all.theta),frag_curves.adjacent_comp.all.beta);
+% plot(x_points,cdf,'color',matlab_colors(3,:),'DisplayName','All Adjacent Components')
+% cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
+% plot(x_points,cdf,'-k','DisplayName','Collapse Fragility')
+% xlabel('Sa(T_{1-EW}) (g)')
+% ylabel('P[Exceedance]')
+% xlim([0,2])
+% fn_format_and_save_plot( plot_dir, 'Adjacent Component Fragilities', 6 )
+% 
+% % Plot For Percent of Collapse Energy
+% figure
+% hold on
+% for f = 1:length(frag_probs) 
+%     cdf = logncdf(x_points,log(frag_curves.energy.(['percent_collapse_' num2str(frag_probs(f))]).theta),frag_curves.energy.(['percent_collapse_' num2str(frag_probs(f))]).beta);
+%     plot(x_points,cdf,'color',matlab_colors(f,:),'DisplayName',[num2str(frag_probs(f)) '% of Collapse Energy'])
+% end
+% cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
+% plot(x_points,cdf,'-k','DisplayName','Collapse Fragility')
+% xlabel('Sa(T_{1-EW}) (g)')
+% ylabel('P[Exceedance]')
+% xlim([0,2])
+% fn_format_and_save_plot( plot_dir, 'Collapse Energy Fragilities', 6 )
+% 
+% % Plot Multiple trigger types together
+% % Plot For Adjacent Components
+% figure
+% hold on
+% cdf = logncdf(x_points,log(frag_curves.cols_walls_1.b_e.theta(1)),frag_curves.cols_walls_1.b_e.beta(1));
+% plot(x_points,cdf,'color',matlab_colors(1,:),'DisplayName','ASCE 41 CP')
+% cdf = logncdf(x_points,log(frag_curves.adjacent_comp.any.theta),frag_curves.adjacent_comp.any.beta);
+% plot(x_points,cdf,'color',matlab_colors(2,:),'DisplayName','Any Adjacent Component')
+% cdf = logncdf(x_points,log(frag_curves.gravity.percent_lost_25.theta),frag_curves.gravity.percent_lost_25.beta);
+% plot(x_points,cdf,'color',matlab_colors(3,:),'DisplayName','25% Load Capacity Lost')
+% cdf = logncdf(x_points,log(frag_curves.drift.idr_2.theta),frag_curves.drift.idr_2.beta);
+% plot(x_points,cdf,'color',matlab_colors(4,:),'DisplayName','2% Max Interstory Drift')
+% cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
+% plot(x_points,cdf,'-k','DisplayName','Collapse Fragility')
+% xlabel('Sa(T_{1-EW}) (g)')
+% ylabel('P[Exceedance]')
+% xlim([0,2])
+% fn_format_and_save_plot( plot_dir, 'Multi Fragility Compare', 6 )
 
 end
 

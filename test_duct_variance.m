@@ -174,7 +174,7 @@ model_2_use = highest_cases.id(idx);
 models2use(12,:) = ranked_data(ranked_data.id == model_2_use,:);
 
 %% Create plots and tcl script for each model
-for m = 11:height(models2use)
+for m = 1:height(models2use)
     model_dir = [new_models_dir filesep 'Model_' num2str(m)];
     mkdir(model_dir)
     for p = 1:length(params)
@@ -200,7 +200,7 @@ for m = 11:height(models2use)
     save([model_dir filesep 'asce_41_data' filesep 'joint_analysis.mat'],'joint')
 
     % Write model.tcl file with new a and b values
-    [ ~ ] = fn_define_model( [model_dir filesep 'opensees_data'], node, element, joint, hinge, analysis, '3D', story, [model_dir filesep 'asce_41_data'] );
+    [ ~ ] = fn_define_model( [model_dir filesep 'opensees_data'], node, element, joint, hinge, analysis, '2D', story, [model_dir filesep 'asce_41_data'] );
 end
 
 % function [attr_val] = fn_teir_3_model(first_story_columns, attr_name)

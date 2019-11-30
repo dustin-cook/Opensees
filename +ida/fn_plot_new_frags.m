@@ -25,63 +25,137 @@ matlab_colors = [matlab_colors;matlab_colors;matlab_colors]; % stack matlab colo
 plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'New Fragility Plots'];
 
 
-%% Plot 1 - Collapse v Min Mean Max Rot Limit
+% %% Plot 1 - Collapse v Min Mean Max Rot Limit
+% hold on
+% max_val = 16;
+% x_points = linspace(max_val/100,max_val,100);
+% 
+% rank_val = sort(gm_data.collapse.cols_walls_1_min_b_e(~isnan(gm_data.collapse.cols_walls_1_min_b_e)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'b','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse.cols_walls_1_min_b_e.theta),new_frag_curves.collapse.cols_walls_1_min_b_e.beta);
+% plot(x_points,cdf,'b','lineWidth',1,'DisplayName','Min of Components')
+% 
+% rank_val = sort(gm_data.collapse.cols_walls_1_mean_b_e(~isnan(gm_data.collapse.cols_walls_1_mean_b_e)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse.cols_walls_1_mean_b_e.theta),new_frag_curves.collapse.cols_walls_1_mean_b_e.beta);
+% plot(x_points,cdf,'k','lineWidth',1,'DisplayName','Mean of Components')
+% 
+% rank_val = sort(gm_data.collapse.cols_walls_1_max_b_e(~isnan(gm_data.collapse.cols_walls_1_max_b_e)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'r','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse.cols_walls_1_max_b_e.theta),new_frag_curves.collapse.cols_walls_1_max_b_e.beta);
+% plot(x_points,cdf,'r','lineWidth',1,'DisplayName','Max of Components')
+% 
+% xlabel('Deformation Demand / Deformation Capacity')
+% ylabel('P[Collapse]')
+% xlim([0,max_val])
+% plot_name = 'Collapse v Rot Lim min-mean-max';
+% legend('location','southeast')
+% fn_format_and_save_plot( plot_dir, plot_name, 4 )
+
+% %% Plot 2a - Collapse v Min Mean Max CP - EW
+% hold on
+% max_val = 3;
+% x_points = linspace(max_val/100,max_val,100);
+% 
+% rank_val = sort(gm_data.collapse.cols_walls_1_min_cp(~isnan(gm_data.collapse.cols_walls_1_min_cp)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'b','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse.cols_walls_1_min_cp.theta),new_frag_curves.collapse.cols_walls_1_min_cp.beta);
+% plot(x_points,cdf,'b','lineWidth',1,'DisplayName','Min of Components')
+% 
+% rank_val = sort(gm_data.collapse.cols_walls_1_mean_cp(~isnan(gm_data.collapse.cols_walls_1_mean_cp)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse.cols_walls_1_mean_cp.theta),new_frag_curves.collapse.cols_walls_1_mean_cp.beta);
+% plot(x_points,cdf,'k','lineWidth',1,'DisplayName','Mean of Components')
+% 
+% rank_val = sort(gm_data.collapse.cols_walls_1_max_cp(~isnan(gm_data.collapse.cols_walls_1_max_cp)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'r','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse.cols_walls_1_max_cp.theta),new_frag_curves.collapse.cols_walls_1_max_cp.beta);
+% plot(x_points,cdf,'r','lineWidth',1,'DisplayName','Max of Components')
+% 
+% xlabel('DCR_{CP}')
+% ylabel('P[Collapse]')
+% xlim([0,max_val])
+% plot_name = 'Collapse v CP min-mean-max';
+% legend('location','southeast')
+% fn_format_and_save_plot( plot_dir, plot_name, 4 )
+% 
+% %% Plot 4 - Collapse v Percent CP
+% max_val = 1;
+% hold on
+% rank_val = sort(gm_data.collapse.cols_walls_1_percent_cp(~isnan(gm_data.collapse.cols_walls_1_percent_cp)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+% plot(rank_val,rank,'k','lineWidth',1,'DisplayName','Sidesway Collapse')
+% xlabel('Percent of Mechanism Exceeding CP')
+% ylabel('P[Collapse]')
+% xlim([0,max_val])
+% plot_name = 'Collapse v Percent CP';
+% fn_format_and_save_plot( plot_dir, plot_name, 4 )
+
+ 
+%% Plot 2a - Collapse v Min Mean Max CP - EW
 hold on
 max_val = 16;
 x_points = linspace(max_val/100,max_val,100);
 
-rank_val = sort(gm_data.collapse.cols_walls_1_min_b_e(~isnan(gm_data.collapse.cols_walls_1_min_b_e)));
+rank_val = sort(gm_data.collapse_x.cols_1_min_cp(~isnan(gm_data.collapse_x.cols_1_min_cp)));
 rank = (1:length(rank_val))/length(rank_val);
 scatter(rank_val,rank,'b','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse.cols_walls_1_min_b_e.theta),new_frag_curves.collapse.cols_walls_1_min_b_e.beta);
+cdf = logncdf(x_points,log(new_frag_curves.collapse_x.cols_1_min_cp.theta),new_frag_curves.collapse_x.cols_1_min_cp.beta);
 plot(x_points,cdf,'b','lineWidth',1,'DisplayName','Min of Components')
 
-rank_val = sort(gm_data.collapse.cols_walls_1_mean_b_e(~isnan(gm_data.collapse.cols_walls_1_mean_b_e)));
+rank_val = sort(gm_data.collapse_x.cols_1_mean_cp(~isnan(gm_data.collapse_x.cols_1_mean_cp)));
 rank = (1:length(rank_val))/length(rank_val);
 scatter(rank_val,rank,'k','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse.cols_walls_1_mean_b_e.theta),new_frag_curves.collapse.cols_walls_1_mean_b_e.beta);
+cdf = logncdf(x_points,log(new_frag_curves.collapse_x.cols_1_mean_cp.theta),new_frag_curves.collapse_x.cols_1_mean_cp.beta);
 plot(x_points,cdf,'k','lineWidth',1,'DisplayName','Mean of Components')
 
-rank_val = sort(gm_data.collapse.cols_walls_1_max_b_e(~isnan(gm_data.collapse.cols_walls_1_max_b_e)));
+rank_val = sort(gm_data.collapse_x.cols_1_max_cp(~isnan(gm_data.collapse_x.cols_1_max_cp)));
 rank = (1:length(rank_val))/length(rank_val);
 scatter(rank_val,rank,'r','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse.cols_walls_1_max_b_e.theta),new_frag_curves.collapse.cols_walls_1_max_b_e.beta);
+cdf = logncdf(x_points,log(new_frag_curves.collapse_x.cols_1_max_cp.theta),new_frag_curves.collapse_x.cols_1_max_cp.beta);
 plot(x_points,cdf,'r','lineWidth',1,'DisplayName','Max of Components')
 
-xlabel('Deformation Demand / Deformation Capacity')
+xlabel('DCR_{CP}')
 ylabel('P[Collapse]')
 xlim([0,max_val])
-plot_name = 'Collapse v Rot Lim min-mean-max';
-legend('location','southeast')
+plot_name = 'Collapse v CP min-mean-max EW';
+% legend('location','southeast')
 fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
-%% Plot 2 - Collapse v Min Mean Max CP
+%% Plot 2b - Collapse v Min Mean Max CP - NS
 hold on
 max_val = 16;
 x_points = linspace(max_val/100,max_val,100);
 
-rank_val = sort(gm_data.collapse.cols_walls_1_min_cp(~isnan(gm_data.collapse.cols_walls_1_min_cp)));
+rank_val = sort(gm_data.collapse_z.walls_1_min_cp(~isnan(gm_data.collapse_z.walls_1_min_cp)));
 rank = (1:length(rank_val))/length(rank_val);
 scatter(rank_val,rank,'b','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse.cols_walls_1_min_cp.theta),new_frag_curves.collapse.cols_walls_1_min_cp.beta);
+cdf = logncdf(x_points,log(new_frag_curves.collapse_z.walls_1_min_cp.theta),new_frag_curves.collapse_z.walls_1_min_cp.beta);
 plot(x_points,cdf,'b','lineWidth',1,'DisplayName','Min of Components')
 
-rank_val = sort(gm_data.collapse.cols_walls_1_mean_cp(~isnan(gm_data.collapse.cols_walls_1_mean_cp)));
+rank_val = sort(gm_data.collapse_z.walls_1_mean_cp(~isnan(gm_data.collapse_z.walls_1_mean_cp)));
 rank = (1:length(rank_val))/length(rank_val);
 scatter(rank_val,rank,'k','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse.cols_walls_1_mean_cp.theta),new_frag_curves.collapse.cols_walls_1_mean_cp.beta);
+cdf = logncdf(x_points,log(new_frag_curves.collapse_z.walls_1_mean_cp.theta),new_frag_curves.collapse_z.walls_1_mean_cp.beta);
 plot(x_points,cdf,'k','lineWidth',1,'DisplayName','Mean of Components')
 
-rank_val = sort(gm_data.collapse.cols_walls_1_max_cp(~isnan(gm_data.collapse.cols_walls_1_max_cp)));
+rank_val = sort(gm_data.collapse_z.walls_1_max_cp(~isnan(gm_data.collapse_z.walls_1_max_cp)));
 rank = (1:length(rank_val))/length(rank_val);
 scatter(rank_val,rank,'r','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse.cols_walls_1_max_cp.theta),new_frag_curves.collapse.cols_walls_1_max_cp.beta);
+cdf = logncdf(x_points,log(new_frag_curves.collapse_z.walls_1_max_cp.theta),new_frag_curves.collapse_z.walls_1_max_cp.beta);
 plot(x_points,cdf,'r','lineWidth',1,'DisplayName','Max of Components')
 
-xlabel('Deformation Demand / CP Limit-State')
+xlabel('DCR_{CP}')
 ylabel('P[Collapse]')
 xlim([0,max_val])
-plot_name = 'Collapse v CP min-mean-max';
+plot_name = 'Collapse v CP min-mean-max NS';
 legend('location','southeast')
 fn_format_and_save_plot( plot_dir, plot_name, 4 )
 

@@ -16,7 +16,6 @@ end
 fn_define_recorders( ida_opensees_dir, model.dimension, node, element, joint, hinge, analysis )
 
 % Write Loads file
-analysis.ground_motion_scale_factor = scale_factor;
 fn_define_loads( ida_opensees_dir, analysis, node, model.dimension, story, element, ground_motion )
 
 % Write Analysis Files

@@ -19,7 +19,7 @@ analysis.summit = 0;
 analysis.run_parallel = 0;
 analysis.run_ida = 0;
 analysis.post_process_ida = 0;
-analysis.create_fragilities = 1;
+analysis.create_fragilities = 0;
 analysis.plot_ida = 1;
 analysis.detialed_post_process = 0;
 analysis.scale_increment = 0.25;
@@ -43,8 +43,8 @@ analysis.play_movie = 0;
 analysis.movie_scale = 0;
 analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
-analysis.joint_explicit = 1;
-analysis.stories_nonlinear = 3;
+analysis.joint_explicit = 0;
+analysis.stories_nonlinear = 1;
 analysis.simple_recorders = 1;
 
 %% Import Packages
@@ -100,7 +100,7 @@ if analysis.create_fragilities
     if ~exist(write_dir,'dir')
         mkdir(write_dir)
     end
-%     fn_collect_ida_data(analysis, model, gm_set_table, ida_results, write_dir)
+    fn_collect_ida_data(analysis, model, gm_set_table, ida_results, write_dir)
     fn_create_fragilities(analysis, gm_set_table, write_dir)
 %     fn_LR_classification(analysis, model, gm_set_table)
 end

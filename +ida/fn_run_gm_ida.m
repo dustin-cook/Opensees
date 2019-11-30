@@ -13,6 +13,7 @@ prev_collapse = 0;
 while scale_factor < analysis.scale_increment*20
     % Increment Scale Factor
     scale_factor = scale_factor + scale_increment;
+    analysis.ground_motion_scale_factor = scale_factor;
     
     % Define Ground Motion Data
     ground_motion.x = gms2run(gm_idx,:);

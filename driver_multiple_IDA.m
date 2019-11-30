@@ -12,20 +12,15 @@ import ida.*
 import plotting_tools.*
 
 %% Define inputs
-model.name{1} = 'ICBS_model_3D_fixed';
-% model_names = {'Baseline' 'Model' 'Model' 'Model' 'Model' 'Model' 'Model'};
-% model_ids = {'1' '1' '3' '4' '5' '6' '10'};
-% model_cov = [0, 0.21, 0.23, 0.330838727, 0.390735597, 0.419593673, 0.442252539, 0.451049354, 0.460858686, 0.49470859, 0.520090038, 0.571189043, 0.702598281];
+model_baseline_name = 'NDP_baseline_1';
+model.name{1} = 'ICBS_model_5ew_col_base';
+model_names = {'Model_uniform' 'NDP_baseline' 'Model' 'Model' 'Model' 'Model' 'Model' 'NDP_Model_extreme' };
+model_ids = {'1' '1' '1' '4' '6' '8' '10' '1'};
 
+% model_names = {'NDP_Model_extreme'};
+% model_ids = {'1'};
 
-model_cov = [0.23, 0.330838727, 0.442252539, 0.460858686, 0.702598281];
-model_names = {'Baseline' 'Model' 'Model' 'Model' 'Model'};
-model_ids = {'1' '1' '4' '6' '10'};
-
-% model_names = {'Model'};
-% model_ids = {'6'};
-
-analysis.run_z_motion = 1;
+analysis.run_z_motion = 0;
 
 ida_results.direction = {'EW'; 'NS'};
 ida_results.period = [1.14; 0.35];
@@ -41,8 +36,8 @@ for m = 1:length(model_names)
     analysis.proceedure = model_names{m};
     analysis.id = model_ids{m};
     write_dir = ['outputs/' model.name{1} '/' analysis.proceedure '_' analysis.id '/IDA/Fragility Data'];
-    pushover_dir = ['outputs' '/' model.name{1} '/' 'NDP_IDA_new' '/' 'pushover'];
-    model_dir = ['outputs' '/' model.name{1} '/' 'NDP_IDA_new' '/' 'opensees_data'];
+    pushover_dir = ['outputs' '/' model.name{1} '/' model_baseline_name '/' 'pushover'];
+    model_dir = ['outputs' '/' model.name{1} '/' model_baseline_name '/' 'opensees_data'];
     if ~exist(write_dir,'dir')
         mkdir(write_dir)
     end
@@ -51,11 +46,12 @@ for m = 1:length(model_names)
     sprintf('%s_%s', analysis.proceedure, analysis.id)
 %     fn_collect_ida_data(analysis, model, gm_set_table, ida_results, write_dir, pushover_dir, model_dir)
 %     fn_create_fragilities(analysis, gm_set_table, write_dir)
-    
+ 
     % Collect Summary Statistics
     read_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Fragility Data'];
     ele_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'asce_41_data'];
-    [sa_med_col, sa_med_cp, col_margin, min_cp_med, mean_cp_med, max_cp_med, column_cov, column_base_cov, column_min, column_range] = fn_collect_cummary_data(read_dir, ele_dir);
+    [percent_CP, sa_med_col, sa_med_cp, col_margin, min_cp_med, mean_cp_med, max_cp_med, column_cov, column_base_cov, column_min, column_range] = fn_collect_cummary_data(read_dir, ele_dir);
+    models.percent_CP(:,m) = percent_CP;
     models.sa_med_col(m) = sa_med_col;
     models.sa_med_cp(m) = sa_med_cp;
     models.col_margin(m) = col_margin;
@@ -71,6 +67,21 @@ end
 %% Create Plots
 outputs_dir = ['outputs' filesep 'ICBS_model_3D_fixed' filesep 'NDP_IDA_new' filesep 'sensitivity_study'];
 
+rank = ((1:44)/44)';
+cmap = colormap(jet(100));
+hold on
+for i = 1:length(model_names)
+    plot(models.percent_CP(:,i),rank,'color',cmap(max(round(100*models.column_cov(i)),1),:),'linewidth',1.25)
+end
+xlabel('Fraction of Components Exceeding CP')
+ylabel('P[Collapse]')
+h = colorbar;
+h.Limits = [0,0.7];
+ylabel(h, 'Column Deformation Capacity COV')
+grid on
+box on
+fn_format_and_save_plot( outputs_dir, 'Multi Percent CP plot', 4, 1 )
+
 hold on
 plot(models.column_cov, models.sa_med_cp,'b','marker','o','DisplayName','CP')
 plot(models.column_cov, models.sa_med_col,'k','marker','d','DisplayName','Collapse')
@@ -83,7 +94,7 @@ box on
 fn_format_and_save_plot( outputs_dir, 'Median Exceedence Trend', 4, 1 )
 
 plot(models.column_cov, models.col_margin,'k','marker','o')
-ylim([0,3])
+ylim([0,2])
 xlabel('Column Deformation Capacity COV')
 ylabel('Collapse Margin')
 grid on
@@ -94,7 +105,7 @@ hold on
 plot(models.column_cov, models.min_cp_med,'b','marker','o','DisplayName','Min')
 plot(models.column_cov, models.mean_cp_med,'k','marker','d','DisplayName','Mean')
 plot(models.column_cov, models.max_cp_med,'r','marker','s','DisplayName','Max')
-ylim([0,10])
+ylim([0,2])
 xlabel('Column Deformation Capacity COV')
 ylabel('Median Deformation Demand to CP Ratio')
 legend('location','northeast')
@@ -102,10 +113,14 @@ grid on
 box on
 fn_format_and_save_plot( outputs_dir, 'Min Mean Max Trend', 4, 1 )
 
-function [sa_med_col, sa_med_cp, col_margin, min_cp_med, mean_cp_med, max_cp_med, column_cov, column_base_cov, column_min, column_range] = fn_collect_cummary_data(read_dir, ele_dir)
+function [percent_CP, sa_med_col, sa_med_cp, col_margin, min_cp_med, mean_cp_med, max_cp_med, column_cov, column_base_cov, column_min, column_range] = fn_collect_cummary_data(read_dir, ele_dir)
 load([read_dir filesep 'frag_curves.mat'])
 load([read_dir filesep 'new_frag_curves.mat'])
+load([read_dir filesep 'gm_data.mat'])
 load([ele_dir filesep 'element_analysis.mat'])
+
+% Percent Comps exceede CP discrete fragilitu
+percent_CP = sort(gm_data.collapse.cols_walls_1_percent_cp);
 
 % Median Collapse Capacity
 sa_med_col = frag_curves.collapse.theta;
