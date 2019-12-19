@@ -108,6 +108,8 @@ for i = 1:height(element)
                 if strcmp(dimension,'2D')
                     % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
                     fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,Iz_ele,geotransf);
+                    % element ElasticTimoshenkoBeam $eleTag $iNode $jNode $E $G $A $Iz $Avy $transfTag <-mass $massDens> <-cMass>
+%                     fprintf(fileID,'element ElasticTimoshenkoBeam %i %i %i %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.e,ele_props.g,ele_props.a,Iz_ele,(5/6)*ele_props.a,geotransf);
                 elseif strcmp(dimension,'3D')
                     % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
                     fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,Iy_ele,Iz_ele,geotransf);
@@ -171,7 +173,7 @@ for i = 1:height(element)
         % uniaxialMaterial Elastic $matTag $E <$eta> <$Eneg>
         fprintf(fileID,'uniaxialMaterial Elastic %i %f \n',element.id(i),ele_props.e);
         % element truss $eleTag $iNode $jNode $A $matTag <-rho $rho> <-cMass $cFlag> <-doRayleigh $rFlag>
-        fprintf(fileID,'element truss %i %i %i %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,element.id(i));
+        fprintf(fileID,'element truss %i %i %i %f %i -rho 0.0 -cMass 0 -doRayleigh 0 \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,element.id(i));
     end
 end
 
@@ -416,6 +418,59 @@ if height(joint) > 0
                 % element Joint3D %tag %Nx- %Nx+ %Ny- %Ny+ %Nz- %Nz+ %Nc %MatX %MatY %MatZ %LrgDspTag
                 fprintf(fileID,'element Joint3D %i %i %i %i %i %i %i %i %i 1 1 0 \n', 10000+i, joint.x_neg(i), joint.x_pos(i), joint.y_neg(i), joint.y_pos(i), joint.z_neg(i), joint.z_pos(i), 10000+i, 10000+i); 
             end
+        elseif analysis.joint_model == 0  % Centerline Model
+            joint_ele_ids = [(1:6)+joint.id(i)*1000000,joint_ele_ids];
+            joint_center.x = node.x(node.id == joint.y_pos(i),:);
+            joint_center.y = node.y(node.id == joint.x_pos(i),:);
+            joint_center.z = node.z(node.id == joint.x_pos(i),:);
+            joint_center_node = 40000+i;
+            if strcmp(dimension,'2D')
+                fprintf(fileID,'node %i %f %f \n',joint_center_node,joint_center.x,joint_center.y);
+            else
+                fprintf(fileID,'node %i %f %f %f \n',joint_center_node,joint_center.x,joint_center.y,joint_center.z);
+            end
+            bm_left = element(element.id == joint.beam_left(i),:);
+            bm_right = element(element.id == joint.beam_right(i),:);
+            col_low = element(element.id == joint.column_low(i),:);
+            col_high = element(element.id == joint.column_high(i),:);
+            if ~isempty(bm_left)
+                ele_props = ele_props_table(ele_props_table.id == bm_left.ele_id,:);
+                if strcmp(dimension,'2D')
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',joint.id(i)*1000000+1,joint.x_neg(i),joint_center_node,ele_props.a,ele_props.e,ele_props.iz,2);
+                else
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',joint.id(i)*1000000+1,joint.x_neg(i),joint_center_node,ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,2);
+                end
+            end
+            if ~isempty(bm_right)
+                ele_props = ele_props_table(ele_props_table.id == bm_right.ele_id,:);
+                if strcmp(dimension,'2D')
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',joint.id(i)*1000000+2,joint_center_node,joint.x_pos(i),ele_props.a,ele_props.e,ele_props.iz,2);
+                else
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',joint.id(i)*1000000+2,joint_center_node,joint.x_pos(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,2);
+                end
+            end
+            if ~isempty(col_low)
+                ele_props = ele_props_table(ele_props_table.id == col_low.ele_id,:);
+                if strcmp(dimension,'2D')
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',joint.id(i)*1000000+3,joint.y_neg(i),joint_center_node,ele_props.a,ele_props.e,ele_props.iz,1);
+                else
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',joint.id(i)*1000000+3,joint.y_neg(i),joint_center_node,ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,1);
+                end
+            end
+            if ~isempty(col_high)
+                ele_props = ele_props_table(ele_props_table.id == col_high.ele_id,:);
+                if strcmp(dimension,'2D')
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',joint.id(i)*1000000+4,joint_center_node,joint.y_pos(i),ele_props.a,ele_props.e,ele_props.iz,1);
+                else
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',joint.id(i)*1000000+4,joint_center_node,joint.y_pos(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,1);
+                end
+            else
+                if strcmp(dimension,'2D')
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 200000. 1 \n',joint.id(i)*1000000+4,joint_center_node,joint.y_pos(i));
+                else
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,joint_center_node,joint.y_pos(i));
+                end
+            end
         end
     end
 end
@@ -468,6 +523,14 @@ if height(hinge) > 0
         else
             ele_side = num2str(hin.ele_side);
             ele = element(element.id == hin.element_id,:);
+            if strcmp(ele_side,'1')
+                nd_1 = hin.node_1;
+                nd_2 = hin.node_2;
+            elseif strcmp(ele_side,'2') % for side two, switch pos and negative to make sign correct
+                nd_1 = hin.node_2;
+                nd_2 = hin.node_1;    
+            end
+
             if analysis.model_type == 2 % MDOF
                 ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
             else % SDOF
@@ -506,7 +569,7 @@ if height(hinge) > 0
 
                 % uniaxialMaterial IMKPeakOriented $Mat_Tag $Ke $Up_pos $Upc_pos $Uu_pos $Fy_pos $FmaxFy_pos $FresFy_pos $Up_neg $Upc_neg $Uu_neg $Fy_neg $FmaxFy_neg $FresFy_neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $D_pos $D_neg
                 fprintf(fileID,'uniaxialMaterial IMKPeakOriented %i %f %f %f %f %f %f %f %f %f %f %f %f %f 100.0 100.0 100.0 100.0 1.0 1.0 1.0 1.0 1.0 1.0 \n', ele_hinge_id, K0, theta_p_pos, theta_pc_pos, end_rot, moment_vec_pos(1), moment_vec_pos(2)/moment_vec_pos(1), residual_strength, theta_p_neg, theta_pc_neg, end_rot, moment_vec_neg(1), moment_vec_neg(2)/moment_vec_neg(1), residual_strength);
-               
+
                 % uniaxialMaterial Bilin $matTag $K0 $as_Plus $as_Neg $My_Plus $My_Neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $theta_p_Plus $theta_p_Neg $theta_pc_Plus $theta_pc_Neg $Res_Pos $Res_Neg $theta_u_Plus $theta_u_Neg $D_Plus $D_Neg <$nFactor>
 %                 fprintf(fileID,'uniaxialMaterial Bilin %i %f %f %f %f %f 10.0 10.0 10.0 10.0 1.0 1.0 1.0 1.0 %f %f %f %f %f %f %f %f 1.0 1.0 \n',ele_hinge_id, Ko, as_sping_pos, as_sping_neg, moment_vec_pos(1), -moment_vec_neg(1), rot_vec_pos(2)-rot_vec_pos(1), rot_vec_neg(2)-rot_vec_neg(1), theta_pc_pos, theta_pc_neg, residual_strength, residual_strength, end_rot, end_rot);
 
@@ -514,29 +577,29 @@ if height(hinge) > 0
                 %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
                 if strcmp(dimension,'2D')
                     if strcmp(ele.direction,'x') && strcmp(hin.direction,'primary') % Out of plane for the X direction  
-                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 3 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
-                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 -dir 1 2 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
+                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 3 \n',ele_hinge_id, nd_1, nd_2, ele_hinge_id);
+                        fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 -dir 1 2 \n',50000 + ele_hinge_id, nd_1, nd_2);
                     end
                 elseif strcmp(dimension,'3D')
                     if strcmp(ele.direction,'x') && strcmp(hin.direction,'oop') % Out of plane for the X direction  
-                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, nd_1, nd_2, ele_hinge_id);
                     elseif strcmp(ele.direction,'x') % In plane for the X direction 
                         if strcmp(ele_props.type,'column')
-                            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir %i \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id, rot_dof_x);
-                            fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 2 -dir 1 2 3 5 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
+                            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir %i \n',ele_hinge_id, nd_1, nd_2, ele_hinge_id, rot_dof_x);
+                            fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 2 -dir 1 2 3 5 \n',50000 + ele_hinge_id, nd_1, nd_2);
                         elseif strcmp(ele_props.type,'beam')
-                            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir %i \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id, rot_dof_x);
-                            fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 2 2 -dir 1 2 3 4 5 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
+                            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir %i \n',ele_hinge_id, nd_1, nd_2, ele_hinge_id, rot_dof_x);
+                            fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 2 2 -dir 1 2 3 4 5 \n',50000 + ele_hinge_id, nd_1, nd_2);
                         end
                     elseif strcmp(ele.direction,'z') && strcmp(hin.direction,'oop') % Out of plane for the Z direction  
-                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
+                        fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 6 \n',ele_hinge_id, nd_1, nd_2, ele_hinge_id);
                     elseif strcmp(ele.direction,'z') % In plane for the Z direction 
                         if strcmp(ele_props.type,'column')
-                            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
-                            fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 2 -dir 1 2 3 5 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
+                            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, nd_1, nd_2, ele_hinge_id);
+                            fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 2 -dir 1 2 3 5 \n',50000 + ele_hinge_id, nd_1, nd_2);
                         elseif strcmp(ele_props.type,'beam')
-                            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, hin.node_1, hin.node_2, ele_hinge_id);
-                            fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 2 2 -dir 1 2 3 5 6 \n',50000 + ele_hinge_id, hin.node_1, hin.node_2);
+                            fprintf(fileID,'element zeroLength %i %i %i -mat %i -dir 4 \n',ele_hinge_id, nd_1, nd_2, ele_hinge_id);
+                            fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 1 2 2 -dir 1 2 3 5 6 \n',50000 + ele_hinge_id, nd_1, nd_2);
                         end
                     end
                 end

@@ -57,6 +57,10 @@ elseif strcmp(ele.type,'wall')
     
     % OOP
     critical_mode_oop = {'flexure'}; % assumes wall out-of-plane are flexure controlled
+    
+else % Not a beam column or wall
+    critical_mode = {'NA'};
+    critical_mode_oop = {'NA'}; 
 end
 
 % Check if shear deformations need to be considered

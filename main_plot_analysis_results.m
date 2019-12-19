@@ -89,7 +89,9 @@ end
 
 %% Dynamic Analysis
 if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this proceedure 
-    %% ASCE 41 Acceptance Plots
+    %% Haselton Mechanism Plots
+    fn_curt_plot_2D( hinge, element, node, story, 'Collapse Mechanism', plot_dir )
+    
     %% Plot Hinge accpetance
     % Elevation
         fn_plot_elevation( hinge, element, node, 'Frame 1', [plot_dir filesep 'Acceptance Plots' filesep 'elevations'], 'x', 0, 4000, 0, 0 )

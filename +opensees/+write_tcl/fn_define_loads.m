@@ -11,7 +11,7 @@ fileID = fopen(file_name,'w');
 
 fprintf(fileID,'puts "Defining Loads ..." \n');
 
-%% Define Gravity Loads (node id, axial, shear, moment)
+% Define Gravity Loads (node id, axial, shear, moment)
 fprintf(fileID,'pattern Plain 1 Linear {  \n');
 for i = 1:height(element) 
     if strcmp(element.type{i},'beam')
@@ -30,6 +30,12 @@ for i = 1:height(element)
         end
     end
 end
+% for i = 1:height(node) 
+%     % eleLoad -ele $eleTag1 <$eleTag2 ....> -type -beamUniform $Wy $Wz <$Wx>
+%     if node.mass(i) > 0
+%         fprintf(fileID,'   load %i 0.0 %f 0.0 \n', node.id(i), -386*node.mass(i));
+%     end
+% end
 fprintf(fileID,'} \n');
 
 %% Write Gravity System Analysis
@@ -171,10 +177,10 @@ else
     if strcmp(analysis.damping,'rayleigh')
         % region $regTag <-ele ($ele1 $ele2 ...)> <-eleOnly ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-eleOnlyRange $startEle $endEle> <-node ($node1 $node2 ...)> <-nodeOnly ($node1 $node2 ...)> <-nodeRange $startNode $endNode> <-nodeOnlyRange $startNode $endNode> <-node all> <-rayleigh $alphaM $betaK $betaKinit $betaKcomm>
 %         rayleigh $alphaM $betaK $betaKinit $betaKcomm
-        fprintf(fileID,'rayleigh $a0 $a1 0.0 0.0 \n');
+%         fprintf(fileID,'rayleigh $a0 $a1 0.0 0.0 \n');
 %         Region Commands do not work (ie they apply no damping)
-%         fprintf(fileID,'region 1 -eleOnly %s -rayleigh 0.0 $a1 0.0 0.0 \n', num2str([element_ids])); % Assign Stiffnes Proportional Damping to the elastic elements
-%         fprintf(fileID,'region 2 -nodeOnly %s -rayleigh $a0 0.0 0.0 0.0 \n', num2str(node.id(node.mass > 0)')); % Assign Mass Proportional Damping to the whole model (only triggers where there is mass)
+        fprintf(fileID,'region 1 -ele %s -rayleigh 0.0 $a1 0.0 0.0 \n', num2str(element.id(element.rigid == 0)')); % Assign Stiffnes Proportional Damping to the elastic elements
+        fprintf(fileID,'region 2 -node %s -rayleigh $a0 0.0 0.0 0.0 \n', num2str(node.id(node.mass > 0)')); % Assign Mass Proportional Damping to the whole model (only triggers where there is mass)
     elseif strcmp(analysis.damping,'modal')
             fprintf(fileID,'modalDamping %f \n',analysis.damp_ratio);
             fprintf(fileID,'rayleigh 0.0 $a1 0.0 0.0 \n'); % Just a little bit of stiffness proportional everywhere

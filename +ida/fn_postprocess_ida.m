@@ -7,6 +7,7 @@ function [ ] = fn_postprocess_ida(analysis, model, story, element, node, hinge, 
 import opensees.main_post_process_opensees
 import opensees.post_process.*
 import ida.*
+import plotting_tools.fn_curt_plot_2D
 
 % Load element properties table
 ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
@@ -68,6 +69,8 @@ for i = 1:height(hinge)
 
             hinge.plastic_deform(i) = hinge.tot_deform(i) - hinge.elastic_deform(i);
 
+            hinge.a_value_tot(i) = ele.(['a_hinge_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
+            hinge.a_ratio(i) = hinge.tot_deform(i) / hinge.a_value_tot(i);
             hinge.b_value_tot(i) = ele.(['b_hinge_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
             hinge.b_ratio(i) = hinge.tot_deform(i) / hinge.b_value_tot(i);
             hinge.io_value_tot(i) = ele.(['io_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
@@ -118,9 +121,7 @@ end
 if summary.collapse > 0
     if ~analysis.run_z_motion || (summary.max_drift_x > summary.max_drift_z)
         summary.collapse_direction = 'x';
-        if min(hinge.b_ratio(strcmp(hinge.ele_type,'beam') & strcmp(hinge.ele_direction,'x'))) > 1
-            summary.collaspe_mech = 'beams';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & hinge.story == 1)) > 1
+        if min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & hinge.story == 1)) > 1
             summary.collaspe_mech = 'story 1';
         elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & hinge.story == 2)) > 1
             summary.collaspe_mech = 'story 2';
@@ -132,6 +133,8 @@ if summary.collapse > 0
             summary.collaspe_mech = 'story 5';
         elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & hinge.story == 6)) > 1
             summary.collaspe_mech = 'story 6';
+        elseif max(hinge.b_ratio(strcmp(hinge.ele_type,'beam') & strcmp(hinge.ele_direction,'x'))) > 1
+            summary.collaspe_mech = 'beams'; % if none of the columns had story mechanims, then if at least one beam is above the b value, call it a beam mechanism
         else
             summary.collaspe_mech = 'other';
         end
@@ -144,6 +147,9 @@ if summary.collapse > 0
         end
     end
 end
+
+% Plot Collapse Mechanism 
+fn_curt_plot_2D( hinge, element, node, story, 'Collapse Mechanism', ida_summary_dir )
 
 % Save data for this run
 fprintf('Writing IDA Results to Directory: %s \n',ida_summary_dir)

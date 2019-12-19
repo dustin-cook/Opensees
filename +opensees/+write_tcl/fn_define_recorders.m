@@ -108,8 +108,12 @@ elseif analysis.type == 2 || analysis.type == 3
             fprintf(fileID,'recorder Node %s %s/nodal_disp_%s_%s.%s -time -node %i -dof %i disp \n', file_type, write_dir, analysis.pushover_direction, num2str(node.id(i)), file_ext, (node.id(i)), control_dof );
         end
     end
+    
+    % Element Recorders
     for i = 1:height(element)
-        fprintf(fileID,'recorder Element %s %s/element_force_%s_%s.%s -time -ele %i localForce \n', file_type, write_dir, analysis.pushover_direction, num2str(element.id(i)), file_ext, element.id(i) );
+        if ~strcmp(element.type{i},'truss')
+            fprintf(fileID,'recorder Element %s %s/element_force_%s_%s.%s -time -ele %i localForce \n', file_type, write_dir, analysis.pushover_direction, num2str(element.id(i)), file_ext, element.id(i) );
+        end
     end
     
     % Nodal Reaction Recorders

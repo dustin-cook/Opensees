@@ -8,18 +8,18 @@ clc
 
 %% User Inputs
 % Define Model
-analysis.model_id = 11;
+analysis.model_id = 19;
 analysis.proceedure = 'NDP';
-analysis.id = 'IDA_new';
+analysis.id = 'baseline_fix';
 analysis.gm_set = 'FEMA_far_field';
-analysis.run_z_motion = 1;
+analysis.run_z_motion = 0;
 
 % Analysis options
 analysis.summit = 0;
-analysis.run_parallel = 0;
-analysis.run_ida = 0;
-analysis.post_process_ida = 0;
-analysis.create_fragilities = 0;
+analysis.run_parallel = 1;
+analysis.run_ida = 1;
+analysis.post_process_ida = 1;
+analysis.create_fragilities = 1;
 analysis.plot_ida = 1;
 analysis.detialed_post_process = 0;
 analysis.scale_increment = 0.25;
@@ -44,7 +44,7 @@ analysis.movie_scale = 0;
 analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 analysis.joint_explicit = 0;
-analysis.stories_nonlinear = 1;
+analysis.stories_nonlinear = 6;
 analysis.simple_recorders = 1;
 
 %% Import Packages
@@ -107,9 +107,9 @@ end
 
 %% Plot Results
 if analysis.plot_ida
-%     fn_plot_ida(analysis, model, gm_set_table, ida_results, SSF_ew)
+    fn_plot_ida(analysis, model, gm_set_table, ida_results, SSF_ew)
     fn_plot_new_frags(analysis, model)
-%     fn_plot_hinge_values(analysis, model, IDA_scale_factors, gm_set_table)
+    fn_plot_hinge_values(analysis, model, IDA_scale_factors, gm_set_table)
 end
 
 %% Post Process Details of Specific GMs
