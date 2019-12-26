@@ -7,19 +7,20 @@ function [ ] = fn_collect_ida_data(analysis, model, gm_set_table, ida_results, w
 import plotting_tools.*
 
 % Defined fixed parames
-% params = {'b','e','b_e','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
-params = {'b','b_e','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
-% mechs = { 'cols_1', 'walls_1', 'cols_walls_1'};
-mechs = { 'cols_1', 'cols_walls_1'};
+% params = {'b','e','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
+params = {'b','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
 
 % Load model data
-if ~exist('pushover_dir','var')
+if ~exist('model_dir','var')
     model_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'opensees_data'];
 end
 if ~exist('pushover_dir','var')
     pushover_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'pushover'];
 end
-load([model_dir filesep 'element_analysis.mat']);
+if ~exist('asce41_dir','var')
+    asce41_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'asce_41_data'];
+end
+load([asce41_dir filesep 'element_analysis.mat']);
 load([model_dir filesep 'node_analysis.mat']);
 
 % Collect IDA data
@@ -64,134 +65,53 @@ for gm = 1:height(gm_set_table)
             
             % Collapse metrics
             ida.collapse(id,1) = summary.collapse;
-            if isfield(summary,'collapse_direction')
+            if summary.collapse > 0
                 ida.collapse_direction{id,1} = summary.collapse_direction;
-            else
-                summary.collapse_direction = 'NA';
-            end
-            if isfield(summary,'collaspe_mech')
                 ida.collapse_mech{id,1} = summary.collaspe_mech;
-            end
-            
-            % Get element group filters
-            first_story_col_filter = hinge.story == 1 & strcmp(hinge.direction,'primary') & strcmp(hinge.ele_type,'column');
-            first_story_wall_filter = hinge.story == 1 & strcmp(hinge.direction,'primary')  & strcmp(hinge.ele_type,'wall');
-            ida.num_comps_cols_1(id,1) = sum(first_story_col_filter);
-            ida.num_comps_walls_1(id,1) = sum(first_story_wall_filter);
-            ida.num_comps_cols_walls_1(id,1) = sum(first_story_col_filter | first_story_wall_filter);
-            mech_hinges{1}.prime = hinge(first_story_col_filter,:);
-            mech_hinges{1}.second = [];
-%             mech_hinges{2}.prime = hinge(first_story_wall_filter,:);
-%             mech_hinges{2}.second = [];
-            mech_hinges{2}.prime = hinge(first_story_col_filter,:);
-            mech_hinges{2}.second = hinge(first_story_wall_filter,:);
-
-            % For Each accetance criteria listed above
-            for m = 1:length(mechs)
-                for p = 1:length(params)
-                    [ num_eles, percent_eles, num_eles_15, max_ele, min_ele, mean_ele, range_ele, std_ele, cov_ele ] = fn_collect_component_data(params{p}, summary.collapse, summary.collapse_direction, mech_hinges{m}.prime, mech_hinges{m}.second);
-                    ida.([mechs{m} '_num_' params{p}])(id,1) = num_eles;
-                    ida.([mechs{m} '_percent_' params{p}])(id,1) = percent_eles;
-                    ida.([mechs{m} '_num_' params{p} '_15'])(id,1) = num_eles_15;
-                    ida.([mechs{m} '_max_' params{p}])(id,1) = max_ele;
-                    ida.([mechs{m} '_min_' params{p}])(id,1) = min_ele;
-                    ida.([mechs{m} '_mean_' params{p}])(id,1) = mean_ele;
-                    ida.([mechs{m} '_range_' params{p}])(id,1) = range_ele;
-                    ida.([mechs{m} '_std_' params{p}])(id,1) = std_ele;
-                    ida.([mechs{m} '_cov_' params{p}])(id,1) = cov_ele;
-                end
-            end
-            
-            % Unacceptable Response
-            if summary.collapse == 1 || summary.collapse == 3 || ida.cols_walls_1_num_b_e_15(id,1) > 0
-                ida.UR(id,1) = 1;
+                load(hinge_file)
+                ida.collapse_comps(id,1) = sum(hinge.b_ratio >= 1);
             else
-                ida.UR(id,1) = 0;
+                ida.collapse_direction{id,1} = 'NA';
+                ida.collapse_mech{id,1} = 'NA';
+                ida.collapse_comps(id,1) = NaN;
             end
             
-            % Test hinge values
-            wall_hinges = hinge(first_story_wall_filter,:);
-            col_hinges = hinge(hinge.story == 1 & strcmp(hinge.direction,'primary') & strcmp(hinge.ele_type,'column'),:);
-            in_plane_col_base = hinge(hinge.story == 1 & hinge.ele_side == 1 & strcmp(hinge.direction,'primary') & strcmp(hinge.ele_type,'column'),:);
-            in_plane_col_top = hinge(hinge.story == 1 & hinge.ele_side == 2 & strcmp(hinge.direction,'primary') & strcmp(hinge.ele_type,'column'),:);
-            oop_col_base = hinge(hinge.story == 1 & hinge.ele_side == 1 & strcmp(hinge.direction,'oop') & strcmp(hinge.ele_direction,'x'),:);
-            oop_col_top = hinge(hinge.story == 1 & hinge.ele_side == 2 & strcmp(hinge.direction,'oop'),:);
-            
-            % Gravity Load Lost
-            cols_walls_1_hinges = hinge(first_story_col_filter | first_story_wall_filter,:);
-            first_story_elements = element(ismember(element.id, cols_walls_1_hinges.element_id),:);
-%             hinges_lost_grav = cols_walls_1_hinges(cols_walls_1_hinges.b_ratio > 1 | cols_walls_1_hinges.e_ratio > 1,:);
-            hinges_lost_grav = cols_walls_1_hinges(cols_walls_1_hinges.b_ratio > 1,:);
-            elements_lost_grav = element(ismember(element.id, hinges_lost_grav.element_id),:);
-            grav_load_lost = sum(elements_lost_grav.P_grav);
-            total_grav_load = sum(first_story_elements.P_grav);
-            ida.gravity_load_lost_ratio(id,1) = grav_load_lost / total_grav_load;
-
-%             % Adjacent components (focus on just columns for now)
-%             cols_walls_1_hinge_nodes = node(ismember(node.id,cols_walls_1_hinges.node_1),:);
-%             ida.adjacent_failure_any(id,1) = 0;
-%             ida.adjacent_failure_any_frame(id,1) = 0;
-%             ida.adjacent_failure_all(id,1) = 0;
-%             col_hinges_fail = hinges_lost_grav(strcmp(hinges_lost_grav.ele_type,'column'),:);
-%             ida.num_adjacent_failure_any(id,1) = 0;
-%             ida.num_adjacent_failure_any_frame(id,1) = 0;
-%             ida.num_adjacent_failure_all(id,1) = 0;
-%             for h = 1:height(col_hinges_fail)
-%                 hin = col_hinges_fail(h,:);
-%                 hin_x = node.x(node.id == hin.node_1); 
-%                 hin_z = node.z(node.id == hin.node_1);
-%                 node_east = cols_walls_1_hinge_nodes(cols_walls_1_hinge_nodes.x == hin_x + 300 & cols_walls_1_hinge_nodes.z == hin_z,:);
-%                 node_west = cols_walls_1_hinge_nodes(cols_walls_1_hinge_nodes.x == hin_x - 300 & cols_walls_1_hinge_nodes.z == hin_z,:);
-%                 node_north = cols_walls_1_hinge_nodes(cols_walls_1_hinge_nodes.x == hin_x & cols_walls_1_hinge_nodes.z == hin_z + 300,:);
-%                 node_south = cols_walls_1_hinge_nodes(cols_walls_1_hinge_nodes.x == hin_x & cols_walls_1_hinge_nodes.z == hin_z - 300,:);
-%                 hin_east = cols_walls_1_hinges(ismember(cols_walls_1_hinges.node_1,node_east.id) | ismember(cols_walls_1_hinges.node_2,node_east.id),:);
-%                 hin_west = cols_walls_1_hinges(ismember(cols_walls_1_hinges.node_1,node_west.id) | ismember(cols_walls_1_hinges.node_2,node_west.id),:);
-%                 hin_north = cols_walls_1_hinges(ismember(cols_walls_1_hinges.node_1,node_north.id) | ismember(cols_walls_1_hinges.node_2,node_north.id),:);
-%                 hin_south = cols_walls_1_hinges(ismember(cols_walls_1_hinges.node_1,node_south.id) | ismember(cols_walls_1_hinges.node_2,node_south.id),:);
-%                 
-%                 % At least 1 adjacent component
-%                 if any(ismember(col_hinges_fail.id,[hin_east.id; hin_west.id; hin_north.id; hin_south.id]))
-%                     ida.adjacent_failure_any(id,1) = 1;
-%                     ida.num_adjacent_failure_any(id,1) = 1 + ida.num_adjacent_failure_any(id,1);
-%                 end
-%                 
-%                 % At least 1 adjacent component in frame line
-%                 if any(ismember(col_hinges_fail.id,[hin_east.id; hin_west.id]))
-%                     ida.adjacent_failure_any_frame(id,1) = 1;
-%                     ida.num_adjacent_failure_any_frame(id,1) = 1 + ida.num_adjacent_failure_any_frame(id,1);
-%                 end
-% 
-%                 % All adjacent components 
-%                if any(ismember(col_hinges_fail.id,hin_east.id)) && any(ismember(col_hinges_fail.id,hin_west.id)) &&  any(ismember(col_hinges_fail.id,hin_north.id)) && any(ismember(col_hinges_fail.id,hin_south.id))
-%                     ida.adjacent_failure_all(id,1) = 1;
-%                     ida.num_adjacent_failure_all(id,1) = 1 + ida.num_adjacent_failure_all(id,1);
-%                end
-%             end
-            
-           % Dissapated Energy
-           ew_pushover_energy = 0;
-           for e = 1:height(col_hinges)
-               pushover_TH = load([pushover_dir filesep 'hinge_TH_' num2str(col_hinges.id(e)) '.mat']);
-               ew_pushover_energy = max(pushover_TH.hin_TH.energy_ft_lbs) + ew_pushover_energy;
-           end
-%            ns_pushover_energy = 0;
-%            for e = 1:height(wall_hinges)
-%                pushover_TH = load([pushover_dir filesep 'hinge_TH_' num2str(wall_hinges.id(e)) '.mat']);
-%                ns_pushover_energy = max(pushover_TH.hin_TH.energy_ft_lbs) + ns_pushover_energy;
+%            % Dissapated Energy
+%            col_hinges = hinge(hinge.story == 1 & strcmp(hinge.direction,'primary') & strcmp(hinge.ele_type,'column'),:);
+%            in_plane_col_base = hinge(hinge.story == 1 & hinge.ele_side == 1 & strcmp(hinge.direction,'primary') & strcmp(hinge.ele_type,'column'),:);
+%            
+%            ew_pushover_energy = 0;
+%            for e = 1:height(col_hinges)
+%                pushover_TH = load([pushover_dir filesep 'hinge_TH_' num2str(col_hinges.id(e)) '.mat']);
+%                ew_pushover_energy = max(pushover_TH.hin_TH.energy_ft_lbs) + ew_pushover_energy;
 %            end
-           ida.total_energy_ft_lbs(id,1) = sum(cols_walls_1_hinges.total_engergy_ft_lbs);
-           ida.total_energy_ew(id,1) = sum(col_hinges.total_engergy_ft_lbs);
-%            ida.total_energy_ns(id,1) = sum(wall_hinges.total_engergy_ft_lbs);
-%            ida.norm_energy_tot(id,1) = ida.total_energy_ft_lbs(id,1) / (ew_pushover_energy + ns_pushover_energy);
-           ida.norm_energy_tot(id,1) = ida.total_energy_ft_lbs(id,1) / (ew_pushover_energy);
-           ida.norm_energy_ew(id,1) = ida.total_energy_ew(id,1) / ew_pushover_energy;
-%            ida.norm_energy_ns(id,1) = ida.total_energy_ns(id,1) / ns_pushover_energy;
-%            ida.norm_energy_max(id,1) = max([ida.norm_energy_ew(id,1),ida.norm_energy_ns(id,1)]);
-           ida.norm_energy_max(id,1) = ida.norm_energy_ew(id,1);
+% %            ns_pushover_energy = 0;
+% %            for e = 1:height(wall_hinges)
+% %                pushover_TH = load([pushover_dir filesep 'hinge_TH_' num2str(wall_hinges.id(e)) '.mat']);
+% %                ns_pushover_energy = max(pushover_TH.hin_TH.energy_ft_lbs) + ns_pushover_energy;
+% %            end
+%            ida.total_energy_ft_lbs(id,1) = sum(cols_walls_1_hinges.total_engergy_ft_lbs);
+%            ida.total_energy_ew(id,1) = sum(col_hinges.total_engergy_ft_lbs);
+% %            ida.total_energy_ns(id,1) = sum(wall_hinges.total_engergy_ft_lbs);
+% %            ida.norm_energy_tot(id,1) = ida.total_energy_ft_lbs(id,1) / (ew_pushover_energy + ns_pushover_energy);
+%            ida.norm_energy_tot(id,1) = ida.total_energy_ft_lbs(id,1) / (ew_pushover_energy);
+%            ida.norm_energy_ew(id,1) = ida.total_energy_ew(id,1) / ew_pushover_energy;
+% %            ida.norm_energy_ns(id,1) = ida.total_energy_ns(id,1) / ns_pushover_energy;
+% %            ida.norm_energy_max(id,1) = max([ida.norm_energy_ew(id,1),ida.norm_energy_ns(id,1)]);
+%            ida.norm_energy_max(id,1) = ida.norm_energy_ew(id,1);
            
-           % Gravity Capacity Remaining
-           gravity_capacity = 24*24*7.5*(24 - sum(in_plane_col_base.b_ratio >= 1));
-           ida.gravity_dcr(id,1) = 11841/gravity_capacity;
+            % Gravity Capacity Remaining
+            for i = 1:height(story)
+                gravity_load(i) = sum(story.story_dead_load(i:end)) + sum(story.story_live_load(i:end));
+                
+                col_hinges = hinge(hinge.story == i & strcmp(hinge.ele_type,'column'),:);
+                failed_col_hinges = col_hinges(col_hinges.b_ratio >= 1,:);
+                remianing_col_eles = element(element.story == i & strcmp(element.type,'column') & ~ismember(element.id,unique(failed_col_hinges.element_id)),:);
+                gravity_capacity(i) = sum(remianing_col_eles.Pn_c);
+            end
+            axial_dcr = gravity_load ./ gravity_capacity;
+            ida.gravity_dcr(id,1) = max(axial_dcr);
+                 
             else
                 id_missing = id_missing + 1;
                 missing_ida.eq_name{id_missing,1} = gm_set_table.eq_name{gm};
@@ -205,13 +125,80 @@ for gm = 1:height(gm_set_table)
     end
 end
 
-% filter non_collapse 
-% Remove all cases that failed to converge yet did not get far enough
 ida_table = struct2table(ida);
+
+% Remove all cases that failed to converge yet did not get far enough
 failed_convergence = ida_table(ida_table.collapse == 5,:);
 ida_table(ida_table.collapse == 5,:) = []; % filter out failed models
 
+% Go through and define collapse props for each ground motion
+gm_table = gm_set_table;
+for gm = 1:height(gm_set_table)
+    filt_collapse = ida_table.collapse > 0 & strcmp(ida_table.eq_name,gm_set_table.eq_name{gm});
+    
+    % Remove all GM's that do not collapse
+    if sum(filt_collapse) == 0
+        ida_table(strcmp(ida_table.eq_name,gm_set_table.eq_name{gm}),:) = [];
+    else
+        collapse_idx = find(filt_collapse,1,'first');
+        gm_set_table.scale_collapse(gm) = ida_table.scale(collapse_idx);
+        gm_set_table.scale_jbc(gm) = ida_table.scale(collapse_idx - 1);
+        gm_set_table.collapse_dir(gm) = ida_table.collapse_direction(collapse_idx);
+        gm_set_table.collapse_mech(gm) = ida_table.collapse_mech(collapse_idx);
+        gm_set_table.collapse_comps(gm) = ida_table.collapse_comps(collapse_idx);
+    end
+end
+gm_set_table(gm_set_table.scale_collapse == 0,:) = [];
+
+% Go through IDA table and get hinge properties based on collapse mechanism
+for i = 1:height(ida_table)
+    outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_table.set_id(strcmp(gm_set_table.eq_name,ida_table.eq_name{i}))) '_' num2str(gm_set_table.pair(strcmp(gm_set_table.eq_name,ida_table.eq_name{i}))) '/Scale_' num2str(ida_table.scale(i))];
+    hinge_file = [outputs_dir filesep 'hinge_analysis.mat'];
+    load(hinge_file)
+    
+    % Identify collapse case for this GM
+    gm_stripes = ida_table(strcmp(ida_table.eq_name,ida_table.eq_name{i}),:);
+    collapse_idx = find(gm_stripes.collapse > 0,1,'first');
+    collapse_hinge_file = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_table.set_id(strcmp(gm_set_table.eq_name,ida_table.eq_name{i}))) '_' num2str(gm_set_table.pair(strcmp(gm_set_table.eq_name,ida_table.eq_name{i}))) '/Scale_' num2str(gm_stripes.scale(collapse_idx)) filesep 'hinge_analysis.mat'];
+    collapse_hinge = load(collapse_hinge_file);
+    
+    % Get element group filters from collapse case
+    mech_filter = strcmp(collapse_hinge.hinge.direction,'primary') & collapse_hinge.hinge.b_ratio >= 1; % collapse mechanism is all hinges that have failed in the first stripe that collapse
+    ida_table.num_comps(i) = sum(mech_filter);
+    mech_hinges = hinge(mech_filter,:);
+
+    % For Each accetance criteria listed above
+    for p = 1:length(params)
+        [ num_eles, percent_eles, num_eles_15, max_ele, min_ele, mean_ele, range_ele, std_ele, cov_ele ] = fn_collect_component_data(params{p}, ida_table.collapse(i), ida_table.collapse_direction{i}, mech_hinges);
+        ida_table.(['num_' params{p}])(i) = num_eles;
+        ida_table.(['percent_' params{p}])(i) = percent_eles;
+        ida_table.(['num_' params{p} '_15'])(i) = num_eles_15;
+        ida_table.(['max_' params{p}])(i) = max_ele;
+        ida_table.(['min_' params{p}])(i) = min_ele;
+        ida_table.(['mean_' params{p}])(i) = mean_ele;
+        ida_table.(['range_' params{p}])(i) = range_ele;
+        ida_table.(['std_' params{p}])(i) = std_ele;
+        ida_table.(['cov_' params{p}])(i) = cov_ele;
+    end
+
+    % Unacceptable Response
+    if ida_table.collapse(i) == 1 || ida_table.collapse(i) == 3 || ida_table.num_b_15(i) > 0
+        ida_table.UR(i) = 1;
+    else
+        ida_table.UR(i) = 0;
+    end
+
+    % Gravity Load Lost
+    first_story_elements = element(ismember(element.id, mech_hinges.element_id),:);
+    hinges_lost_grav = mech_hinges(mech_hinges.b_ratio > 1,:);
+    elements_lost_grav = element(ismember(element.id, hinges_lost_grav.element_id),:);
+    grav_load_lost = sum(elements_lost_grav.P_grav);
+    total_grav_load = sum(first_story_elements.P_grav);
+    ida_table.gravity_load_lost_ratio(i) = grav_load_lost / total_grav_load;
+end
+
 % Save Tabular Results as CSVs
+writetable(gm_set_table,[write_dir filesep 'gm_table.csv'])
 writetable(ida_table,[write_dir filesep 'ida_table.csv'])
 if exist('missing_ida','var')
     writetable(struct2table(missing_ida),[write_dir filesep 'idas_missing.csv'])
@@ -220,21 +207,9 @@ writetable(failed_convergence,[write_dir filesep 'idas_failed_convergence.csv'])
 
 end
 
-function [ num_eles, percent_eles, num_eles_15, max_ele, min_ele, mean_ele, range_ele, std_ele, cov_ele ] = fn_collect_component_data(var_name, collapse_flag, collaspe_dir, ele_hinges, ele_hinges_alt)
+function [ num_eles, percent_eles, num_eles_15, max_ele, min_ele, mean_ele, range_ele, std_ele, cov_ele ] = fn_collect_component_data(var_name, collapse_flag, collaspe_dir, ele_hinges)
 
-ele_ratios_alt = [];
-
-if strcmp(var_name,'b_e')
-    ele_ratios = ele_hinges.b_ratio; % combo of both b and e values
-    if ~isempty(ele_hinges_alt)
-        ele_ratios_alt = ele_hinges_alt.e_ratio; % combo of both b and e values
-    end
-else
-    ele_ratios = ele_hinges.([var_name '_ratio']);
-    if ~isempty(ele_hinges_alt)
-        ele_ratios_alt = ele_hinges_alt.([var_name '_ratio']);
-    end
-end
+ele_ratios = ele_hinges.([var_name '_ratio']);
 
 num_eles = 0;
 num_eles_15 = 0;
@@ -252,32 +227,10 @@ for e = 1:length(ele_ratios)
     end
 end
 percent_eles = num_eles / length(ele_ratios);
-
-% Additional criteria (ie e ratio)
-num_eles_alt = 0;
-num_eles_15_alt = 0;
-for e = 1:length(ele_ratios_alt)
-    if (collapse_flag == 3 || collapse_flag == 1)
-        if strcmp(ele_hinges_alt.ele_direction(e),collaspe_dir)
-            num_eles_alt = num_eles_alt + 1; % if collapse this gm, in this direction, set this element to 1
-            num_eles_15_alt = num_eles_15_alt + 1;
-        end
-    elseif ele_ratios_alt(e) >= 1.5
-        num_eles_alt = num_eles_alt + 1;
-        num_eles_15_alt = num_eles_15_alt + 1;
-    elseif ele_ratios_alt(e) >= 1
-        num_eles_alt = num_eles_alt + 1;
-    end
-end
-num_eles = num_eles + num_eles_alt;
-num_eles_15 = num_eles_15 + num_eles_15_alt;
-percent_eles_alt = num_eles_alt / length(ele_ratios_alt);
-percent_eles = max(percent_eles,percent_eles_alt);
-
-max_ele = max([ele_ratios;ele_ratios_alt]);
-min_ele = min([ele_ratios;ele_ratios_alt]);
-mean_ele = mean([ele_ratios;ele_ratios_alt]);
+max_ele = max(ele_ratios);
+min_ele = min(ele_ratios);
+mean_ele = mean(ele_ratios);
 range_ele = max_ele - min_ele;
-std_ele = std([ele_ratios;ele_ratios_alt]);
+std_ele = std(ele_ratios);
 cov_ele = std_ele/mean_ele;
 end

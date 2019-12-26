@@ -27,21 +27,21 @@ load([read_dir filesep 'frag_curves.mat'])
 fprintf('Saving IDA Summary Data and Figures to Directory: %s \n',plot_dir)
 drs = {'x'};
 % drs = {'x','z'};
-% for d = 1:length(drs)
-%     % Plot X direction IDA curves
-%     hold on
-%     for gms = 1:height(gm_set_table)
-%         ida_plt = plot(ida_table.(['drift_' drs{d}])(strcmp(ida_table.eq_name,gm_set_table.eq_name{gms})),ida_table.(['sa_' drs{d}])(strcmp(ida_table.eq_name,gm_set_table.eq_name{gms})),'-o','color',[0.75 0.75 0.75],'HandleVisibility','off');
-%     end
-%     % plot(frag.mean_idr_ew,frag.p695_sa_ew,'b','lineWidth',1.5,'DisplayName','Mean Drift')
-%     % plot(frag.mean_idr_ew,frag.p_15_sa_ew,'--b','lineWidth',1.5,'DisplayName','15th Percentile')
-%     % plot(frag.mean_idr_ew,frag.p_85_sa_ew,'--b','lineWidth',1.5,'DisplayName','85th Percentile')
-%     plot([0,0.1],[ida_results.spectra(d),ida_results.spectra(d)],'--k','lineWidth',1.5,'DisplayName','ICSB Motion')
-%     xlim([0 0.1])
-%     xlabel('Max Drift')
-%     ylabel(['Sa(T_1=' num2str(ida_results.period(d)) 's) (g)'])
-%     fn_format_and_save_plot( plot_dir, ['IDA Plot ' drs{d} ' Frame Direction'], 3 )
-% end
+for d = 1:length(drs)
+    % Plot X direction IDA curves
+    hold on
+    for gms = 1:height(gm_set_table)
+        ida_plt = plot(ida_table.(['drift_' drs{d}])(strcmp(ida_table.eq_name,gm_set_table.eq_name{gms})),ida_table.(['sa_' drs{d}])(strcmp(ida_table.eq_name,gm_set_table.eq_name{gms})),'-o','color',[0.75 0.75 0.75],'HandleVisibility','off');
+    end
+    % plot(frag.mean_idr_ew,frag.p695_sa_ew,'b','lineWidth',1.5,'DisplayName','Mean Drift')
+    % plot(frag.mean_idr_ew,frag.p_15_sa_ew,'--b','lineWidth',1.5,'DisplayName','15th Percentile')
+    % plot(frag.mean_idr_ew,frag.p_85_sa_ew,'--b','lineWidth',1.5,'DisplayName','85th Percentile')
+    plot([0,0.1],[ida_results.spectra(d),ida_results.spectra(d)],'--k','lineWidth',1.5,'DisplayName','ICSB Motion')
+    xlim([0 0.1])
+    xlabel('Max Drift')
+    ylabel(['Sa(T_1=' num2str(ida_results.period(d)) 's) (g)'])
+    fn_format_and_save_plot( plot_dir, ['IDA Plot ' drs{d} ' Frame Direction'], 3 )
+end
 
 %% Calculate Post Fragulity Curve P695 factors
 if analysis.run_z_motion
@@ -60,7 +60,7 @@ ida_summary_table.mce = ida_results.mce(1);
 % Collapse Median Sa
 ida_summary_table.sa_med_col = frag_curves.collapse.theta;
 ida_summary_table.sa_med_UR = frag_curves.UR.theta;
-ida_summary_table.sa_med_CP = frag_curves.cols_walls_1.b_e.theta(1);
+ida_summary_table.sa_med_CP = frag_curves.b.theta(1);
 
 % Collapse Margin Ratio
 ida_summary_table.cmr = ida_summary_table.sa_med_col / ida_summary_table.mce;
@@ -77,7 +77,7 @@ ida_summary_table.p_col_mce = logncdf(ida_summary_table.mce,log(frag_curves.coll
 ida_summary_table.p_col_mce_adjust = logncdf(ida_summary_table.mce,log(frag_curves.collapse.theta + median_adjustment),0.6);
 ida_summary_table.p_UR_mce = logncdf(ida_summary_table.mce,log(frag_curves.UR.theta),frag_curves.UR.beta);
 ida_summary_table.p_UR_mce_adjusted = logncdf(ida_summary_table.mce,log(frag_curves.UR.theta + median_adjustment),0.6);
-ida_summary_table.p_CP_mce = logncdf(ida_summary_table.mce,log(frag_curves.cols_walls_1.b_e.theta(1)),frag_curves.cols_walls_1.b_e.beta(1));
+ida_summary_table.p_CP_mce = logncdf(ida_summary_table.mce,log(frag_curves.b.theta(1)),frag_curves.b.beta(1));
 ida_summary_table.p_C_ICSM = logncdf(ida_summary_table.spectra,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
 
 % Save IDA results as table
@@ -98,19 +98,19 @@ matlab_colors = [matlab_colors;matlab_colors;matlab_colors]; % stack matlab colo
 % Sa points to plot fragility curves
 x_points = 0.01:0.01:4;
       
-% % Total Collapse with discrete scatter
-% figure
-% hold on
-% rank_sa = sort(gm_table.sa_collapse(~isnan(gm_table.sa_collapse)));
-% rank_val = 1:length(rank_sa);
-% sct = scatter(rank_sa,rank_val./length(rank_sa),'b','filled','HandleVisibility','off');
-% cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
-% plot(x_points,cdf,'b','DisplayName','Collapse Fragility')
-% xlabel('Sa(T_{1-EW}) (g)')
-% ylabel('P[Collapse]')
-% xlim([0,ceil(max(rank_sa))])
-% fn_format_and_save_plot( plot_dir, 'Collapse Fragility', 6 )
-% 
+% Total Collapse with discrete scatter
+figure
+hold on
+rank_sa = sort(gm_table.sa_collapse(~isnan(gm_table.sa_collapse)));
+rank_val = 1:length(rank_sa);
+sct = scatter(rank_sa,rank_val./length(rank_sa),'b','filled','HandleVisibility','off');
+cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
+plot(x_points,cdf,'b','DisplayName','Collapse Fragility')
+xlabel('Sa(T_{1-EW}) (g)')
+ylabel('P[Collapse]')
+xlim([0,ceil(max(rank_sa))])
+fn_format_and_save_plot( plot_dir, 'Collapse Fragility', 6 )
+
 % % Total Collapse with 695 adjustments
 % figure
 % hold on
@@ -164,14 +164,8 @@ x_points = 0.01:0.01:4;
 
 % Plot Each acceptance Criteria
 for p = 1:length(params)
-%     plot_name = ['First Story Column ' params{p} ' Fragilities'];
-%     fn_plot_frag_curves(x_points, frag_curves.cols_1.(params{p}), frag_curves.ew_collapse, frag_curves.UR, ida_results.spectra(1), plot_name, plot_dir, [0,1.5], params{p} )
-
-%     plot_name = ['First Story Wall ' params{p} ' Fragilities'];
-%     fn_plot_frag_curves(x_points, frag_curves.walls_1.(params{p}), frag_curves.ns_collapse, frag_curves.UR, ida_results.spectra(1), plot_name, plot_dir, [0,1.5], params{p})
-%     
-    plot_name = ['First Story Mechanism ' params{p} ' Fragilities'];
-    fn_plot_frag_curves(x_points, frag_curves.cols_walls_1.(params{p}), frag_curves.collapse, frag_curves.UR, ida_results.spectra(1), plot_name, plot_dir, [0,1.5], params{p}  )
+    plot_name = [params{p} ' Fragilities'];
+    fn_plot_frag_curves(x_points, frag_curves.(params{p}), frag_curves.collapse, frag_curves.UR, ida_results.spectra(1), plot_name, plot_dir, [0,1.5], params{p}  )
 end
 
 % First Acceptance criteria met

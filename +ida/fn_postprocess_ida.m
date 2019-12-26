@@ -121,20 +121,11 @@ end
 if summary.collapse > 0
     if ~analysis.run_z_motion || (summary.max_drift_x > summary.max_drift_z)
         summary.collapse_direction = 'x';
-        if min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & hinge.story == 1)) > 1
-            summary.collaspe_mech = 'story 1';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & hinge.story == 2)) > 1
-            summary.collaspe_mech = 'story 2';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & hinge.story == 3)) > 1
-            summary.collaspe_mech = 'story 3';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & hinge.story == 4)) > 1
-            summary.collaspe_mech = 'story 4';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & hinge.story == 5)) > 1
-            summary.collaspe_mech = 'story 5';
-        elseif min(hinge.b_ratio(strcmp(hinge.ele_type,'column') & strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & hinge.story == 6)) > 1
-            summary.collaspe_mech = 'story 6';
-        elseif max(hinge.b_ratio(strcmp(hinge.ele_type,'beam') & strcmp(hinge.ele_direction,'x'))) > 1
-            summary.collaspe_mech = 'beams'; % if none of the columns had story mechanims, then if at least one beam is above the b value, call it a beam mechanism
+        collapse_story = story.id(story.max_drift_x > 0.05);
+        if length(collapse_story) == 1 % Assume single story means column mechanism
+            summary.collaspe_mech = ['story ' num2str(collapse_story) ' columns'];
+        elseif length(collapse_story) > 1 % Assume Multi-Story means beam mechanism
+            summary.collaspe_mech = ['story ' num2str(collapse_story(1:end-1)') ' beams'];
         else
             summary.collaspe_mech = 'other';
         end

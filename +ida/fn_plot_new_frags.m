@@ -25,7 +25,7 @@ matlab_colors = [matlab_colors;matlab_colors;matlab_colors]; % stack matlab colo
 plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'New Fragility Plots'];
 
 
-% %% Plot 1 - Collapse v Min Mean Max Rot Limit
+%% Plot 1 - Collapse v Min Mean Max Rot Limit
 % hold on
 % max_val = 16;
 % x_points = linspace(max_val/100,max_val,100);
@@ -55,7 +55,7 @@ plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id 
 % legend('location','southeast')
 % fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
-% %% Plot 2a - Collapse v Min Mean Max CP - EW
+%% Plot 2a - Collapse v Min Mean Max CP - EW
 % hold on
 % max_val = 3;
 % x_points = linspace(max_val/100,max_val,100);
@@ -85,7 +85,7 @@ plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id 
 % legend('location','southeast')
 % fn_format_and_save_plot( plot_dir, plot_name, 4 )
 % 
-% %% Plot 4 - Collapse v Percent CP
+%% Plot 4 - Collapse v Percent CP
 % max_val = 1;
 % hold on
 % rank_val = sort(gm_data.collapse.cols_walls_1_percent_cp(~isnan(gm_data.collapse.cols_walls_1_percent_cp)));
@@ -100,69 +100,69 @@ plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id 
 
  
 %% Plot 2a - Collapse v Min Mean Max CP - EW
-hold on
-max_val = 16;
-x_points = linspace(max_val/100,max_val,100);
-
-rank_val = sort(gm_data.collapse_x.cols_1_min_cp(~isnan(gm_data.collapse_x.cols_1_min_cp)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'b','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse_x.cols_1_min_cp.theta),new_frag_curves.collapse_x.cols_1_min_cp.beta);
-plot(x_points,cdf,'b','lineWidth',1,'DisplayName','Min of Components')
-
-rank_val = sort(gm_data.collapse_x.cols_1_mean_cp(~isnan(gm_data.collapse_x.cols_1_mean_cp)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'k','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse_x.cols_1_mean_cp.theta),new_frag_curves.collapse_x.cols_1_mean_cp.beta);
-plot(x_points,cdf,'k','lineWidth',1,'DisplayName','Mean of Components')
-
-rank_val = sort(gm_data.collapse_x.cols_1_max_cp(~isnan(gm_data.collapse_x.cols_1_max_cp)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'r','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse_x.cols_1_max_cp.theta),new_frag_curves.collapse_x.cols_1_max_cp.beta);
-plot(x_points,cdf,'r','lineWidth',1,'DisplayName','Max of Components')
-
-xlabel('DCR_{CP}')
-ylabel('P[Collapse]')
-xlim([0,max_val])
-plot_name = 'Collapse v CP min-mean-max EW';
-% legend('location','southeast')
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
+% hold on
+% max_val = 16;
+% x_points = linspace(max_val/100,max_val,100);
+% 
+% rank_val = sort(gm_data.collapse_x.cols_1_min_cp(~isnan(gm_data.collapse_x.cols_1_min_cp)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'b','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse_x.cols_1_min_cp.theta),new_frag_curves.collapse_x.cols_1_min_cp.beta);
+% plot(x_points,cdf,'b','lineWidth',1,'DisplayName','Min of Components')
+% 
+% rank_val = sort(gm_data.collapse_x.cols_1_mean_cp(~isnan(gm_data.collapse_x.cols_1_mean_cp)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse_x.cols_1_mean_cp.theta),new_frag_curves.collapse_x.cols_1_mean_cp.beta);
+% plot(x_points,cdf,'k','lineWidth',1,'DisplayName','Mean of Components')
+% 
+% rank_val = sort(gm_data.collapse_x.cols_1_max_cp(~isnan(gm_data.collapse_x.cols_1_max_cp)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'r','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse_x.cols_1_max_cp.theta),new_frag_curves.collapse_x.cols_1_max_cp.beta);
+% plot(x_points,cdf,'r','lineWidth',1,'DisplayName','Max of Components')
+% 
+% xlabel('DCR_{CP}')
+% ylabel('P[Collapse]')
+% xlim([0,max_val])
+% plot_name = 'Collapse v CP min-mean-max EW';
+% % legend('location','southeast')
+% fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 %% Plot 2b - Collapse v Min Mean Max CP - NS
-hold on
-max_val = 16;
-x_points = linspace(max_val/100,max_val,100);
-
-rank_val = sort(gm_data.collapse_z.walls_1_min_cp(~isnan(gm_data.collapse_z.walls_1_min_cp)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'b','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse_z.walls_1_min_cp.theta),new_frag_curves.collapse_z.walls_1_min_cp.beta);
-plot(x_points,cdf,'b','lineWidth',1,'DisplayName','Min of Components')
-
-rank_val = sort(gm_data.collapse_z.walls_1_mean_cp(~isnan(gm_data.collapse_z.walls_1_mean_cp)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'k','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse_z.walls_1_mean_cp.theta),new_frag_curves.collapse_z.walls_1_mean_cp.beta);
-plot(x_points,cdf,'k','lineWidth',1,'DisplayName','Mean of Components')
-
-rank_val = sort(gm_data.collapse_z.walls_1_max_cp(~isnan(gm_data.collapse_z.walls_1_max_cp)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'r','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse_z.walls_1_max_cp.theta),new_frag_curves.collapse_z.walls_1_max_cp.beta);
-plot(x_points,cdf,'r','lineWidth',1,'DisplayName','Max of Components')
-
-xlabel('DCR_{CP}')
-ylabel('P[Collapse]')
-xlim([0,max_val])
-plot_name = 'Collapse v CP min-mean-max NS';
-legend('location','southeast')
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
+% hold on
+% max_val = 16;
+% x_points = linspace(max_val/100,max_val,100);
+% 
+% rank_val = sort(gm_data.collapse_z.walls_1_min_cp(~isnan(gm_data.collapse_z.walls_1_min_cp)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'b','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse_z.walls_1_min_cp.theta),new_frag_curves.collapse_z.walls_1_min_cp.beta);
+% plot(x_points,cdf,'b','lineWidth',1,'DisplayName','Min of Components')
+% 
+% rank_val = sort(gm_data.collapse_z.walls_1_mean_cp(~isnan(gm_data.collapse_z.walls_1_mean_cp)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse_z.walls_1_mean_cp.theta),new_frag_curves.collapse_z.walls_1_mean_cp.beta);
+% plot(x_points,cdf,'k','lineWidth',1,'DisplayName','Mean of Components')
+% 
+% rank_val = sort(gm_data.collapse_z.walls_1_max_cp(~isnan(gm_data.collapse_z.walls_1_max_cp)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'r','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse_z.walls_1_max_cp.theta),new_frag_curves.collapse_z.walls_1_max_cp.beta);
+% plot(x_points,cdf,'r','lineWidth',1,'DisplayName','Max of Components')
+% 
+% xlabel('DCR_{CP}')
+% ylabel('P[Collapse]')
+% xlim([0,max_val])
+% plot_name = 'Collapse v CP min-mean-max NS';
+% legend('location','southeast')
+% fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 %% Plot 3 - Collapse v Percent rotation limit
 max_val = 1;
 hold on
-rank_val = sort(gm_data.collapse.cols_walls_1_percent_b_e(~isnan(gm_data.collapse.cols_walls_1_percent_b_e)));
+rank_val = sort(gm_data.collapse.percent_b(~isnan(gm_data.collapse.percent_b)));
 rank = (1:length(rank_val))/length(rank_val);
 scatter(rank_val,rank,'k','filled','HandleVisibility','off');
 plot(rank_val,rank,'k','lineWidth',1,'DisplayName','Sidesway Collapse')
@@ -175,7 +175,7 @@ fn_format_and_save_plot( plot_dir, plot_name, 4 )
 %% Plot 4 - Collapse v Percent CP
 max_val = 1;
 hold on
-rank_val = sort(gm_data.collapse.cols_walls_1_percent_cp(~isnan(gm_data.collapse.cols_walls_1_percent_cp)));
+rank_val = sort(gm_data.collapse.percent_cp(~isnan(gm_data.collapse.percent_cp)));
 rank = (1:length(rank_val))/length(rank_val);
 scatter(rank_val,rank,'k','filled','HandleVisibility','off');
 plot(rank_val,rank,'k','lineWidth',1,'DisplayName','Sidesway Collapse')
@@ -201,139 +201,139 @@ plot_name = 'Collapse v Max Drift';
 fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 %% Plot 6 - Collapse v Normalized Energy
-hold on
-max_val = 7;
-x_points = linspace(max_val/100,max_val,100);
-rank_val = sort(gm_data.collapse.norm_energy_tot(~isnan(gm_data.collapse.norm_energy_tot)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'k','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse.norm_energy_tot.theta),new_frag_curves.collapse.norm_energy_tot.beta);
-plot(x_points,cdf,'k','lineWidth',1,'DisplayName','Total Energy')
-xlabel('Normalized Energy Dissapation')
-ylabel('P[Collapse]')
-xlim([0,max_val])
-plot_name = 'Collapse v Norm Energy';
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
+% hold on
+% max_val = 7;
+% x_points = linspace(max_val/100,max_val,100);
+% rank_val = sort(gm_data.collapse.norm_energy_tot(~isnan(gm_data.collapse.norm_energy_tot)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse.norm_energy_tot.theta),new_frag_curves.collapse.norm_energy_tot.beta);
+% plot(x_points,cdf,'k','lineWidth',1,'DisplayName','Total Energy')
+% xlabel('Normalized Energy Dissapation')
+% ylabel('P[Collapse]')
+% xlim([0,max_val])
+% plot_name = 'Collapse v Norm Energy';
+% fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 %% Plot 7 - Collapse v Mean Rotation Limit direction breakdown
-max_val = 10;
-x_points = linspace(max_val/100,max_val,100);
-hold on
-rank_val = sort(gm_data.collapse_x.cols_1_mean_b(~isnan(gm_data.collapse_x.cols_1_mean_b)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'k','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse_x.cols_1_mean_b.theta),new_frag_curves.collapse_x.cols_1_mean_b.beta);
-plot(x_points,cdf,'k','lineWidth',1,'DisplayName','EW Frame')
-rank_val = sort(gm_data.collapse_z.walls_1_mean_e(~isnan(gm_data.collapse_z.walls_1_mean_e)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'b','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse_z.walls_1_mean_e.theta),new_frag_curves.collapse_z.walls_1_mean_e.beta);
-plot(x_points,cdf,'b','lineWidth',1,'DisplayName','NS Wall')
-xlabel('Mean DCR_{Rotation Limit}')
-ylabel('P[Collapse]')
-xlim([0,max_val])
-plot_name = 'Collapse v Mean Rot Lim directions';
-legend('location','southeast')
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
+% max_val = 10;
+% x_points = linspace(max_val/100,max_val,100);
+% hold on
+% rank_val = sort(gm_data.collapse_x.cols_1_mean_b(~isnan(gm_data.collapse_x.cols_1_mean_b)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse_x.cols_1_mean_b.theta),new_frag_curves.collapse_x.cols_1_mean_b.beta);
+% plot(x_points,cdf,'k','lineWidth',1,'DisplayName','EW Frame')
+% rank_val = sort(gm_data.collapse_z.walls_1_mean_e(~isnan(gm_data.collapse_z.walls_1_mean_e)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'b','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse_z.walls_1_mean_e.theta),new_frag_curves.collapse_z.walls_1_mean_e.beta);
+% plot(x_points,cdf,'b','lineWidth',1,'DisplayName','NS Wall')
+% xlabel('Mean DCR_{Rotation Limit}')
+% ylabel('P[Collapse]')
+% xlim([0,max_val])
+% plot_name = 'Collapse v Mean Rot Lim directions';
+% legend('location','southeast')
+% fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 %% Plot 8 - Collapse v Mean Rotation Limit direction breakdown
-max_val = 10;
-x_points = linspace(max_val/100,max_val,100);
-hold on
-rank_val = sort(gm_data.collapse_x.cols_1_mean_cp(~isnan(gm_data.collapse_x.cols_1_mean_cp)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'k','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse_x.cols_1_mean_cp.theta),new_frag_curves.collapse_x.cols_1_mean_cp.beta);
-plot(x_points,cdf,'k','lineWidth',1,'DisplayName','EW Frame')
-rank_val = sort(gm_data.collapse_z.walls_1_mean_cp(~isnan(gm_data.collapse_z.walls_1_mean_cp)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'b','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse_z.walls_1_mean_cp.theta),new_frag_curves.collapse_z.walls_1_mean_cp.beta);
-plot(x_points,cdf,'b','lineWidth',1,'DisplayName','NS Wall')
-xlabel('Mean DCR_{CP}')
-ylabel('P[Collapse]')
-xlim([0,max_val])
-plot_name = 'Collapse v Mean CP directions';
-legend('location','southeast')
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
+% max_val = 10;
+% x_points = linspace(max_val/100,max_val,100);
+% hold on
+% rank_val = sort(gm_data.collapse_x.cols_1_mean_cp(~isnan(gm_data.collapse_x.cols_1_mean_cp)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse_x.cols_1_mean_cp.theta),new_frag_curves.collapse_x.cols_1_mean_cp.beta);
+% plot(x_points,cdf,'k','lineWidth',1,'DisplayName','EW Frame')
+% rank_val = sort(gm_data.collapse_z.walls_1_mean_cp(~isnan(gm_data.collapse_z.walls_1_mean_cp)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'b','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse_z.walls_1_mean_cp.theta),new_frag_curves.collapse_z.walls_1_mean_cp.beta);
+% plot(x_points,cdf,'b','lineWidth',1,'DisplayName','NS Wall')
+% xlabel('Mean DCR_{CP}')
+% ylabel('P[Collapse]')
+% xlim([0,max_val])
+% plot_name = 'Collapse v Mean CP directions';
+% legend('location','southeast')
+% fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 %% Plot 9 - Collapse v percent Rotation Limit direction breakdown
-max_val = 1;
-hold on
-rank_val = sort(gm_data.collapse_x.cols_1_percent_b(~isnan(gm_data.collapse_x.cols_1_percent_b)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'k','filled','HandleVisibility','off');
-plot(rank_val,rank,'k','lineWidth',1,'DisplayName','EW Frame')
-rank_val = sort(gm_data.collapse_z.walls_1_percent_e(~isnan(gm_data.collapse_z.walls_1_percent_e)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'b','filled','HandleVisibility','off');
-plot(rank_val,rank,'b','lineWidth',1,'DisplayName','NS Wall')
-xlabel('Percent of Components Exceeding Rotation Limit')
-ylabel('P[Collapse]')
-xlim([0,max_val])
-plot_name = 'Collapse v Percent Rotation Limit directions';
-legend('location','northwest')
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
+% max_val = 1;
+% hold on
+% rank_val = sort(gm_data.collapse_x.cols_1_percent_b(~isnan(gm_data.collapse_x.cols_1_percent_b)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+% plot(rank_val,rank,'k','lineWidth',1,'DisplayName','EW Frame')
+% rank_val = sort(gm_data.collapse_z.walls_1_percent_e(~isnan(gm_data.collapse_z.walls_1_percent_e)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'b','filled','HandleVisibility','off');
+% plot(rank_val,rank,'b','lineWidth',1,'DisplayName','NS Wall')
+% xlabel('Percent of Components Exceeding Rotation Limit')
+% ylabel('P[Collapse]')
+% xlim([0,max_val])
+% plot_name = 'Collapse v Percent Rotation Limit directions';
+% legend('location','northwest')
+% fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 %% Plot 10 - Collapse v percent CP direction breakdown
-max_val = 1;
-hold on
-rank_val = sort(gm_data.collapse_x.cols_1_percent_cp(~isnan(gm_data.collapse_x.cols_1_percent_cp)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'k','filled','HandleVisibility','off');
-plot(rank_val,rank,'k','lineWidth',1,'DisplayName','EW Frame')
-rank_val = sort(gm_data.collapse_z.walls_1_percent_cp(~isnan(gm_data.collapse_z.walls_1_percent_cp)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'b','filled','HandleVisibility','off');
-plot(rank_val,rank,'b','lineWidth',1,'DisplayName','NS Wall')
-xlabel('Percent of Components Exceeding CP')
-ylabel('P[Collapse]')
-xlim([0,max_val])
-plot_name = 'Collapse v Percent CP directions';
-legend('location','northwest')
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
+% max_val = 1;
+% hold on
+% rank_val = sort(gm_data.collapse_x.cols_1_percent_cp(~isnan(gm_data.collapse_x.cols_1_percent_cp)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+% plot(rank_val,rank,'k','lineWidth',1,'DisplayName','EW Frame')
+% rank_val = sort(gm_data.collapse_z.walls_1_percent_cp(~isnan(gm_data.collapse_z.walls_1_percent_cp)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'b','filled','HandleVisibility','off');
+% plot(rank_val,rank,'b','lineWidth',1,'DisplayName','NS Wall')
+% xlabel('Percent of Components Exceeding CP')
+% ylabel('P[Collapse]')
+% xlim([0,max_val])
+% plot_name = 'Collapse v Percent CP directions';
+% legend('location','northwest')
+% fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 %% Plot 11 - Collapse v Drift per direction
-hold on
-max_val = 0.1;
-x_points = linspace(max_val/100,max_val,100);
-rank_val = sort(gm_data.collapse_x.drift_x(~isnan(gm_data.collapse_x.drift_x)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'k','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse_x.drift_x.theta),new_frag_curves.collapse_x.drift_x.beta);
-plot(x_points,cdf,'k','lineWidth',1,'DisplayName','EW Columns')
-rank_val = sort(gm_data.collapse_z.drift_z(~isnan(gm_data.collapse_z.drift_z)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'b','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse_z.drift_z.theta),new_frag_curves.collapse_z.drift_z.beta);
-plot(x_points,cdf,'b','lineWidth',1,'DisplayName','NS Walls')
-xlabel('Max Drift')
-ylabel('P[Collapse]')
-xlim([0,max_val])
-plot_name = 'Collapse v Drfit directions';
-legend('location','southeast')
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
+% hold on
+% max_val = 0.1;
+% x_points = linspace(max_val/100,max_val,100);
+% rank_val = sort(gm_data.collapse_x.drift_x(~isnan(gm_data.collapse_x.drift_x)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse_x.drift_x.theta),new_frag_curves.collapse_x.drift_x.beta);
+% plot(x_points,cdf,'k','lineWidth',1,'DisplayName','EW Columns')
+% rank_val = sort(gm_data.collapse_z.drift_z(~isnan(gm_data.collapse_z.drift_z)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'b','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse_z.drift_z.theta),new_frag_curves.collapse_z.drift_z.beta);
+% plot(x_points,cdf,'b','lineWidth',1,'DisplayName','NS Walls')
+% xlabel('Max Drift')
+% ylabel('P[Collapse]')
+% xlim([0,max_val])
+% plot_name = 'Collapse v Drfit directions';
+% legend('location','southeast')
+% fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 %% Plot 12 -  Collapse v Normalized Energy per direction
-hold on
-max_val = 10;
-x_points = linspace(max_val/100,max_val,100);
-rank_val = sort(gm_data.collapse_x.norm_energy_ew(~isnan(gm_data.collapse_x.norm_energy_ew)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'k','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse_x.norm_energy_ew.theta),new_frag_curves.collapse_x.norm_energy_ew.beta);
-plot(x_points,cdf,'k','lineWidth',1,'DisplayName','EW Columns')
-rank_val = sort(gm_data.collapse_z.norm_energy_ns(~isnan(gm_data.collapse_z.norm_energy_ns)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'b','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse_z.norm_energy_ns.theta),new_frag_curves.collapse_z.norm_energy_ns.beta);
-plot(x_points,cdf,'b','lineWidth',1,'DisplayName','NS Walls')
-xlabel('Normalized Energy Dissipation')
-ylabel('P[Collapse]')
-xlim([0,max_val])
-plot_name = 'Collapse v Norm Energy directions';
-legend('location','southeast')
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
+% hold on
+% max_val = 10;
+% x_points = linspace(max_val/100,max_val,100);
+% rank_val = sort(gm_data.collapse_x.norm_energy_ew(~isnan(gm_data.collapse_x.norm_energy_ew)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse_x.norm_energy_ew.theta),new_frag_curves.collapse_x.norm_energy_ew.beta);
+% plot(x_points,cdf,'k','lineWidth',1,'DisplayName','EW Columns')
+% rank_val = sort(gm_data.collapse_z.norm_energy_ns(~isnan(gm_data.collapse_z.norm_energy_ns)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'b','filled','HandleVisibility','off');
+% cdf = logncdf(x_points,log(new_frag_curves.collapse_z.norm_energy_ns.theta),new_frag_curves.collapse_z.norm_energy_ns.beta);
+% plot(x_points,cdf,'b','lineWidth',1,'DisplayName','NS Walls')
+% xlabel('Normalized Energy Dissipation')
+% ylabel('P[Collapse]')
+% xlim([0,max_val])
+% plot_name = 'Collapse v Norm Energy directions';
+% legend('location','southeast')
+% fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 %% Plot 13 - Collapse v gravity
 max_val = 1;
@@ -349,22 +349,22 @@ plot_name = 'Collapse v Gravity';
 fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 %% Plot 14 - Collapse v gravity direction breakdown
-max_val = 1;
-hold on
-rank_val = sort(gm_data.collapse_x.gravity_load_lost_ratio(~isnan(gm_data.collapse_x.gravity_load_lost_ratio)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'k','filled','HandleVisibility','off');
-plot(rank_val,rank,'k','lineWidth',1,'DisplayName','EW Frame')
-rank_val = sort(gm_data.collapse_z.gravity_load_lost_ratio(~isnan(gm_data.collapse_z.gravity_load_lost_ratio)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'b','filled','HandleVisibility','off');
-plot(rank_val,rank,'b','lineWidth',1,'DisplayName','NS Wall')
-xlabel('Percent of Gravity Load Support Failure')
-ylabel('P[Collapse]')
-xlim([0,max_val])
-plot_name = 'Collapse v Gravity directions';
-legend('location','northwest')
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
+% max_val = 1;
+% hold on
+% rank_val = sort(gm_data.collapse_x.gravity_load_lost_ratio(~isnan(gm_data.collapse_x.gravity_load_lost_ratio)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+% plot(rank_val,rank,'k','lineWidth',1,'DisplayName','EW Frame')
+% rank_val = sort(gm_data.collapse_z.gravity_load_lost_ratio(~isnan(gm_data.collapse_z.gravity_load_lost_ratio)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'b','filled','HandleVisibility','off');
+% plot(rank_val,rank,'b','lineWidth',1,'DisplayName','NS Wall')
+% xlabel('Percent of Gravity Load Support Failure')
+% ylabel('P[Collapse]')
+% xlim([0,max_val])
+% plot_name = 'Collapse v Gravity directions';
+% legend('location','northwest')
+% fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 
 % % General Plots (ie all)

@@ -10,7 +10,7 @@ scale_increment = analysis.scale_increment;
 prev_collapse = 0;
 
 % Run for each scale factor
-while scale_factor < analysis.scale_increment*20
+while scale_factor < analysis.scale_increment*25
     % Increment Scale Factor
     scale_factor = scale_factor + scale_increment;
     analysis.ground_motion_scale_factor = scale_factor;
