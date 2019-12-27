@@ -1,0 +1,7 @@
+id,description,ele_id,x_start,x_end,z_start,z_end,y_start,y_end,direction,story
+1,int ext link,1,1200,1300,0,0,174,174,x,1
+2,int ext link,1,1200,1300,0,0,336,336,x,2
+3,int ext link,1,1200,1300,0,0,498,498,x,3
+4,int ext link,1,1200,1300,0,0,660,660,x,4
+5,int ext link,1,1200,1300,0,0,822,822,x,5
+6,int ext link,1,1200,1300,0,0,980,980,x,6
