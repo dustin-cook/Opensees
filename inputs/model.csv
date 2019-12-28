@@ -17,3 +17,7 @@ id,name,dimension,foundation,primary_node_offset,hazus_class_x,hazus_class_z,vs3
 17,ICBS_model_3D_fixed_EW,3D,1,71,C1,C2,217.3,D
 18,ICBS_model_5ew_col_base,2D,1,0,C1,NA,217.3,D
 19,ICBS_model_5ew_col_base_no_mods,2D,1,0,C1,NA,217.3,D
+20,ICBS_model_5ew_col_base_no_mods_3_bays,2D,1,0,C1,NA,217.3,D
+21,ICBS_model_5ew_col_base_no_mods_4_bays,2D,1,0,C1,NA,217.3,D
+22,ICBS_model_5ew_col_base_no_mods_6_bays,2D,1,0,C1,NA,217.3,D
+23,ICBS_model_5ew_col_base_no_mods_7_bays,2D,1,0,C1,NA,217.3,D
