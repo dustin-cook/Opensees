@@ -1,4 +1,4 @@
-function [ ] = fn_plot_ida(analysis, model, gm_set_table, ida_results, SSF_ew)
+function [ ] = fn_plot_ida(analysis, model, gm_set_table, ida_results, SSF_ew, main_dir)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -12,8 +12,8 @@ params = {'b','cp'};
 frag_probs = [10 25 50 75 100];
 
 % Define Directiries
-read_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Fragility Data'];
-plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'IDA Plots'];
+read_dir = [main_dir '/' 'IDA' '/' 'Fragility Data'];
+plot_dir = [main_dir '/' 'IDA' '/' 'IDA Plots'];
 if ~exist(plot_dir,'dir')
     mkdir(plot_dir)
 end

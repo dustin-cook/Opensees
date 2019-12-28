@@ -1,4 +1,4 @@
-function [ ] = fn_plot_new_frags(analysis, model)
+function [ ] = fn_plot_new_frags(analysis, model, main_dir)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -7,7 +7,7 @@ function [ ] = fn_plot_new_frags(analysis, model)
 import plotting_tools.*
 
 % Load data
-read_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Fragility Data'];
+read_dir = [main_dir '/' 'IDA' '/' 'Fragility Data'];
 load([read_dir filesep 'new_frag_curves.mat'])
 load([read_dir filesep 'gm_data.mat'])
 
