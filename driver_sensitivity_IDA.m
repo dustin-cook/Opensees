@@ -13,8 +13,8 @@ analysis.proceedure = 'NDP';
 analysis.id = 'baseline_fix';
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 0;
-analysis.study_name = 'strength';
-analysis.num_models = 7;
+analysis.study_name = 'scwb';
+analysis.num_models = 5;
 
 % Analysis options
 analysis.summit = 0;
@@ -99,7 +99,7 @@ for m = 1:analysis.num_models
 
     %% Run Opensees Models
     if analysis.run_ida || analysis.post_process_ida
-        fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir)
+        fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir, main_dir)
     end
 
     %% Create Response and Consequence Fragilities

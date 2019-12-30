@@ -1,4 +1,4 @@
-function [] = fn_run_gm_ida(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gm_idx, ida_results, tcl_dir)
+function [] = fn_run_gm_ida(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gm_idx, ida_results, tcl_dir, main_dir)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 import ida.fn_main_IDA
@@ -26,12 +26,12 @@ while scale_factor < analysis.scale_increment*25
     end
     
     % Create Output Directories
-    ida_opensees_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair) '/' 'Scale_' num2str(scale_factor) ];
+    ida_opensees_dir = [main_dir '/' 'IDA' '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair) '/' 'Scale_' num2str(scale_factor) ];
     if ~exist(ida_opensees_dir,'dir')
         mkdir(ida_opensees_dir)
     end
 
-    ida_summary_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair) '/' 'Scale_' num2str(scale_factor)];
+    ida_summary_dir = [main_dir '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair) '/' 'Scale_' num2str(scale_factor)];
     if ~exist(ida_summary_dir,'dir')
         mkdir(ida_summary_dir)
     end
@@ -73,7 +73,7 @@ while scale_factor < analysis.scale_increment*25
 end
 
 % Write flag idicating that the ground motion has finished
-fileID = fopen(['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair) '/' 'gm_complete.txt'],'w');
+fileID = fopen([main_dir '/' 'IDA' '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair) '/' 'gm_complete.txt'],'w');
 fprintf(fileID,'1');
 fclose(fileID);
 end
