@@ -13,7 +13,7 @@ analysis.proceedure = 'NDP';
 analysis.id = 'baseline_fix';
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 0;
-analysis.study_name = 'ductility';
+analysis.study_name = 'strength';
 analysis.num_models = 7;
 
 % Analysis options
@@ -77,10 +77,11 @@ model = model_table(model_table.id == analysis.model_id,:);
 
 for m = 1:analysis.num_models
     %% Define read and write directories
-    model_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'sensitivity_study' '/' analysis.study_name '/' 'model_files' '/' 'model_' num2str(m) '/' 'model_data'];
-    tcl_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'sensitivity_study' '/' analysis.study_name '/' 'model_files' '/' 'model_' num2str(m) '/' 'opensees_data'];
-    asce41_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'sensitivity_study' '/' analysis.study_name '/' 'model_files' '/' 'model_' num2str(m) '/' 'asce_41_data'];
-    write_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'sensitivity_study' '/' analysis.study_name '/' 'model_files' '/' 'model_' num2str(m) '/' 'IDA' '/' 'Fragility Data'];
+    main_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'sensitivity_study' '/' analysis.study_name '/' 'model_files' '/' 'model_' num2str(m)];
+    model_dir = [main_dir '/' 'model_data'];
+    tcl_dir = [main_dir '/' 'opensees_data'];
+    asce41_dir = [main_dir '/' 'asce_41_data'];
+    write_dir = [main_dir '/' 'IDA' '/' 'Fragility Data'];
     if ~exist(write_dir,'dir')
         mkdir(write_dir)
     end
@@ -98,7 +99,7 @@ for m = 1:analysis.num_models
 
     %% Run Opensees Models
     if analysis.run_ida || analysis.post_process_ida
-        fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir)
+        fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir, main_dir)
     end
 
     %% Create Response and Consequence Fragilities
@@ -109,8 +110,8 @@ for m = 1:analysis.num_models
 
     %% Plot Results
     if analysis.plot_ida
-        fn_plot_ida(analysis, model, gm_set_table, ida_results, SSF_ew)
-        fn_plot_new_frags(analysis, model)
+        fn_plot_ida(analysis, model, gm_set_table, ida_results, SSF_ew, main_dir)
+        fn_plot_new_frags(analysis, model, main_dir)
     end
 end
 
