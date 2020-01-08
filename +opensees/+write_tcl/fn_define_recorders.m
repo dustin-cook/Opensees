@@ -26,10 +26,10 @@ if analysis.type == 1
     % Define Node recorders
     for i = 1:height(node)
         if strcmp(dimension,'2D')
-            if node.record_disp(i)
+            if (~analysis.simple_recorders && node.record_disp(i)) || (analysis.simple_recorders && node.primary_story(i))
                 fprintf(fileID,'recorder Node %s %s/nodal_disp_%s.%s -time -node %i -dof 1 disp \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
             end
-            if node.record_accel(i) && ~analysis.simple_recorders
+            if ~analysis.simple_recorders && node.record_accel(i)
                 fprintf(fileID,'recorder Node %s %s/nodal_accel_%s.%s -time -node %i -dof 1 accel \n', file_type, write_dir, num2str(node.id(i)), file_ext, (node.id(i)));
             end
         elseif strcmp(dimension,'3D')
@@ -43,10 +43,12 @@ if analysis.type == 1
     end
     
     % Nodal Reaction Recorders
-    base_nodes = node.id(node.y == 0);
-    fprintf(fileID,'recorder Node %s %s/nodal_base_reaction_x.%s -time -node %s -dof 1 reaction \n', file_type, write_dir, file_ext, num2str(base_nodes'));
-    if strcmp(dimension,'3D')
-        fprintf(fileID,'recorder Node %s %s/nodal_base_reaction_z.%s -time -node %s -dof 3 reaction \n', file_type, write_dir, file_ext, num2str(base_nodes'));
+    if ~analysis.simple_recorders
+        base_nodes = node.id(node.y == 0);
+        fprintf(fileID,'recorder Node %s %s/nodal_base_reaction_x.%s -time -node %s -dof 1 reaction \n', file_type, write_dir, file_ext, num2str(base_nodes'));
+        if strcmp(dimension,'3D')
+            fprintf(fileID,'recorder Node %s %s/nodal_base_reaction_z.%s -time -node %s -dof 3 reaction \n', file_type, write_dir, file_ext, num2str(base_nodes'));
+        end
     end
 
     % Define Element Recorders
@@ -68,7 +70,9 @@ if analysis.type == 1
             % Rotational Hinges x direction - primary
             hinge_ids = element.id(end) + hinge.id(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'rotational') & hinge.story == s);
             if ~isempty(hinge_ids)
-                fprintf(fileID,'recorder Element %s %s/S%i_hinge_moment_x.%s -time -ele %s localForce \n', file_type, write_dir, s, file_ext, num2str(hinge_ids'));
+                if ~analysis.simple_recorders
+                    fprintf(fileID,'recorder Element %s %s/S%i_hinge_moment_x.%s -time -ele %s localForce \n', file_type, write_dir, s, file_ext, num2str(hinge_ids'));
+                end
                 fprintf(fileID,'recorder Element %s %s/S%i_hinge_rotation_x.%s -time -ele %s deformation \n', file_type, write_dir, s, file_ext, num2str(hinge_ids'));
             end
             if strcmp(dimension,'3D')

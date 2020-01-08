@@ -8,7 +8,7 @@ clc
 
 %% User Inputs
 % Define Model
-analysis.model_id = 19;
+analysis.model_id = 23;
 analysis.proceedure = 'NDP';
 analysis.id = 'baseline_fix';
 analysis.gm_set = 'FEMA_far_field';
@@ -16,13 +16,13 @@ analysis.run_z_motion = 0;
 
 % Analysis options
 analysis.summit = 0;
-analysis.run_parallel = 0;
-analysis.run_ida = 0;
-analysis.post_process_ida = 0;
+analysis.run_parallel = 1;
+analysis.run_ida = 1;
+analysis.post_process_ida = 1;
 analysis.create_fragilities = 1;
 analysis.plot_ida = 1;
 analysis.detialed_post_process = 0;
-analysis.scale_increment = 0.2;
+analysis.scale_increment = 0.25;
 analysis.collapse_drift = 0.10;
 analysis.clear_existing_data = 0;
 
@@ -44,7 +44,7 @@ analysis.movie_scale = 0;
 analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 analysis.joint_explicit = 0;
-analysis.stories_nonlinear = 6;
+analysis.stories_nonlinear = 1;
 analysis.simple_recorders = 1;
 
 %% Import Packages
@@ -100,7 +100,7 @@ if analysis.create_fragilities
     if ~exist(write_dir,'dir')
         mkdir(write_dir)
     end
-%     fn_collect_ida_data(analysis, model, gm_set_table, ida_results, write_dir)
+    fn_collect_ida_data(analysis, model, gm_set_table, ida_results, write_dir)
     fn_create_fragilities(analysis, write_dir)
 %     fn_LR_classification(analysis, model, gm_set_table)
 end

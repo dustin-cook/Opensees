@@ -16,7 +16,7 @@ fclose('all');
 % Assumptions:
 
 %% User Inputs (Think about changing this to a file read and command line execution)
-analysis.model_id = 20;
+analysis.model_id = 23;
 analysis.proceedure = 'NDP'; % LDP or NDP or test
 analysis.id = 'baseline_fix'; % ID of the analysis for it to create its own directory
 analysis.summit = 0; % Write tcl files to be run on summit and change location of opensees call

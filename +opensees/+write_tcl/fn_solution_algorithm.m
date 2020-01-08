@@ -5,7 +5,7 @@ function [ ] = fn_solution_algorithm( fileID, analysis, write_dir, analysis_leng
 %% Set Solution Algorithm Parameters
 min_tolerance_steps = 10;
 mid_tolerance_steps = 50;
-max_tolerance_steps = 1000;
+max_tolerance_steps = 500;
 
 % Set loop factors
 if analysis.type == 1 % Dynamic
@@ -15,7 +15,7 @@ else
 end
 algorithm_typs = { 'NewtonLineSearch', 'SecantNewton', 'KrylovNewton'};
 % tolerance = [1e-5, 1e-4 0.001, 0.01, 0.1, 1];
-tolerance = [0.00001, 0.0001, 0.001, 0.01, 0.1];
+tolerance = [0.00001, 0.0001, 0.001, 0.01];
 % tolerance = [0.1, 1];
 
 %% Set up Log Files

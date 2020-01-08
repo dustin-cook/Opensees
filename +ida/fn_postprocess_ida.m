@@ -80,34 +80,34 @@ for i = 1:height(hinge)
             hinge.cp_value_tot(i) = ele.(['cp_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
             hinge.cp_ratio(i) = hinge.tot_deform(i) / hinge.cp_value_tot(i);
 
-            % EuroCode
-            h = ele_prop.h;           % in
-            b = ele_prop.w;           % in
-            d = ele_prop.d_eff;       % in
-            d_prm = ele_prop.h - ele_prop.d_eff; % in
-            s = ele_prop.(['S_' num2str(hinge.ele_side(i))]);      % in
-            Av = ele_prop.(['Av_' num2str(hinge.ele_side(i))]);    % in2
-            As = sum(str2double(strsplit(strrep(strrep(ele_prop.As{1},']',''),'[',''),',')));  % in2
-            As_comp = 0.5*sum(str2double(strsplit(strrep(strrep(ele_prop.As{1},']',''),'[',''),',')));  % in2
-            As_ten = 0.5*sum(str2double(strsplit(strrep(strrep(ele_prop.As{1},']',''),'[',''),',')));  % in2
-            db = mean(str2double(strsplit(strrep(strrep(ele_prop.d_b{1},']',''),'[',''),',')));  % in2
-            bi = [10,10,10,10,10,10,10,10];
-            fc = ele_prop.fc_e;    % psi
-            fy = ele_prop.fy_e;   % psi
-            P = ele.Pmax;    % lbs
-            M = ele.(['Mmax_' num2str(hinge.ele_side(i))]);    % lbs-in
-            V = ele.(['Vmax_' num2str(hinge.ele_side(i))]);    % lbs
-            av = 1; % av = 1 if shear cracking expected before flexure, av = 0 othewise 
-            d_NA = h/2; % assume nuetral axis is half of the member depth
-            phi_y = 0.003 / d_NA;   % Yeild Curvature of the end section (in/in^2) (assume is same as concrete crushing over half of the member depth)
-            deform_pl = hinge.plastic_deform(i);
-            cov = 1.5 + 0.25; % Concrete cover plus half of the tie (assuming #4)
-            [hinge.euro_V_NC(i)] = fn_eurocode_column_shear_acceptance(h,b,d,d_prm,s,As,Av,db,fc,fy,P,M,V,deform_pl,phi_y,d_NA); % assumes colums are shear controlled
-        %                 [~, hinge.euro_th_NC_value(i)] = parametric_study(L,h,b,s,Av,cov,fc,fy,P); 
-            [hinge.euro_th_NC_value(i), hinge.euro_th_SD_value(i), hinge.euro_th_DL_value(i)] = fn_eurocode_rotation_acceptance(h,b,d,d_prm,cov,s,As_comp,As_ten,Av,db,bi,fc,fy,P,M,V,av,phi_y);
-            hinge.euro_th_NC_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_NC_value(i);
-            hinge.euro_th_SD_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_SD_value(i);
-            hinge.euro_th_DL_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_DL_value(i);
+%             % EuroCode
+%             h = ele_prop.h;           % in
+%             b = ele_prop.w;           % in
+%             d = ele_prop.d_eff;       % in
+%             d_prm = ele_prop.h - ele_prop.d_eff; % in
+%             s = ele_prop.(['S_' num2str(hinge.ele_side(i))]);      % in
+%             Av = ele_prop.(['Av_' num2str(hinge.ele_side(i))]);    % in2
+%             As = sum(str2double(strsplit(strrep(strrep(ele_prop.As{1},']',''),'[',''),',')));  % in2
+%             As_comp = 0.5*sum(str2double(strsplit(strrep(strrep(ele_prop.As{1},']',''),'[',''),',')));  % in2
+%             As_ten = 0.5*sum(str2double(strsplit(strrep(strrep(ele_prop.As{1},']',''),'[',''),',')));  % in2
+%             db = mean(str2double(strsplit(strrep(strrep(ele_prop.d_b{1},']',''),'[',''),',')));  % in2
+%             bi = [10,10,10,10,10,10,10,10];
+%             fc = ele_prop.fc_e;    % psi
+%             fy = ele_prop.fy_e;   % psi
+%             P = ele.Pmax;    % lbs
+%             M = ele.(['Mmax_' num2str(hinge.ele_side(i))]);    % lbs-in
+%             V = ele.(['Vmax_' num2str(hinge.ele_side(i))]);    % lbs
+%             av = 1; % av = 1 if shear cracking expected before flexure, av = 0 othewise 
+%             d_NA = h/2; % assume nuetral axis is half of the member depth
+%             phi_y = 0.003 / d_NA;   % Yeild Curvature of the end section (in/in^2) (assume is same as concrete crushing over half of the member depth)
+%             deform_pl = hinge.plastic_deform(i);
+%             cov = 1.5 + 0.25; % Concrete cover plus half of the tie (assuming #4)
+%             [hinge.euro_V_NC(i)] = fn_eurocode_column_shear_acceptance(h,b,d,d_prm,s,As,Av,db,fc,fy,P,M,V,deform_pl,phi_y,d_NA); % assumes colums are shear controlled
+%         %                 [~, hinge.euro_th_NC_value(i)] = parametric_study(L,h,b,s,Av,cov,fc,fy,P); 
+%             [hinge.euro_th_NC_value(i), hinge.euro_th_SD_value(i), hinge.euro_th_DL_value(i)] = fn_eurocode_rotation_acceptance(h,b,d,d_prm,cov,s,As_comp,As_ten,Av,db,bi,fc,fy,P,M,V,av,phi_y);
+%             hinge.euro_th_NC_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_NC_value(i);
+%             hinge.euro_th_SD_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_SD_value(i);
+%             hinge.euro_th_DL_ratio(i) = hinge.tot_deform(i) / hinge.euro_th_DL_value(i);
         end
     end
 end
@@ -149,14 +149,15 @@ save([ida_summary_dir filesep 'story_analysis.mat'],'story')
 save([ida_summary_dir filesep 'summary_results.mat'],'summary')
 
 % Delete post processed middle man opensees data
-delete([ida_opensees_dir filesep 'story_analysis.mat'])
-delete([ida_opensees_dir filesep 'node_analysis.mat'])
-delete([ida_opensees_dir filesep 'model_analysis.mat'])
-delete([ida_opensees_dir filesep 'joint_analysis.mat'])
-delete([ida_opensees_dir filesep 'hinge_analysis.mat'])
-delete([ida_opensees_dir filesep 'element_analysis.mat'])
-delete([ida_opensees_dir filesep 'node_TH_*.mat'])
-delete([ida_opensees_dir filesep 'hinge_TH_*.mat'])
+rmdir(ida_opensees_dir, 's')
+% delete([ida_opensees_dir filesep 'story_analysis.mat'])
+% delete([ida_opensees_dir filesep 'node_analysis.mat'])
+% delete([ida_opensees_dir filesep 'model_analysis.mat'])
+% delete([ida_opensees_dir filesep 'joint_analysis.mat'])
+% delete([ida_opensees_dir filesep 'hinge_analysis.mat'])
+% delete([ida_opensees_dir filesep 'element_analysis.mat'])
+% delete([ida_opensees_dir filesep 'node_TH_*.mat'])
+% delete([ida_opensees_dir filesep 'hinge_TH_*.mat'])
 
 end %function
 

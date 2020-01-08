@@ -18,7 +18,7 @@ analysis.asce_41_post_process = 1; % 1 = run asce 41 post process logic
 analysis.opensees_SP = 1; % 0 = Standard OpenSees; 1 = OpenseesSP
 
 % Model Options
-analysis.stories_nonlinear = inf; % Default to all modeling all stories as nonlinear when doing NDP
+analysis.stories_nonlinear = 1; % Default to all modeling all stories as nonlinear when doing NDP
 analysis.model_type = 2; % 1 = SDOF, 2 = MDOF (default)
 analysis.rigid_diaphram = 1; % Default the model to assume rigid diaphrams (0 = non-rigid assuption)
 analysis.fiber_walls = 0;
@@ -44,11 +44,11 @@ analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 
 % Visuals and Graphics
-analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
+analysis.element_plots = 1; % Plot hinge backnones and other per element visualizations
 analysis.plot_recordings = 1; % Plot analysis results v recorded results
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 10; % Visual scale of the movie playback
-analysis.hinge_stories_2_plot = 3;
+analysis.hinge_stories_2_plot = 2;
 analysis.suppress_outputs = 0;
 
 %% Define Proceedure Options

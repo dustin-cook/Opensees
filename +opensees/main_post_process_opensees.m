@@ -106,11 +106,15 @@ if analysis.nonlinear ~= 0 && ~isempty(hinge)
     for s = 1:max_story
         if exist([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_x' '.xml'],'file')
             [ hinge_deformation_x ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_x' '.xml']);
-            [ hinge_force_x ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_moment_x' '.xml']);
+            if ~analysis.simple_recorders
+                 [ hinge_force_x ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_moment_x' '.xml']);
+            end
             hinge_ids = hinge(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'rotational') & hinge.story == s,:);
             for h = 1:height(hinge_ids)
                 hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_x(1:(end-clip),1+h);
-                hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_x(1:(end-clip),1+h);
+                if ~analysis.simple_recorders
+                    hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_x(1:(end-clip),1+h);
+                end
             end
         end
         if strcmp(model.dimension,'3D')
@@ -146,15 +150,15 @@ if analysis.nonlinear ~= 0 && ~isempty(hinge)
         end
     end
     
-    % Calculate Dissapated Hinge Engery
-    for h = 1:height(hinge)
-        if analysis.simple_recorders && strcmp(hinge.direction(h),'oop')
-            hinge.total_engergy_ft_lbs(h) = NaN;
-        else
-            hinge.total_engergy_ft_lbs(h) = (1/12)*trapz(hinge_TH.(['hinge_' num2str(hinge.id(h))]).deformation_TH, hinge_TH.(['hinge_' num2str(hinge.id(h))]).force_TH);
-            hinge_TH.(['hinge_' num2str(hinge.id(h))]).energy_ft_lbs = (1/12)*cumtrapz(hinge_TH.(['hinge_' num2str(hinge.id(h))]).deformation_TH, hinge_TH.(['hinge_' num2str(hinge.id(h))]).force_TH);
-        end
-    end
+%     % Calculate Dissapated Hinge Engery
+%     for h = 1:height(hinge)
+%         if analysis.simple_recorders && strcmp(hinge.direction(h),'oop')
+%             hinge.total_engergy_ft_lbs(h) = NaN;
+%         else
+%             hinge.total_engergy_ft_lbs(h) = (1/12)*trapz(hinge_TH.(['hinge_' num2str(hinge.id(h))]).deformation_TH, hinge_TH.(['hinge_' num2str(hinge.id(h))]).force_TH);
+%             hinge_TH.(['hinge_' num2str(hinge.id(h))]).energy_ft_lbs = (1/12)*cumtrapz(hinge_TH.(['hinge_' num2str(hinge.id(h))]).deformation_TH, hinge_TH.(['hinge_' num2str(hinge.id(h))]).force_TH);
+%         end
+%     end
 end
 
 %% Load Joint reactions and deformations
@@ -195,7 +199,7 @@ for i = 1:length(dirs_ran)
    % EDP response history at each node
    if analysis.type == 1 % Dynamic Analysis       
        for n = 1:height(node)
-           if node.record_disp(n)
+           if (~analysis.simple_recorders && node.record_disp(n)) || (analysis.simple_recorders && node.primary_story(n))
                [ node_disp_raw ] = fn_xml_read([opensees_dir filesep 'nodal_disp_' num2str(node.id(n)) '.xml']);
                node_disp_raw = node_disp_raw'; % flip to be node per row
 
@@ -288,9 +292,11 @@ for i = 1:length(dirs_ran)
     end
 
     % Base shear reactions
-    [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
-    story_TH.(['base_shear_' fld_names{i} '_TH']) = sum(base_node_reactions(1:(end-clip),2:end),2)';
-    story.(['max_reaction_' fld_names{i}])(1) = max(abs(story_TH.(['base_shear_' fld_names{i} '_TH'])));
+    if ~analysis.simple_recorders
+        [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
+        story_TH.(['base_shear_' fld_names{i} '_TH']) = sum(base_node_reactions(1:(end-clip),2:end),2)';
+        story.(['max_reaction_' fld_names{i}])(1) = max(abs(story_TH.(['base_shear_' fld_names{i} '_TH'])));
+    end
     
     % Load Mode shape data and period
     if analysis.run_eigen
