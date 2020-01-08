@@ -13,8 +13,8 @@ analysis.proceedure = 'NDP';
 analysis.id = 'baseline_fix';
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 0;
-analysis.study_name = 'scwb';
-analysis.num_models = 5;
+analysis.study_name = 'strength';
+analysis.num_models = 7;
 
 % Analysis options
 analysis.summit = 0;
