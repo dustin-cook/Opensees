@@ -74,9 +74,10 @@ model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true)
 model = model_table(model_table.id == analysis.model_id,:);
 
 %% Define read and write directories
-model_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'model_data'];
-tcl_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'opensees_data'];
-asce41_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'asce_41_data'];
+main_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id];
+model_dir = [main_dir '/' 'model_data'];
+tcl_dir = [main_dir '/' 'opensees_data'];
+asce41_dir = [main_dir '/' 'asce_41_data'];
 
 % Load in Model Tables
 node = readtable([model_dir filesep 'node.csv'],'readVariableNames',true);
@@ -96,7 +97,7 @@ end
 
 %% Create Response and Consequence Fragilities
 if analysis.create_fragilities
-    write_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Fragility Data'];
+    write_dir = [main_dir '/' 'IDA' '/' 'Fragility Data'];
     if ~exist(write_dir,'dir')
         mkdir(write_dir)
     end
@@ -107,8 +108,8 @@ end
 
 %% Plot Results
 if analysis.plot_ida
-    fn_plot_ida(analysis, model, gm_set_table, ida_results, SSF_ew)
-    fn_plot_new_frags(analysis, model)
+    fn_plot_ida(analysis, model, gm_set_table, ida_results, SSF_ew, main_dir)
+    fn_plot_new_frags(analysis, model, main_dir)
 %     fn_plot_hinge_values(analysis, model, IDA_scale_factors, gm_set_table)
 end
 
