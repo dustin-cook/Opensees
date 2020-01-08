@@ -15,7 +15,6 @@ params = {'b','io','ls','cp'};
 model_dir = [main_dir '/' 'opensees_data'];
 asce41_dir = [main_dir '/' 'asce_41_data'];
 load([asce41_dir filesep 'element_analysis.mat']);
-load([model_dir filesep 'node_analysis.mat']);
 
 % Collect IDA data
 id = 0;
