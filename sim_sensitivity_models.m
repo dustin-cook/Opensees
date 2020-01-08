@@ -130,6 +130,7 @@ for m = 1:length(model_name)
     ranked_data = sortrows(models_table,[prime_param{m} '_cov']);
     ranked_data.prob = ((1:1000)/1000)';
     baseline_model_average_param = mean(first_story_columns.([prime_param{m}]));
+    baseline_model_cov_param = std(first_story_columns.([prime_param{m}]))/mean(first_story_columns.([prime_param{m}]));
     N = 5;
     for i = 1:N
         up_prob = i/N;

@@ -92,9 +92,10 @@ for b = 1:length(bm_str)
     for s = 1:height(story)
         story.scwb(s) = mean(joint.col_bm_ratio(joint.story == s));
     end
+    mean(story.scwb)
     
     % Write Element Analysis Data file with new a and b values
-    save([model_dir filesep 'asce_41_data' filesep 'element_analysis.mat'],'story')
+    save([model_dir filesep 'asce_41_data' filesep 'story_analysis.mat'],'story')
     save([model_dir filesep 'asce_41_data' filesep 'element_analysis.mat'],'element')
     save([model_dir filesep 'asce_41_data' filesep 'joint_analysis.mat'],'joint')
 

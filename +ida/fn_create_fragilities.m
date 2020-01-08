@@ -230,6 +230,14 @@ end
 % Save Frag Curve Data
 save([write_dir filesep 'frag_curves.mat'],'frag_curves')
 
+% Write outputs summary file
+outputs.med_sa_collapse = frag_curves.collapse.theta;
+outputs.med_sa_cp = frag_curves.cp.theta(1);
+outputs.collapse_margin = outputs.med_sa_collapse/outputs.med_sa_cp;
+outputs.num_comps = new_frag_curves.collapse.num_cp.theta;
+outputs.percent_comps = new_frag_curves.collapse.percent_cp.theta;
+outputs.drift = new_frag_curves.collapse.drift_x.theta;
+writetable(struct2table(outputs),[write_dir filesep 'summary_outputs.csv'])
 end
 
 function [params] = fn_fit_fragility_MOM(limit_state_dist)
