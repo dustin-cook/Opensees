@@ -92,7 +92,7 @@ gm_median_pga = median(gm_set_table.pga);
 
 %% Run Opensees Models
 if analysis.run_ida || analysis.post_process_ida
-    fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir)
+    fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir, main_dir)
 end
 
 %% Create Response and Consequence Fragilities

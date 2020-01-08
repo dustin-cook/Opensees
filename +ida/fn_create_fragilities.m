@@ -12,7 +12,8 @@ import plotting_tools.*
 attrs = {'sa_x', 'max_drift', 'drift_x', 'gravity_load_lost_ratio',...
         'num_cp', 'percent_cp','max_cp','min_cp','mean_cp','range_cp','std_cp','cov_cp',... 
         'num_b','percent_b','min_b','max_b','mean_b'};
-params = {'b','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
+% params = {'b','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
+params = {'b','io','ls','cp'};
 frag_probs = [10 25 50 75 100];
 
 %% Collect info for each ground motion (new fragilities)

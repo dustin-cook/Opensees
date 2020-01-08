@@ -8,7 +8,8 @@ import plotting_tools.*
 
 % Defined fixed parames
 % params = {'b','e','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
-params = {'b','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
+% params = {'b','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
+params = {'b','io','ls','cp'};
 
 % Load model data
 if ~exist('model_dir','var')
