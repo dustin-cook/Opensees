@@ -1,4 +1,4 @@
-function [ ] = fn_collect_ida_data(analysis, model, gm_set_table, ida_results, write_dir, pushover_dir, model_dir)
+function [ ] = fn_collect_ida_data(analysis, model, gm_set_table, ida_results, main_dir, write_dir)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -12,15 +12,8 @@ import plotting_tools.*
 params = {'b','io','ls','cp'};
 
 % Load model data
-if ~exist('model_dir','var')
-    model_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'opensees_data'];
-end
-if ~exist('pushover_dir','var')
-    pushover_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'pushover'];
-end
-if ~exist('asce41_dir','var')
-    asce41_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'asce_41_data'];
-end
+model_dir = [main_dir '/' 'opensees_data'];
+asce41_dir = [main_dir '/' 'asce_41_data'];
 load([asce41_dir filesep 'element_analysis.mat']);
 load([model_dir filesep 'node_analysis.mat']);
 
@@ -28,11 +21,11 @@ load([model_dir filesep 'node_analysis.mat']);
 id = 0;
 id_missing = 0;
 for gm = 1:height(gm_set_table)
-    gm_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_table.set_id(gm)) '_' num2str(gm_set_table.pair(gm))];
+    gm_dir = [main_dir '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_table.set_id(gm)) '_' num2str(gm_set_table.pair(gm))];
     scale_folders = dir([gm_dir filesep 'Scale_*']);
     for s = 1:length(scale_folders)
         % Load data
-        outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_table.set_id(gm)) '_' num2str(gm_set_table.pair(gm)) '/' scale_folders(s).name];
+        outputs_dir = [main_dir '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_table.set_id(gm)) '_' num2str(gm_set_table.pair(gm)) '/' scale_folders(s).name];
         outputs_file = [outputs_dir filesep 'summary_results.mat'];
         hinge_file = [outputs_dir filesep 'hinge_analysis.mat'];
         story_file = [outputs_dir filesep 'story_analysis.mat'];
@@ -153,7 +146,7 @@ gm_set_table(gm_set_table.scale_collapse == 0,:) = [];
 
 % Go through IDA table and get hinge properties based on collapse mechanism
 for i = 1:height(ida_table)
-    outputs_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_table.set_id(strcmp(gm_set_table.eq_name,ida_table.eq_name{i}))) '_' num2str(gm_set_table.pair(strcmp(gm_set_table.eq_name,ida_table.eq_name{i}))) '/Scale_' num2str(ida_table.scale(i))];
+    outputs_dir = [main_dir '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_table.set_id(strcmp(gm_set_table.eq_name,ida_table.eq_name{i}))) '_' num2str(gm_set_table.pair(strcmp(gm_set_table.eq_name,ida_table.eq_name{i}))) '/Scale_' num2str(ida_table.scale(i))];
     hinge_file = [outputs_dir filesep 'hinge_analysis.mat'];
     load(hinge_file)
     

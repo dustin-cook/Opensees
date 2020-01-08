@@ -24,7 +24,7 @@ analysis.post_process_ida = 1;
 analysis.create_fragilities = 1;
 analysis.plot_ida = 1;
 analysis.detialed_post_process = 0;
-analysis.scale_increment = 0.2;
+analysis.scale_increment = 0.25;
 analysis.collapse_drift = 0.10;
 analysis.clear_existing_data = 0;
 
@@ -75,7 +75,7 @@ SSF_ns = interp1([1.0 1.1 1.5 2 3 4 6 8], [1.00 1.05 1.10 1.13 1.18 1.22 1.28 1.
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
 model = model_table(model_table.id == analysis.model_id,:);
 
-for m = 1:analysis.num_models
+for m = 2:analysis.num_models
     %% Define read and write directories
     main_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'sensitivity_study' '/' analysis.study_name '/' 'model_files' '/' 'model_' num2str(m)];
     model_dir = [main_dir '/' 'model_data'];
@@ -104,7 +104,7 @@ for m = 1:analysis.num_models
 
     %% Create Response and Consequence Fragilities
     if analysis.create_fragilities
-        fn_collect_ida_data(analysis, model, gm_set_table, ida_results, write_dir)
+        fn_collect_ida_data(analysis, model, gm_set_table, ida_results, main_dir, write_dir)
         fn_create_fragilities(analysis, write_dir)
     end
 

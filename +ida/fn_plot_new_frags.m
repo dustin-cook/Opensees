@@ -22,7 +22,7 @@ matlab_colors = [0 0.4470 0.7410;
           0.635 0.078 0.184];
 matlab_colors = [matlab_colors;matlab_colors;matlab_colors]; % stack matlab colors so they repeat
       
-plot_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'New Fragility Plots'];
+plot_dir = [main_dir '/' 'IDA' '/' 'New Fragility Plots'];
 
 
 %% Plot 1 - Collapse v Min Mean Max Rot Limit

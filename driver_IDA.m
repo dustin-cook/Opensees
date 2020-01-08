@@ -16,9 +16,9 @@ analysis.run_z_motion = 0;
 
 % Analysis options
 analysis.summit = 0;
-analysis.run_parallel = 1;
-analysis.run_ida = 1;
-analysis.post_process_ida = 1;
+analysis.run_parallel = 0;
+analysis.run_ida = 0;
+analysis.post_process_ida = 0;
 analysis.create_fragilities = 1;
 analysis.plot_ida = 1;
 analysis.detialed_post_process = 0;
@@ -101,7 +101,7 @@ if analysis.create_fragilities
     if ~exist(write_dir,'dir')
         mkdir(write_dir)
     end
-    fn_collect_ida_data(analysis, model, gm_set_table, ida_results, write_dir)
+    fn_collect_ida_data(analysis, model, gm_set_table, ida_results, main_dir, write_dir)
     fn_create_fragilities(analysis, write_dir)
 %     fn_LR_classification(analysis, model, gm_set_table)
 end
