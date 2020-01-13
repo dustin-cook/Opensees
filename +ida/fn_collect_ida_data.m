@@ -62,7 +62,11 @@ for gm = 1:height(gm_set_table)
                 ida.collapse_direction{id,1} = summary.collapse_direction;
                 ida.collapse_mech{id,1} = summary.collaspe_mech;
                 load(hinge_file)
-                ida.collapse_comps(id,1) = sum(hinge.b_ratio >= 1);
+                if contains(summary.collaspe_mech,'column')
+                    ida.collapse_comps(id,1) = sum(hinge.b_ratio(strcmp(hinge.ele_type,'column')) >= 1);
+                else
+                    ida.collapse_comps(id,1) = sum(hinge.b_ratio >= 1);
+                end
             else
                 ida.collapse_direction{id,1} = 'NA';
                 ida.collapse_mech{id,1} = 'NA';
@@ -125,7 +129,6 @@ failed_convergence = ida_table(ida_table.collapse == 5,:);
 ida_table(ida_table.collapse == 5,:) = []; % filter out failed models
 
 % Go through and define collapse props for each ground motion
-gm_table = gm_set_table;
 for gm = 1:height(gm_set_table)
     filt_collapse = ida_table.collapse > 0 & strcmp(ida_table.eq_name,gm_set_table.eq_name{gm});
     
@@ -156,7 +159,13 @@ for i = 1:height(ida_table)
     collapse_hinge = load(collapse_hinge_file);
     
     % Get element group filters from collapse case
-    mech_filter = strcmp(collapse_hinge.hinge.direction,'primary') & collapse_hinge.hinge.b_ratio >= 1; % collapse mechanism is all hinges that have failed in the first stripe that collapse
+    if contains(gm_stripes.collapse_mech{collapse_idx},'column')
+        % collapse mechanism is all column hinges that have failed in the first stripe that collapse
+        mech_filter = strcmp(collapse_hinge.hinge.direction,'primary') & collapse_hinge.hinge.b_ratio >= 1 & strcmp(collapse_hinge.hinge.ele_type,'column'); 
+    else
+        % collapse mechanism is all hinges that have failed in the first stripe that collapse
+        mech_filter = strcmp(collapse_hinge.hinge.direction,'primary') & collapse_hinge.hinge.b_ratio >= 1; 
+    end
     ida_table.num_comps(i) = sum(mech_filter);
     mech_hinges = hinge(mech_filter,:);
 
