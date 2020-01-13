@@ -13,8 +13,8 @@ analysis.proceedure = 'NDP';
 analysis.id = 'baseline_fix';
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 0;
-analysis.study_name = 'strength';
-analysis.num_models = 7;
+analysis.study_name = 'scwb';
+analysis.num_models = 5;
 
 % Analysis options
 analysis.summit = 0;
@@ -46,7 +46,7 @@ analysis.movie_scale = 0;
 analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 analysis.joint_explicit = 0;
-analysis.stories_nonlinear = 1;
+analysis.stories_nonlinear = 6;
 analysis.simple_recorders = 1;
 
 %% Import Packages
@@ -75,7 +75,7 @@ SSF_ns = interp1([1.0 1.1 1.5 2 3 4 6 8], [1.00 1.05 1.10 1.13 1.18 1.22 1.28 1.
 model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
 model = model_table(model_table.id == analysis.model_id,:);
 
-for m = 2:analysis.num_models
+for m = 1:analysis.num_models
     %% Define read and write directories
     main_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'sensitivity_study' '/' analysis.study_name '/' 'model_files' '/' 'model_' num2str(m)];
     model_dir = [main_dir '/' 'model_data'];

@@ -152,7 +152,7 @@ for i = 1:height(ida_table)
     % Identify collapse case for this GM
     gm_stripes = ida_table(strcmp(ida_table.eq_name,ida_table.eq_name{i}),:);
     collapse_idx = find(gm_stripes.collapse > 0,1,'first');
-    collapse_hinge_file = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_table.set_id(strcmp(gm_set_table.eq_name,ida_table.eq_name{i}))) '_' num2str(gm_set_table.pair(strcmp(gm_set_table.eq_name,ida_table.eq_name{i}))) '/Scale_' num2str(gm_stripes.scale(collapse_idx)) filesep 'hinge_analysis.mat'];
+    collapse_hinge_file = [main_dir '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_table.set_id(strcmp(gm_set_table.eq_name,ida_table.eq_name{i}))) '_' num2str(gm_set_table.pair(strcmp(gm_set_table.eq_name,ida_table.eq_name{i}))) '/Scale_' num2str(gm_stripes.scale(collapse_idx)) filesep 'hinge_analysis.mat'];
     collapse_hinge = load(collapse_hinge_file);
     
     % Get element group filters from collapse case
