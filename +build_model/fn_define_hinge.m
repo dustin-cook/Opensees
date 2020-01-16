@@ -12,7 +12,7 @@ if analysis.nonlinear ~= 0
     % Define Hinges
     for i = 1:length(element.id)
         if element.story(i) <= analysis.stories_nonlinear && ~element.rigid(i) && ~element.elastic(i)
-            if strcmp(element.type{i},'column') || strcmp(element.type{i},'beam') % For all columns and beams
+            if strcmp(element.type{i},'column') || (strcmp(element.type{i},'beam') && ~analysis.elastic_beams) % For all columns and beams
                 % Define hinge at start of element
                 hinge_id = hinge_id+1;
                 [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'node_1', i, hinge_id, foundation_nodes_filter, 'rotational', 'primary', 1 ); 

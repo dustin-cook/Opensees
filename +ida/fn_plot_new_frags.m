@@ -162,7 +162,7 @@ plot_dir = [main_dir '/' 'IDA' '/' 'New Fragility Plots'];
 %% Plot 3 - Collapse v Percent rotation limit
 max_val = 1;
 hold on
-rank_val = sort(gm_data.collapse.percent_b(~isnan(gm_data.collapse.percent_b)));
+rank_val = sort(gm_data.collapse_2.percent_b(~isnan(gm_data.collapse_2.percent_b)));
 rank = (1:length(rank_val))/length(rank_val);
 scatter(rank_val,rank,'k','filled','HandleVisibility','off');
 plot(rank_val,rank,'k','lineWidth',1,'DisplayName','Sidesway Collapse')
@@ -175,7 +175,7 @@ fn_format_and_save_plot( plot_dir, plot_name, 4 )
 %% Plot 4 - Collapse v Percent CP
 max_val = 1;
 hold on
-rank_val = sort(gm_data.collapse.percent_cp(~isnan(gm_data.collapse.percent_cp)));
+rank_val = sort(gm_data.collapse_2.percent_cp(~isnan(gm_data.collapse_2.percent_cp)));
 rank = (1:length(rank_val))/length(rank_val);
 scatter(rank_val,rank,'k','filled','HandleVisibility','off');
 plot(rank_val,rank,'k','lineWidth',1,'DisplayName','Sidesway Collapse')
@@ -189,10 +189,10 @@ fn_format_and_save_plot( plot_dir, plot_name, 4 )
 max_val = 0.1;
 x_points = linspace(max_val/100,max_val,100);
 hold on
-rank_val = sort(gm_data.collapse.max_drift(~isnan(gm_data.collapse.max_drift)));
+rank_val = sort(gm_data.collapse_2.max_drift(~isnan(gm_data.collapse_2.max_drift)));
 rank = (1:length(rank_val))/length(rank_val);
 scatter(rank_val,rank,'k','filled','HandleVisibility','off');
-cdf = logncdf(x_points,log(new_frag_curves.collapse.max_drift.theta),new_frag_curves.collapse.max_drift.beta);
+cdf = logncdf(x_points,log(new_frag_curves.collapse_2.max_drift.theta),new_frag_curves.collapse_2.max_drift.beta);
 plot(x_points,cdf,'k','lineWidth',1)
 xlabel('Max Drift')
 ylabel('P[Collapse]')
@@ -338,7 +338,7 @@ fn_format_and_save_plot( plot_dir, plot_name, 4 )
 %% Plot 13 - Collapse v gravity
 max_val = 1;
 hold on
-rank_val = sort(gm_data.collapse.gravity_load_lost_ratio(~isnan(gm_data.collapse.gravity_load_lost_ratio)));
+rank_val = sort(gm_data.collapse_2.gravity_load_lost_ratio(~isnan(gm_data.collapse_2.gravity_load_lost_ratio)));
 rank = (1:length(rank_val))/length(rank_val);
 scatter(rank_val,rank,'k','filled','HandleVisibility','off');
 plot(rank_val,rank,'k','lineWidth',1)

@@ -19,6 +19,7 @@ analysis.opensees_SP = 1; % 0 = Standard OpenSees; 1 = OpenseesSP
 
 % Model Options
 analysis.stories_nonlinear = 1; % Default to all modeling all stories as nonlinear when doing NDP
+analysis.elastic_beams = 1; % 0 = beams can be nonlinear (default), 1 = beams are assumed to be elastic
 analysis.model_type = 2; % 1 = SDOF, 2 = MDOF (default)
 analysis.rigid_diaphram = 1; % Default the model to assume rigid diaphrams (0 = non-rigid assuption)
 analysis.fiber_walls = 0;

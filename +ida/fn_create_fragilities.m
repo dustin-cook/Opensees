@@ -232,11 +232,18 @@ save([write_dir filesep 'frag_curves.mat'],'frag_curves')
 
 % Write outputs summary file
 outputs.med_sa_collapse = frag_curves.collapse.theta;
+outputs.med_sa_collapse_grav = frag_curves.collapse_2.theta;
 outputs.med_sa_cp = frag_curves.cp.theta(1);
+outputs.med_sa_b = frag_curves.b.theta(1);
 outputs.collapse_margin = outputs.med_sa_collapse/outputs.med_sa_cp;
+outputs.collapse_margin_grav = outputs.med_sa_collapse_grav/outputs.med_sa_cp;
+outputs.collapse_margin_grav_b = outputs.med_sa_collapse_grav/outputs.med_sa_b;
 outputs.num_comps = median(gm_data.collapse.num_cp);
+outputs.num_comps_grav = median(gm_data.collapse_2.num_cp);
 outputs.percent_comps = median(gm_data.collapse.percent_cp);
+outputs.percent_comps_grav = median(gm_data.collapse_2.percent_cp);
 outputs.drift = new_frag_curves.collapse.drift_x.theta;
+outputs.drift_grav = new_frag_curves.collapse_2.drift_x.theta;
 writetable(struct2table(outputs),[write_dir filesep 'summary_outputs.csv'])
 end
 

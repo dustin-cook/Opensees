@@ -68,7 +68,6 @@ for i = 1:height(hinge)
             end
 
             hinge.plastic_deform(i) = hinge.tot_deform(i) - hinge.elastic_deform(i);
-
             hinge.a_value_tot(i) = ele.(['a_hinge_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
             hinge.a_ratio(i) = hinge.tot_deform(i) / hinge.a_value_tot(i);
             hinge.b_value_tot(i) = ele.(['b_hinge_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
@@ -79,6 +78,23 @@ for i = 1:height(hinge)
             hinge.ls_ratio(i) = hinge.tot_deform(i) / hinge.ls_value_tot(i);
             hinge.cp_value_tot(i) = ele.(['cp_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
             hinge.cp_ratio(i) = hinge.tot_deform(i) / hinge.cp_value_tot(i);
+            
+            if strcmp(ele.type,'column')
+                % Calculate the column axial capacity based on Elwood 2004
+                % limit state (only for flexure-shear columns)
+                as = ele_prop.(['Av_' num2str(hinge.ele_side(i))]);
+                fyt = ele_prop.fy_e;
+                dc = ele_prop.w/2 - ele_prop.clear_cover;
+                theta = 65*pi/180; % assumed 65 deg from Elwood 2004 
+                s = ele_prop.(['S_' num2str(hinge.ele_side(i))]);
+                hinge.P_demand(i) = ele.Pmax;
+                hinge.P_capacity(i) = min([(as*fyt*dc*tan(theta)/s)*((4*(1+(tan(theta)^2))/(100*summary.max_drift_x)) - tan(theta)),ele.Pn_c]);
+                hinge.P_dcr(i) = hinge.P_demand(i) / hinge.P_capacity(i);
+            else % for beams, ignore axial stuff
+                hinge.P_demand(i) = 0;
+                hinge.P_capacity(i) = 0;
+                hinge.P_dcr(i) = 0;
+            end
 
 %             % EuroCode
 %             h = ele_prop.h;           % in

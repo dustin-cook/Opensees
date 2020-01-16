@@ -22,6 +22,7 @@ analysis.model = 'ICBS_model_5ew_col_base_no_mods';
 analysis.type = 1;
 analysis.nonlinear = 1;
 analysis.stories_nonlinear = 6; % Default to all modeling all stories as nonlinear when doing NDP
+analysis.elastic_beams = 1;
 analysis.model_type = 2; % 1 = SDOF, 2 = MDOF (default)
 analysis.rigid_diaphram = 1; % Default the model to assume rigid diaphrams (0 = non-rigid assuption)
 analysis.fiber_walls = 0;

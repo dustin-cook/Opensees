@@ -166,6 +166,9 @@ for i = 1:height(ida_table)
         % collapse mechanism is all hinges that have failed in the first stripe that collapse
         mech_filter = strcmp(collapse_hinge.hinge.direction,'primary') & collapse_hinge.hinge.b_ratio >= 1; 
     end
+    
+%     mech_filter = strcmp(collapse_hinge.hinge.direction,'primary') & collapse_hinge.hinge.b_ratio >= 1;
+    
     ida_table.num_comps(i) = sum(mech_filter);
     mech_hinges = hinge(mech_filter,:);
 

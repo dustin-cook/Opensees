@@ -101,11 +101,19 @@ x_points = 0.01:0.01:4;
 % Total Collapse with discrete scatter
 figure
 hold on
+
 rank_sa = sort(gm_table.sa_collapse(~isnan(gm_table.sa_collapse)));
 rank_val = 1:length(rank_sa);
 sct = scatter(rank_sa,rank_val./length(rank_sa),'b','filled','HandleVisibility','off');
 cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
 plot(x_points,cdf,'b','DisplayName','Collapse Fragility')
+
+rank_sa = sort(gm_table.sa_collapse_2(~isnan(gm_table.sa_collapse_2)));
+rank_val = 1:length(rank_sa);
+sct = scatter(rank_sa,rank_val./length(rank_sa),'k','filled','HandleVisibility','off');
+cdf = logncdf(x_points,log(frag_curves.collapse_2.theta),frag_curves.collapse_2.beta);
+plot(x_points,cdf,'k','DisplayName','Collapse with Gravity Fragility')
+
 xlabel('Sa(T_{1-EW}) (g)')
 ylabel('P[Collapse]')
 xlim([0,ceil(max(rank_sa))])
@@ -165,7 +173,7 @@ fn_format_and_save_plot( plot_dir, 'Collapse Fragility', 6 )
 % Plot Each acceptance Criteria
 for p = 1:length(params)
     plot_name = [params{p} ' Fragilities'];
-    fn_plot_frag_curves(x_points, frag_curves.(params{p}), frag_curves.collapse, frag_curves.UR, ida_results.spectra(1), plot_name, plot_dir, [0,1.5], params{p}  )
+    fn_plot_frag_curves(x_points, frag_curves.(params{p}), frag_curves.collapse_2, frag_curves.collapse, ida_results.spectra(1), plot_name, plot_dir, [0,1.5], params{p}  )
 end
 
 % First Acceptance criteria met
@@ -278,7 +286,7 @@ end
 
 end
 
-function [ ] = fn_plot_frag_curves(x_points, frag_curves, col_frag_curve, UR_curve, icsb_motion, plot_name, plot_dir, x_range, param_name)    
+function [ ] = fn_plot_frag_curves(x_points, frag_curves, col_frag_curve, col_no_grav, icsb_motion, plot_name, plot_dir, x_range, param_name)    
 % Import packages
 import plotting_tools.fn_format_and_save_plot
 
@@ -295,8 +303,8 @@ for i = 2:height(frag_curves)
 end
 cdf = logncdf(x_points,log(col_frag_curve.theta),col_frag_curve.beta);
 plot(x_points,cdf,'k','lineWidth',2,'DisplayName','Collapse')
-% cdf = logncdf(x_points,log(UR_curve.theta),UR_curve.beta);
-% plot(x_points,cdf,'-.r','lineWidth',2,'DisplayName','Unacceptable Response')
+cdf = logncdf(x_points,log(col_no_grav.theta),col_no_grav.beta);
+plot(x_points,cdf,'-.r','lineWidth',2,'DisplayName','Collapse No Gravity')
 % plot([icsb_motion icsb_motion],[0 1],'--k','lineWidth',1.5,'DisplayName','ICSB Motion')
 xlabel('Sa(T_{1-EW}) (g)')
 ylabel('P[Exceedance]')

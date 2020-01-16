@@ -13,14 +13,14 @@ analysis.proceedure = 'NDP';
 analysis.id = 'baseline_fix';
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 0;
-analysis.study_name = 'scwb';
+analysis.study_name = 'strength';
 analysis.num_models = 5;
 
 % Analysis options
 analysis.summit = 0;
-analysis.run_parallel = 1;
-analysis.run_ida = 1;
-analysis.post_process_ida = 1;
+analysis.run_parallel = 0;
+analysis.run_ida = 0;
+analysis.post_process_ida = 0;
 analysis.create_fragilities = 1;
 analysis.plot_ida = 1;
 analysis.detialed_post_process = 0;
@@ -47,6 +47,7 @@ analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 analysis.joint_explicit = 0;
 analysis.stories_nonlinear = 6;
+analysis.elastic_beams = 1;
 analysis.simple_recorders = 1;
 
 %% Import Packages

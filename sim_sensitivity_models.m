@@ -22,6 +22,7 @@ analysis.model = 'ICBS_model_5ew_col_base_no_mods';
 analysis.type = 1;
 analysis.nonlinear = 1;
 analysis.stories_nonlinear = 1; % Default to all modeling all stories as nonlinear when doing NDP
+analysis.elastic_beams = 1;
 analysis.model_type = 2; % 1 = SDOF, 2 = MDOF (default)
 analysis.rigid_diaphram = 1; % Default the model to assume rigid diaphrams (0 = non-rigid assuption)
 analysis.fiber_walls = 0;
@@ -35,19 +36,6 @@ analysis_name = [analysis.proceedure '_' analysis.id];
 inputs_dir = ['outputs' filesep analysis.model filesep analysis_name filesep 'asce_41_data'];
 os_dir = ['outputs' filesep analysis.model filesep analysis_name filesep 'opensees_data'];
 os_model_csv_dir = ['outputs' filesep analysis.model filesep analysis_name filesep 'model_data'];
-
-%% Define Element Properties
-% Load Data
-ele_prop_table = readtable(['inputs' filesep 'element.csv']);
-load([inputs_dir filesep 'element_analysis.mat'])
-load([inputs_dir filesep 'joint_analysis.mat'])
-load([inputs_dir filesep 'hinge_analysis.mat'])
-load([inputs_dir filesep 'node_analysis.mat'])
-load([inputs_dir filesep 'story_analysis.mat'])
-
-% Filter to just first story columns
-first_story_columns = element(element.story == 1 & strcmp(element.type,'column'),:);
-node_2_use = node(ismember(node.id,first_story_columns.node_1),:);
     
 %% Define sensitivity study parameters
 model_name = {'ductility', 'strength'};
@@ -60,6 +48,18 @@ max_val = [0.1, 2e7];
 
 %% Create Models for each sensitivity study
 for m = 1:length(model_name)
+    % Load Data
+    ele_prop_table = readtable(['inputs' filesep 'element.csv']);
+    load([inputs_dir filesep 'element_analysis.mat'])
+    load([inputs_dir filesep 'joint_analysis.mat'])
+    load([inputs_dir filesep 'hinge_analysis.mat'])
+    load([inputs_dir filesep 'node_analysis.mat'])
+    load([inputs_dir filesep 'story_analysis.mat'])
+
+    % Filter to just first story columns
+    first_story_columns = element(element.story == 1 & strcmp(element.type,'column'),:);
+    node_2_use = node(ismember(node.id,first_story_columns.node_1),:);
+
     % Create outputs dir
     outputs_dir = ['outputs' filesep analysis.model filesep analysis_name filesep 'sensitivity_study' filesep model_name{m}];
     new_models_dir = [outputs_dir filesep 'model_files'];
