@@ -102,7 +102,7 @@ for gm = 1:height(gm_set_table)
                 gravity_load(i) = sum(story.story_dead_load(i:end)) + sum(story.story_live_load(i:end));
                 col_hinges_1 = hinge(hinge.story == i & strcmp(hinge.ele_type,'column') & hinge.ele_side == 1,:);
                 col_hinges_2 = hinge(hinge.story == i & strcmp(hinge.ele_type,'column') & hinge.ele_side == 2,:);
-                if ismembmer(col_hinges_1.Properties.Column_names,'P_capacity')
+                if ~isempty(col_hinges_1)
                     grav_cap_1 = sum(col_hinges_1.P_capacity);
                     grav_cap_2 = sum(col_hinges_2.P_capacity);
     %                 remianing_col_eles = element(element.story == i & strcmp(element.type,'column') & ~ismember(element.id,unique(failed_col_hinges.element_id)),:);

@@ -29,7 +29,7 @@ for gm = 1:height(gm_table)
     gm_response = ida_table(strcmp(ida_table.eq_name,gm_table.eq_name(gm)),:);
     if ~isempty(gm_response)
         gm_response_no_col = ida_table(strcmp(ida_table.eq_name,gm_table.eq_name(gm)) & ida_table.collapse == 0,:);
-        gm_response_no_col.collapse(gm_response_no_col.sa_x == max(gm_response_no_col.sa_x) | gm_response_no_col.max_drift >= 0.06) = 1; % Flag just before collapse point
+        gm_response_no_col.collapse(gm_response_no_col.sa_x == max(gm_response_no_col.sa_x)) = 1; % Flag just before collapse point
         jbc = gm_response_no_col;
 
         % Just Before Collapse
@@ -109,7 +109,7 @@ for gm = 1:height(gm_table)
     gm_table.sa_collapse_drift(gm) = max([min(gm_response.sa_x(gm_response.collapse == 1)),NaN]);
     gm_table.sa_collapse_drift_6(gm) = max([min(gm_response.sa_x(gm_response.max_drift >= 0.06)),NaN]);
     gm_table.sa_collapse_grav(gm) = max([min(gm_response.sa_x(gm_response.gravity_dcr >= 1)),NaN]);
-    gm_table.sa_collapse_2(gm) = max([min(gm_response.sa_x(gm_response.collapse > 0 | gm_response.max_drift >= 0.06 | gm_response.gravity_dcr > 0.4)),NaN]);
+    gm_table.sa_collapse_2(gm) = max([min(gm_response.sa_x(gm_response.collapse > 0 | gm_response.max_drift >= 0.06 | gm_response.gravity_dcr > 1)),NaN]);
     gm_table.sa_collapse_convergence(gm) = max([min(gm_response.sa_x(gm_response.collapse == 3)),NaN]);
     gm_table.sa_UR_accept_15(gm) = max([min(gm_response.sa_x(gm_response.num_b_15 > 0)),NaN]);
     gm_table.sa_UR(gm) = max([min(gm_response.sa_x(gm_response.collapse == 1 | gm_response.collapse == 3 | gm_response.num_b_15 > 0)),NaN]);
