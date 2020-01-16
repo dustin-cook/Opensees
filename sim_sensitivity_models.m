@@ -13,10 +13,10 @@ import opensees.write_tcl.*
 rng(111389)
 
 % Define Model
-analysis.model_id = 19;
+analysis.model_id = 18;
 analysis.proceedure = 'NDP';
-analysis.id = 'baseline_fix';
-analysis.model = 'ICBS_model_5ew_col_base_no_mods';
+analysis.id = 'baseline';
+analysis.model = 'ICBS_model_5ew_col_base';
 
 % Secondary options
 analysis.type = 1;

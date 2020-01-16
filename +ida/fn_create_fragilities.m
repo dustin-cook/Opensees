@@ -41,7 +41,7 @@ for gm = 1:height(gm_table)
         % Post Process Collapse
         pp_collapse = jbc;
         pp_collapse.collapse(pp_collapse.max_drift >= 0.06) = 1;
-        pp_collapse.collapse(pp_collapse.gravity_dcr > 0.4) = 1;
+        pp_collapse.collapse(pp_collapse.gravity_dcr >= 1) = 1;
         gm_data.collapse_2.eq_name{gm} = gm_table.eq_name{gm};
         for a = 1:length(attrs)
             gm_data.collapse_2.(attrs{a})(gm) = min(pp_collapse.(attrs{a})(pp_collapse.collapse == 1));
@@ -108,7 +108,7 @@ for gm = 1:height(gm_table)
     gm_table.sa_collapse(gm) = max([min(gm_response.sa_x(gm_response.collapse > 0)),NaN]);
     gm_table.sa_collapse_drift(gm) = max([min(gm_response.sa_x(gm_response.collapse == 1)),NaN]);
     gm_table.sa_collapse_drift_6(gm) = max([min(gm_response.sa_x(gm_response.max_drift >= 0.06)),NaN]);
-    gm_table.sa_collapse_grav(gm) = max([min(gm_response.sa_x(gm_response.gravity_dcr > 0.4)),NaN]);
+    gm_table.sa_collapse_grav(gm) = max([min(gm_response.sa_x(gm_response.gravity_dcr >= 1)),NaN]);
     gm_table.sa_collapse_2(gm) = max([min(gm_response.sa_x(gm_response.collapse > 0 | gm_response.max_drift >= 0.06 | gm_response.gravity_dcr > 0.4)),NaN]);
     gm_table.sa_collapse_convergence(gm) = max([min(gm_response.sa_x(gm_response.collapse == 3)),NaN]);
     gm_table.sa_UR_accept_15(gm) = max([min(gm_response.sa_x(gm_response.num_b_15 > 0)),NaN]);
