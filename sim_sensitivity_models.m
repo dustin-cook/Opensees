@@ -187,13 +187,17 @@ for m = 1:length(model_name)
         mkdir(model_dir)
         for p = 1:length(params{m})
             for s = 1:2
-                % Write new a and b values to element table
+                % Write new parameter values to element table
                 element.([params{m}{p} '_' num2str(s)])(ismember(element.id,first_story_columns.id)) = model_param_vals{m}{models2use.id(mod)}.([params{m}{p} '_' num2str(s)]);
 
                 % Make Plots
                 fn_plot_plan_scatter( node_2_use, model_param_vals{m}{models2use.id(mod)}.([params{m}{p} '_' num2str(s)]), model_dir, [params{m}{p} ' value side ' num2str(s)], 0, ['Beta = ' num2str(models2use.([params{m}{p} '_' num2str(s) '_beta'])(mod))], [params{m}{p} ' value'], [], max_val(m));
             end
         end
+        
+        % Write CP values based on 0.7 b from table 10-9
+        element.cp_1(ismember(element.id,first_story_columns.id)) = 0.7*element.b_hinge_1(ismember(element.id,first_story_columns.id));
+        element.cp_2(ismember(element.id,first_story_columns.id)) = 0.7*element.b_hinge_2(ismember(element.id,first_story_columns.id));
 
         % Copy Model Files
         mkdir([model_dir filesep 'asce_41_data']);
