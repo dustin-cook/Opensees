@@ -8,7 +8,7 @@ clc
 
 %% User Inputs
 % Define Model
-analysis.model_id = 18;
+analysis.model_id = 27;
 analysis.proceedure = 'NDP';
 analysis.id = 'baseline';
 analysis.gm_set = 'FEMA_far_field';

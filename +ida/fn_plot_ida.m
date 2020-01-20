@@ -298,10 +298,11 @@ end
 
 function [ ] = fn_plot_frag_curves(x_points, frag_curves, col_frag_curve, col_no_grav, icsb_motion, plot_name, plot_dir, x_range, param_name)    
 % Import packages
-import plotting_tools.fn_format_and_save_plot
+import plotting_tools.*
 
-colormap(parula)
-cmap = parula(100);
+% colormap(parula)
+colormap(cm_plasma())
+cmap = cm_plasma(100);
 
 hold on
 cdf = logncdf(x_points,log(frag_curves.theta(1)),frag_curves.beta(1));

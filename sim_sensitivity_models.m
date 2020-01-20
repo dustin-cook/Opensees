@@ -38,13 +38,15 @@ os_dir = ['outputs' filesep analysis.model filesep analysis_name filesep 'opense
 os_model_csv_dir = ['outputs' filesep analysis.model filesep analysis_name filesep 'model_data'];
     
 %% Define sensitivity study parameters
-model_name = {'ductility', 'strength'};
+model_name = {'ductility', 'strength', 'both'};
 params{1} = {'a_hinge', 'b_hinge'};
 params{2} = {'Mn_pos', 'Mn_neg', 'Mp_pos', 'Mp_neg'};
+params{3} = {'a_hinge', 'b_hinge', 'Mn_pos', 'Mn_neg', 'Mp_pos', 'Mp_neg'};
 dev_params{1} = [0.5264, 0.5920];
 dev_params{2} = [0.75, 0.75, 0.75, 0.75];
-prime_param = {'b_hinge_1', 'Mn_pos_1'};
-max_val = [0.1, 2e7];
+dev_params{3} = [0.5264, 0.5920, 0.75, 0.75, 0.75, 0.75];
+prime_param = {'b_hinge_1', 'Mn_pos_1', 'b_hinge_1'};
+max_val = [0.1, 2e7, 0.1];
 
 %% Create Models for each sensitivity study
 for m = 1:length(model_name)
