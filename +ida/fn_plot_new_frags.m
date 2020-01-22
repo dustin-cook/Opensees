@@ -335,18 +335,18 @@ fn_format_and_save_plot( plot_dir, plot_name, 4 )
 % legend('location','southeast')
 % fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
-%% Plot 13 - Collapse v gravity
-max_val = 1;
-hold on
-rank_val = sort(gm_data.collapse_2.gravity_load_lost_ratio(~isnan(gm_data.collapse_2.gravity_load_lost_ratio)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'k','filled','HandleVisibility','off');
-plot(rank_val,rank,'k','lineWidth',1)
-xlabel('Percent of Gravity Load Support Failure')
-ylabel('P[Collapse]')
-xlim([0,max_val])
-plot_name = 'Collapse v Gravity';
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
+% %% Plot 13 - Collapse v gravity
+% max_val = 1;
+% hold on
+% rank_val = sort(gm_data.collapse_2.gravity_load_lost_ratio(~isnan(gm_data.collapse_2.gravity_load_lost_ratio)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+% plot(rank_val,rank,'k','lineWidth',1)
+% xlabel('Percent of Gravity Load Support Failure')
+% ylabel('P[Collapse]')
+% xlim([0,max_val])
+% plot_name = 'Collapse v Gravity';
+% fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 %% Plot 14 - Collapse v gravity direction breakdown
 % max_val = 1;

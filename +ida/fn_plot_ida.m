@@ -43,6 +43,28 @@ for d = 1:length(drs)
     fn_format_and_save_plot( plot_dir, ['IDA Plot ' drs{d} ' Frame Direction'], 3 )
 end
 
+%% Component IDA Curves (only for x dir)
+vals2plot = {'gravity_dcr', 'mean_b', 'max_b', 'max_cp', 'lat_cap_ratio_both'};
+for v = 1:length(vals2plot)
+    % replace drift
+    hold on
+    for gms = 1:height(gm_set_table)
+        ida_plt = plot(ida_table.(vals2plot{v})(strcmp(ida_table.eq_name,gm_set_table.eq_name{gms})),ida_table.('sa_x')(strcmp(ida_table.eq_name,gm_set_table.eq_name{gms})),'-o','color',[0.75 0.75 0.75],'HandleVisibility','off');
+    end
+    xlabel(vals2plot{v})
+    ylabel(['Sa(T_1=' num2str(ida_results.period(d)) 's) (g)'])
+    fn_format_and_save_plot( plot_dir, ['IDA Plot - ' vals2plot{v} ' - 1'], 3 )
+    
+%     % replace sa
+%     hold on
+%     for gms = 1:height(gm_set_table)
+%         ida_plt = plot(ida_table.('drift_x')(strcmp(ida_table.eq_name,gm_set_table.eq_name{gms})),ida_table.(vals2plot{v})(strcmp(ida_table.eq_name,gm_set_table.eq_name{gms})),'-o','color',[0.75 0.75 0.75],'HandleVisibility','off');
+%     end
+%     xlabel('Max Drift')
+%     ylabel(vals2plot{v})
+%     fn_format_and_save_plot( plot_dir, ['IDA Plot - ' vals2plot{v} ' - 2'], 3 )
+end
+
 %% Calculate Post Fragulity Curve P695 factors
 if analysis.run_z_motion
     factor_3D = 1.11;
@@ -238,11 +260,38 @@ for d = 1:10
 end
 cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
 plot(x_points,cdf,'-k','lineWidth',2,'DisplayName','Collapse Fragility')
-plot([ida_results.spectra(1) ida_results.spectra(1)],[0 1],'--k','lineWidth',1.5,'DisplayName','ICSB Motion')
 xlabel('Sa(T_{1-EW}) (g)')
 ylabel('P[Exceedance]')
 xlim([0,2])
 fn_format_and_save_plot( plot_dir, 'Max Drift Fragilities', 6 )
+
+% Plot For grav dcr
+figure
+hold on
+for d = 1:10
+    cdf = logncdf(x_points,log(frag_curves.gravity.(['dcr_' num2str(d*10)]).theta),frag_curves.gravity.(['dcr_' num2str(d*10)]).beta);
+    plot(x_points,cdf,'color',matlab_colors(d,:),'lineWidth',1.5,'DisplayName',['Grav DCR > ' num2str(d)/10])
+end
+cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
+plot(x_points,cdf,'-k','lineWidth',2,'DisplayName','Collapse Fragility')
+xlabel('Sa(T_{1-EW}) (g)')
+ylabel('P[Exceedance]')
+xlim([0,2])
+fn_format_and_save_plot( plot_dir, 'Grav DCR Fragilities', 6 )
+
+% Plot For lateral cap
+figure
+hold on
+for d = 1:9
+    cdf = logncdf(x_points,log(frag_curves.lateral.(['cap_both_' num2str(d*10)]).theta),frag_curves.lateral.(['cap_both_' num2str(d*10)]).beta);
+    plot(x_points,cdf,'color',matlab_colors(d,:),'lineWidth',1.5,'DisplayName',[num2str(d)/10 '% Lat Capacity Remains'])
+end
+cdf = logncdf(x_points,log(frag_curves.collapse.theta),frag_curves.collapse.beta);
+plot(x_points,cdf,'-k','lineWidth',2,'DisplayName','Collapse Fragility')
+xlabel('Sa(T_{1-EW}) (g)')
+ylabel('P[Exceedance]')
+xlim([0,2])
+fn_format_and_save_plot( plot_dir, 'Lateral Capacity Fragilities', 6 )
 % 
 % 
 % % Plot For Adjacent Components

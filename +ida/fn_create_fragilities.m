@@ -9,9 +9,9 @@ import plotting_tools.*
 % Defined fixed parames
 % params = {'b','e','b_e','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
 % mechs = { 'cols_1', 'walls_1', 'cols_walls_1'};
-attrs = {'sa_x', 'max_drift', 'drift_x', 'gravity_load_lost_ratio',...
+attrs = {'sa_x', 'max_drift', 'drift_x', 'gravity_dcr', 'lat_cap_ratio_any', 'lat_cap_ratio_both', 'lat_cap_ratio_max', ...
         'num_cp', 'percent_cp','max_cp','min_cp','mean_cp','range_cp','std_cp','cov_cp',... 
-        'num_b','percent_b','min_b','max_b','mean_b'};
+        'num_b','percent_b','min_b','max_b','mean_b', 'num_full_col_fails'};
 % params = {'b','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
 params = {'b','io','ls','cp'};
 frag_probs = [10 25 50 75 100];
@@ -120,9 +120,16 @@ for gm = 1:height(gm_table)
         gm_table.(['sa_drift_' num2str(d)])(gm) = max([min(gm_response.sa_x(gm_response.drift_x >= d/100)),NaN]);
     end
     
-    % grav load lost fragilities
-    for f = 1:length(frag_probs)
-        gm_table.(['sa_gravity_percent_lost_' num2str(frag_probs(f))])(gm) = max([min(gm_response.sa_x(gm_response.gravity_load_lost_ratio >= frag_probs(f)/100)),NaN]);
+    % grav load dcr
+    for f = 1:10
+        gm_table.(['sa_gravity_dcr_' num2str(f*10)])(gm) = max([min(gm_response.sa_x(gm_response.gravity_dcr >= f/10)),NaN]);
+    end
+    
+    % lateral cap remaining
+    for f = 1:9
+        gm_table.(['sa_lat_cap_any_' num2str(f*10)])(gm) = max([min(gm_response.sa_x(gm_response.lat_cap_ratio_any < f/10)),NaN]);
+        gm_table.(['sa_lat_cap_both_' num2str(f*10)])(gm) = max([min(gm_response.sa_x(gm_response.lat_cap_ratio_both < f/10)),NaN]);
+        gm_table.(['sa_lat_cap_max_' num2str(f*10)])(gm) = max([min(gm_response.sa_x(gm_response.lat_cap_ratio_max < f/10)),NaN]);
     end
     
 %     % adjacent components
@@ -198,9 +205,16 @@ for d = 1:10
     [frag_curves.drift.(['idr_' num2str(d)])] = fn_fit_fragility_MOM(gm_table.(['sa_drift_' num2str(d)]));
 end
 
-% grav load lost fragilities
-for f = 1:length(frag_probs) 
-    [frag_curves.gravity.(['percent_lost_' num2str(frag_probs(f))])] = fn_fit_fragility_MOM(gm_table.(['sa_gravity_percent_lost_' num2str(frag_probs(f))]));
+% grav dcr
+for f = 1:10
+    [frag_curves.gravity.(['dcr_' num2str(f*10)])] = fn_fit_fragility_MOM(gm_table.(['sa_gravity_dcr_' num2str(f*10)]));
+end
+
+% lat cap
+for f = 1:9
+    [frag_curves.lateral.(['cap_any_' num2str(f*10)])] = fn_fit_fragility_MOM(gm_table.(['sa_lat_cap_any_' num2str(f*10)]));
+    [frag_curves.lateral.(['cap_both_' num2str(f*10)])] = fn_fit_fragility_MOM(gm_table.(['sa_lat_cap_both_' num2str(f*10)]));
+    [frag_curves.lateral.(['cap_max_' num2str(f*10)])] = fn_fit_fragility_MOM(gm_table.(['sa_lat_cap_max_' num2str(f*10)]));
 end
 
 % % adjacent components
@@ -238,12 +252,14 @@ outputs.med_sa_b = frag_curves.b.theta(1);
 outputs.collapse_margin = outputs.med_sa_collapse/outputs.med_sa_cp;
 outputs.collapse_margin_grav = outputs.med_sa_collapse_grav/outputs.med_sa_cp;
 outputs.collapse_margin_grav_b = outputs.med_sa_collapse_grav/outputs.med_sa_b;
-outputs.num_comps = median(gm_data.collapse.num_cp);
-outputs.num_comps_grav = median(gm_data.collapse_2.num_cp);
-outputs.percent_comps = median(gm_data.collapse.percent_cp);
-outputs.percent_comps_grav = median(gm_data.collapse_2.percent_cp);
-outputs.drift = new_frag_curves.collapse.drift_x.theta;
-outputs.drift_grav = new_frag_curves.collapse_2.drift_x.theta;
+outputs.num_comps = median(gm_data.collapse_2.num_cp);
+outputs.percent_comps = median(gm_data.collapse_2.percent_cp);
+outputs.num_full_col_fails = median(gm_data.collapse_2.num_full_col_fails);
+outputs.drift = new_frag_curves.collapse_2.drift_x.theta;
+outputs.gravity_dcr = median(gm_data.collapse_2.gravity_dcr);
+outputs.lat_cap_any = median(gm_data.collapse_2.lat_cap_ratio_any);
+outputs.lat_cap_both = median(gm_data.collapse_2.lat_cap_ratio_both);
+outputs.lat_cap_max = median(gm_data.collapse_2.lat_cap_ratio_max);
 writetable(struct2table(outputs),[write_dir filesep 'summary_outputs.csv'])
 end
 

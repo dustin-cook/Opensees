@@ -97,7 +97,7 @@ for gm = 1:height(gm_set_table)
 % %            ida.norm_energy_max(id,1) = max([ida.norm_energy_ew(id,1),ida.norm_energy_ns(id,1)]);
 %            ida.norm_energy_max(id,1) = ida.norm_energy_ew(id,1);
            
-            % Gravity Capacity Remaining
+            % Gravity and Lateral Capacity Remaining
             for i = 1:height(story)
                 gravity_load(i) = sum(story.story_dead_load(i:end)) + sum(story.story_live_load(i:end));
                 col_hinges_1 = hinge(hinge.story == i & strcmp(hinge.ele_type,'column') & hinge.ele_side == 1,:);
@@ -105,7 +105,6 @@ for gm = 1:height(gm_set_table)
                 if ~isempty(col_hinges_1)
                     grav_cap_1 = sum(col_hinges_1.P_capacity);
                     grav_cap_2 = sum(col_hinges_2.P_capacity);
-    %                 remianing_col_eles = element(element.story == i & strcmp(element.type,'column') & ~ismember(element.id,unique(failed_col_hinges.element_id)),:);
                     gravity_capacity(i) = min([grav_cap_1,grav_cap_2]);
                 else
                     gravity_capacity(i) = inf;
@@ -113,7 +112,35 @@ for gm = 1:height(gm_set_table)
             end
             axial_dcr = gravity_load ./ gravity_capacity;
             ida.gravity_dcr(id,1) = max(axial_dcr);
-                 
+            
+            % Lateral Capacity Remaining (first story)
+            % full strength
+            all_cols = element(element.story == 1 & strcmp(element.type,'column'),:);
+            lat_cap_tot = sum(all_cols.Mn_pos_1) + sum(all_cols.Mn_pos_2);
+            
+            % remaining hinges and columns
+            failed_col_any = hinge.element_id(hinge.story == 1 & strcmp(hinge.ele_type,'column') & hinge.a_ratio > 1);
+            failed_col_1 = hinge.element_id(hinge.story == 1 & strcmp(hinge.ele_type,'column') & hinge.ele_side == 1 & hinge.a_ratio > 1);
+            failed_col_2 = hinge.element_id(hinge.story == 1 & strcmp(hinge.ele_type,'column') & hinge.ele_side == 2 & hinge.a_ratio > 1);
+            remianing_cols = element(element.story == 1 & strcmp(element.type,'column') & ~ismember(element.id,unique(failed_col_any)),:);
+            remianing_cols_1 = element(element.story == 1 & strcmp(element.type,'column') & ~ismember(element.id,failed_col_1),:);
+            remianing_cols_2 = element(element.story == 1 & strcmp(element.type,'column') & ~ismember(element.id,failed_col_2),:);
+            
+            % remaining columns with no damage
+            lat_cap_remain = sum(remianing_cols.Mn_pos_1) + sum(remianing_cols.Mn_pos_2);
+            ida.lat_cap_ratio_any(id,1) = lat_cap_remain / lat_cap_tot;
+            
+            % remaining columns with only 1 side damaged
+            lat_cap_remain = sum(remianing_cols_1.Mn_pos_1) + sum(remianing_cols_2.Mn_pos_2);
+            ida.lat_cap_ratio_both(id,1) = lat_cap_remain / lat_cap_tot;
+            
+            % max side of columns remaining
+            lat_cap_remain = max([sum(remianing_cols_1.Mn_pos_1),sum(remianing_cols_2.Mn_pos_2)]);
+            ida.lat_cap_ratio_max(id,1) = lat_cap_remain / (lat_cap_tot/2); % only works when columns are symmetric  
+            
+            % how many full column failures are there
+            ida.num_full_col_fails(id,1) = sum(~ismember(all_cols.id,remianing_cols_1.id) & ~ismember(all_cols.id,remianing_cols_2.id));
+            
             else
                 id_missing = id_missing + 1;
                 missing_ida.eq_name{id_missing,1} = gm_set_table.eq_name{gm};
@@ -191,20 +218,20 @@ for i = 1:height(ida_table)
         ida_table.(['cov_' params{p}])(i) = cov_ele;
     end
 
-    % Unacceptable Response
-    if ida_table.collapse(i) == 1 || ida_table.collapse(i) == 3 || ida_table.num_b_15(i) > 0
-        ida_table.UR(i) = 1;
-    else
-        ida_table.UR(i) = 0;
-    end
-
-    % Gravity Load Lost
-    first_story_elements = element(ismember(element.id, mech_hinges.element_id),:);
-    hinges_lost_grav = mech_hinges(mech_hinges.b_ratio > 1,:);
-    elements_lost_grav = element(ismember(element.id, hinges_lost_grav.element_id),:);
-    grav_load_lost = sum(elements_lost_grav.P_grav);
-    total_grav_load = sum(first_story_elements.P_grav);
-    ida_table.gravity_load_lost_ratio(i) = grav_load_lost / total_grav_load;
+%     % Unacceptable Response
+%     if ida_table.collapse(i) == 1 || ida_table.collapse(i) == 3 || ida_table.num_b_15(i) > 0
+%         ida_table.UR(i) = 1;
+%     else
+%         ida_table.UR(i) = 0;
+%     end
+% 
+%     % Gravity Load Lost
+%     first_story_elements = element(ismember(element.id, mech_hinges.element_id),:);
+%     hinges_lost_grav = mech_hinges(mech_hinges.b_ratio > 1,:);
+%     elements_lost_grav = element(ismember(element.id, hinges_lost_grav.element_id),:);
+%     grav_load_lost = sum(elements_lost_grav.P_grav);
+%     total_grav_load = sum(first_story_elements.P_grav);
+%     ida_table.gravity_load_lost_ratio(i) = grav_load_lost / total_grav_load;
 end
 
 % Save Tabular Results as CSVs

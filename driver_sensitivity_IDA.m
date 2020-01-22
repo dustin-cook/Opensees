@@ -8,13 +8,13 @@ clc
 
 %% User Inputs
 % Define Model
-analysis.model_id = 19;
+analysis.model_id = 18;
 analysis.proceedure = 'NDP';
-analysis.id = 'baseline_fix';
+analysis.id = 'baseline';
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 0;
 analysis.study_name = 'strength';
-analysis.num_models = 5;
+analysis.num_models = 7;
 
 % Analysis options
 analysis.summit = 0;
@@ -46,7 +46,7 @@ analysis.movie_scale = 0;
 analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 analysis.joint_explicit = 0;
-analysis.stories_nonlinear = 6;
+analysis.stories_nonlinear = 1;
 analysis.elastic_beams = 1;
 analysis.simple_recorders = 1;
 
