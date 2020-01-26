@@ -10,10 +10,10 @@ clc
 % Define Model
 analysis.model_id = 18;
 analysis.proceedure = 'NDP';
-analysis.id = 'baseline';
+analysis.id = 'baseline_beams';
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 0;
-analysis.study_name = 'strength';
+analysis.study_name = 'ductility';
 analysis.num_models = 7;
 
 % Analysis options
@@ -47,7 +47,7 @@ analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 analysis.joint_explicit = 0;
 analysis.stories_nonlinear = 1;
-analysis.elastic_beams = 1;
+analysis.elastic_beams = 0;
 analysis.simple_recorders = 1;
 
 %% Import Packages

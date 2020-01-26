@@ -7,7 +7,7 @@ clc
 % Define Model
 analysis.model_id = 18;
 analysis.proceedure = 'NDP';
-analysis.id = 'baseline';
+analysis.id = 'baseline_beams';
 analysis.model = 'ICBS_model_5ew_col_base';
 
 %% Define outputs directories
@@ -15,7 +15,8 @@ analysis_name = [analysis.proceedure '_' analysis.id];
 outputs_dir = ['outputs' filesep analysis.model filesep analysis_name filesep 'sensitivity_study' ];
  
 %% Define sensitivity study parameters
-model_name = {'ductility', 'ductility_no_var', 'strength', 'both', 'both_more'};
+% model_name = {'ductility', 'ductility_no_var', 'strength', 'both', 'both_more'};
+model_name = {'ductility', 'strength', 'both'};
 num_bays = 5; % just hardcoded for now
 
 %% Collect baseline data

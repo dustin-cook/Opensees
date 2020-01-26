@@ -15,14 +15,14 @@ rng(111389)
 % Define Model
 analysis.model_id = 18;
 analysis.proceedure = 'NDP';
-analysis.id = 'baseline';
+analysis.id = 'baseline_beams';
 analysis.model = 'ICBS_model_5ew_col_base';
 
 % Secondary options
 analysis.type = 1;
 analysis.nonlinear = 1;
 analysis.stories_nonlinear = 1; % Default to all modeling all stories as nonlinear when doing NDP
-analysis.elastic_beams = 1;
+analysis.elastic_beams = 0;
 analysis.model_type = 2; % 1 = SDOF, 2 = MDOF (default)
 analysis.rigid_diaphram = 1; % Default the model to assume rigid diaphrams (0 = non-rigid assuption)
 analysis.fiber_walls = 0;

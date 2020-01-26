@@ -36,6 +36,8 @@ elseif  plot_ops == 6
     legend('Location','southeast')
     box on
     set(gca,'FontSize',14)
+elseif  plot_ops == 7
+    set(gca,'FontSize',14)
 end
 
 hold off
