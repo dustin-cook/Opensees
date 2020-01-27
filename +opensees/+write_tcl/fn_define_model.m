@@ -193,7 +193,7 @@ if height(joint) > 0
     % GO through each joint
     for i = 1:height(joint)
         % Define joint material
-        if analysis.nonlinear ~= 0 && analysis.joint_explicit == 1 && joint.story(i) <= analysis.stories_nonlinear % Nonlinear Joints
+        if analysis.nonlinear ~= 0 && analysis.joint_explicit == 1 && joint.story(i) <= analysis.stories_nonlinear && joint.story(i) > analysis.stories_nonlinear_low % Nonlinear Joints
             [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'hinge', joint_analysis.Mn(i), joint_analysis.Mn(i), joint_analysis.Mn(i), joint_analysis.Mn(i), joint_analysis.h(i), joint_analysis.e(i), joint_analysis.iz(i), joint_analysis.a_hinge(i), joint_analysis.b_hinge(i), joint_analysis.c_hinge(i), 100, 0, 'shear' );
             K0 = moment_vec_pos(1)/rot_vec_pos(1);
             theta_p_pos = rot_vec_pos(2)-rot_vec_pos(1);
@@ -213,7 +213,7 @@ if height(joint) > 0
             joint_center.x = node.x(node.id == joint.y_pos(i),:);
             joint_center.y = node.y(node.id == joint.x_pos(i),:);
             joint_center.z = node.z(node.id == joint.x_pos(i),:);
-            if analysis.nonlinear ~= 0 && analysis.joint_explicit == 1  && joint.story(i) <= analysis.stories_nonlinear %  Explicit Joint Model
+            if analysis.nonlinear ~= 0 && analysis.joint_explicit == 1  && joint.story(i) <= analysis.stories_nonlinear && joint.story(i) > analysis.stories_nonlinear_low %  Explicit Joint Model
                 joint_center_node_beams = 40000+i;
                 joint_center_node_columns = 50000+i;
                 if strcmp(dimension,'2D')
@@ -402,7 +402,7 @@ if height(joint) > 0
             end
             % Scissor Hinge
             %element zeroLength $eleTag $iNode $jNode -mat $matTag1 $matTag2 ... -dir $dir1 $dir2
-            if analysis.nonlinear ~= 0 && analysis.joint_explicit == 1 && joint.story(i) <= analysis.stories_nonlinear
+            if analysis.nonlinear ~= 0 && analysis.joint_explicit == 1 && joint.story(i) <= analysis.stories_nonlinear && joint.story(i) > analysis.stories_nonlinear_low
                 if strcmp(dimension,'2D')
                     fprintf(fileID,'element zeroLength %i %i %i -mat 1 1 %i -dir 1 2 3 \n', joint.id(i)+10000, joint_center_node_beams, joint_center_node_columns, joint.id(i)+10000); % Currently assumes x direction joint
                 else

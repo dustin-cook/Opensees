@@ -164,7 +164,7 @@ end
 %% Joints
 if analysis.nonlinear ~= 0 && analysis.joint_explicit == 1 && ~analysis.simple_recorders % Nonlinear Joints
     % Rotational Hinges x direction - primary
-    nonlin_joints = joint.id(joint.story <= analysis.stories_nonlinear) + 10000;
+    nonlin_joints = joint.id(joint.story <= analysis.stories_nonlinear & joint.story > analysis.stories_nonlinear_low) + 10000;
     if ~isempty(nonlin_joints)
         fprintf(fileID,'recorder Element %s %s/joint_moment.%s -time -ele %s localForce \n', file_type, write_dir, file_ext, num2str(nonlin_joints'));
         fprintf(fileID,'recorder Element %s %s/joint_rotation.%s -time -ele %s deformation \n', file_type, write_dir, file_ext, num2str(nonlin_joints'));

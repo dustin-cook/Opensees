@@ -10,10 +10,10 @@ clc
 % Define Model
 analysis.model_id = 18;
 analysis.proceedure = 'NDP';
-analysis.id = 'baseline_beams';
+analysis.id = 'baseline_beams_include';
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 0;
-analysis.study_name = 'ductility';
+analysis.study_name = 'both';
 analysis.num_models = 7;
 
 % Analysis options

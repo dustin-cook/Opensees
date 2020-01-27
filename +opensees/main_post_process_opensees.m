@@ -168,7 +168,7 @@ if analysis.nonlinear ~= 0 && analysis.joint_explicit == 1 && ~analysis.simple_r
     if exist([opensees_dir filesep 'joint_rotation' '.xml'],'file')
         [ joint_deformation ] = fn_xml_read([opensees_dir filesep 'joint_rotation' '.xml']);
         [ joint_force ] = fn_xml_read([opensees_dir filesep 'joint_moment' '.xml']);
-        nonlin_joints = joint(joint.story <= analysis.stories_nonlinear,:);
+        nonlin_joints = joint(joint.story <= analysis.stories_nonlinear & joint.story > analysis.stories_nonlinear_low,:);
         for j = 1:height(nonlin_joints)
             joint_TH.(['joint_' num2str(nonlin_joints.id(j))]).deformation_TH = joint_deformation(1:(end-clip),1+j);
             joint_TH.(['joint_' num2str(nonlin_joints.id(j))]).force_TH = joint_force(1:(end-clip),1+j);

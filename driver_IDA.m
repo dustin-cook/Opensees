@@ -10,15 +10,15 @@ clc
 % Define Model
 analysis.model_id = 18;
 analysis.proceedure = 'NDP';
-analysis.id = 'baseline_beams';
+analysis.id = 'baseline_beams_include';
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 0;
 
 % Analysis options
 analysis.summit = 0;
-analysis.run_parallel = 1;
-analysis.run_ida = 1;
-analysis.post_process_ida = 1;
+analysis.run_parallel = 0;
+analysis.run_ida = 0;
+analysis.post_process_ida = 0;
 analysis.create_fragilities = 1;
 analysis.plot_ida = 1;
 analysis.detialed_post_process = 0;
@@ -44,7 +44,8 @@ analysis.movie_scale = 0;
 analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 analysis.joint_explicit = 0;
-analysis.stories_nonlinear = 1;
+analysis.stories_nonlinear = 3;
+analysis.stories_nonlinear_low = 1;
 analysis.elastic_beams = 0;
 analysis.simple_recorders = 1;
 
