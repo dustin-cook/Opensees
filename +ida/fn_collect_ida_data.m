@@ -9,7 +9,11 @@ import plotting_tools.*
 % Defined fixed parames
 % params = {'b','e','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
 % params = {'b','io','ls','cp','euro_th_NC','euro_th_SD','euro_th_DL'};
-params = {'b','io','ls','cp'};
+if analysis.run_z_motion 
+    params = {'b','e','io','ls','cp'};
+else
+    params = {'b','io','ls','cp'};
+end
 
 % Load model data
 model_dir = [main_dir '/' 'opensees_data'];
@@ -61,15 +65,25 @@ for gm = 1:height(gm_set_table)
             if summary.collapse > 0
                 ida.collapse_direction{id,1} = summary.collapse_direction;
                 ida.collapse_mech{id,1} = summary.collaspe_mech;
-                load(hinge_file)
+                if strcmp(summary.collapse_direction,'x')
+                    ida.collapse_x(id,1) = summary.collapse;
+                    ida.collapse_z(id,1) = NaN;
+                elseif strcmp(summary.collapse_direction,'z')
+                    ida.collapse_x(id,1) = NaN;
+                    ida.collapse_z(id,1) = summary.collapse;
+                end
                 if contains(summary.collaspe_mech,'column')
                     ida.collapse_comps(id,1) = sum(hinge.b_ratio(strcmp(hinge.ele_type,'column')) >= 1);
+                elseif contains(summary.collaspe_mech,'wall')
+                    ida.collapse_comps(id,1) = sum(hinge.e_ratio(strcmp(hinge.ele_type,'wall')) >= 1);
                 else
                     ida.collapse_comps(id,1) = sum(hinge.b_ratio >= 1);
                 end
             else
                 ida.collapse_direction{id,1} = 'NA';
                 ida.collapse_mech{id,1} = 'NA';
+                ida.collapse_x(id,1) = NaN;
+                ida.collapse_z(id,1) = NaN;
                 ida.collapse_comps(id,1) = NaN;
             end
             
@@ -97,7 +111,9 @@ for gm = 1:height(gm_set_table)
 % %            ida.norm_energy_max(id,1) = max([ida.norm_energy_ew(id,1),ida.norm_energy_ns(id,1)]);
 %            ida.norm_energy_max(id,1) = ida.norm_energy_ew(id,1);
            
-            % Gravity and Lateral Capacity Remaining
+            % Gravity and Lateral Capacity Remaining (currently only works
+            % for EW frame direction, need to record column response OOP to
+            % fix)
             for i = 1:height(story)
                 gravity_load(i) = sum(story.story_dead_load(i:end)) + sum(story.story_live_load(i:end));
                 col_hinges_1 = hinge(hinge.story == i & strcmp(hinge.ele_type,'column') & hinge.ele_side == 1,:);
@@ -191,15 +207,18 @@ for i = 1:height(ida_table)
     collapse_hinge = load(collapse_hinge_file);
     
     % Get element group filters from collapse case
-%     if contains(gm_stripes.collapse_mech{collapse_idx},'column')
-%         % collapse mechanism is all column hinges that have failed in the first stripe that collapse
-%         mech_filter = strcmp(collapse_hinge.hinge.direction,'primary') & collapse_hinge.hinge.b_ratio >= 1 & strcmp(collapse_hinge.hinge.ele_type,'column'); 
-%     else
-%         % collapse mechanism is all hinges that have failed in the first stripe that collapse
-%         mech_filter = strcmp(collapse_hinge.hinge.direction,'primary') & collapse_hinge.hinge.b_ratio >= 1; 
-%     end
+    if contains(gm_stripes.collapse_mech{collapse_idx},'column')
+        % collapse mechanism is all column hinges that have failed in the first stripe that collapse
+        mech_filter = strcmp(collapse_hinge.hinge.direction,'primary') & collapse_hinge.hinge.b_ratio >= 1 & strcmp(collapse_hinge.hinge.ele_type,'column'); 
+    elseif contains(gm_stripes.collapse_mech{collapse_idx},'wall')
+        % collapse mechanism is all wall hinges that have failed in the first stripe that collapse
+        mech_filter = strcmp(collapse_hinge.hinge.direction,'primary') & collapse_hinge.hinge.e_ratio >= 1 & strcmp(collapse_hinge.hinge.ele_type,'wall'); 
+    else
+        % collapse mechanism is all hinges that have failed in the first stripe that collapse
+        mech_filter = strcmp(collapse_hinge.hinge.direction,'primary') & (collapse_hinge.hinge.b_ratio >= 1 | collapse_hinge.hinge.e_ratio >= 1); 
+    end
     
-    mech_filter = strcmp(collapse_hinge.hinge.direction,'primary') & collapse_hinge.hinge.b_ratio >= 1;
+%     mech_filter = strcmp(collapse_hinge.hinge.direction,'primary') & collapse_hinge.hinge.b_ratio >= 1;
     
     ida_table.num_comps(i) = sum(mech_filter);
     mech_hinges = hinge(mech_filter,:);

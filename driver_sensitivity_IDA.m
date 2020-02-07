@@ -8,9 +8,9 @@ clc
 
 %% User Inputs
 % Define Model
-analysis.model_id = 18;
+analysis.model_id = 24;
 analysis.proceedure = 'NDP';
-analysis.id = 'baseline_beams_include';
+analysis.id = 'baseline_beams';
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 0;
 analysis.study_name = 'both';
@@ -18,9 +18,9 @@ analysis.num_models = 7;
 
 % Analysis options
 analysis.summit = 0;
-analysis.run_parallel = 0;
-analysis.run_ida = 0;
-analysis.post_process_ida = 0;
+analysis.run_parallel = 1;
+analysis.run_ida = 1;
+analysis.post_process_ida = 1;
 analysis.create_fragilities = 1;
 analysis.plot_ida = 1;
 analysis.detialed_post_process = 0;

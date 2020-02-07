@@ -7,7 +7,7 @@ clc
 % Define Model
 analysis.model_id = 18;
 analysis.proceedure = 'NDP';
-analysis.id = 'baseline_beams_include';
+analysis.id = 'baseline_beams';
 analysis.model = 'ICBS_model_5ew_col_base';
 
 %% Define outputs directories
@@ -16,27 +16,30 @@ outputs_dir = ['outputs' filesep analysis.model filesep analysis_name filesep 's
  
 %% Define sensitivity study parameters
 % model_name = {'ductility', 'ductility_no_var', 'strength', 'both', 'both_more'};
-% model_name = {'ductility', 'strength', 'both'};
-model_name = {'both'};
+model_name = {'ductility', 'strength', 'both'};
+% model_name = {'both'};
 num_bays = 5; % just hardcoded for now
 
 %% Collect baseline data
-% Define model directories
+% Baseline for sensitivity
 baseline_dir = ['outputs' filesep analysis.model filesep analysis_name];
-baseline_input_dir = [baseline_dir filesep 'asce_41_data'];
-
-% Calculate input parameters
-load([baseline_input_dir filesep 'element_analysis.mat'])
-load([baseline_input_dir filesep 'joint_analysis.mat'])
-load([baseline_input_dir filesep 'story_analysis.mat'])
-[strength_cov, ductility_cov, scwb_ratio] = collect_model_inputs(element, story, joint);
-
-% Load sensitivity summary results
-summary_results = readtable([baseline_dir filesep 'IDA' filesep 'Fragility Data' filesep 'summary_outputs.csv']);
-
-% Create Outputs Table
 id = 1;
-[outputs_table] = create_outputs_table(id, 'baseline', 1, strength_cov, ductility_cov, scwb_ratio, num_bays, summary_results);
+[ outputs_table_base, baseline_input_dir ] = collect_baseline_data( baseline_dir, id, 'baseline', num_bays );
+
+% ICSB 2D Model
+baseline_dir = ['outputs' filesep 'ICBS_model_5ew' filesep 'NDP_baseline'];
+id = 2;
+[ outputs_table_2D, ~ ] = collect_baseline_data( baseline_dir, id, 'ICSB_2D', num_bays );
+
+% % ICSB 3D Model
+% baseline_dir = ['outputs' filesep 'ICBS_model_3D_fixed' filesep 'NDP_baseline'];
+% id = 3;
+% [ outputs_table_3D, ~ ] = collect_baseline_data( baseline_dir, id, 'ICSB_3D', num_bays );
+
+% Join tables
+% outputs_table = [outputs_table_base; outputs_table_2D; outputs_table_3D];
+outputs_table = [outputs_table_base; outputs_table_2D];
+% outputs_table = outputs_table_base;
 
 %% Collect data for each sensitivity study
 for m = 1:length(model_name)
@@ -53,14 +56,14 @@ for m = 1:length(model_name)
         load([baseline_input_dir filesep 'story_analysis.mat'])
 
         % Calculate input parameters
-        [strength_cov, ductility_cov, scwb_ratio] = collect_model_inputs(element, story, joint);
+        [strength_cov, ductility_cov, energy_cov, scwb_ratio] = collect_model_inputs(element, story, joint);
 
         % Load sensitivity summary results
         summary_results = readtable([this_model_dir filesep 'IDA' filesep 'Fragility Data' filesep 'summary_outputs.csv']);
 
         % Join tables
         id = id + 1;
-        [outputs_table_row] = create_outputs_table(id, model_name{m}, mdl, strength_cov, ductility_cov, scwb_ratio, num_bays, summary_results);
+        [outputs_table_row] = create_outputs_table(id, model_name{m}, mdl, strength_cov, ductility_cov, energy_cov, scwb_ratio, num_bays, summary_results);
         outputs_table = [outputs_table; outputs_table_row];
     end
 end
@@ -70,26 +73,44 @@ writetable(outputs_table,[outputs_dir filesep 'summary_results.csv'])
 
 
 % Functions 
-function [strength_cov, ductility_cov, scwb_ratio] = collect_model_inputs(element, story, joint)
+function [strength_cov, ductility_cov, energy_cov, scwb_ratio] = collect_model_inputs(element, story, joint)
     first_story_columns = element(element.story == 1 & strcmp(element.type,'column'),:);
     strength_cov = std(first_story_columns.Mn_pos_1)/mean(first_story_columns.Mn_pos_1);
     ductility_cov = std(first_story_columns.b_hinge_1)/mean(first_story_columns.b_hinge_1);
+    energy_cov = std(first_story_columns.b_hinge_1.*first_story_columns.Mn_pos_1)/mean(first_story_columns.b_hinge_1.*first_story_columns.Mn_pos_1);
     for s = 1:height(story)
         story.scwb(s) = mean(joint.col_bm_ratio(joint.story == s));
     end
     scwb_ratio = mean(story.scwb);
 end
 
-function [outputs_table_row] = create_outputs_table(id, group, variant, strength_cov, ductility_cov, scwb_ratio, num_bays, summary_results)
+function [outputs_table_row] = create_outputs_table(id, group, variant, strength_cov, ductility_cov, energy_cov, scwb_ratio, num_bays, summary_results)
     inputs.id = id;
     summary_results.id = id;
     inputs.group = {group};
     inputs.variant = variant;
     inputs.strength_cov = strength_cov;
     inputs.ductility_cov = ductility_cov;
+    inputs.energy_cov = energy_cov;
     inputs.scwb_ratio = scwb_ratio;
     inputs.num_bays = num_bays;
     inputs_table = struct2table(inputs);
     outputs_table_row = join(inputs_table, summary_results);
 end
 
+function [ outputs_table, baseline_input_dir ] = collect_baseline_data( baseline_dir, id, model_name, num_bays )
+    % Define model directories
+    baseline_input_dir = [baseline_dir filesep 'asce_41_data'];
+
+    % Calculate input parameters
+    load([baseline_input_dir filesep 'element_analysis.mat'])
+    load([baseline_input_dir filesep 'joint_analysis.mat'])
+    load([baseline_input_dir filesep 'story_analysis.mat'])
+    [strength_cov, ductility_cov, energy_cov, scwb_ratio] = collect_model_inputs(element, story, joint);
+
+    % Load sensitivity summary results
+    summary_results = readtable([baseline_dir filesep 'IDA' filesep 'Fragility Data' filesep 'summary_outputs.csv']);
+
+    % Create Outputs Table
+    [outputs_table] = create_outputs_table(id, model_name, 1, strength_cov, ductility_cov, energy_cov, scwb_ratio, num_bays, summary_results);
+end

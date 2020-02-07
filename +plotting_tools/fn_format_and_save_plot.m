@@ -7,40 +7,37 @@ if ~exist(plot_dir,'dir')
   mkdir(plot_dir)  
 end
 
+fnt_sz = 10;
+set(gca,'FontSize',fnt_sz)
+
 % Format plot
 if plot_ops == 1 % Default settings
     legend('Location','eastoutside')
     grid on
     grid minor
     box on
-    set(gca,'FontSize',14)
 elseif  plot_ops == 2
     grid on
     grid minor
     box on
-    set(gca,'FontSize',14)
 elseif  plot_ops == 3
     legend('Location','northeast')
     box on
-    set(gca,'FontSize',14)
 elseif  plot_ops == 4
     box on
-    set(gca,'FontSize',14)
 elseif plot_ops == 5
     legend('Location','southeast')
     grid on
     grid minor
     box on
-    set(gca,'FontSize',14)
 elseif  plot_ops == 6
     legend('Location','southeast')
-    box on
-    set(gca,'FontSize',14)
-elseif  plot_ops == 7
-    set(gca,'FontSize',14)
+    box on 
 end
 
 hold off
+
+set(gcf,'Position',[100 100 400 300])
 
 % Save and Close
 if ~exist('save_and_close','var') || save_and_close == 1

@@ -160,17 +160,17 @@ plot_dir = [main_dir '/' 'IDA' '/' 'New Fragility Plots'];
 % fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 %% Plot 3 - Collapse v Percent rotation limit
-max_val = 1;
-hold on
-rank_val = sort(gm_data.collapse_2.percent_b(~isnan(gm_data.collapse_2.percent_b)));
-rank = (1:length(rank_val))/length(rank_val);
-scatter(rank_val,rank,'k','filled','HandleVisibility','off');
-plot(rank_val,rank,'k','lineWidth',1,'DisplayName','Sidesway Collapse')
-xlabel('Percent of Mechanism Exceeding Rotation Limit')
-ylabel('P[Collapse]')
-xlim([0,max_val])
-plot_name = 'Collapse v Percent Rot Limit';
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
+% max_val = 1;
+% hold on
+% rank_val = sort(gm_data.collapse_2.percent_b(~isnan(gm_data.collapse_2.percent_b)));
+% rank = (1:length(rank_val))/length(rank_val);
+% scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+% plot(rank_val,rank,'k','lineWidth',1,'DisplayName','Sidesway Collapse')
+% xlabel('Percent of Mechanism Exceeding Rotation Limit')
+% ylabel('P[Collapse]')
+% xlim([0,max_val])
+% plot_name = 'Collapse v Percent Rot Limit';
+% fn_format_and_save_plot( plot_dir, plot_name, 4 )
 
 %% Plot 4 - Collapse v Percent CP
 max_val = 1;
@@ -178,12 +178,48 @@ hold on
 rank_val = sort(gm_data.collapse_2.percent_cp(~isnan(gm_data.collapse_2.percent_cp)));
 rank = (1:length(rank_val))/length(rank_val);
 scatter(rank_val,rank,'k','filled','HandleVisibility','off');
-plot(rank_val,rank,'k','lineWidth',1,'DisplayName','Sidesway Collapse')
-xlabel('Percent of Mechanism Exceeding CP')
+plot(rank_val,rank,'k','lineWidth',1,'DisplayName','Gravity Collapse')
+rank_val = sort(gm_data.collapse.percent_cp(~isnan(gm_data.collapse.percent_cp)));
+rank = (1:length(rank_val))/length(rank_val);
+scatter(rank_val,rank,'m','filled','HandleVisibility','off');
+plot(rank_val,rank,'m','lineWidth',1,'DisplayName','Sidesway Collapse')
+xlabel('Fraction of Components Exceeding CP')
 ylabel('P[Collapse]')
 xlim([0,max_val])
 plot_name = 'Collapse v Percent CP';
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
+fn_format_and_save_plot( plot_dir, plot_name, 6 )
+
+if analysis.run_z_motion 
+hold on
+rank_val = sort(gm_data.collapse_2_x.percent_cp(~isnan(gm_data.collapse_2_x.percent_cp)));
+rank = (1:length(rank_val))/length(rank_val);
+scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+plot(rank_val,rank,'k','lineWidth',1,'DisplayName','Gravity Collapse')
+rank_val = sort(gm_data.collapse_x.percent_cp(~isnan(gm_data.collapse_x.percent_cp)));
+rank = (1:length(rank_val))/length(rank_val);
+scatter(rank_val,rank,'m','filled','HandleVisibility','off');
+plot(rank_val,rank,'m','lineWidth',1,'DisplayName','Sidesway Collapse')
+xlabel('Fraction of Components Exceeding CP')
+ylabel('P[Collapse]')
+xlim([0,max_val])
+plot_name = 'Collapse v Percent CP x';
+fn_format_and_save_plot( plot_dir, plot_name, 6 )
+
+hold on
+rank_val = sort(gm_data.collapse_2_z.percent_cp(~isnan(gm_data.collapse_2_z.percent_cp)));
+rank = (1:length(rank_val))/length(rank_val);
+scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+plot(rank_val,rank,'k','lineWidth',1,'DisplayName','Gravity Collapse')
+rank_val = sort(gm_data.collapse_z.percent_cp(~isnan(gm_data.collapse_z.percent_cp)));
+rank = (1:length(rank_val))/length(rank_val);
+scatter(rank_val,rank,'m','filled','HandleVisibility','off');
+plot(rank_val,rank,'m','lineWidth',1,'DisplayName','Sidesway Collapse')
+xlabel('Fraction of Components Exceeding CP')
+ylabel('P[Collapse]')
+xlim([0,max_val])
+plot_name = 'Collapse v Percent CP z';
+fn_format_and_save_plot( plot_dir, plot_name, 6 )
+end
 
 %% Plot 5 - Collapse v Max Drift
 max_val = 0.1;
@@ -193,12 +229,53 @@ rank_val = sort(gm_data.collapse_2.max_drift(~isnan(gm_data.collapse_2.max_drift
 rank = (1:length(rank_val))/length(rank_val);
 scatter(rank_val,rank,'k','filled','HandleVisibility','off');
 cdf = logncdf(x_points,log(new_frag_curves.collapse_2.max_drift.theta),new_frag_curves.collapse_2.max_drift.beta);
-plot(x_points,cdf,'k','lineWidth',1)
+plot(x_points,cdf,'k','lineWidth',1,'DisplayName','Gravity Collapse')
+rank_val = sort(gm_data.collapse.max_drift(~isnan(gm_data.collapse.max_drift)));
+rank = (1:length(rank_val))/length(rank_val);
+scatter(rank_val,rank,'m','filled','HandleVisibility','off');
+cdf = logncdf(x_points,log(new_frag_curves.collapse.max_drift.theta),new_frag_curves.collapse.max_drift.beta);
+plot(x_points,cdf,'m','lineWidth',1,'DisplayName','Sidesway Collapse')
 xlabel('Max Drift')
 ylabel('P[Collapse]')
 xlim([0,max_val])
 plot_name = 'Collapse v Max Drift';
-fn_format_and_save_plot( plot_dir, plot_name, 4 )
+fn_format_and_save_plot( plot_dir, plot_name, 6 )
+
+if analysis.run_z_motion 
+hold on
+rank_val = sort(gm_data.collapse_2_x.max_drift(~isnan(gm_data.collapse_2_x.max_drift)));
+rank = (1:length(rank_val))/length(rank_val);
+scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+cdf = logncdf(x_points,log(new_frag_curves.collapse_2_x.max_drift.theta),new_frag_curves.collapse_2_x.max_drift.beta);
+plot(x_points,cdf,'k','lineWidth',1,'DisplayName','Gravity Collapse')
+rank_val = sort(gm_data.collapse_x.max_drift(~isnan(gm_data.collapse_x.max_drift)));
+rank = (1:length(rank_val))/length(rank_val);
+scatter(rank_val,rank,'m','filled','HandleVisibility','off');
+cdf = logncdf(x_points,log(new_frag_curves.collapse_x.max_drift.theta),new_frag_curves.collapse_x.max_drift.beta);
+plot(x_points,cdf,'m','lineWidth',1,'DisplayName','Sidesway Collapse')
+xlabel('Max Drift')
+ylabel('P[Collapse]')
+xlim([0,max_val])
+plot_name = 'Collapse v Max Drift x';
+fn_format_and_save_plot( plot_dir, plot_name, 6 )
+
+hold on
+rank_val = sort(gm_data.collapse_2_z.max_drift(~isnan(gm_data.collapse_2_z.max_drift)));
+rank = (1:length(rank_val))/length(rank_val);
+scatter(rank_val,rank,'k','filled','HandleVisibility','off');
+cdf = logncdf(x_points,log(new_frag_curves.collapse_2_z.max_drift.theta),new_frag_curves.collapse_2_z.max_drift.beta);
+plot(x_points,cdf,'k','lineWidth',1,'DisplayName','Gravity Collapse')
+rank_val = sort(gm_data.collapse_z.max_drift(~isnan(gm_data.collapse_z.max_drift)));
+rank = (1:length(rank_val))/length(rank_val);
+scatter(rank_val,rank,'m','filled','HandleVisibility','off');
+cdf = logncdf(x_points,log(new_frag_curves.collapse_z.max_drift.theta),new_frag_curves.collapse_z.max_drift.beta);
+plot(x_points,cdf,'m','lineWidth',1,'DisplayName','Sidesway Collapse')
+xlabel('Max Drift')
+ylabel('P[Collapse]')
+xlim([0,max_val])
+plot_name = 'Collapse v Max Drift z';
+fn_format_and_save_plot( plot_dir, plot_name, 6 )
+end
 
 %% Plot 6 - Collapse v Normalized Energy
 % hold on
