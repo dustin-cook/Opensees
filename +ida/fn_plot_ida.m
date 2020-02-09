@@ -135,34 +135,37 @@ else
 end
 for c = 1:length(opts)
     hold on
+    
+    % Gravity
+    rank_sa = sort(gm_table.sa_collapse_grav(~isnan(gm_table.sa_collapse_grav)));
+    rank_val = 1:length(rank_sa);
+    sct = scatter(rank_sa,rank_val./length(rank_sa),'k','filled','HandleVisibility','off');
+    cdf = logncdf(x_points,log(frag_curves.collapse_grav.theta),frag_curves.collapse_grav.beta);
+    plot(x_points,cdf,'k','DisplayName','Gravity Collapse')
+    
     % Sidesway
     rank_sa = sort(gm_table.(['sa_collapse' opts{c}])(~isnan(gm_table.(['sa_collapse' opts{c}]))));
     rank_val = 1:length(rank_sa);
-    sct = scatter(rank_sa,rank_val./length(rank_sa),'b','filled','HandleVisibility','off');
+    sct = scatter(rank_sa,rank_val./length(rank_sa),'m','filled','HandleVisibility','off');
     cdf = logncdf(x_points,log(frag_curves.(['collapse' opts{c}]).theta),frag_curves.(['collapse' opts{c}]).beta);
-    plot(x_points,cdf,'b','DisplayName','Sidesway Collapse Fragility')
+    plot(x_points,cdf,'m','DisplayName','Sidesway Collapse')
     % Drift
 %     rank_sa = sort(gm_table.sa_collapse_drift_6(~isnan(gm_table.sa_collapse_drift_6)));
 %     rank_val = 1:length(rank_sa);
 %     sct = scatter(rank_sa,rank_val./length(rank_sa),'r','filled','HandleVisibility','off');
 %     cdf = logncdf(x_points,log(frag_curves.collapse_drift_6.theta),frag_curves.collapse_drift_6.beta);
 %     plot(x_points,cdf,'r','DisplayName','Collapse at 6% Drift')
-    % Gravity
-    rank_sa = sort(gm_table.sa_collapse_grav(~isnan(gm_table.sa_collapse_grav)));
-    rank_val = 1:length(rank_sa);
-    sct = scatter(rank_sa,rank_val./length(rank_sa),'r','filled','HandleVisibility','off');
-    cdf = logncdf(x_points,log(frag_curves.collapse_grav.theta),frag_curves.collapse_grav.beta);
-    plot(x_points,cdf,'r','DisplayName','Gravity Load Collapse')
-    % All
-    rank_sa = sort(gm_table.(['sa_collapse_2' opts{c}])(~isnan(gm_table.(['sa_collapse_2' opts{c}]))));
-    rank_val = 1:length(rank_sa);
-    sct = scatter(rank_sa,rank_val./length(rank_sa),'k','filled','HandleVisibility','off');
-    cdf = logncdf(x_points,log(frag_curves.(['collapse_2' opts{c}]).theta),frag_curves.(['collapse_2' opts{c}]).beta);
-    plot(x_points,cdf,'k','DisplayName','Collapse Fragility All')
+
+%     % All
+%     rank_sa = sort(gm_table.(['sa_collapse_2' opts{c}])(~isnan(gm_table.(['sa_collapse_2' opts{c}]))));
+%     rank_val = 1:length(rank_sa);
+%     sct = scatter(rank_sa,rank_val./length(rank_sa),'k','filled','HandleVisibility','off');
+%     cdf = logncdf(x_points,log(frag_curves.(['collapse_2' opts{c}]).theta),frag_curves.(['collapse_2' opts{c}]).beta);
+%     plot(x_points,cdf,'k','DisplayName','Collapse Fragility All')
 
     xlabel('Sa(T_{1-EW}) (g)')
     ylabel('P[Collapse]')
-    xlim([0,ceil(max(rank_sa))])
+    xlim([0,1.5])
     fn_format_and_save_plot( plot_dir, ['Collapse Fragility' opts{c}], 6 )
 end
 

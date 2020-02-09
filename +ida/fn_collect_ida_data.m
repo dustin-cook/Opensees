@@ -50,12 +50,14 @@ for gm = 1:height(gm_set_table)
             
             % X direction
             ida.sa_x(id,1) = summary.sa_x;
+            ida.sa_geo(id,1) = summary.sa_x;
             ida.mce_ratio_x(id,1) = ida.sa_x(id,1)/ida_results.mce(1);
             ida.drift_x(id,1) = summary.max_drift_x;
             
             % z direction 
             if analysis.run_z_motion
                 ida.sa_z(id,1) = summary.sa_z;
+                ida.sa_geo(id,1) = geomean([summary.sa_x,summary.sa_z]);
                 ida.mce_ratio_z(id,1) = ida.sa_z(id,1)/ida_results.mce(2);
                 ida.drift_z(id,1) = summary.max_drift_z;
             end
