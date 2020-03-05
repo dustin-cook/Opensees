@@ -12,10 +12,10 @@ elseif exist(outputs_dir,'dir')
     files = dir([outputs_dir filesep 'GM_*']);
     for f = 1:length(files)
         if exist([outputs_dir filesep files(f).name filesep 'gm_complete.txt'],'file')
-            completed_scales = dir([outputs_dir filesep files(f).name filesep 'Scale_*']);
-            for s = 1:length(completed_scales)
-                rmdir([outputs_dir filesep files(f).name filesep completed_scales(s).name], 's')
-            end
+%             completed_scales = dir([outputs_dir filesep files(f).name filesep 'Scale_*']);
+%             for s = 1:length(completed_scales)
+%                 rmdir([outputs_dir filesep files(f).name filesep completed_scales(s).name], 's')
+%             end
             set_id = str2double(regexp(files(f).name,'(?<=_)\d+(?=_)','match'));
             pair = str2double(files(f).name(end));
             gms2run(gms2run.set_id == set_id & gms2run.pair == pair,:) = [];
@@ -45,5 +45,6 @@ tim_elapsed = toc(tim_start);
 fprintf('IDA finished with a run time of %4.2f seconds \n', tim_elapsed)
 
 delete(gcp('nocreate')) % End Any Parallel Process
+
 end
 

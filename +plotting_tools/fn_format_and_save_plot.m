@@ -37,7 +37,7 @@ end
 
 hold off
 
-set(gcf,'Position',[100 100 400 300])
+% set(gcf,'Position',[100 100 300 300])
 
 % Save and Close
 if ~exist('save_and_close','var') || save_and_close == 1

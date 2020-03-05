@@ -13,15 +13,29 @@ if analysis.run_z_motion
 end
 
 % Write Recorders File
-fn_define_recorders( ida_opensees_dir, model.dimension, node, element, joint, hinge, analysis )
+if analysis.general_ida
+    fn_define_recorders_ida( ida_opensees_dir, model.dimension, node.id, element )
+else
+    fn_define_recorders( ida_opensees_dir, model.dimension, node, element, joint, hinge, analysis )
+end
+
 
 % Write Loads file
-fn_define_loads( ida_opensees_dir, analysis, node, model.dimension, story, element, ground_motion )
+if analysis.general_ida
+    fn_define_loads_ida( ida_opensees_dir, analysis.ground_motion_scale_factor, model.dimension, ground_motion, analysis.g_unit )
+else
+    fn_define_loads( ida_opensees_dir, analysis, node, model.dimension, story, element, ground_motion )
+end
 
 % Write Analysis Files
 first_story_node = node.id(node.primary_story == 1);
-fn_setup_analysis( ida_opensees_dir, tcl_dir, analysis, first_story_node, story )
-fn_define_analysis( ida_opensees_dir, ground_motion, first_story_node, story.story_ht, analysis, story )
+if analysis.general_ida
+    fn_setup_analysis( ida_opensees_dir, tcl_dir, analysis )
+    fn_define_analysis( ida_opensees_dir, ground_motion, first_story_node, story.story_ht, analysis )
+else
+    fn_setup_analysis( ida_opensees_dir, tcl_dir, analysis, first_story_node, story )
+    fn_define_analysis( ida_opensees_dir, ground_motion, first_story_node, story.story_ht, analysis, story )
+end
 
 % Call Opensees
 fprintf('Running Opensess... \n')
@@ -54,13 +68,25 @@ elseif status ~= 0
     fprintf('UNHANDLED OPENSEES FAILURE \n')
     exit_status = 1;
 else
-    summary.collapse = 0;
+    summary.collapse = 0; % Didn't catch anything (also shouldnt get here)
     fprintf('Model Ran Successfully \n')
 end
 
 fprintf('Opensees Completed \n')
 
-% Save summary data
+%% Save summary data
 save([ida_summary_dir filesep 'summary_results.mat'],'summary')
+
+% % Copy primary node files to the summary driver
+% for i = 1:length(node.primary_nodes)
+%     try
+%         source = [ida_opensees_dir filesep 'nodal_disp_' num2str(node.primary_nodes(i)) '.*'];
+%         destination = ida_summary_dir;
+%         copyfile(source,destination)
+%     catch
+%         warning('No matching files were found.')
+%     end
+% end
+
 end
 

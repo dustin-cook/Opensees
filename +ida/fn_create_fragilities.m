@@ -136,6 +136,11 @@ for gm = 1:height(gm_table)
         end
     end
     
+    % drift limit at mean rotation capacity
+    gm_table.sa_drift_mean_rot(gm) = max([min(gm_response.sa_geo(gm_response.max_drift >= gm_response.mean_rot_cap(1))),NaN]);
+    gm_table.sa_drift_mean_rot_grav(gm) = max([min(gm_response.sa_geo(gm_response.max_drift >= gm_response.mean_rot_cap_grav(1))),NaN]);
+    gm_table.sa_drift_mean_rot_grav_min(gm) = max([min(gm_response.sa_geo(gm_response.max_drift >= gm_response.mean_rot_cap_grav_min(1))),NaN]);
+    
     % grav load dcr
     for f = 1:10
         gm_table.(['sa_gravity_dcr_' num2str(f*10)])(gm) = max([min(gm_response.sa_geo(gm_response.gravity_dcr >= f/10)),NaN]);
@@ -253,6 +258,11 @@ for d = 1:10
     end
 end
 
+% Drift limit at mean deformation capacity
+[frag_curves.drift.idr_mean_rot] = fn_fit_fragility_MOM(gm_table.sa_drift_mean_rot);
+[frag_curves.drift.idr_mean_rot_grav] = fn_fit_fragility_MOM(gm_table.sa_drift_mean_rot_grav);
+[frag_curves.drift.idr_mean_rot_grav_min] = fn_fit_fragility_MOM(gm_table.sa_drift_mean_rot_grav_min);
+
 % grav dcr
 for f = 1:10
     [frag_curves.gravity.(['dcr_' num2str(f*10)])] = fn_fit_fragility_MOM(gm_table.(['sa_gravity_dcr_' num2str(f*10)]));
@@ -326,6 +336,9 @@ outputs.med_sa_grav_50 = frag_curves.gravity.dcr_50.theta;
 outputs.med_sa_grav_60 = frag_curves.gravity.dcr_60.theta;
 outputs.med_sa_grav_70 = frag_curves.gravity.dcr_70.theta;
 outputs.med_sa_grav_80 = frag_curves.gravity.dcr_80.theta;
+outputs.med_sa_drift_mean = frag_curves.drift.idr_mean_rot.theta;
+outputs.med_sa_drift_mean_grav = frag_curves.drift.idr_mean_rot_grav.theta;
+outputs.med_sa_drift_mean_grav_min = frag_curves.drift.idr_mean_rot_grav_min.theta;
 if analysis.run_z_motion
     outputs.med_sa_collapse_x = frag_curves.collapse_x.theta;
     outputs.med_sa_collapse_z = frag_curves.collapse_z.theta;

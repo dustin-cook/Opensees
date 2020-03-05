@@ -26,10 +26,10 @@ baseline_dir = ['outputs' filesep analysis.model filesep analysis_name];
 id = 1;
 [ outputs_table_base, baseline_input_dir ] = collect_baseline_data( baseline_dir, id, 'baseline', num_bays );
 
-% ICSB 2D Model
-baseline_dir = ['outputs' filesep 'ICBS_model_5ew' filesep 'NDP_baseline'];
-id = 2;
-[ outputs_table_2D, ~ ] = collect_baseline_data( baseline_dir, id, 'ICSB_2D', num_bays );
+% % ICSB 2D Model
+% baseline_dir = ['outputs' filesep 'ICBS_model_5ew' filesep 'NDP_baseline'];
+% id = 2;
+% [ outputs_table_2D, ~ ] = collect_baseline_data( baseline_dir, id, 'ICSB_2D', num_bays );
 
 % % ICSB 3D Model
 % baseline_dir = ['outputs' filesep 'ICBS_model_3D_fixed' filesep 'NDP_baseline'];
@@ -38,8 +38,8 @@ id = 2;
 
 % Join tables
 % outputs_table = [outputs_table_base; outputs_table_2D; outputs_table_3D];
-outputs_table = [outputs_table_base; outputs_table_2D];
-% outputs_table = outputs_table_base;
+% outputs_table = [outputs_table_base; outputs_table_2D];
+outputs_table = outputs_table_base;
 
 %% Collect data for each sensitivity study
 for m = 1:length(model_name)

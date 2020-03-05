@@ -15,6 +15,9 @@ else
     params = {'b','io','ls','cp'};
 end
 
+% load element properties
+ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
+
 % Load model data
 model_dir = [main_dir '/' 'opensees_data'];
 asce41_dir = [main_dir '/' 'asce_41_data'];
@@ -135,6 +138,24 @@ for gm = 1:height(gm_set_table)
             % full strength
             all_cols = element(element.story == 1 & strcmp(element.type,'column'),:);
             lat_cap_tot = sum(all_cols.Mn_pos_1) + sum(all_cols.Mn_pos_2);
+            
+            % Mean rotation capacity of columns
+            ida.mean_rot_cap(id,1) = mean([all_cols.b_hinge_1;all_cols.b_hinge_2]);
+            
+            % Mean rotation capacity of columns from gravity
+            tn = tan(pi*65/180);
+            for c = 1:height(all_cols)
+                ele_prop = ele_prop_table(ele_prop_table.id == all_cols.ele_id(c),:);
+                for sd = 1:2
+                as = ele_prop.(['Av_' num2str(hinge.ele_side(sd))]);
+                fyt = ele_prop.fy_e;
+                dc = ele_prop.w/2 - ele_prop.clear_cover;
+                s = ele_prop.(['S_' num2str(hinge.ele_side(sd))]);
+                all_cols.(['drift_grav_' num2str(sd)])(c) = (4/100)*(1+tn^2)/(tn + all_cols.Pmax(c)*(s / (as*fyt*dc*tn)));
+                end
+            end
+            ida.mean_rot_cap_grav(id,1) = mean([all_cols.drift_grav_1;all_cols.drift_grav_2]);
+            ida.mean_rot_cap_grav_min(id,1) = mean(min(all_cols.drift_grav_1,all_cols.drift_grav_2));
             
             % remaining hinges and columns
             failed_col_any = hinge.element_id(hinge.story == 1 & strcmp(hinge.ele_type,'column') & hinge.a_ratio > 1);

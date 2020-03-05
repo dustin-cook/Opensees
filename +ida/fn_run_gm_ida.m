@@ -3,6 +3,7 @@ function [] = fn_run_gm_ida(analysis, model, story, element, node, hinge, joint,
 %   Detailed explanation goes here
 import ida.fn_main_IDA
 import ida.fn_postprocess_ida
+import ida.fn_postprocess_ida_gen
 
 % Define scale factor array
 scale_factor = 0;
@@ -54,7 +55,11 @@ while scale_factor < analysis.scale_increment*25
     % Post process single IDA run
     if analysis.post_process_ida && exit_status ~= 1
         fprintf('Postprocessing Opensees Ouputs\n')
-        fn_postprocess_ida(analysis, model, story, element, node, hinge, joint, ground_motion, ida_opensees_dir, ida_summary_dir)
+        if analysis.general_ida
+            fn_postprocess_ida_gen( analysis, model, node, element, ground_motion, ida_opensees_dir, ida_summary_dir )
+        else 
+            fn_postprocess_ida(analysis, model, story, element, node, hinge, joint, ground_motion, ida_opensees_dir, ida_summary_dir)
+        end
     end
     
     % Check if collapse was reached
