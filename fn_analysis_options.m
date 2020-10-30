@@ -23,7 +23,7 @@ analysis.stories_nonlinear_low = 0; % all stories at or below this story to be e
 analysis.elastic_beams = 0; % 0 = beams can be nonlinear (default), 1 = beams are assumed to be elastic
 analysis.model_type = 2; % 1 = SDOF, 2 = MDOF (default)
 analysis.rigid_diaphram = 1; % Default the model to assume rigid diaphrams (0 = non-rigid assuption)
-analysis.fiber_walls = 0;
+analysis.fiber_walls = 0; % 0 = Lumped plasticity walls, 1 = Fiber walls, 2 = MVLEM
 
 % Opensees Analysis Options
 analysis.ground_motion_scale_factor = 1.0; % Scale the GM amplitude   
@@ -41,7 +41,7 @@ analysis.cyclic_pushover_peak_drifts = [0.4, 0.5, 0.6]; % Percent of the final P
 analysis.hinge_group_length = 10;
 analysis.filter_accel = 0;
 analysis.filter_freq_range = [0.5, 1.5];
-analysis.simple_recorders = 0;
+analysis.simple_recorders = 1;
 analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 

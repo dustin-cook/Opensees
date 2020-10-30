@@ -71,7 +71,8 @@ if ~analysis.skip_2_outputs % Don't skip to plotters
 
         %% Postprocess ASCE 41 data
         disp('Post Processing Via ASCE 41 ...')
-        [ capacity(:,i), torsion{i} ] = main_ASCE_41_post_process( analysis, ele_prop_table );
+%         [ capacity(:,i), torsion{i} ] = main_ASCE_41_post_process( analysis, ele_prop_table );
+        main_ASCE_41_post_process( analysis, ele_prop_table );
 
         %% Analysis Checks
 %         disp('Validating Analysis Results ...')

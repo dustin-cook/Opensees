@@ -2,6 +2,7 @@ function [ ] = fn_master_IDA(analysis, model, story, element, node, hinge, joint
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 import ida.fn_run_gm_ida
+import ida.fn_run_gm_ida_sa_stripe
 
 % Clear existing data or look through outputs to see if GM have already been run
 gms2run = gm_set_table;
@@ -30,15 +31,29 @@ end
 
 % Loop through each ground motion
 tim_start = tic;
-if analysis.run_parallel
-    parfor gms = 1:height(gms2run)
-        % Loop through each scale of the GM
-        fn_run_gm_ida(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gms, ida_results, tcl_dir, main_dir)
+if analysis.run_sa_stripes
+    if analysis.run_parallel
+        parfor gms = 1:height(gms2run)
+            % Loop through each scale of the GM
+            fn_run_gm_ida_sa_stripe(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gms, ida_results, tcl_dir, main_dir)
+        end
+    else
+        for gms = 1:height(gms2run)
+            % Loop through each scale of the GM
+            fn_run_gm_ida_sa_stripe(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gms, ida_results, tcl_dir, main_dir)
+        end
     end
 else
-    for gms = 1:height(gms2run)
-        % Loop through each scale of the GM
-        fn_run_gm_ida(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gms, ida_results, tcl_dir, main_dir)
+    if analysis.run_parallel
+        parfor gms = 1:height(gms2run)
+            % Loop through each scale of the GM
+            fn_run_gm_ida(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gms, ida_results, tcl_dir, main_dir)
+        end
+    else
+        for gms = 1:height(gms2run)
+            % Loop through each scale of the GM
+            fn_run_gm_ida(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gms, ida_results, tcl_dir, main_dir)
+        end
     end
 end
 tim_elapsed = toc(tim_start);

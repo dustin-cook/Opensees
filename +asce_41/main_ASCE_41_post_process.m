@@ -81,8 +81,12 @@ if ~strcmp(analysis.case,'NA')
     end
 end
 
-% Save capacities to compare iterations
-capacity = element.capacity;
+% % Save capacities to compare iterations
+% if analysis.asce_41_post_process
+%     capacity = element.capacity;
+% else
+%     capacity = [];
+% end
 end
 
 function [element] = fn_merge_demands(element, write_dir, model)

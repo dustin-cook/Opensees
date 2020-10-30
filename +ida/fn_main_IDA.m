@@ -1,15 +1,13 @@
-function [ exit_status ] = fn_main_IDA(analysis, model, story, element, node, hinge, joint, ground_motion, scale_factor, building_period, tcl_dir, ida_opensees_dir, ida_summary_dir)
+function [ exit_status ] = fn_main_IDA(analysis, model, story, element, node, hinge, joint, ground_motion, tcl_dir, ida_opensees_dir, ida_summary_dir)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
 import opensees.write_tcl.*
 
 % Load spectral info and save Sa
-spectra_table = readtable([ground_motion.x.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
-summary.sa_x = interp1(spectra_table.period,spectra_table.psa_5,building_period(1))*scale_factor;
+summary.sa_x = ground_motion.x.sa;
 if analysis.run_z_motion
-    spectra_table = readtable([ground_motion.z.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
-    summary.sa_z = interp1(spectra_table.period,spectra_table.psa_5,building_period(2))*scale_factor;
+    summary.sa_z = ground_motion.z.sa;
 end
 
 % Write Recorders File

@@ -1,4 +1,4 @@
-id,description,col_id,beam_id,wall_id,num_bays
-1,first story wall F ,0,0,18,1
-2,second story wall East,0,0,20,1
-3,upper story walls East,0,0,21,1
+id,description,col_id,beam_id,wall_id,num_bays,trib_wt_1,trib_wt_2
+1,first story wall F ,0,0,18,1,1,1
+2,second story wall East,0,0,20,1,1,1
+3,upper story walls East,0,0,21,1,1,1

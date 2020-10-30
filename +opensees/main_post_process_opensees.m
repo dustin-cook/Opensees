@@ -101,64 +101,66 @@ end
 
 %% Load hinge reactions and deformations
 % Load Hinge Data
-if analysis.nonlinear ~= 0 && ~isempty(hinge)
-    max_story = max(hinge.story);
-    for s = 1:max_story
-        if exist([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_x' '.xml'],'file')
-            [ hinge_deformation_x ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_x' '.xml']);
-            if ~analysis.simple_recorders
-                 [ hinge_force_x ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_moment_x' '.xml']);
-            end
-            hinge_ids = hinge(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'rotational') & hinge.story == s,:);
-            for h = 1:height(hinge_ids)
-                hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_x(1:(end-clip),1+h);
+if ~analysis.simple_recorders 
+    if analysis.nonlinear ~= 0 && ~isempty(hinge)
+        max_story = max(hinge.story);
+        for s = 1:max_story
+            if exist([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_x' '.xml'],'file')
+                [ hinge_deformation_x ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_x' '.xml']);
                 if ~analysis.simple_recorders
-                    hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_x(1:(end-clip),1+h);
+                     [ hinge_force_x ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_moment_x' '.xml']);
+                end
+                hinge_ids = hinge(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'rotational') & hinge.story == s,:);
+                for h = 1:height(hinge_ids)
+                    hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_x(1:(end-clip),1+h);
+                    if ~analysis.simple_recorders
+                        hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_x(1:(end-clip),1+h);
+                    end
+                end
+            end
+            if strcmp(model.dimension,'3D')
+                if exist([opensees_dir filesep 'S' num2str(s) '_hinge_deformation_z' '.xml'],'file')
+                    [ hinge_deformation_z ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_deformation_z' '.xml']);
+                    [ hinge_force_z ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_shear_z' '.xml']);
+                    hinge_ids = hinge(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'shear') & hinge.story == s,:);
+                    for h = 1:height(hinge_ids)
+                        hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_z(1:(end-clip),1+h);
+                        hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_z(1:(end-clip),1+h);
+                    end
+                end
+
+                if exist([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_z_oop' '.xml'],'file')
+                    [ hinge_deformation_z_oop ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_z_oop' '.xml']);
+                    [ hinge_force_z_oop ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_moment_z_oop' '.xml']);
+                    hinge_ids = hinge(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational') & hinge.story == s,:);
+                    for h = 1:height(hinge_ids)
+                        hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_z_oop(1:(end-clip),1+h);
+                        hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_z_oop(1:(end-clip),1+h);
+                    end
+                end
+
+                if exist([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_x_oop' '.xml'],'file')
+                    [ hinge_deformation_x_oop ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_x_oop' '.xml']);
+                    [ hinge_force_x_oop ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_moment_x_oop' '.xml']);
+                    hinge_ids = hinge(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational') & hinge.story == s,:);
+                    for h = 1:height(hinge_ids)
+                        hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_x_oop(1:(end-clip),1+h);
+                        hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_x_oop(1:(end-clip),1+h);
+                    end
                 end
             end
         end
-        if strcmp(model.dimension,'3D')
-            if exist([opensees_dir filesep 'S' num2str(s) '_hinge_deformation_z' '.xml'],'file')
-                [ hinge_deformation_z ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_deformation_z' '.xml']);
-                [ hinge_force_z ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_shear_z' '.xml']);
-                hinge_ids = hinge(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'shear') & hinge.story == s,:);
-                for h = 1:height(hinge_ids)
-                    hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_z(1:(end-clip),1+h);
-                    hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_z(1:(end-clip),1+h);
-                end
-            end
 
-            if exist([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_z_oop' '.xml'],'file')
-                [ hinge_deformation_z_oop ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_z_oop' '.xml']);
-                [ hinge_force_z_oop ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_moment_z_oop' '.xml']);
-                hinge_ids = hinge(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational') & hinge.story == s,:);
-                for h = 1:height(hinge_ids)
-                    hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_z_oop(1:(end-clip),1+h);
-                    hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_z_oop(1:(end-clip),1+h);
-                end
-            end
-
-            if exist([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_x_oop' '.xml'],'file')
-                [ hinge_deformation_x_oop ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_rotation_x_oop' '.xml']);
-                [ hinge_force_x_oop ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_moment_x_oop' '.xml']);
-                hinge_ids = hinge(strcmp(hinge.ele_direction,'x') & strcmp(hinge.direction,'oop') & strcmp(hinge.type,'rotational') & hinge.story == s,:);
-                for h = 1:height(hinge_ids)
-                    hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_x_oop(1:(end-clip),1+h);
-                    hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_x_oop(1:(end-clip),1+h);
-                end
-            end
-        end
+    %     % Calculate Dissapated Hinge Engery
+    %     for h = 1:height(hinge)
+    %         if analysis.simple_recorders && strcmp(hinge.direction(h),'oop')
+    %             hinge.total_engergy_ft_lbs(h) = NaN;
+    %         else
+    %             hinge.total_engergy_ft_lbs(h) = (1/12)*trapz(hinge_TH.(['hinge_' num2str(hinge.id(h))]).deformation_TH, hinge_TH.(['hinge_' num2str(hinge.id(h))]).force_TH);
+    %             hinge_TH.(['hinge_' num2str(hinge.id(h))]).energy_ft_lbs = (1/12)*cumtrapz(hinge_TH.(['hinge_' num2str(hinge.id(h))]).deformation_TH, hinge_TH.(['hinge_' num2str(hinge.id(h))]).force_TH);
+    %         end
+    %     end
     end
-    
-%     % Calculate Dissapated Hinge Engery
-%     for h = 1:height(hinge)
-%         if analysis.simple_recorders && strcmp(hinge.direction(h),'oop')
-%             hinge.total_engergy_ft_lbs(h) = NaN;
-%         else
-%             hinge.total_engergy_ft_lbs(h) = (1/12)*trapz(hinge_TH.(['hinge_' num2str(hinge.id(h))]).deformation_TH, hinge_TH.(['hinge_' num2str(hinge.id(h))]).force_TH);
-%             hinge_TH.(['hinge_' num2str(hinge.id(h))]).energy_ft_lbs = (1/12)*cumtrapz(hinge_TH.(['hinge_' num2str(hinge.id(h))]).deformation_TH, hinge_TH.(['hinge_' num2str(hinge.id(h))]).force_TH);
-%         end
-%     end
 end
 
 %% Load Joint reactions and deformations
@@ -220,7 +222,7 @@ for i = 1:length(dirs_ran)
                node.(['residual_disp_' dirs_ran{i}])(n) = NaN;
            end
 
-           if ~analysis.simple_recorders && node.record_accel(n)
+           if (~analysis.simple_recorders && node.record_accel(n)) || (analysis.simple_recorders && node.primary_story(n))
                [ node_accel_raw ] = fn_xml_read([opensees_dir filesep 'nodal_accel_' num2str(node.id(n)) '.xml']);
                node_accel_raw = node_accel_raw'; % flip to be node per row
                
@@ -280,8 +282,8 @@ for i = 1:length(dirs_ran)
     [ story.(['ave_disp_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' fld_names{i}]), story, node, 1 );
     [ story.(['residual_disp_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['residual_disp_' fld_names{i}]), story, node, 1 );
     story.(['torsional_factor_' fld_names{i}]) = story.(['max_disp_' fld_names{i}]) ./ story.(['ave_disp_' fld_names{i}]);
+    [ story.(['max_accel_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' fld_names{i} '_abs']), story, node, 0 );
     if ~analysis.simple_recorders && analysis.type == 1 % Dynamic Analysis
-        [ story.(['max_accel_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' fld_names{i} '_abs']), story, node, 0 );
         story.(['max_accel_center_' fld_names{i}]) = node.(['max_accel_' fld_names{i} '_abs'])(node.center == 1 & node.record_accel == 1 & node.on_slab == 1);
     end
     if analysis.simple_recorders
@@ -319,7 +321,7 @@ for i = 1:length(dirs_ran)
     end
     
     %% Collect response info for each element
-    if strcmp(dirs_ran{i},'x') || strcmp(dirs_ran{i},'z') % dont do for negative pushover directions
+    if (strcmp(dirs_ran{i},'x') || strcmp(dirs_ran{i},'z')) && exist('hinge_TH','var')% dont do for negative pushover directions
         for e = 1:height(element)
             element.(['disp_' dirs_ran{i}])(e,1) = node.(['max_disp_' dirs_ran{i}])(node.id == element.node_2(e)); % Taking the drift at the top of column or wall or the right side of beam
             if element.story(e) == 1
@@ -380,15 +382,17 @@ elseif analysis.type == 3 % Cyclic Analysis
 end
 
 % Save Time History Data
-for i = 1:height(node)
-    nd_TH = node_TH.(['node_' num2str(node.id(i)) '_TH']);
-    save([opensees_dir filesep 'node_TH_' num2str(node.id(i)) '.mat'],'nd_TH')
-    if analysis.type == 2 % Pushover Analysis
-        save([pushover_dir filesep 'node_TH_' num2str(node.id(i)) '.mat'],'nd_TH')
+if ~analysis.simple_recorders
+    for i = 1:height(node)
+        nd_TH = node_TH.(['node_' num2str(node.id(i)) '_TH']);
+        save([opensees_dir filesep 'node_TH_' num2str(node.id(i)) '.mat'],'nd_TH')
+        if analysis.type == 2 % Pushover Analysis
+            save([pushover_dir filesep 'node_TH_' num2str(node.id(i)) '.mat'],'nd_TH')
+        end
     end
 end
 
-if analysis.nonlinear
+if analysis.nonlinear && exist('hinge_TH','var')
     for i = 1:height(hinge)
         if isfield(hinge_TH,['hinge_' num2str(hinge.id(i))])
             hin_TH = hinge_TH.(['hinge_' num2str(hinge.id(i))]);

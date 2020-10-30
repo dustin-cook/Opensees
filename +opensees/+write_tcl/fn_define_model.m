@@ -141,30 +141,53 @@ for i = 1:height(element)
                 elseif strcmp(dimension,'3D')
                     fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,ele_props.iy,ele_props.iz,geotransf);
                 end
-            else % Explicit steel and concrete fibers 
+            elseif analysis.fiber_walls % model with fiber elements
                 % uniaxialMaterial Steel02 $matTag $Fy $E $b $R0 $cR1 $cR2 <$a1 $a2 $a3 $a4 $sigInit>
                 fprintf(fileID,'uniaxialMaterial Steel02 %i %f %f 0.01 15.0 0.925 0.15 \n', 1000 + element.id(i), ele_props.fy_e, ele_props.Es);
                 % uniaxialMaterial Concrete04 $matTag $fc $ec $ecu $Ec <$fct $et> <$beta>
                 fprintf(fileID,'uniaxialMaterial Concrete04 %i %f -0.002 -0.006 %f %f 0.0001 \n',2000 + element.id(i), -ele_props.fc_e, ele_props.e, 7.5*sqrt(ele_props.fc_n));                
-                % section Fiber $secTag <-GJ $GJ> {
-                fprintf(fileID,'section Fiber %i { \n',element.id(i));
-                    % patch rect $matTag $numSubdivY $numSubdivZ $yI $zI $yJ $zJ
-                    As = str2double(strsplit(strrep(strrep(ele_props.As{1},'[',''),']','')));
-                    num_bars = str2double(strsplit(strrep(strrep(ele_props.n_b{1},'[',''),']','')));
-                    depth_bars = str2double(strsplit(strrep(strrep(ele_props.As_d{1},'[',''),']','')));
-                    fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n',2000 + element.id(i),length(As),3,-ele_props.h/2,-ele_props.w/2,ele_props.h/2,ele_props.w/2);
+                
+                if analysis.fiber_walls == 1 % center-line beam column fiber model
+                    % section Fiber $secTag <-GJ $GJ> {
+                    fprintf(fileID,'section Fiber %i { \n',element.id(i));
+                        % patch rect $matTag $numSubdivY $numSubdivZ $yI $zI $yJ $zJ
+                        As = str2double(strsplit(strrep(strrep(ele_props.As{1},'[',''),']','')));
+                        num_bars = str2double(strsplit(strrep(strrep(ele_props.n_b{1},'[',''),']','')));
+                        depth_bars = str2double(strsplit(strrep(strrep(ele_props.As_d{1},'[',''),']','')));
+                        fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n',2000 + element.id(i),length(As),3,-ele_props.h/2,-ele_props.w/2,ele_props.h/2,ele_props.w/2);
+
+                        % layer straight $matTag $numFiber $areaFiber $yStart $zStart $yEnd $zEnd
+                        row_ht(1) = (ele_props.clear_cover + 1) - ele_props.w/2;
+                        row_ht(2) = ele_props.w/2 - (ele_props.clear_cover + 1);
+                        for row = 1:num_bars(1)
+                            fprintf(fileID,'layer straight %i %i %f %f %f %f %f \n', 1000 + element.id(i), length(As), mean(As), depth_bars(1)-ele_props.h/2, row_ht(row), depth_bars(end)-ele_props.h/2, row_ht(row));
+                        end
+
+                    fprintf(fileID,'} \n');
+
+                    % element forceBeamColumn $eleTag $iNode $jNode $numIntgrPts $secTag $transfTag <-mass $massDens> <-iter $maxIters $tol> <-integration $intType>
+                    fprintf(fileID,'element forceBeamColumn %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),5,element.id(i),geotransf);  
+                elseif analysis.fiber_walls == 2 % MVLEM
+                    [ force_vec, disp_vec ] = fn_define_backbone_shear( 1.34e6, element.length(i), ele_props.g, ele_props.av, 0.2, 1, 2, 0.6, 0.4 );
+                    K0 = force_vec(1)/disp_vec(1);
+                    residual_strength = 0.05; % fix to 5% 
+
+                    % Have it go straight from yeild to residual
+                    f_yield = force_vec(1);
+                    f_ult_ratio = force_vec(2)/force_vec(1);
+                    theta_p = disp_vec(2)-disp_vec(1); % Theta P is the disp of the first kink
+                    theta_pc = disp_vec(4) - disp_vec(2) + (0.2-residual_strength)*(disp_vec(4) - disp_vec(2))/(1-0.2); % theta pc defined all the way to zero where b defined to residual kink
+
+                    end_disp = 999; % Keep residual strength forever
+
+                    % uniaxialMaterial IMKPeakOriented $Mat_Tag $Ke $Up_pos $Upc_pos $Uu_pos $Fy_pos $FmaxFy_pos $FresFy_pos $Up_neg $Upc_neg $Uu_neg $Fy_neg $FmaxFy_neg $FresFy_neg $Lamda_S $Lamda_C $Lamda_A $Lamda_K $c_S $c_C $c_A $c_K $D_pos $D_neg
+                    fprintf(fileID,'uniaxialMaterial IMKPeakOriented %i %f %f %f %f %f %f %f %f %f %f %f %f %f 100.0 100.0 100.0 100.0 1.0 1.0 1.0 1.0 1.0 1.0 \n', 3000 + element.id(i), K0, theta_p, theta_pc, end_disp, f_yield, f_ult_ratio, residual_strength, theta_p, theta_pc, end_disp, f_yield, f_ult_ratio, residual_strength);
+
                     
-                    % layer straight $matTag $numFiber $areaFiber $yStart $zStart $yEnd $zEnd
-                    row_ht(1) = (ele_props.clear_cover + 1) - ele_props.w/2;
-                    row_ht(2) = ele_props.w/2 - (ele_props.clear_cover + 1);
-                    for row = 1:num_bars(1)
-                        fprintf(fileID,'layer straight %i %i %f %f %f %f %f \n', 1000 + element.id(i), length(As), mean(As), depth_bars(1)-ele_props.h/2, row_ht(row), depth_bars(end)-ele_props.h/2, row_ht(row));
-                    end
-
-                fprintf(fileID,'} \n');
-
-                % element forceBeamColumn $eleTag $iNode $jNode $numIntgrPts $secTag $transfTag <-mass $massDens> <-iter $maxIters $tol> <-integration $intType>
-                fprintf(fileID,'element forceBeamColumn %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),5,element.id(i),geotransf);  
+                    % element MVLEM $eleTag $Dens $iNode $jNode $m $c -thick {Thicknesses} -width {Widths} -rho {Reinforcing_ratios} -matConcrete {Concrete_tags} -matSteel {Steel_tags} -matShear {Shear_tag}
+                    fprintf(fileID,'element MVLEM %i 0.0 %i %i 6 0.4 -thick 12.0 12.0 12.0 12.0 12.0 12.0 -width 37.5 37.5 37.5 37.5 37.5 37.5 -rho 0.002 0.002 0.002 0.002 0.002 0.002 -matConcrete %i %i %i %i %i %i -matSteel %i %i %i %i %i %i -matShear %i \n',element.id(i),element.node_1(i),element.node_2(i), 2000 + element.id(i), 2000 + element.id(i), 2000 + element.id(i), 2000 + element.id(i), 2000 + element.id(i), 2000 + element.id(i), 1000 + element.id(i), 1000 + element.id(i), 1000 + element.id(i), 1000 + element.id(i), 1000 + element.id(i), 1000 + element.id(i), 3000 + element.id(i));
+%                     fprintf(fileID,'Element MVLEM 1 0.0 1 2 8 0.4 -thick 4 4 4 4 4 4 4 4 -width 7.5 1.5 7.5 7.5 7.5 7.5 1.5 7.5 -rho 0.0293 0.0 0.0033 0.0033 0.0033 0.0033 0.0 0.0293 -matConcrete 3 4 4 4 4 4 4 3 -matSteel 1 2 2 2 2 2 2 1 -matShear 5 \n')
+                end
             end
         end
 

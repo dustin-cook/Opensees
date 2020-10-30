@@ -26,6 +26,14 @@ while scale_factor < analysis.scale_increment*25
         ground_motion.z.eq_name = {[ground_motion.z.eq_name{1} '.tcl']};
     end
     
+    % Load spectral info and save Sa
+    spectra_table = readtable([ground_motion.x.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
+    ground_motion.x.sa = interp1(spectra_table.period,spectra_table.psa_5,ida_results.period(1))*scale_factor;
+    if analysis.run_z_motion
+        spectra_table = readtable([ground_motion.z.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
+        ground_motion.z.sa = interp1(spectra_table.period,spectra_table.psa_5,ida_results.period(2))*scale_factor;
+    end
+
     % Create Output Directories
     ida_opensees_dir = [main_dir '/' 'IDA' '/' 'GM_' num2str(ground_motion.x.set_id) '_' num2str(ground_motion.x.pair) '/' 'Scale_' num2str(scale_factor) ];
     if ~exist(ida_opensees_dir,'dir')
@@ -41,7 +49,7 @@ while scale_factor < analysis.scale_increment*25
     if analysis.run_ida
         fprintf('Running GM ID: %i Pair: %i for Scale Factor %4.2f \n', gms2run.set_id(gm_idx), gms2run.pair(gm_idx), scale_factor)
         tim_start = tic;
-        [exit_status] = fn_main_IDA(analysis, model, story, element, node, hinge, joint, ground_motion, scale_factor, ida_results.period, tcl_dir, ida_opensees_dir, ida_summary_dir);
+        [exit_status] = fn_main_IDA(analysis, model, story, element, node, hinge, joint, ground_motion, tcl_dir, ida_opensees_dir, ida_summary_dir);
         tim_elapsed = toc(tim_start);
         if exit_status == 1
             fprintf('Failed GM ID: %i Pair: %i for Scale Factor %4.2f \n', gms2run.set_id(gm_idx), gms2run.pair(gm_idx), scale_factor)
