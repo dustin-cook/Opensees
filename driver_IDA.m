@@ -50,7 +50,7 @@ analysis.joint_explicit = 0;
 analysis.stories_nonlinear = inf;
 analysis.stories_nonlinear_low = 0;
 analysis.elastic_beams = 0;
-analysis.simple_recorders = 1;
+analysis.simple_recorders = 0;
 
 %% Import Packages
 import ida.*

@@ -41,7 +41,7 @@ analysis.cyclic_pushover_peak_drifts = [0.4, 0.5, 0.6]; % Percent of the final P
 analysis.hinge_group_length = 10;
 analysis.filter_accel = 0;
 analysis.filter_freq_range = [0.5, 1.5];
-analysis.simple_recorders = 1;
+analysis.simple_recorders = 0;
 analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 

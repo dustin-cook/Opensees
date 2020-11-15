@@ -282,9 +282,11 @@ for i = 1:length(dirs_ran)
     [ story.(['ave_disp_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' fld_names{i}]), story, node, 1 );
     [ story.(['residual_disp_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['residual_disp_' fld_names{i}]), story, node, 1 );
     story.(['torsional_factor_' fld_names{i}]) = story.(['max_disp_' fld_names{i}]) ./ story.(['ave_disp_' fld_names{i}]);
-    [ story.(['max_accel_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' fld_names{i} '_abs']), story, node, 0 );
-    if ~analysis.simple_recorders && analysis.type == 1 % Dynamic Analysis
-        story.(['max_accel_center_' fld_names{i}]) = node.(['max_accel_' fld_names{i} '_abs'])(node.center == 1 & node.record_accel == 1 & node.on_slab == 1);
+    if analysis.type == 1 % Dynamic Analysis
+        [ story.(['max_accel_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' fld_names{i} '_abs']), story, node, 0 );
+        if ~analysis.simple_recorders
+            story.(['max_accel_center_' fld_names{i}]) = node.(['max_accel_' fld_names{i} '_abs'])(node.center == 1 & node.record_accel == 1 & node.on_slab == 1);
+        end
     end
     if analysis.simple_recorders
         [ story.(['max_drift_' fld_names{i}]) ] = fn_drift_profile( node_TH, story, node(node.primary_story == 1,:), fld_names{i} );
