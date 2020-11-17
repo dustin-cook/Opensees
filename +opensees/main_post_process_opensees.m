@@ -101,7 +101,7 @@ end
 
 %% Load hinge reactions and deformations
 % Load Hinge Data
-if ~analysis.simple_recorders 
+% if ~analysis.simple_recorders 
     if analysis.nonlinear ~= 0 && ~isempty(hinge)
         max_story = max(hinge.story);
         for s = 1:max_story
@@ -121,11 +121,15 @@ if ~analysis.simple_recorders
             if strcmp(model.dimension,'3D')
                 if exist([opensees_dir filesep 'S' num2str(s) '_hinge_deformation_z' '.xml'],'file')
                     [ hinge_deformation_z ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_deformation_z' '.xml']);
-                    [ hinge_force_z ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_shear_z' '.xml']);
+                    if ~analysis.simple_recorders
+                        [ hinge_force_z ] = fn_xml_read([opensees_dir filesep 'S' num2str(s) '_hinge_shear_z' '.xml']);
+                    end
                     hinge_ids = hinge(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'shear') & hinge.story == s,:);
                     for h = 1:height(hinge_ids)
                         hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).deformation_TH = hinge_deformation_z(1:(end-clip),1+h);
-                        hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_z(1:(end-clip),1+h);
+                        if ~analysis.simple_recorders
+                            hinge_TH.(['hinge_' num2str(hinge_ids.id(h))]).force_TH = hinge_force_z(1:(end-clip),1+h);
+                        end
                     end
                 end
 
@@ -161,7 +165,7 @@ if ~analysis.simple_recorders
     %         end
     %     end
     end
-end
+% end
 
 %% Load Joint reactions and deformations
 joint_TH = [];

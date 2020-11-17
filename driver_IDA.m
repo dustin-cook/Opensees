@@ -10,7 +10,7 @@ clc
 % Define Model
 analysis.model_id = 9;
 analysis.proceedure = 'NDP';
-analysis.id = 'IDA';
+analysis.id = 'IDA_2';
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 1;
 
@@ -47,10 +47,10 @@ analysis.movie_scale = 0;
 analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 analysis.joint_explicit = 0;
-analysis.stories_nonlinear = inf;
+analysis.stories_nonlinear = 1;
 analysis.stories_nonlinear_low = 0;
 analysis.elastic_beams = 0;
-analysis.simple_recorders = 0;
+analysis.simple_recorders = 1;
 
 %% Import Packages
 import ida.*

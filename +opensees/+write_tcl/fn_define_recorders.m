@@ -64,7 +64,7 @@ if analysis.type == 1
     end
     
     % Hinges
-    if ~analysis.simple_recorders 
+%     if ~analysis.simple_recorders 
         if analysis.nonlinear ~= 0 && ~isempty(hinge)
             max_story = max(hinge.story);
             for s = 1:max_story
@@ -94,13 +94,15 @@ if analysis.type == 1
                     % Shear Hinges z direction 
                     hinge_ids = element.id(end) + hinge.id(strcmp(hinge.ele_direction,'z') & strcmp(hinge.direction,'primary') & strcmp(hinge.type,'shear') & hinge.story == s);
                     if ~isempty(hinge_ids)
-                        fprintf(fileID,'recorder Element %s %s/S%i_hinge_shear_z.%s -time -ele %s localForce \n', file_type, write_dir, s, file_ext, num2str(hinge_ids'));
+                        if ~analysis.simple_recorders
+                            fprintf(fileID,'recorder Element %s %s/S%i_hinge_shear_z.%s -time -ele %s localForce \n', file_type, write_dir, s, file_ext, num2str(hinge_ids'));
+                        end
                         fprintf(fileID,'recorder Element %s %s/S%i_hinge_deformation_z.%s -time -ele %s deformation \n', file_type, write_dir, s, file_ext, num2str(hinge_ids'));
                     end
                 end
             end
         end
-    end
+%     end
 %% Pushover and Cyclic Recorders
 elseif analysis.type == 2 || analysis.type == 3 
     if strcmp(analysis.pushover_direction,'x') || strcmp(analysis.pushover_direction,'-x')
