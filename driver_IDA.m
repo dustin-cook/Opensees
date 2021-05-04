@@ -8,18 +8,18 @@ clc
 
 %% User Inputs
 % Define Model
-analysis.model_id = 11;
+analysis.model_id = 8;
 analysis.proceedure = 'NDP';
-analysis.id = 'baseline_1';
+analysis.id = 'baseline_all';
 analysis.gm_set = 'FEMA_far_field';
-analysis.run_z_motion = 1;
+analysis.run_z_motion = 0;
 
 % Analysis options
 analysis.summit = 0;
 analysis.run_parallel = 0;
 analysis.run_ida = 0;
 analysis.post_process_ida = 0;
-analysis.create_fragilities = 1;
+analysis.create_fragilities = 0;
 analysis.plot_ida = 1;
 analysis.detialed_post_process = 0;
 analysis.scale_increment = 0.25;
@@ -29,7 +29,7 @@ analysis.clear_existing_data = 0;
 % Secondary options
 analysis.dead_load = 1;
 analysis.live_load = 1;
-analysis.opensees_SP = 1;
+analysis.opensees_SP = 0;
 analysis.type = 1;
 analysis.nonlinear = 1;
 analysis.damping = 'rayleigh';
@@ -111,7 +111,7 @@ end
 %% Plot Results
 if analysis.plot_ida
     fn_plot_ida(analysis, model, gm_set_table, ida_results, SSF_ew, main_dir)
-    fn_plot_new_frags(analysis, model, main_dir)
+%     fn_plot_new_frags(analysis, model, main_dir)
 %     fn_plot_hinge_values(analysis, model, IDA_scale_factors, gm_set_table)
 end
 

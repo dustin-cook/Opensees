@@ -24,11 +24,11 @@ fn_setup_analysis( ida_opensees_dir, tcl_dir, analysis, first_story_node, story 
 fn_define_analysis( ida_opensees_dir, ground_motion, first_story_node, story.story_ht, analysis, story )
 
 % Call Opensees
-fprintf('Running Opensess... \n')
+fprintf('Running OpenSees... \n')
 if analysis.summit
     command = ['/projects/duco1061/software/OpenSeesSP/bin/OpenSeesSP ' ida_opensees_dir filesep 'run_analysis.tcl'];
 else
-    command = ['openseesSP ' ida_opensees_dir filesep 'run_analysis.tcl'];
+    command = ['OpenSees ' ida_opensees_dir filesep 'run_analysis.tcl'];
 end
 if analysis.suppress_outputs
     [status,cmdout] = system(command);

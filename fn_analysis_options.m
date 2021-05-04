@@ -15,7 +15,7 @@ function [ analysis ] = fn_analysis_options( analysis )
 analysis.run_opensees = 1; % 1 = Run opensees, 0 = use existing results
 analysis.run_opensees_post_process = 1; % 1 = Run opensees, 0 = use existing results
 analysis.asce_41_post_process = 1; % 1 = run asce 41 post process logic
-analysis.opensees_SP = 1; % 0 = Standard OpenSees; 1 = OpenseesSP
+analysis.opensees_SP = 0; % 0 = Standard OpenSees; 1 = OpenseesSP
 
 % Model Options
 analysis.stories_nonlinear = 1; % Default to all modeling all stories as nonlinear when doing NDP
@@ -41,16 +41,16 @@ analysis.cyclic_pushover_peak_drifts = [0.4, 0.5, 0.6]; % Percent of the final P
 analysis.hinge_group_length = 10;
 analysis.filter_accel = 0;
 analysis.filter_freq_range = [0.5, 1.5];
-analysis.simple_recorders = 0;
+analysis.simple_recorders = 1;
 analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 
 % Visuals and Graphics
-analysis.element_plots = 1; % Plot hinge backnones and other per element visualizations
-analysis.plot_recordings = 1; % Plot analysis results v recorded results
+analysis.element_plots = 0; % Plot hinge backnones and other per element visualizations
+analysis.plot_recordings = 0; % Plot analysis results v recorded results
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 10; % Visual scale of the movie playback
-analysis.hinge_stories_2_plot = 2;
+analysis.hinge_stories_2_plot = 0;
 analysis.suppress_outputs = 0;
 
 %% Define Proceedure Options

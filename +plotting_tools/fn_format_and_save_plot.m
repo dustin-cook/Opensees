@@ -9,6 +9,8 @@ end
 
 fnt_sz = 10;
 set(gca,'FontSize',fnt_sz)
+% plot_dims = [100 100 400 300];
+plot_dims = [100 100 650 300];
 
 % Format plot
 if plot_ops == 1 % Default settings
@@ -16,6 +18,7 @@ if plot_ops == 1 % Default settings
     grid on
     grid minor
     box on
+    plot_dims = [100 100 650 300];
 elseif  plot_ops == 2
     grid on
     grid minor
@@ -37,7 +40,7 @@ end
 
 hold off
 
-set(gcf,'Position',[100 100 400 300])
+set(gcf,'Position',plot_dims)
 
 % Save and Close
 if ~exist('save_and_close','var') || save_and_close == 1

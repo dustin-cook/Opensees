@@ -88,10 +88,12 @@ for i = 1:height(hinge)
                 theta = 65*pi/180; % assumed 65 deg from Elwood 2004 
                 s = ele_prop.(['S_' num2str(hinge.ele_side(i))]);
                 hinge.P_demand(i) = ele.Pmax;
+                hinge.P_demand_grav(i) = ele.P_grav;
                 hinge.P_capacity(i) = min([(as*fyt*dc*tan(theta)/s)*((4*(1+(tan(theta)^2))/(100*summary.max_drift_x)) - tan(theta)),ele.Pn_c]);
                 hinge.P_dcr(i) = hinge.P_demand(i) / hinge.P_capacity(i);
             else % for beams, ignore axial stuff
                 hinge.P_demand(i) = 0;
+                hinge.P_demand_grav(i) = 0;
                 hinge.P_capacity(i) = 0;
                 hinge.P_dcr(i) = 0;
             end
@@ -129,7 +131,7 @@ for i = 1:height(hinge)
 end
 
 % Convergence Collapse Check
-if summary.collapse == 3 && max(max(hinge.b_ratio,hinge.e_ratio)) < 1.5
+if (summary.collapse == 2 || summary.collapse == 3) && max(max(hinge.b_ratio,hinge.e_ratio)) < 1.5
     summary.collapse = 5; % if no element goes past 1.5b, dont treat convergence as collapse
 end
 
@@ -165,7 +167,7 @@ save([ida_summary_dir filesep 'story_analysis.mat'],'story')
 save([ida_summary_dir filesep 'summary_results.mat'],'summary')
 
 % Delete post processed middle man opensees data
-rmdir(ida_opensees_dir, 's')
+% rmdir(ida_opensees_dir, 's')
 % delete([ida_opensees_dir filesep 'story_analysis.mat'])
 % delete([ida_opensees_dir filesep 'node_analysis.mat'])
 % delete([ida_opensees_dir filesep 'model_analysis.mat'])

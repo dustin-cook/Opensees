@@ -16,11 +16,11 @@ fclose('all');
 % Assumptions:
 
 %% User Inputs (Think about changing this to a file read and command line execution)
-analysis.model_id = 27;
-analysis.proceedure = 'NDP'; % LDP or NDP or test
-analysis.id = 'baseline_beams'; % ID of the analysis for it to create its own directory
+analysis.model_id = 11;
+analysis.proceedure = 'test'; % LDP or NDP or test
+analysis.id = 'eigen_test'; % ID of the analysis for it to create its own directory
 analysis.summit = 0; % Write tcl files to be run on summit and change location of opensees call
-analysis.gm_seq_id = 16; % Maybe also make this part ot the defaults or model?
+analysis.gm_seq_id = 12; % Maybe also make this part ot the defaults or model?
 analysis.skip_2_outputs = 0; % Skip all the way to the plotters
 
 %% Initial Setup
