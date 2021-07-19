@@ -27,7 +27,7 @@ if analysis.run_z_motion
 end
 
 % Hinge Ratios and Acceptance Criteria
-% if ~analysis.simple_recorders  
+if analysis.nonlinear ~= 0 && ~isempty(hinge)
     load([ida_opensees_dir filesep 'hinge_analysis.mat'])
     for i = 1:height(hinge)
         ele = element(element.id == hinge.element_id(i),:);
@@ -159,7 +159,7 @@ end
 
     % Plot Collapse Mechanism 
 %     fn_curt_plot_2D( hinge, element, node, story, 'Collapse Mechanism', ida_summary_dir )
-% end
+end
 
 % Save data for this run
 fprintf('Writing IDA Results to Directory: %s \n',ida_summary_dir)

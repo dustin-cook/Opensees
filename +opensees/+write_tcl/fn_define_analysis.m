@@ -47,6 +47,13 @@ elseif analysis.type == 2 || analysis.type == 3 % Pushover or Static Cyclic
         fprintf(fileID,'set ok [analyze %i] \n', analysis.pushover_num_steps);
         fprintf(fileID,'puts "analysis failure = $ok " \n');
     end
+elseif analysis.type == 4 % static lateral loading
+    fprintf(fileID,'set ok [analyze 100] \n');
+    fprintf(fileID,'if {$ok != 0} { \n');
+    fprintf(fileID,'puts "Analysis Failure: Lateral Load Failure" \n');
+    fprintf(fileID,'wipe \n');
+    fprintf(fileID,'exit \n');
+    fprintf(fileID,'} \n');
 end
 
 %% Specify Analysis Failure or Success
@@ -84,7 +91,6 @@ fprintf(fileID,'} \n');
 
 % Close File
 fclose(fileID);
-
 
 end
 

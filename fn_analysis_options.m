@@ -108,6 +108,13 @@ elseif strcmp(analysis.proceedure,'LDP') % Linear Test
     analysis.pushover_drift_list_z = [0.01, 0.01, NaN, NaN, NaN];
     analysis.accidental_torsion_list = [0, 0, 1, 1, 0];
     analysis.damp_ratio_list = [0.05, 0.05, 0.05, 0.05, 0.05]; % Analysis damping ratio
+    
+elseif strcmp(analysis.proceedure,'ELFP') % Linear Test
+    analysis.type_list = [4, 4, 4]; % 1 = dynamic, 2 = pushover % 3 = static cyclic, 4 =  static loads
+    analysis.nonlinear_list = [0, 0, 0]; % 0 = linear, 1 = IMK Rotational Hinge, 2 = strain hardening hinges
+    analysis.dead_load_list = [1.1, 0.9, 1.1]; % Dead load factor for linear analysis
+    analysis.live_load_list = [1.1, 0.0, 1.1]; % Live load factor for linear analysis
+    analysis.case_list = {'load_case_1', 'load_case_2', 'load_case_3'};
 end
 
 

@@ -103,8 +103,8 @@ if analysis.type == 1
             end
         end
 %     end
-%% Pushover and Cyclic Recorders
-elseif analysis.type == 2 || analysis.type == 3 
+%% Pushover, Cyclic, and Static Load Recorders
+elseif analysis.type == 2 || analysis.type == 3 || analysis.type == 4 
     if strcmp(analysis.pushover_direction,'x') || strcmp(analysis.pushover_direction,'-x')
         control_dof = 1;
     elseif strcmp(analysis.pushover_direction,'z') || strcmp(analysis.pushover_direction,'-z')

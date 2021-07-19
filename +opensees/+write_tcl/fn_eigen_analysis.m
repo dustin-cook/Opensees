@@ -18,7 +18,7 @@ fileID = fopen(file_name,'w');
 fprintf(fileID,'puts "Running Eigen ..." \n');
 
 % Initail Setup
-if strcmp(analysis.damping,'simple')
+if isfield(analysis,'damping') && strcmp(analysis.damping,'simple')
     num_modes = 2;
 else
     if strcmp(dims,'3D')
@@ -38,7 +38,7 @@ end
 
 % Perform Eigen Analysis
 fprintf(fileID,'set numModes %i \n',num_modes);
-if strcmp(analysis.damping,'simple')
+if isfield(analysis,'damping') && strcmp(analysis.damping,'simple')
     fprintf(fileID,'set lambda [eigen -fullGenLapack $numModes ] \n');
 else
     fprintf(fileID,'set lambda [eigen $numModes ] \n');

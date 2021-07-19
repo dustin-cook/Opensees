@@ -6,8 +6,10 @@ import opensees.write_tcl.*
 
 % Load spectral info and save Sa
 summary.sa_x = ground_motion.x.sa;
+summary.pga_x = analysis.ground_motion_scale_factor * ground_motion.x.pga;
 if analysis.run_z_motion
     summary.sa_z = ground_motion.z.sa;
+    summary.pga_z = analysis.ground_motion_scale_factor * ground_motion.z.pga;
 end
 
 % Write Recorders File
@@ -22,7 +24,7 @@ end
 if analysis.general_ida
     fn_define_loads_ida( ida_opensees_dir, analysis.ground_motion_scale_factor, model.dimension, ground_motion, analysis.g_unit )
 else
-    fn_define_loads( ida_opensees_dir, analysis, node, model.dimension, story, element, ground_motion )
+    fn_define_loads( ida_opensees_dir, analysis, node, model.dimension, story, element, joint, ground_motion, model )
 end
 
 % Write Analysis Files

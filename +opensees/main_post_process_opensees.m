@@ -18,8 +18,10 @@ end
 clip = 5;
 
 % Load timespace of analysis
-converge_tol_data = load([opensees_dir filesep 'converge_tol_file.txt'],'-ascii');
-eq_analysis_timespace = converge_tol_data(:,1);
+if analysis.type == 1 % dynamic analysis
+    converge_tol_data = load([opensees_dir filesep 'converge_tol_file.txt'],'-ascii');
+    eq_analysis_timespace = converge_tol_data(:,1);
+end
 
 %% Element Forces
 if ~analysis.simple_recorders   
@@ -30,6 +32,7 @@ if ~analysis.simple_recorders
     elseif strcmp(model.dimension,'2D')
         comp_names = {'P_TH','V_TH_1','M_TH_1','V_TH_2','M_TH_2'};
         comp_keys = [2,3,4,6,7];
+        comp_sign = [1, 1, -1, -1, 1];
     end
 
     % Loop through elements and save data
@@ -37,7 +40,7 @@ if ~analysis.simple_recorders
         % Force Time Histories
         if analysis.type == 1 % dynamic analysis
             ele_force_TH = fn_xml_read([opensees_dir filesep 'element_force_' num2str(i) '.xml']);
-        else % pushover analysis
+        elseif analysis.type == 2 || analysis.type == 3 % pushover or cyclic analysis
             if strcmp(element.direction{i},'x')
                 ele_force_TH_pos = fn_xml_read([opensees_dir filesep 'element_force_x_' num2str(i) '.xml']);
                 ele_force_TH_neg = fn_xml_read([opensees_dir filesep 'element_force_-x_' num2str(i) '.xml']);
@@ -57,25 +60,49 @@ if ~analysis.simple_recorders
                 min_push_length_oop = min(length(ele_force_TH_oop_pos(:,1)),length(ele_force_TH_oop_neg(:,1)));
                 ele_force_TH_oop = max(abs(ele_force_TH_oop_pos(1:min_push_length_oop,:)),abs(ele_force_TH_oop_neg(1:min_push_length_oop,:)));
             end
+        elseif analysis.type == 4 % static lateral loads
+            ele_force_TH = fn_xml_read([opensees_dir filesep 'element_force_x_' num2str(i) '.xml']);
         end
         for j = 1:length(comp_names)
-            if strcmp(model.dimension,'3D') && contains(comp_names{j},'oop') && analysis.type == 2 % Pushover out of plane
-                element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH_oop(1:(end-clip),comp_keys(j))';
+            if analysis.type == 4
+                ele_force.(comp_names{j}) = comp_sign(j)*ele_force_TH(end,comp_keys(j));
             else
-                element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH(1:(end-clip),comp_keys(j))';
+                if strcmp(model.dimension,'3D') && contains(comp_names{j},'oop') && analysis.type == 2 % Pushover out of plane
+                    element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH_oop(1:(end-clip),comp_keys(j))';
+                else
+                    element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH(1:(end-clip),comp_keys(j))';
+                end
             end
         end
 
         % Max Force for each element
-        element.P_grav(i) = abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH(1));
-        element.Pmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH));
-        element.Pmin(i) = min(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH));
-        element.Vmax_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_1));
-        element.Vmax_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_2));
-        element.Mmax_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_1));
-        element.Mmax_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_2));
-        element.Mgrav_1(i) = abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_1(1));
-        element.Mgrav_2(i) = abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_2(1));
+        if analysis.type == 4 % static lateral loads
+            element.Pmax(i) = ele_force.P_TH;
+            element.Pmin(i) = ele_force.P_TH;
+            element.V(i) = max(abs([ele_force.V_TH_1,ele_force.V_TH_2]));
+
+            % determine moments at max points in the member
+            w = element.gravity_load(i)/element.length(i);
+            x = min(max(ele_force.V_TH_1/w,0),element.length(i)); % distance to peak moment
+            if strcmp(element.type{i},'beam') && x>0 && x<element.length(i)
+                Mpeak = ele_force.M_TH_1 + ele_force.V_TH_1*x/2;
+                element.Mpos(i) = max([ele_force.M_TH_1,ele_force.M_TH_2,Mpeak,0]);
+                element.Mneg(i) = min([ele_force.M_TH_1,ele_force.M_TH_2,Mpeak,0]);
+            else
+                element.Mpos(i) = max([ele_force.M_TH_1,ele_force.M_TH_2,0]);
+                element.Mneg(i) = min([ele_force.M_TH_1,ele_force.M_TH_2,0]);
+            end
+        else
+            element.P_grav(i) = abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH(1));
+            element.Pmax(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH));
+            element.Pmin(i) = min(abs(element_TH.(['ele_' num2str(element.id(i))]).P_TH));
+            element.Vmax_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_1));
+            element.Vmax_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_2));
+            element.Mmax_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_1));
+            element.Mmax_2(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_2));
+            element.Mgrav_1(i) = abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_1(1));
+            element.Mgrav_2(i) = abs(element_TH.(['ele_' num2str(element.id(i))]).M_TH_2(1));
+        end
 
         if strcmp(model.dimension,'3D')
             element.Vmax_oop_1(i) = max(abs(element_TH.(['ele_' num2str(element.id(i))]).V_TH_oop_1));
@@ -86,11 +113,13 @@ if ~analysis.simple_recorders
     end
 
     % Save Element Time History
-    for i = 1:height(element)
-        ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
-        save([opensees_dir filesep 'element_TH_' num2str(element.id(i)) '.mat'],'ele_TH')
-        if analysis.type == 2 % Pushover Analysis
-            save([pushover_dir filesep 'element_TH_' num2str(element.id(i)) '.mat'],'ele_TH')
+    if analysis.type == 1 || analysis.type == 2 || analysis.type == 3
+        for i = 1:height(element)
+            ele_TH = element_TH.(['ele_' num2str(element.id(i))]);
+            save([opensees_dir filesep 'element_TH_' num2str(element.id(i)) '.mat'],'ele_TH')
+            if analysis.type == 2 % Pushover Analysis
+                save([pushover_dir filesep 'element_TH_' num2str(element.id(i)) '.mat'],'ele_TH')
+            end
         end
     end
 
@@ -199,6 +228,10 @@ elseif analysis.type == 2 || analysis.type == 3
         dirs_ran = {'x', '-x'};
         fld_names = {'x', 'x_neg'};
     end
+elseif analysis.type == 4
+    % Define Direction Ran
+    dirs_ran = {'x'};
+    fld_names = {'x'};
 end
 
 for i = 1:length(dirs_ran)
@@ -278,32 +311,54 @@ for i = 1:length(dirs_ran)
                node.(['residual_disp_' fld_names{i}])(n) = NaN;
            end       
         end
+   elseif analysis.type == 4 % Static Linear Loads
+        for n = 1:height(node)
+           if node.record_disp(n)
+               [ node_disp_raw ] = fn_xml_read([opensees_dir filesep 'nodal_disp_' dirs_ran{i} '_' num2str(node.id(n)) '.xml']);
+               node.(['max_disp_' fld_names{i}])(n) = abs(node_disp_raw(end,2));
+           else
+               node.(['max_disp_' fld_names{i}])(n) = NaN;
+           end       
+        end
    end
    
     % EDP Profiles
     [ story.(['max_disp_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' fld_names{i}]), story, node, 0 );
-    story.(['max_disp_center_' fld_names{i}]) = node.(['max_disp_' fld_names{i}])(node.center == 1 & node.record_disp == 1 & node.on_slab == 1);
     [ story.(['ave_disp_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_disp_' fld_names{i}]), story, node, 1 );
-    [ story.(['residual_disp_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['residual_disp_' fld_names{i}]), story, node, 1 );
-    story.(['torsional_factor_' fld_names{i}]) = story.(['max_disp_' fld_names{i}]) ./ story.(['ave_disp_' fld_names{i}]);
+    if strcmp(model.dimension,'3D')
+        story.(['max_disp_center_' fld_names{i}]) = node.(['max_disp_' fld_names{i}])(node.center == 1 & node.record_disp == 1 & node.on_slab == 1);
+        story.(['torsional_factor_' fld_names{i}]) = story.(['max_disp_' fld_names{i}]) ./ story.(['ave_disp_' fld_names{i}]);
+    end
+    if analysis.nonlinear > 0
+        [ story.(['residual_disp_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['residual_disp_' fld_names{i}]), story, node, 1 );
+    end
     if analysis.type == 1 % Dynamic Analysis
         [ story.(['max_accel_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' fld_names{i} '_abs']), story, node, 0 );
         if ~analysis.simple_recorders
             story.(['max_accel_center_' fld_names{i}]) = node.(['max_accel_' fld_names{i} '_abs'])(node.center == 1 & node.record_accel == 1 & node.on_slab == 1);
         end
     end
-    if analysis.simple_recorders
-        [ story.(['max_drift_' fld_names{i}]) ] = fn_drift_profile( node_TH, story, node(node.primary_story == 1,:), fld_names{i} );
-    else
-        [ story.(['max_drift_' fld_names{i}]) ] = fn_drift_profile( node_TH, story, node, fld_names{i} );
-        [ story.(['max_twist_' fld_names{i}]) ] = fn_twist_profile( node_TH, story, node, fld_names{i} );
+    if exist('node_TH','var')
+        if analysis.simple_recorders
+            [ story.(['max_drift_' fld_names{i}]) ] = fn_drift_profile( node_TH, story, node(node.primary_story == 1,:), fld_names{i} );
+        else
+            [ story.(['max_drift_' fld_names{i}]) ] = fn_drift_profile( node_TH, story, node, fld_names{i} );
+            if strcmp(model.dimension,'3D')
+                [ story.(['max_twist_' fld_names{i}]) ] = fn_twist_profile( node_TH, story, node, fld_names{i} );
+            end
+        end
     end
 
     % Base shear reactions
     if ~analysis.simple_recorders
         [ base_node_reactions ] = fn_xml_read([opensees_dir filesep 'nodal_base_reaction_' dirs_ran{i} '.xml']);
-        story_TH.(['base_shear_' fld_names{i} '_TH']) = sum(base_node_reactions(1:(end-clip),2:end),2)';
-        story.(['max_reaction_' fld_names{i}])(1) = max(abs(story_TH.(['base_shear_' fld_names{i} '_TH'])));
+        if analysis.type == 4
+            story.(['max_reaction_' fld_names{i}])(1) = abs(sum(base_node_reactions(end,2:end)));
+        else
+            story_TH.(['base_shear_' fld_names{i} '_TH']) = sum(base_node_reactions(1:(end-clip),2:end),2)';
+            story.(['max_reaction_' fld_names{i}])(1) = max(abs(story_TH.(['base_shear_' fld_names{i} '_TH'])));
+        end
+        
     end
     
     % Load Mode shape data and period
@@ -388,43 +443,45 @@ elseif analysis.type == 3 % Cyclic Analysis
 end
 
 % Save Time History Data
-if ~analysis.simple_recorders
-    for i = 1:height(node)
-        nd_TH = node_TH.(['node_' num2str(node.id(i)) '_TH']);
-        save([opensees_dir filesep 'node_TH_' num2str(node.id(i)) '.mat'],'nd_TH')
-        if analysis.type == 2 % Pushover Analysis
-            save([pushover_dir filesep 'node_TH_' num2str(node.id(i)) '.mat'],'nd_TH')
-        end
-    end
-end
-
-if analysis.nonlinear && exist('hinge_TH','var')
-    for i = 1:height(hinge)
-        if isfield(hinge_TH,['hinge_' num2str(hinge.id(i))])
-            hin_TH = hinge_TH.(['hinge_' num2str(hinge.id(i))]);
-            save([opensees_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'hin_TH')
+if analysis.type == 1 || analysis.type == 2 || analysis.type == 3
+    if ~analysis.simple_recorders
+        for i = 1:height(node)
+            nd_TH = node_TH.(['node_' num2str(node.id(i)) '_TH']);
+            save([opensees_dir filesep 'node_TH_' num2str(node.id(i)) '.mat'],'nd_TH')
             if analysis.type == 2 % Pushover Analysis
-                save([pushover_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'hin_TH')
+                save([pushover_dir filesep 'node_TH_' num2str(node.id(i)) '.mat'],'nd_TH')
             end
         end
     end
-    if analysis.joint_explicit == 1
-        for i = 1:height(joint)
-            if isfield(joint_TH,['joint_' num2str(joint.id(i))])
-                jnt_TH = joint_TH.(['joint_' num2str(joint.id(i))]);
-                save([opensees_dir filesep 'joint_TH_' num2str(joint.id(i)) '.mat'],'jnt_TH')
+
+    if analysis.nonlinear && exist('hinge_TH','var')
+        for i = 1:height(hinge)
+            if isfield(hinge_TH,['hinge_' num2str(hinge.id(i))])
+                hin_TH = hinge_TH.(['hinge_' num2str(hinge.id(i))]);
+                save([opensees_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'hin_TH')
                 if analysis.type == 2 % Pushover Analysis
-                    save([pushover_dir filesep 'joint_TH_' num2str(joint.id(i)) '.mat'],'jnt_TH')
+                    save([pushover_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'hin_TH')
+                end
+            end
+        end
+        if analysis.joint_explicit == 1
+            for i = 1:height(joint)
+                if isfield(joint_TH,['joint_' num2str(joint.id(i))])
+                    jnt_TH = joint_TH.(['joint_' num2str(joint.id(i))]);
+                    save([opensees_dir filesep 'joint_TH_' num2str(joint.id(i)) '.mat'],'jnt_TH')
+                    if analysis.type == 2 % Pushover Analysis
+                        save([pushover_dir filesep 'joint_TH_' num2str(joint.id(i)) '.mat'],'jnt_TH')
+                    end
                 end
             end
         end
     end
-end
 
-if ~analysis.simple_recorders
-    save([opensees_dir filesep 'story_TH.mat'],'story_TH')
-    if analysis.type == 2 % Pushover Analysis
-        save([pushover_dir filesep 'story_TH.mat'],'story_TH')
+    if ~analysis.simple_recorders
+        save([opensees_dir filesep 'story_TH.mat'],'story_TH')
+        if analysis.type == 2 % Pushover Analysis
+            save([pushover_dir filesep 'story_TH.mat'],'story_TH')
+        end
     end
 end
 

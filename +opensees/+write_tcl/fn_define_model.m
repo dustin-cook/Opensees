@@ -1,11 +1,15 @@
-function [ joint_ele_ids ] = fn_define_model( write_dir, node, element, joint, hinge, analysis, dimension, story, read_dir_analysis )
+function [ joint_ele_ids ] = fn_define_model( write_dir, node, element, joint, hinge, analysis, dimension, story, read_dir_analysis, model )
 %UNTITLED6 Summary of this function goes here
 
 %% Import Tools
 import asce_41.*
 
 %% Load element properties table
-ele_props_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
+if analysis.model_type == 3
+    ele_props_table = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'],'Sheet','element'); % for archetype models, the model properties are already in the table
+else
+    ele_props_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
+end
 
 %% Write TCL file
 file_name = [write_dir filesep 'model.tcl'];
@@ -101,7 +105,7 @@ for i = 1:height(element)
         if analysis.model_type == 1 % SDOF
             % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
             fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),element.a,element.e,element.iz,geotransf);
-        elseif analysis.model_type == 2 %MDOF
+        else %MDOF or archetype
             if analysis.nonlinear ~= 0 % Nonlinear Analysis
                 Iz_ele = ele_props.iz*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
                 Iy_ele = ele_props.iy*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod);
@@ -494,6 +498,104 @@ if height(joint) > 0
                     fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,joint_center_node,joint.y_pos(i));
                 end
             end
+        elseif analysis.joint_model == 3  % Rigid joint model
+            joint_ele_ids = [(1:6)+joint.id(i)*1000000,joint_ele_ids];
+            joint_center.x = node.x(node.id == joint.y_pos(i),:);
+            joint_center.y = node.y(node.id == joint.x_pos(i),:);
+            joint_center.z = node.z(node.id == joint.x_pos(i),:);
+            joint_center_node = 40000+i;
+            if strcmp(dimension,'2D')
+                fprintf(fileID,'node %i %f %f \n',joint_center_node,joint_center.x,joint_center.y);
+            else
+                fprintf(fileID,'node %i %f %f %f \n',joint_center_node,joint_center.x,joint_center.y,joint_center.z);
+            end
+            bm_left = element(element.id == joint.beam_left(i),:);
+            bm_right = element(element.id == joint.beam_right(i),:);
+            col_low = element(element.id == joint.column_low(i),:);
+            col_high = element(element.id == joint.column_high(i),:);
+            if ~isempty(bm_left)
+                if strcmp(dimension,'2D')
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 200000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),joint_center_node);
+                else
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),joint_center_node);
+                end
+            end
+            if ~isempty(bm_right)
+                if strcmp(dimension,'2D')
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 200000. 2 \n',joint.id(i)*1000000+2,joint_center_node,joint.x_pos(i));
+                else
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+2,joint_center_node,joint.x_pos(i));
+                end
+            end
+            if ~isempty(col_low)
+                if strcmp(dimension,'2D')
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),joint_center_node);
+                else
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),joint_center_node);
+                end
+            end
+            if ~isempty(col_high)
+                if strcmp(dimension,'2D')
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 200000. 1 \n',joint.id(i)*1000000+4,joint_center_node,joint.y_pos(i));
+                else
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,joint_center_node,joint.y_pos(i));
+                end
+            else
+                if strcmp(dimension,'2D')
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 200000. 1 \n',joint.id(i)*1000000+4,joint_center_node,joint.y_pos(i));
+                else
+                    fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,joint_center_node,joint.y_pos(i));
+                end
+            end
+            
+            
+%             joint_ele_ids = [(1:6)+joint.id(i)*1000000,joint_ele_ids];
+%             joint_center.x = node.x(node.id == joint.y_pos(i),:);
+%             joint_center.y = node.y(node.id == joint.x_pos(i),:);
+%             joint_center.z = node.z(node.id == joint.x_pos(i),:);
+%             joint_center_node = 40000+i;
+%             if strcmp(dimension,'2D')
+%                 fprintf(fileID,'node %i %f %f \n',joint_center_node,joint_center.x,joint_center.y);
+%             else
+%                 fprintf(fileID,'node %i %f %f %f \n',joint_center_node,joint_center.x,joint_center.y,joint_center.z);
+%             end
+%                 
+%             bm_left = element(element.id == joint.beam_left(i),:);
+%             bm_right = element(element.id == joint.beam_right(i),:);
+%             col_low = element(element.id == joint.column_low(i),:);
+%             col_high = element(element.id == joint.column_high(i),:);
+%             
+%             % Primary Beam Offsets
+%             if ~isempty(bm_left)
+%                 if strcmp(dimension,'2D')
+%                     fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 200000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),joint_center_node);
+%                 else
+%                     fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+1,joint.x_neg(i),joint_center_node);
+%                 end
+%             end
+%             if ~isempty(bm_right)
+%                 if strcmp(dimension,'2D')
+%                     fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 200000. 2 \n',joint.id(i)*1000000+2,joint_center_node,joint.x_pos(i));
+%                 else
+%                     fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 2 \n',joint.id(i)*1000000+2,joint_center_node,joint.x_pos(i));
+%                 end
+%             end
+%             
+%             % Column Offsets
+%             if ~isempty(col_low)
+%                 if strcmp(dimension,'2D')
+%                     fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),joint_center_node);
+%                 else
+%                     fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+3,joint.y_neg(i),joint_center_node);
+%                 end
+%             end
+%             if ~isempty(col_high)
+%                 if strcmp(dimension,'2D')
+%                     fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 200000. 1 \n',joint.id(i)*1000000+4,joint_center_node,joint.y_pos(i));
+%                 else
+%                     fprintf(fileID,'element elasticBeamColumn %i %i %i 1000. 99999999. 99999999. 99999. 200000. 200000. 1 \n',joint.id(i)*1000000+4,joint_center_node,joint.y_pos(i));
+%                 end
+%             end
         end
     end
 end

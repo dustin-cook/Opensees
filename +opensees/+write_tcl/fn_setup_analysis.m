@@ -51,6 +51,7 @@ if analysis.type == 1 % Dynamic Analysis
     
     % Define analysis type
     fprintf(fileID,'analysis Transient \n');
+    
 elseif analysis.type == 2 || analysis.type == 3 % Pushover or Cyclic Analysis
     % Define Each Load Step
     [ control_node, control_dof, ~, step_size ] = fn_pushover_properties( primary_nodes, analysis, story );
@@ -58,6 +59,10 @@ elseif analysis.type == 2 || analysis.type == 3 % Pushover or Cyclic Analysis
     fprintf(fileID,'integrator %s \n',int_controller);
 
     % Define analysis type
+    fprintf(fileID,'analysis Static \n');
+    
+elseif analysis.type == 4 % static lateral loads
+    fprintf(fileID,'integrator LoadControl 0.01 \n');
     fprintf(fileID,'analysis Static \n');
 end
 

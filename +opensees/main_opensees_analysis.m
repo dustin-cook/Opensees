@@ -6,23 +6,31 @@ function [ ] = main_opensees_analysis( model, analysis )
 % Import Packages
 import opensees.*
 import asce_41.*
+import asce_7.*
+
+% Define site hazard design values (pass into function instead)
+site.Sds = 1;
 
 % Create Write Directory
-write_dir_opensees = ['outputs/' model.name{1} '/' analysis.proceedure '_' analysis.id '/opensees_data']; % TCL or Opensees does not like filesep command on windows, therefore must manually define forward slash seperators
+% TCL or Opensees does not like filesep command on windows, therefore must manually define forward slash seperators
+write_dir_opensees = [strrep(analysis.out_dir,'\','/') '/opensees_data']; 
 if analysis.run_opensees % Don't clear the file if you don't want to run opensees
     fn_make_directory( write_dir_opensees )
 end
 
 % Define Read Directories
-read_dir_model = [analysis.out_dir filesep 'model_data'];
+if ~isfield(analysis,'model_dir')
+    % if model directory is not already defined
+    analysis.model_dir = [analysis.out_dir filesep 'model_data'];
+end
 read_dir_analysis = [analysis.out_dir filesep 'asce_41_data'];
 
 % Load Model Data
-node = readtable([read_dir_model filesep 'node.csv'],'ReadVariableNames',true);
-element = readtable([read_dir_model filesep 'element.csv'],'ReadVariableNames',true);
-story = readtable([read_dir_model filesep 'story.csv'],'ReadVariableNames',true);
-joint = readtable([read_dir_model filesep 'joint.csv'],'ReadVariableNames',true);
-hinge = readtable([read_dir_model filesep 'hinge.csv'],'ReadVariableNames',true);
+node = readtable([analysis.model_dir filesep 'node.csv'],'ReadVariableNames',true);
+element = readtable([analysis.model_dir filesep 'element.csv'],'ReadVariableNames',true);
+story = readtable([analysis.model_dir filesep 'story.csv'],'ReadVariableNames',true);
+joint = readtable([analysis.model_dir filesep 'joint.csv'],'ReadVariableNames',true);
+hinge = readtable([analysis.model_dir filesep 'hinge.csv'],'ReadVariableNames',true);
 
 % Define element hinge properties if not already defined
 if analysis.nonlinear ~= 0 && analysis.model_type == 2 && ~exist([read_dir_analysis filesep 'element_analysis.mat'],'file')
@@ -36,6 +44,9 @@ if analysis.nonlinear ~= 0 && analysis.model_type == 2 && ~exist([read_dir_analy
     save([read_dir_analysis filesep 'element_analysis.mat'],'element')
     save([read_dir_analysis filesep 'joint_analysis.mat'],'joint')
 end
+
+%% Factor Loads
+[ element ] = fn_factor_loads( analysis, element );
 
 %% Run Opensees
 % Define Number of Opensees runs to be performed
@@ -53,18 +64,22 @@ for i = 1:num_OS_runs
     % Define inputs for this run
     analysis.pushover_direction = pushover_directions{i};
 
-    % Load ground motion data
-    gm_seq_table = readtable(['inputs' filesep 'ground_motion_sequence.csv'],'ReadVariableNames',true);
-    ground_motion_seq = gm_seq_table(gm_seq_table.id == analysis.gm_seq_id,:);
-    ground_motion_table = readtable(['inputs' filesep 'ground_motion.csv'],'ReadVariableNames',true);
-    if ground_motion_seq.eq_id_x ~= 0
-        ground_motion.x = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_x,:);
-    end
-    if ground_motion_seq.eq_id_z ~= 0
-        ground_motion.z = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_z,:);
-    end
-    if ground_motion_seq.eq_id_y ~= 0
-        ground_motion.y = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_y,:);
+    % Load ground motion data for dynamic analyses
+    if analysis.type == 1
+        gm_seq_table = readtable(['inputs' filesep 'ground_motion_sequence.csv'],'ReadVariableNames',true);
+        ground_motion_seq = gm_seq_table(gm_seq_table.id == analysis.gm_seq_id,:);
+        ground_motion_table = readtable(['inputs' filesep 'ground_motion.csv'],'ReadVariableNames',true);
+        if ground_motion_seq.eq_id_x ~= 0
+            ground_motion.x = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_x,:);
+        end
+        if ground_motion_seq.eq_id_z ~= 0
+            ground_motion.z = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_z,:);
+        end
+        if ground_motion_seq.eq_id_y ~= 0
+            ground_motion.y = ground_motion_table(ground_motion_table.id == ground_motion_seq.eq_id_y,:);
+        end
+    else
+        ground_motion = [];
     end
     
     % Define Hinge Group
@@ -83,7 +98,7 @@ for i = 1:num_OS_runs
     
     if analysis.run_opensees
         % Write TCL files
-        main_write_tcl( model.dimension, write_dir_opensees, node, element, story, joint, hinge, analysis, read_dir_analysis, ground_motion, hinge_grouping );
+        main_write_tcl( model.dimension, write_dir_opensees, node, element, story, joint, hinge, analysis, read_dir_analysis, ground_motion, model );
 
         % Run Opensees
         fprintf('Running Opensees Analysis %i of %i \n',i,num_OS_runs)

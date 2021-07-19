@@ -12,6 +12,7 @@ function [ ] = main_build_model( model, analysis, ele_prop_table )
 % Assumptions:
 
 %% Initial Setup
+import build_model.fn_build_archetype
 import build_model.fn_build_mdof
 import build_model.fn_build_sdof
 
@@ -24,7 +25,9 @@ fn_make_directory( write_dir )
 
 %% Begin Method
 % Select Model Type
-if analysis.model_type == 2 % MDOF Model
+if analysis.model_type == 3 % Archetype Model
+    fn_build_archetype( model, write_dir )
+elseif analysis.model_type == 2 % MDOF Model
     fn_build_mdof( model, ele_prop_table, analysis, write_dir, read_dir )
 elseif analysis.model_type == 1 % SDOF Model
     fn_build_sdof( model, analysis, write_dir )
