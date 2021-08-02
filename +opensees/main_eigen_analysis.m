@@ -10,9 +10,7 @@ import opensees.write_tcl.*
 % Create Write Directory
 % TCL or Opensees does not like filesep command on windows, therefore must manually define forward slash seperators
 write_dir_opensees = [strrep(analysis.out_dir,'\','/') '/eigen_analysis']; 
-if analysis.run_opensees % Don't clear the file if you don't want to run opensees
-    fn_make_directory( write_dir_opensees )
-end
+fn_make_directory( write_dir_opensees )
 
 % Define Read Directories
 read_dir_model = [analysis.out_dir filesep 'model_data'];

@@ -362,7 +362,7 @@ for i = 1:length(dirs_ran)
     end
     
     % Load Mode shape data and period
-    if analysis.run_eigen
+    if exist([opensees_dir filesep 'period.txt'],'file')
         periods = dlmread([opensees_dir filesep 'period.txt']);
         if strcmp(dirs_ran{i},'x')
             % Save periods

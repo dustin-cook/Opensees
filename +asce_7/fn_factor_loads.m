@@ -1,4 +1,4 @@
-function [ element ] = fn_factor_loads( analysis, element )
+function [ element ] = fn_factor_loads( analysis, element, site )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 

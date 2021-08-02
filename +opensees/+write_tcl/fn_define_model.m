@@ -3,6 +3,7 @@ function [ joint_ele_ids ] = fn_define_model( write_dir, node, element, joint, h
 
 %% Import Tools
 import asce_41.*
+import build_model.fn_node_exist
 
 %% Load element properties table
 if analysis.model_type == 3
@@ -107,14 +108,20 @@ for i = 1:height(element)
             fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),element.a,element.e,element.iz,geotransf);
         else %MDOF or archetype
             if analysis.nonlinear ~= 0 % Nonlinear Analysis
-                Iz_ele = ele_props.iz*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
-                Iy_ele = ele_props.iy*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod);
+                if analysis.model_type == 3 % Archetype model
+                    Iz_ele = ele_props.iz_model*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
+                else
+                    Iz_ele = ele_props.iz*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
+                end
+                
                 if strcmp(dimension,'2D')
                     % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
                     fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,Iz_ele,geotransf);
                     % element ElasticTimoshenkoBeam $eleTag $iNode $jNode $E $G $A $Iz $Avy $transfTag <-mass $massDens> <-cMass>
 %                     fprintf(fileID,'element ElasticTimoshenkoBeam %i %i %i %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.e,ele_props.g,ele_props.a,Iz_ele,(5/6)*ele_props.a,geotransf);
                 elseif strcmp(dimension,'3D')
+                    Iy_ele = ele_props.iy*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod);
+                    
                     % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
                     fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,Iy_ele,Iz_ele,geotransf);
                 end
@@ -450,12 +457,27 @@ if height(joint) > 0
             joint_center.x = node.x(node.id == joint.y_pos(i),:);
             joint_center.y = node.y(node.id == joint.x_pos(i),:);
             joint_center.z = node.z(node.id == joint.x_pos(i),:);
-            joint_center_node = 40000+i;
-            if strcmp(dimension,'2D')
-                fprintf(fileID,'node %i %f %f \n',joint_center_node,joint_center.x,joint_center.y);
+            exist_node_filt = node.x == joint_center.x & node.y == joint_center.y & node.z == joint_center.z; 
+            if sum(exist_node_filt) == 0 
+                % No current node, therefore create a new one
+                joint_center_node = 40000+i;
+                if strcmp(dimension,'2D')
+                    fprintf(fileID,'node %i %f %f \n',joint_center_node,joint_center.x,joint_center.y);
+    %                 fprintf(fileID,'fix %i 0 0 0 \n',joint_center_node);
+    %                 fprintf(fileID,'mass %i 0.01 0.01 0.01 \n',joint_center_node);
+                else
+                    fprintf(fileID,'node %i %f %f %f \n',joint_center_node,joint_center.x,joint_center.y,joint_center.z);
+                end
+            elseif sum(exist_node_filt) == 1 
+                % Use existing node
+                joint_center_node = node.id(exist_node_filt);
             else
-                fprintf(fileID,'node %i %f %f %f \n',joint_center_node,joint_center.x,joint_center.y,joint_center.z);
+                % found multiple nodes! Should not get here
+                error('Multiple Nodes Found. Revise code')
             end
+            
+            
+
             bm_left = element(element.id == joint.beam_left(i),:);
             bm_right = element(element.id == joint.beam_right(i),:);
             col_low = element(element.id == joint.column_low(i),:);
@@ -619,7 +641,7 @@ if height(hinge) > 0
             [ element_analysis, joint ] = main_element_capacity( story, ele_props_table, element, analysis, joint, read_dir_analysis );
             [ element_analysis, ~ ] = main_hinge_properties( ele_props_table, element_analysis, joint );
         end
-    else % SDOF
+    else % SDOF or Archetype
         element_analysis = element;
     end
     
@@ -658,8 +680,10 @@ if height(hinge) > 0
 
             if analysis.model_type == 2 % MDOF
                 ele_props = ele_props_table(ele_props_table.id == ele.ele_id,:);
-            else % SDOF
+            elseif analysis.model_type == 1 % SDOF
                 ele_props = element;
+            elseif analysis.model_type == 3 % archetype
+                ele_props = element_analysis(element_analysis.id == hin.element_id,:);
             end
 
             if analysis.nonlinear ~= 0

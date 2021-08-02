@@ -31,7 +31,11 @@ if analysis.nonlinear ~= 0 && ~isempty(hinge)
     load([ida_opensees_dir filesep 'hinge_analysis.mat'])
     for i = 1:height(hinge)
         ele = element(element.id == hinge.element_id(i),:);
-        ele_prop = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
+        if analysis.model_type == 3
+            ele_prop = ele;
+        else
+            ele_prop = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
+        end
         if exist([ida_opensees_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'file')
             load([ida_opensees_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat']);
             hinge.hinge_deform(i) = max(abs(hin_TH.deformation_TH));
@@ -43,17 +47,16 @@ if analysis.nonlinear ~= 0 && ~isempty(hinge)
                 hinge.d_ratio(i) = hinge.tot_deform(i) / hinge.d_value_tot(i);
                 hinge.e_value_tot(i) = ele.(['e_hinge_' num2str(hinge.ele_side(i))]);
                 hinge.e_ratio(i) = hinge.tot_deform(i) / hinge.e_value_tot(i);
-                hinge.io_value_tot(i) = ele.(['io_' num2str(hinge.ele_side(i))]);
-                hinge.io_ratio(i) = hinge.tot_deform(i) / hinge.io_value_tot(i);
-                hinge.ls_value_tot(i) = ele.(['ls_' num2str(hinge.ele_side(i))]);
-                hinge.ls_ratio(i) = hinge.tot_deform(i) / hinge.ls_value_tot(i);
-                hinge.cp_value_tot(i) = ele.(['cp_' num2str(hinge.ele_side(i))]);
-                hinge.cp_ratio(i) = hinge.tot_deform(i) / hinge.cp_value_tot(i);
+                
+                if analysis.model_type ~= 3 % not archetype models
+                    hinge.io_value_tot(i) = ele.(['io_' num2str(hinge.ele_side(i))]);
+                    hinge.io_ratio(i) = hinge.tot_deform(i) / hinge.io_value_tot(i);
+                    hinge.ls_value_tot(i) = ele.(['ls_' num2str(hinge.ele_side(i))]);
+                    hinge.ls_ratio(i) = hinge.tot_deform(i) / hinge.ls_value_tot(i);
+                    hinge.cp_value_tot(i) = ele.(['cp_' num2str(hinge.ele_side(i))]);
+                    hinge.cp_ratio(i) = hinge.tot_deform(i) / hinge.cp_value_tot(i);
+                end
             else % Everything Else
-                % Shear force Properties
-                hinge.shear_demand(i) = ele.(['Vmax_' num2str(hinge.ele_side(i))]);
-                hinge.asce41_shear_capacity(i) = ele.(['Vn_' num2str(hinge.ele_side(i))]);
-
                 % Rotation properties
                 K_elastic = 6*ele_prop.e*ele_prop.iz/ele.length;
                 theta_yeild_total = ele.Mn_pos_1/K_elastic; % only for column bases currently
@@ -73,28 +76,35 @@ if analysis.nonlinear ~= 0 && ~isempty(hinge)
                 hinge.a_ratio(i) = hinge.tot_deform(i) / hinge.a_value_tot(i);
                 hinge.b_value_tot(i) = ele.(['b_hinge_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
                 hinge.b_ratio(i) = hinge.tot_deform(i) / hinge.b_value_tot(i);
-                hinge.io_value_tot(i) = ele.(['io_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
-                hinge.io_ratio(i) = hinge.tot_deform(i) / hinge.io_value_tot(i);
-                hinge.ls_value_tot(i) = ele.(['ls_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
-                hinge.ls_ratio(i) = hinge.tot_deform(i) / hinge.ls_value_tot(i);
-                hinge.cp_value_tot(i) = ele.(['cp_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
-                hinge.cp_ratio(i) = hinge.tot_deform(i) / hinge.cp_value_tot(i);
 
-                if strcmp(ele.type,'column')
-                    % Calculate the column axial capacity based on Elwood 2004
-                    % limit state (only for flexure-shear columns)
-                    as = ele_prop.(['Av_' num2str(hinge.ele_side(i))]);
-                    fyt = ele_prop.fy_e;
-                    dc = ele_prop.w/2 - ele_prop.clear_cover;
-                    theta = 65*pi/180; % assumed 65 deg from Elwood 2004 
-                    s = ele_prop.(['S_' num2str(hinge.ele_side(i))]);
-                    hinge.P_demand(i) = ele.Pmax;
-                    hinge.P_capacity(i) = min([(as*fyt*dc*tan(theta)/s)*((4*(1+(tan(theta)^2))/(100*summary.max_drift_x)) - tan(theta)),ele.Pn_c]);
-                    hinge.P_dcr(i) = hinge.P_demand(i) / hinge.P_capacity(i);
-                else % for beams, ignore axial stuff
-                    hinge.P_demand(i) = 0;
-                    hinge.P_capacity(i) = 0;
-                    hinge.P_dcr(i) = 0;
+                if analysis.model_type ~= 3 % not archetype models
+                    hinge.io_value_tot(i) = ele.(['io_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
+                    hinge.io_ratio(i) = hinge.tot_deform(i) / hinge.io_value_tot(i);
+                    hinge.ls_value_tot(i) = ele.(['ls_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
+                    hinge.ls_ratio(i) = hinge.tot_deform(i) / hinge.ls_value_tot(i);
+                    hinge.cp_value_tot(i) = ele.(['cp_' num2str(hinge.ele_side(i))]) + theta_yeild_total;
+                    hinge.cp_ratio(i) = hinge.tot_deform(i) / hinge.cp_value_tot(i);
+
+                    % Shear force Properties
+                    hinge.shear_demand(i) = ele.(['Vmax_' num2str(hinge.ele_side(i))]);
+                    hinge.asce41_shear_capacity(i) = ele.(['Vn_' num2str(hinge.ele_side(i))]);
+
+                    if strcmp(ele.type,'column')
+                        % Calculate the column axial capacity based on Elwood 2004
+                        % limit state (only for flexure-shear columns)
+                        as = ele_prop.(['Av_' num2str(hinge.ele_side(i))]);
+                        fyt = ele_prop.fy_e;
+                        dc = ele_prop.w/2 - ele_prop.clear_cover;
+                        theta = 65*pi/180; % assumed 65 deg from Elwood 2004 
+                        s = ele_prop.(['S_' num2str(hinge.ele_side(i))]);
+                        hinge.P_demand(i) = ele.Pmax;
+                        hinge.P_capacity(i) = min([(as*fyt*dc*tan(theta)/s)*((4*(1+(tan(theta)^2))/(100*summary.max_drift_x)) - tan(theta)),ele.Pn_c]);
+                        hinge.P_dcr(i) = hinge.P_demand(i) / hinge.P_capacity(i);
+                    else % for beams, ignore axial stuff
+                        hinge.P_demand(i) = 0;
+                        hinge.P_capacity(i) = 0;
+                        hinge.P_dcr(i) = 0;
+                    end
                 end
 
     %             % EuroCode
@@ -131,7 +141,12 @@ if analysis.nonlinear ~= 0 && ~isempty(hinge)
 
 
     % Convergence Collapse Check
-    if summary.collapse == 3 && max(max(hinge.b_ratio,hinge.e_ratio)) < 1.5
+    if isfield(hinge,'e_ratio')
+        max_ratio = max(max(hinge.b_ratio,hinge.e_ratio));
+    else
+        max_ratio = max(hinge.b_ratio);
+    end
+    if summary.collapse == 3 && max_ratio < 1.5
         summary.collapse = 5; % if no element goes past 1.5b, dont treat convergence as collapse
     end
 

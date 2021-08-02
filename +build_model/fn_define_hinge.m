@@ -6,6 +6,16 @@ function [ node, element, hinge ] = fn_define_hinge( analysis, model, hinge, ele
 % Import Packages
 import build_model.fn_create_hinge
 
+% assign rigid flag if not already assigned
+if ~isfield(element,'rigid')
+    element.rigid = zeros(length(element.id),1); % assume not rigid;
+end
+
+% assign elastic flag if not already assigned
+if ~isfield(element,'elastic')
+    element.elastic = zeros(length(element.id),1); % assume not rigid;
+end
+        
 %% Begin Method
 hinge_id = 0;
 if analysis.nonlinear ~= 0

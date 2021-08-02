@@ -16,7 +16,7 @@ fclose('all');
 % Assumptions:
 
 %% User Inputs (Think about changing this to a file read and command line execution)
-analysis.model_id = 9;
+analysis.model_id = 24;
 analysis.model_type = 3; % 1 = SDOF, 2 = MDOF (default), 3 = Archetype model
 analysis.proceedure = 'ELFP'; % LDP or NDP or test
 analysis.id = '1'; % ID of the analysis for it to create its own directory
@@ -32,6 +32,8 @@ analysis.run_eigen = 0;
 analysis.opensees_SP = 0;
 analysis.algorithm = 'KrylovNewton';
 analysis.joint_model = 0;
+analysis.additional_elements = 0;
+analysis.nonlinear = 0;
 
 analysis.suppress_outputs = 0;
 analysis.simple_recorders = 0;
@@ -125,11 +127,13 @@ for s = 1:height(story)
     story.ext_col_bending(s) = max(abs([element.Mpos(col_filt & story_filt & ~inner_col); element.Mneg(col_filt & story_filt & ~inner_col)]));
     story.int_col_bending(s) = max(abs([element.Mpos(col_filt & story_filt & inner_col); element.Mneg(col_filt & story_filt & inner_col)]));
 end
-xlswrite([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'], story.max_disp_x', 'OpenseesOutput', 'C6')
-xlswrite([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'], story.beam_pos_bending', 'OpenseesOutput', 'C7')
-xlswrite([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'], story.beam_neg_bending', 'OpenseesOutput', 'C8')
-xlswrite([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'], story.ext_col_bending', 'OpenseesOutput', 'C9')
-xlswrite([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'], story.int_col_bending', 'OpenseesOutput', 'C10')
+
+write_data = [story.max_disp_x'; ...
+              story.beam_pos_bending';...
+              story.beam_neg_bending'; ...
+              story.ext_col_bending'; ...
+              story.int_col_bending'];
+xlswrite([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'], write_data, 'OpenseesOutput', 'C6')
 
 %% Overturning Load Case
 analysis.type_list =          [4, 4, 4, 4, 4, 4]; % 1 = dynamic, 2 = pushover % 3 = static cyclic, 4 =  static loads
@@ -160,7 +164,9 @@ for s = 1:height(story)
     story.int_col_max_axial(s) = max(element.Pmax(col_filt & story_filt & inner_col));
     story.int_col_min_axial(s) = min(element.Pmin(col_filt & story_filt & inner_col));
 end
-xlswrite([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'], story.ext_col_max_axial', 'OpenseesOutput', 'C11')
-xlswrite([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'], story.ext_col_min_axial', 'OpenseesOutput', 'C12')
-xlswrite([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'], story.int_col_max_axial', 'OpenseesOutput', 'C13')
-xlswrite([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'], story.int_col_min_axial', 'OpenseesOutput', 'C14')
+
+write_data = [story.ext_col_max_axial'; ...
+              story.ext_col_min_axial';...
+              story.int_col_max_axial'; ...
+              story.int_col_min_axial'];
+xlswrite([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'], write_data, 'OpenseesOutput', 'C11')

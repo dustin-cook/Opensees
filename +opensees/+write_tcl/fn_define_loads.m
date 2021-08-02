@@ -24,17 +24,15 @@ for i = 1:height(element)
         % eleLoad -ele $eleTag1 <$eleTag2 ....> -type -beamUniform $Wy <$Wx>
         % eleLoad -ele $eleTag1 <$eleTag2 ....> -type -beamUniform $Wy $Wz <$Wx>
         fprintf(fileID,'   eleLoad -ele %i -type -beamUniform -%d 0.0 \n', element.id(i), element.w(i));
-    else % walls and columns
+    elseif strcmp(element.type{i},'column') || strcmp(element.type{i},'wall') % walls and columns
         if strcmp(dimension,'2D')
-            ele_grav_load_1 = element.gravity_load_1(i);
-            ele_grav_load_2 = element.gravity_load_2(i);
             % eleLoad -range $eleTag1 $eleTag2 -type -beamPoint $Py $xL <$Px>
-            fprintf(fileID,'   eleLoad -ele %d -type -beamPoint 0.0 0.0 -%d \n', element.id(i), ele_grav_load_1); 
-            fprintf(fileID,'   eleLoad -ele %d -type -beamPoint 0.0 1.0 -%d \n', element.id(i), ele_grav_load_2);
+            fprintf(fileID,'   eleLoad -ele %d -type -beamPoint 0.0 0.0 -%d \n', element.id(i), element.gravity_load_1(i)); 
+            fprintf(fileID,'   eleLoad -ele %d -type -beamPoint 0.0 1.0 -%d \n', element.id(i), element.gravity_load_2(i));
         elseif strcmp(dimension,'3D')
             % eleLoad -range $eleTag1 $eleTag2 -type -beamPoint $Py $Pz $xL <$Px>
-            fprintf(fileID,'   eleLoad -ele %d -type -beamPoint 0.0 0.0 0.0 -%d \n', element.id(i), ele_grav_load_1); 
-            fprintf(fileID,'   eleLoad -ele %d -type -beamPoint 0.0 0.0 1.0 -%d \n', element.id(i), ele_grav_load_2); 
+            fprintf(fileID,'   eleLoad -ele %d -type -beamPoint 0.0 0.0 0.0 -%d \n', element.id(i), element.gravity_load_1(i)); 
+            fprintf(fileID,'   eleLoad -ele %d -type -beamPoint 0.0 0.0 1.0 -%d \n', element.id(i), element.gravity_load_2(i)); 
         end
     end
 end
@@ -58,7 +56,6 @@ if analysis.model_type == 3
     
     end
 end
-
 
 % for i = 1:height(node) 
 %     % eleLoad -ele $eleTag1 <$eleTag2 ....> -type -beamUniform $Wy $Wz <$Wx>

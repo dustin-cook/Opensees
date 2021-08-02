@@ -46,7 +46,7 @@ if analysis.nonlinear ~= 0 && analysis.model_type == 2 && ~exist([read_dir_analy
 end
 
 %% Factor Loads
-[ element ] = fn_factor_loads( analysis, element );
+[ element ] = fn_factor_loads( analysis, element, site );
 
 %% Run Opensees
 % Define Number of Opensees runs to be performed

@@ -5,6 +5,11 @@ function [ ] = fn_setup_analysis( write_dir, model_dir, analysis, primary_nodes,
 %% Import Packages
 import opensees.write_tcl.*
 
+% Default parameters
+if ~isfield(analysis,'run_eigen')
+    analysis.run_eigen = 0; % Default to not run
+end
+
 %% Write Analysis Setup File
 file_name = [write_dir filesep 'setup_analysis.tcl'];
 fileID = fopen(file_name,'w');

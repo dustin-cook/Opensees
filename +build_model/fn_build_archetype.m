@@ -1,4 +1,4 @@
-function [ ] = fn_build_archetype( model, write_dir)
+function [ ] = fn_build_archetype( model, analysis, write_dir)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -12,6 +12,7 @@ story = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} 
 story_group_table = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'],'Sheet','story_group');
 element_group_table = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'],'Sheet','element_group');
 element_table = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'],'Sheet','element');
+additional_elements = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'],'Sheet','additional_elements');
 
 % Story property calculations
 for s = 1:height(story)
@@ -131,16 +132,6 @@ for i = 1:length(node.id)
     end
 end
 
-%% Calculate Total Element Gravity Loads
-% account for load factors
-% element.gravity_load_1 = element.dead_load_1*analysis.dead_load + element.live_load_1*analysis.live_load + element.dead_load_1*analysis.eq_vert_load_factor*site.Sds;
-% element.gravity_load_2 = element.dead_load_2*analysis.dead_load + element.live_load_2*analysis.live_load + element.dead_load_2*analysis.eq_vert_load_factor*site.Sds;
-
-% Combine two sides
-element.dead_load = element.dead_load_1 + element.dead_load_2;
-element.live_load = element.live_load_1 + element.live_load_2;
-% element.gravity_load = element.gravity_load_1 + element.gravity_load_2;
-
 %% Define Mass
 node.mass = zeros(length(node.id),1);
 % for s = 1:height(story)
@@ -154,7 +145,7 @@ end
 
 %% Set existing nodes as the ones that get recorded
 node.record_disp = ones(length(node.id),1);
-% node.record_accel = ones(length(node.id),1);
+node.record_accel = ones(length(node.id),1);
 
 %% Assign Joints
 joint_id = 0;
@@ -287,37 +278,72 @@ for s = 1:height(story)
 end
 
 %% Assign Additional Elements
-% element.elastic = zeros(length(element.id),1);
-% for ae = 1:height(additional_elements)
-%     % Element Properties
-%     ele_id = ele_id + 1;
-%     ele = element_table(element_table.id == additional_elements.ele_id(ae),:);
-%     element.id(ele_id,1) = ele_id;
-%     element.trib_wt_1(ele_id,1) = 0;
-%     element.trib_wt_2(ele_id,1) = 0;
-%     element.ele_id(ele_id,1) = ele.id;
-%     element.direction{ele_id,1} = additional_elements.direction{ae};
-%     element.story(ele_id,1) = additional_elements.story(ae);
-%     element.type{ele_id,1} = ele.type;
-%     element.dead_load_1(ele_id,1) = 0;
-%     element.live_load_1(ele_id,1) = 0;
-%     element.dead_load_2(ele_id,1) = 0;
-%     element.live_load_2(ele_id,1) = 0;
-%     element.dead_load(ele_id,1) = 0;
-%     element.live_load(ele_id,1) = 0;
-%     element.gravity_load_1(ele_id,1) = 0;
-%     element.gravity_load_2(ele_id,1) = 0;
-%     element.gravity_load(ele_id,1) = 0;
-%     element.elastic(ele_id,1) = 1;
-%     
-%     % Check to see if the element nodes exists and assign
-%     [ node, id ] = fn_node_exist( node, additional_elements.x_start(ae), additional_elements.y_start(ae), additional_elements.z_start(ae), 0 );
-%     element.node_1(ele_id,1) = node.id(id);
-%     [ node, id ] = fn_node_exist( node, additional_elements.x_end(ae), additional_elements.y_end(ae), additional_elements.z_end(ae), 0 );
-%     element.node_2(ele_id,1) = node.id(id);
-%     element.node_3(ele_id,1) = 0;
-%     element.node_4(ele_id,1) = 0;
-% end
+element.elastic = zeros(length(element.id),1);
+if analysis.additional_elements
+    for ae = 1:height(additional_elements)
+        % Element Properties
+        ele_id = ele_id + 1;
+        element.id(ele_id,1) = ele_id;
+
+        ele = element_table(element_table.id == additional_elements.ele_id(ae),:);
+        element.ele_id(ele_id,1) = ele.id;
+        element.type{ele_id,1} = ele.type;
+
+        element.direction{ele_id,1} = additional_elements.direction{ae};
+        element.story(ele_id,1) = additional_elements.story(ae);
+
+        element.trib_wt_1(ele_id,1) = 0;
+        element.trib_wt_2(ele_id,1) = 0;
+        element.seismic_wt_1(ele_id,1) = 0;
+        element.seismic_wt_2(ele_id,1) = 0;
+        element.inner_bay(ele_id,1) = 0;
+        element.elastic(ele_id,1) = 1;
+
+        if strcmp(ele.type,'beam')
+            element.dead_load_1(ele_id,1) = additional_elements.dead_load(ae)/2;
+            element.live_load_1(ele_id,1) = additional_elements.live_load(ae)/2;
+            element.dead_load_2(ele_id,1) = additional_elements.dead_load(ae)/2;
+            element.live_load_2(ele_id,1) = additional_elements.live_load(ae)/2;
+        else % columns and walls
+            element.dead_load_1(ele_id,1) = 0;
+            element.live_load_1(ele_id,1) = 0;
+            element.dead_load_2(ele_id,1) = additional_elements.dead_load(ae);
+            element.live_load_2(ele_id,1) = additional_elements.live_load(ae);
+        end
+
+        % Check to see if the element nodes exists and assign
+        [ node, id ] = fn_node_exist( node, additional_elements.x_start(ae), additional_elements.y_start(ae), additional_elements.z_start(ae), 0 );
+        element.node_1(ele_id,1) = node.id(id);
+        [ node, id ] = fn_node_exist( node, additional_elements.x_end(ae), additional_elements.y_end(ae), additional_elements.z_end(ae), 0 );
+        element.node_2(ele_id,1) = node.id(id);
+        element.node_3(ele_id,1) = 0;
+        element.node_4(ele_id,1) = 0;
+    end
+end
+
+%% Define Element nonlinear properties
+if analysis.nonlinear > 0
+    for i = 1:length(element.id)
+        ele_filt = element_table.id == element.ele_id(i);
+        element.e(i,1) = element_table.e(ele_filt);
+        element.iz(i,1) = element_table.iz_model(ele_filt);
+        for j = 1:2 % copy properties to each side (ie assume the same on two sides)
+            element.(['Mn_pos_' num2str(j)])(i,1) = element_table.Mn_pos(ele_filt);
+            element.(['Mn_neg_' num2str(j)])(i,1) = element_table.Mn_neg(ele_filt);
+            element.(['Mp_pos_' num2str(j)])(i,1) = element_table.Mp_pos(ele_filt);
+            element.(['Mp_neg_' num2str(j)])(i,1) = element_table.Mp_neg(ele_filt);
+            element.(['a_hinge_' num2str(j)])(i,1) = element_table.a_hinge(ele_filt);
+            element.(['b_hinge_' num2str(j)])(i,1) = element_table.b_hinge(ele_filt);
+            element.(['c_hinge_' num2str(j)])(i,1) = element_table.c_hinge(ele_filt);
+            element.(['critical_mode_' num2str(j)]){i,1} = element_table.critical_mode{ele_filt};
+        end
+    end
+end
+
+%% Calculate Total Element Gravity Loads
+% Combine two sides
+element.dead_load = element.dead_load_1 + element.dead_load_2;
+element.live_load = element.live_load_1 + element.live_load_2;
 
 %% Find Element Lengths 
 for e = 1:length(element.id)
@@ -331,14 +357,14 @@ for e = 1:length(element.id)
 end
 
 %% Define if elements are rigid or not
-% for e = 1:length(element.id)
-%     ele_props = element_table(element_table.id == element.ele_id(e),:);
-%     if contains(ele_props.description,'rigid')
-%         element.rigid(e,1) = 1;
-%     else
-%         element.rigid(e,1) = 0;
-%     end   
-% end
+for e = 1:length(element.id)
+    ele_props = element_table(element_table.id == element.ele_id(e),:);
+    if contains(ele_props.description,'rigid')
+        element.rigid(e,1) = 1;
+    else
+        element.rigid(e,1) = 0;
+    end   
+end
 
 %% Find first nodes in each story and Nodes on Slab to connect to rigid diaphram
 node.story = zeros(length(node.id),1);
@@ -353,19 +379,19 @@ for s = 1:height(story)
 end
 
 %% Offset Mass for Accidental Torsion
-% % For X direction %%%% SHOULD CHANGE INTO FUNCTION AND RUN EACH DIR
-% % INDEPENDANTLY
-% if strcmp(model.dimension,'3D') && analysis.accidental_torsion == 1
-%     for s = 1:height(story)
-%         slab_ht = story.y_start(s) + story.story_ht(s);
-%         if slab_ht > 0
-%             % Direction x
-%             [ node ] = fn_update_mass( node, node.id(node.y == slab_ht), 'x' );
-%             % Direction z
-%             [ node ] = fn_update_mass( node, node.id(node.y == slab_ht), 'z' );
-%         end
-%     end
-% end
+% For X direction %%%% SHOULD CHANGE INTO FUNCTION AND RUN EACH DIR
+% INDEPENDANTLY
+if strcmp(model.dimension,'3D') && analysis.accidental_torsion == 1
+    for s = 1:height(story)
+        slab_ht = story.y_start(s) + story.story_ht(s);
+        if slab_ht > 0
+            % Direction x
+            [ node ] = fn_update_mass( node, node.id(node.y == slab_ht), 'x' );
+            % Direction z
+            [ node ] = fn_update_mass( node, node.id(node.y == slab_ht), 'z' );
+        end
+    end
+end
 
 %% Define Nodal Fixity
 node.fix = cell(length(node.id),1);
@@ -385,21 +411,21 @@ end
 
 %% Create Nonlinear Rotational Springs at ends of all beams and columns, and shear springs at the bottom of walls
 hinge.id = [];
-% [ node, element, hinge ] = fn_define_hinge( analysis, model, hinge, element, node, foundation_nodes_filter );
+[ node, element, hinge ] = fn_define_hinge( analysis, model, hinge, element, node, foundation_nodes_filter );
 
 %% Define Foundation Hinges
-% if model.foundation == 2 % partial fixity such as pile hinge
-%     for f = 1:length(foundation_nodes_ids)
-%         hinge_id = hinge.id(end)+1;
-%         if sum(ismember(wall_foundation_nodes_ids,foundation_nodes_ids(f))) > 0
-%             direction_str = 'wall'; % base of a wall foundation
-%         else
-%             direction_str = 'pile'; % base of a column foundation
-%         end
-%         % Define hinge at foundation
-%         [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'NA', foundation_nodes_ids(f), hinge_id, foundation_nodes_filter, 'foundation', direction_str ); 
-%     end
-% end
+if model.foundation == 2 % partial fixity such as pile hinge
+    for f = 1:length(foundation_nodes_ids)
+        hinge_id = hinge.id(end)+1;
+        if sum(ismember(wall_foundation_nodes_ids,foundation_nodes_ids(f))) > 0
+            direction_str = 'wall'; % base of a wall foundation
+        else
+            direction_str = 'pile'; % base of a column foundation
+        end
+        % Define hinge at foundation
+        [ node, element, hinge ] = fn_create_hinge( node, element, hinge, 'NA', foundation_nodes_ids(f), hinge_id, foundation_nodes_filter, 'foundation', direction_str ); 
+    end
+end
 
 %% Convert outputs to tables
 node = struct2table(node);

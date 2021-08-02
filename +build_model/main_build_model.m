@@ -26,7 +26,7 @@ fn_make_directory( write_dir )
 %% Begin Method
 % Select Model Type
 if analysis.model_type == 3 % Archetype Model
-    fn_build_archetype( model, write_dir )
+    fn_build_archetype( model, analysis, write_dir )
 elseif analysis.model_type == 2 % MDOF Model
     fn_build_mdof( model, ele_prop_table, analysis, write_dir, read_dir )
 elseif analysis.model_type == 1 % SDOF Model
