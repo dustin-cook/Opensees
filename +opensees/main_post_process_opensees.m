@@ -246,12 +246,20 @@ for i = 1:length(dirs_ran)
                    node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(2,:); 
                    node.(['max_disp_' dirs_ran{i}])(n) = max(abs(node_disp_raw(2,:)));
                    end_of_motion = 5/ground_motion.(dirs_ran{i}).eq_dt;
-                   node.(['residual_disp_' dirs_ran{i}])(n) = abs(mean(node_disp_raw(2,(end-end_of_motion):end)));
+                   if length(node_disp_raw(2,:)) > end_of_motion
+                        node.(['residual_disp_' dirs_ran{i}])(n) = abs(mean(node_disp_raw(2,(end-end_of_motion):end)));
+                   else
+                        node.(['residual_disp_' dirs_ran{i}])(n) = abs(mean(node_disp_raw(2,:)));
+                   end
                else
                    node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' dirs_ran{i} '_TH']) = node_disp_raw(3,:);  
                    node.(['max_disp_' dirs_ran{i}])(n) = max(abs(node_disp_raw(3,:)));
                    end_of_motion = 5/ground_motion.(dirs_ran{i}).eq_dt;
-                   node.(['residual_disp_' dirs_ran{i}])(n) = abs(mean(node_disp_raw(3,(end-end_of_motion):end)));
+                   if length(node_disp_raw(3,:)) > end_of_motion
+                        node.(['residual_disp_' dirs_ran{i}])(n) = abs(mean(node_disp_raw(3,(end-end_of_motion):end)));
+                   else
+                        node.(['residual_disp_' dirs_ran{i}])(n) = abs(mean(node_disp_raw(3,:)));
+                   end
                end   
            else
                node_TH.(['node_' num2str(node.id(n)) '_TH']).(['disp_' dirs_ran{i} '_TH']) = [];
@@ -272,7 +280,11 @@ for i = 1:length(dirs_ran)
                    eq_dt = ground_motion.(dirs_ran{i}).eq_dt;
                    eq_timespace = linspace(eq_dt,eq_length*eq_dt,eq_length);
                    if strcmp(dirs_ran{i},'x')
+                       try
                         node_accel_interp = interp1(eq_analysis_timespace,node_accel_raw(2,:),eq_timespace);
+                       catch
+                           test = 5;
+                       end
                    else
                        node_accel_interp = interp1(eq_analysis_timespace,node_accel_raw(3,:),eq_timespace);
                    end

@@ -247,24 +247,46 @@ if height(joint) > 0
             joint_center.x = node.x(node.id == joint.y_pos(i),:);
             joint_center.y = node.y(node.id == joint.x_pos(i),:);
             joint_center.z = node.z(node.id == joint.x_pos(i),:);
-            if analysis.nonlinear ~= 0 && analysis.joint_explicit == 1  && joint.story(i) <= analysis.stories_nonlinear && joint.story(i) > analysis.stories_nonlinear_low %  Explicit Joint Model
-                joint_center_node_beams = 40000+i;
-                joint_center_node_columns = 50000+i;
-                if strcmp(dimension,'2D')
-                    fprintf(fileID,'node %i %f %f \n',joint_center_node_beams,joint_center.x,joint_center.y);
-                    fprintf(fileID,'node %i %f %f \n',joint_center_node_columns,joint_center.x,joint_center.y);
+            
+            exist_node_filt = node.x == joint_center.x & node.y == joint_center.y & node.z == joint_center.z; 
+            if sum(exist_node_filt) == 0 % no existing nodes, so create a new one(s)
+                if analysis.nonlinear ~= 0 && analysis.joint_explicit == 1  && joint.story(i) <= analysis.stories_nonlinear && joint.story(i) > analysis.stories_nonlinear_low %  Explicit Joint Model
+                    joint_center_node_beams = 40000+i;
+                    joint_center_node_columns = 50000+i;
+                    if strcmp(dimension,'2D')
+                        fprintf(fileID,'node %i %f %f \n',joint_center_node_beams,joint_center.x,joint_center.y);
+                        fprintf(fileID,'node %i %f %f \n',joint_center_node_columns,joint_center.x,joint_center.y);
+                    else
+                        fprintf(fileID,'node %i %f %f %f \n',joint_center_node_beams,joint_center.x,joint_center.y,joint_center.z);
+                        fprintf(fileID,'node %i %f %f %f \n',joint_center_node_columns,joint_center.x,joint_center.y,joint_center.z);
+                    end
                 else
-                    fprintf(fileID,'node %i %f %f %f \n',joint_center_node_beams,joint_center.x,joint_center.y,joint_center.z);
-                    fprintf(fileID,'node %i %f %f %f \n',joint_center_node_columns,joint_center.x,joint_center.y,joint_center.z);
+                    joint_center_node_beams = 40000+i;
+                    joint_center_node_columns = 40000+i;
+                    if strcmp(dimension,'2D')
+                        fprintf(fileID,'node %i %f %f \n',joint_center_node_beams,joint_center.x,joint_center.y);
+                    else
+                        fprintf(fileID,'node %i %f %f %f \n',joint_center_node_beams,joint_center.x,joint_center.y,joint_center.z);
+                    end
+                end
+            elseif sum(exist_node_filt) == 1 % existing node(s), use those
+                % Use existing node
+                if analysis.nonlinear ~= 0 && analysis.joint_explicit == 1  && joint.story(i) <= analysis.stories_nonlinear && joint.story(i) > analysis.stories_nonlinear_low %  Explicit Joint Model
+                    joint_center_node_beams = node.id(exist_node_filt);
+                    % defin new node for zero length element to connet
+                    joint_center_node_columns = 50000 + node.id(exist_node_filt);
+                    if strcmp(dimension,'2D')
+                        fprintf(fileID,'node %i %f %f \n',joint_center_node_columns,joint_center.x,joint_center.y);
+                    else
+                        fprintf(fileID,'node %i %f %f %f \n',joint_center_node_columns,joint_center.x,joint_center.y,joint_center.z);
+                    end
+                else
+                    joint_center_node_beams = node.id(exist_node_filt);
+                    joint_center_node_columns = node.id(exist_node_filt);
                 end
             else
-                joint_center_node_beams = 40000+i;
-                joint_center_node_columns = 40000+i;
-                if strcmp(dimension,'2D')
-                    fprintf(fileID,'node %i %f %f \n',joint_center_node_beams,joint_center.x,joint_center.y);
-                else
-                    fprintf(fileID,'node %i %f %f %f \n',joint_center_node_beams,joint_center.x,joint_center.y,joint_center.z);
-                end
+                % found multiple nodes! Should not get here
+                error('Multiple Nodes Found. Revise code')
             end
 
             % Joint Fixity Condition
@@ -463,8 +485,6 @@ if height(joint) > 0
                 joint_center_node = 40000+i;
                 if strcmp(dimension,'2D')
                     fprintf(fileID,'node %i %f %f \n',joint_center_node,joint_center.x,joint_center.y);
-    %                 fprintf(fileID,'fix %i 0 0 0 \n',joint_center_node);
-    %                 fprintf(fileID,'mass %i 0.01 0.01 0.01 \n',joint_center_node);
                 else
                     fprintf(fileID,'node %i %f %f %f \n',joint_center_node,joint_center.x,joint_center.y,joint_center.z);
                 end
@@ -525,12 +545,24 @@ if height(joint) > 0
             joint_center.x = node.x(node.id == joint.y_pos(i),:);
             joint_center.y = node.y(node.id == joint.x_pos(i),:);
             joint_center.z = node.z(node.id == joint.x_pos(i),:);
-            joint_center_node = 40000+i;
-            if strcmp(dimension,'2D')
-                fprintf(fileID,'node %i %f %f \n',joint_center_node,joint_center.x,joint_center.y);
+            
+            exist_node_filt = node.x == joint_center.x & node.y == joint_center.y & node.z == joint_center.z; 
+            if sum(exist_node_filt) == 0 
+                % No current node, therefore create a new one
+                joint_center_node = 40000+i;
+                if strcmp(dimension,'2D')
+                    fprintf(fileID,'node %i %f %f \n',joint_center_node,joint_center.x,joint_center.y);
+                else
+                    fprintf(fileID,'node %i %f %f %f \n',joint_center_node,joint_center.x,joint_center.y,joint_center.z);
+                end
+            elseif sum(exist_node_filt) == 1 
+                % Use existing node
+                joint_center_node = node.id(exist_node_filt);
             else
-                fprintf(fileID,'node %i %f %f %f \n',joint_center_node,joint_center.x,joint_center.y,joint_center.z);
+                % found multiple nodes! Should not get here
+                error('Multiple Nodes Found. Revise code')
             end
+
             bm_left = element(element.id == joint.beam_left(i),:);
             bm_right = element(element.id == joint.beam_right(i),:);
             col_low = element(element.id == joint.column_low(i),:);

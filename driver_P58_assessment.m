@@ -11,7 +11,7 @@ clc
 % analysis.model_id = 4;
 analysis.model_type = 3; % 1 = SDOF, 2 = MDOF (default), 3 = Archetype model
 analysis.proceedure = 'P58'; 
-analysis.id = '1'; % ID of the analysis for it to create its own directory
+analysis.id = 'EAL'; % ID of the analysis for it to create its own directory
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 0;
 
@@ -46,7 +46,6 @@ analysis.opensees_SP = 0;
 analysis.type = 1;
 analysis.damping = 'rayleigh';
 analysis.damp_ratio = 0.03;
-% analysis.run_eigen = 0;
 analysis.solution_algorithm = 1;
 analysis.initial_timestep_factor = 1;
 analysis.suppress_outputs = 1;
@@ -54,9 +53,9 @@ analysis.play_movie = 0;
 analysis.movie_scale = 10;
 analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
+analysis.joint_model = 1;
 analysis.joint_explicit = 0;
 analysis.simple_recorders = 1;
-analysis.joint_model = 0;
 analysis.additional_elements = 1;
 
 % Site inputs
@@ -67,7 +66,20 @@ analysis.additional_elements = 1;
 site.lat = 34.05;
 site.lng = -118.25;
 site.vs30 = 537;
+site.sds = 1.0;
+site.sd1 = 0.6;
 hazard.afe = 1/475;
+
+% Define models to run
+model_data = readtable(['inputs' filesep 'archetype_models.csv'],'ReadVariableNames',true);
+% model_data = model_data(model_data.num_stories == 20,:);
+model_data = model_data(model_data.num_stories ~= 20,:);
+model_data = model_data(model_data.ie ~= 1.25,:);
+model_data = model_data(~contains(model_data.name,'drift15'),:);
+num_models = height(model_data);
+
+% Define remote directory
+remote_dir = ['G:\My Drive\NIST\Cost Benefit Study' filesep 'EAL Model Responses'];
 
 %% Import Packages
 import ida.*
@@ -78,16 +90,16 @@ import opensees.main_eigen_analysis
 import usgs.*
 
 %% Pull Hazard Data
-[sa_spectra, sa_periods] = fn_call_USGS_hazard_API('E2014', site.lat, site.lng, site.vs30, hazard.afe);
+rps2run = [10, 50, 100, 150, 250, 500, 750, 1000, 1500, 2500];
+[sa_spectra, sa_periods] = fn_call_USGS_hazard_API('E2014', site.lat, site.lng, site.vs30, 1./rps2run);
 
-model_ids = 1:24;
-for m = 1:length(model_ids) % run for each model     
+% model_ids = 1:24;
+for m = 11:num_models % run for each model     
     %% Initial Setup
     % Load basic model data
-    analysis.model_id = m;
-    model_table = readtable(['inputs' filesep 'archetype_models.csv'],'ReadVariableNames',true);
-    model = model_table(model_table.id == analysis.model_id,:);
-    fprintf('Running Model %i of %i: %s\n', m, length(model_ids), model.name{1})
+    model = model_data(m,:);
+    analysis.model_id = model.id;
+    fprintf('Running Model %i of %i: %s\n', m, num_models, model.name{1})
 
     % Define read and write directories
     main_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id];
@@ -98,6 +110,10 @@ for m = 1:length(model_ids) % run for each model
     tcl_dir = [main_dir '/' 'opensees_data'];
     if ~exist(tcl_dir,'dir')
         mkdir(tcl_dir)
+    end
+    model_remote_dir = [remote_dir filesep model.name{1}];
+    if ~exist(model_remote_dir,'dir')
+        mkdir(model_remote_dir)
     end
     ELFP_model_dir = ['outputs' '/' model.name{1} '/' 'ELFP' '_' analysis.id '/' 'model_data'];
     % tcl_dir = ['outputs' '/' model.name{1} '/' 'ELFP' '_' analysis.id '/' 'eigen_analysis'];
@@ -125,11 +141,12 @@ for m = 1:length(model_ids) % run for each model
     [ ~ ] = fn_define_model( tcl_dir, node, element, joint, hinge, analysis, model.dimension, story, [], model );
 
     %% Run Eigen Analysis
-    % analysis.nonlinear = 0;
+%     analysis.nonlinear = 0;
     [ model ] = main_eigen_analysis( model, analysis );
 
     %% Modify Model Data
     % Set period variable
+    model.T1_x
     ida_results.period = model.T1_x;
 
     % Factor Loads
@@ -138,7 +155,14 @@ for m = 1:length(model_ids) % run for each model
     %% Interpolate Site Hazard for building period
     % [design_values] = fn_call_USGS_design_value_API(1, 'asce7-16', site.lat, site.lng, 'II', model.site_class);
     period_cropped = min(max(model.T1_x,min(sa_periods)),max(sa_periods)); % limit building period to the available periods
-    analysis.sa_stripes = interp1(sa_periods,sa_spectra,period_cropped);
+%     sa_475 = interp1(sa_periods,sa_spectra,period_cropped);
+    sa_levels = interp1(sa_periods,sa_spectra,period_cropped);
+    
+    % design level
+%     sa_dbe = min(site.sds,site.sd1/model.T1_x);
+    
+%     analysis.sa_stripes = [sa_475, sa_dbe];
+    analysis.sa_stripes = sa_levels;
 
     %% Run Opensees Models
     if analysis.run_ida || analysis.post_process_ida
@@ -151,6 +175,7 @@ for m = 1:length(model_ids) % run for each model
     id = 0;
     idr = [];
     pfa = [];
+    max_a_ratio = [];
     for gm = 1:height(gm_set_table)
         gm_dir = [main_dir '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_table.set_id(gm)) '_' num2str(gm_set_table.pair(gm))];
         sa_folders = dir([gm_dir filesep 'Sa_*']);
@@ -159,73 +184,118 @@ for m = 1:length(model_ids) % run for each model
             outputs_dir = [main_dir '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_table.set_id(gm)) '_' num2str(gm_set_table.pair(gm)) '/' sa_folders(s).name];
             outputs_file = [outputs_dir filesep 'summary_results.mat'];
             story_file = [outputs_dir filesep 'story_analysis.mat'];
-            if exist(outputs_file,'file') && exist(story_file,'file')
+            hinge_file = [outputs_dir filesep 'hinge_analysis.mat'];
+            
+            % Set values
+            max_a_ratio.gm(gm,1) = gm;
+            sa_val = str2double(strrep(strrep(sa_folders(s).name,'Sa_',''),'_','.'));
+            
+            % Load Data
+            if exist(outputs_file,'file')
                 load(outputs_file)
-                load(story_file)
-
-                id = id + 1;
-
-                % Formulate the IDR table for the P-58 assessment - X direction
-                idr.sa(id,1) = analysis.sa_stripes(s);
-                idr.direction(id,1) = 1;
-                idr.gm(id,1) = gm;%gm_set_table.eq_name{gm};
-                for n = 1:height(story)
-                    idr.(['story_' num2str(n)])(id,1) = story.max_drift_x(n);
+            else
+                error('NEED TO EXPLICITLY HANDLE MISSING SUMMARY TABLE')
+            end
+            
+            % Component response
+            if exist(hinge_file,'file')
+                load(hinge_file)
+                if summary.collapse > 0 % set collapse values = NaN
+                    max_a_ratio.(sa_folders(s).name)(gm,1) = NaN;
+                else
+                    max_a_ratio.(sa_folders(s).name)(gm,1) = max(hinge.a_ratio);
                 end
+            else
+                max_a_ratio.(sa_folders(s).name)(gm,1) = NaN; % didnt collect hinge properties for this ground motion
+            end
+            
+            % EDPs
+            if summary.collapse == 0
+                if exist(story_file,'file')
+                    load(story_file)
 
-                % Formulate the PFA table for the P-58 assessment - X direction
-                pfa.sa(id,1) = analysis.sa_stripes(s);
-                pfa.direction(id,1) = 1;
-                pfa.gm(id,1) = gm;%gm_set_table.eq_name{gm};
-                pfa.floor_1(id,1) = summary.pga_x;
-                for n = 1:height(story)
-                    pfa.(['floor_' num2str(n+1)])(id,1) = story.max_accel_x(n);
-                end
-
-                id = id + 1;
-
-                % Formulate the IDR table for the P-58 assessment - Z direction 
-                if analysis.run_z_motion
-                    idr.sa(id,1) = analysis.sa_stripes(s);
-                    idr.direction(id,1) = 2;
+                    id = id + 1;
+                    % Formulate the IDR table for the P-58 assessment - X direction
+                    idr.sa(id,1) = sa_val;
+                    idr.direction(id,1) = 1;
                     idr.gm(id,1) = gm;%gm_set_table.eq_name{gm};
                     for n = 1:height(story)
-                        idr.(['story_' num2str(n)])(id,1) = story.max_drift_z(n);
+                        if summary.collapse > 0 % set collapse values = NaN
+                            idr.(['story_' num2str(n)])(id,1) = NaN;
+                        else
+                            idr.(['story_' num2str(n)])(id,1) = story.max_drift_x(n);
+                        end
                     end
-                else
-                    idr.sa(id,1) = analysis.sa_stripes(s);
-                    idr.direction(id,1) = 2;
-                    idr.gm(id,1) = gm;%gm_set_table.eq_name{gm};
-                    for n = 1:height(story)
-                        idr.(['story_' num2str(n)])(id,1) = story.max_drift_x(n);
-                    end
-                end
 
-                % Formulate the PFA table for the P-58 assessment - Z direction 
-                if analysis.run_z_motion
-                    pfa.sa(id,1) = analysis.sa_stripes(s);
-                    pfa.direction(id,1) = 2;
-                    pfa.gm(id,1) = gm;%gm_set_table.eq_name{gm};
-                    pfa.floor_1(id,1) = summary.pga_z;
-                    for n = 1:height(story)
-                        pfa.(['floor_' num2str(n+1)])(id,1) = story.max_accel_z(n);
-                    end
-                else
-                    pfa.sa(id,1) = analysis.sa_stripes(s);
-                    pfa.direction(id,1) = 2;
+                    % Formulate the PFA table for the P-58 assessment - X direction
+                    pfa.sa(id,1) = sa_val;
+                    pfa.direction(id,1) = 1;
                     pfa.gm(id,1) = gm;%gm_set_table.eq_name{gm};
                     pfa.floor_1(id,1) = summary.pga_x;
                     for n = 1:height(story)
-                        pfa.(['floor_' num2str(n+1)])(id,1) = story.max_accel_x(n);
+                        if summary.collapse > 0 % set collapse values = NaN
+                            pfa.(['floor_' num2str(n+1)])(id,1) = NaN;
+                        else
+                            pfa.(['floor_' num2str(n+1)])(id,1) = story.max_accel_x(n);
+                        end
                     end
-                end
 
-                % Check for Collapse
-                if summary.collapse > 0
-                    error('NEED TO EXPLICITLY HANDLE COLLAPSE CASES')
+                    id = id + 1;
+
+                    % Formulate the IDR table for the P-58 assessment - Z direction 
+                    if analysis.run_z_motion
+                        idr.sa(id,1) = sa_val;
+                        idr.direction(id,1) = 2;
+                        idr.gm(id,1) = gm;%gm_set_table.eq_name{gm};
+                        for n = 1:height(story)
+                            if summary.collapse > 0 % set collapse values = NaN
+                                idr.(['story_' num2str(n)])(id,1) = NaN;
+                            else
+                                idr.(['story_' num2str(n)])(id,1) = story.max_drift_z(n);
+                            end
+                        end
+                    else
+                        idr.sa(id,1) = sa_val;
+                        idr.direction(id,1) = 2;
+                        idr.gm(id,1) = gm;%gm_set_table.eq_name{gm};
+                        for n = 1:height(story)
+                            if summary.collapse > 0 % set collapse values = NaN
+                                idr.(['story_' num2str(n)])(id,1) = NaN;
+                            else
+                                idr.(['story_' num2str(n)])(id,1) = story.max_drift_x(n);
+                            end
+                        end
+                    end
+
+                    % Formulate the PFA table for the P-58 assessment - Z direction 
+                    if analysis.run_z_motion
+                        pfa.sa(id,1) = sa_val;
+                        pfa.direction(id,1) = 2;
+                        pfa.gm(id,1) = gm;%gm_set_table.eq_name{gm};
+                        pfa.floor_1(id,1) = summary.pga_z;
+                        for n = 1:height(story)
+                            if summary.collapse > 0 % set collapse values = NaN
+                                pfa.(['floor_' num2str(n+1)])(id,1) = NaN;
+                            else
+                                pfa.(['floor_' num2str(n+1)])(id,1) = story.max_accel_z(n);
+                            end
+                        end
+                    else
+                        pfa.sa(id,1) = sa_val;
+                        pfa.direction(id,1) = 2;
+                        pfa.gm(id,1) = gm;%gm_set_table.eq_name{gm};
+                        pfa.floor_1(id,1) = summary.pga_x;
+                        for n = 1:height(story)
+                            if summary.collapse > 0 % set collapse values = NaN
+                                pfa.(['floor_' num2str(n+1)])(id,1) = NaN;
+                            else
+                                pfa.(['floor_' num2str(n+1)])(id,1) = story.max_accel_x(n);
+                            end
+                        end
+                    end
+                else
+                    error('NEED TO EXPLICITLY HANDLE MISSING STORY TABLE')
                 end
-            else
-                error('NEED TO EXPLICITLY HANDLE MISSING STRIPES CASES')
             end
         end
     end
@@ -235,20 +305,31 @@ for m = 1:length(model_ids) % run for each model
     pfa_table = struct2table(pfa);
     idr_table_sort = [];
     pfa_table_sort = [];
-    for i = 1:length(sa_folders)
+    sa_vals = unique(idr_table.sa);
+    for i = 1:length(sa_vals)
         for d = 1:2
-            filt = idr_table.sa == analysis.sa_stripes(i) & idr_table.direction == d;
+            filt = idr_table.sa == sa_vals(i) & idr_table.direction == d;
             idr_table_sect = idr_table(filt,:);
             idr_table_sort = [idr_table_sort; idr_table_sect];
             pfa_table_sect = pfa_table(filt,:);
             pfa_table_sort = [pfa_table_sort; pfa_table_sect];
         end
     end
+    
+    % Remove ground motions that collapse (make sure there are not too many
+    % cases)
 
     % Write tables to save directory
     write_dir = [main_dir '/' 'IDA' '/' 'EDPs'];
     mkdir(write_dir)
     writetable(idr_table_sort,[write_dir filesep 'idr.csv'])
     writetable(pfa_table_sort,[write_dir filesep 'pfa.csv'])
+    writetable(struct2table(max_a_ratio),[write_dir filesep 'a_ratio.csv'])
+    
+    % Save P-58 input run data to remote location
+    writetable(idr_table_sort,[model_remote_dir filesep 'idr.csv'])
+    writetable(pfa_table_sort,[model_remote_dir filesep 'pfa.csv'])
+    writetable(model,[model_remote_dir filesep 'model.csv'])
+    writetable(story,[model_remote_dir filesep 'story.csv'])
 end
 

@@ -178,9 +178,9 @@ end
 
 % Save data for this run
 fprintf('Writing IDA Results to Directory: %s \n',ida_summary_dir)
-if ~analysis.simple_recorders 
+% if ~analysis.simple_recorders 
     save([ida_summary_dir filesep 'hinge_analysis.mat'],'hinge')
-end
+% end
 save([ida_summary_dir filesep 'story_analysis.mat'],'story')
 save([ida_summary_dir filesep 'summary_results.mat'],'summary')
 

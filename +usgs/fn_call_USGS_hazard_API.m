@@ -27,7 +27,7 @@ function [spectra, periods] = fn_call_USGS_hazard_API(edition, lat, lng, vs30, a
 
 % Set parameters
 options = weboptions('Timeout', 30);         
-periods = [0.1 0.2 0.3 0.5 0.75 1 2 3]; % only these periods return values from the API call
+periods = [0.1; 0.2; 0.3; 0.5; 0.75; 1; 2; 3]; % only these periods return values from the API call
 periods_str = {'0P1' '0P2' '0P3' '0P5' '0P75' '1P0' '2P0' '3P0'}; % only these periods return values from the API call
 
 
@@ -41,7 +41,7 @@ try
         sa_vals = DATA.response.metadata.xvalues;
         afe_vals = DATA.response.data.yvalues;
         crop_filt = afe_vals > 0;
-        spectra(i) = interp1(afe_vals(crop_filt),sa_vals(crop_filt),afe);
+        spectra(i,:) = interp1(afe_vals(crop_filt),sa_vals(crop_filt),afe);
     end
 catch
     error('Problem grabbing site hazards')

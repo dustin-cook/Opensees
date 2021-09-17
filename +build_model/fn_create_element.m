@@ -1,10 +1,15 @@
-function [ node, element ] = fn_create_element( ele_type, ele_id, ele_props, element_id, nb, story_props, story_group, node, element, direction, trib_wt_1, trib_wt_2 )
+function [ node, element ] = fn_create_element( ele_type, ele_id, ele_props, element_id, nb, story_props, story_group, node, element, direction )
 %UNTITLED6 Summary of this function goes here
 %   Detailed explanation goes here
 
 import build_model.fn_node_exist
 
+% Define story properties
+story_width = sum(story_props.bay_length_x{1});
+
+% Set element properites
 element.id(ele_id,1) = ele_id;
+ele = ele_props(ele_props.id == element_id,:);
 
 % Element Global Position
 start_bay = (nb-1) + find(story_props.(['bay_coor_' direction]){1} == story_group.([direction '_start']));
@@ -13,17 +18,26 @@ ele_y_start = story_props.y_start;
 ele_y_end = story_props.y_start + story_props.story_ht;
 
 % Assign Tributary weights
-element.trib_wt_1(ele_id,1) = trib_wt_1;
-element.trib_wt_2(ele_id,1) = trib_wt_2;
+element.trib_wt_1(ele_id,1) = ele.trib_wt_1;
+element.trib_wt_2(ele_id,1) = ele.trib_wt_2;
 
 % Assign element type specific properties properties
-ele = ele_props(ele_props.id == element_id,:);
 if strcmp(ele_type,'col')
+    element.trib_seismic_wt_1(ele_id,1) = 0;
+    if element.inner_bay(ele_id,1)
+        element.trib_seismic_wt_2(ele_id,1) = ele.h/story_width;
+    else % only take half of the exterior columns
+        element.trib_seismic_wt_2(ele_id,1) = 0.5*ele.h/story_width;
+    end
     ele_prim_end = ele_prim_start;
 elseif strcmp(ele_type,'beam')
+    element.trib_seismic_wt_1(ele_id,1) = 0.5*ele.length/story_width;
+    element.trib_seismic_wt_2(ele_id,1) = 0.5*ele.length/story_width;
     ele_prim_end = story_props.(['bay_coor_' direction]){1}(start_bay + 1);
     ele_y_start = ele_y_end;
 elseif strcmp(ele_type,'wall')
+    element.trib_seismic_wt_1(ele_id,1) = 0;
+    element.trib_seismic_wt_2(ele_id,1) = 0;
     ele_prim_end = ele_prim_start;
 %     ele_prim_end = story_group.([direction '_start']) + story_props.(['bay_coor_' direction]){1}(start_bay + 1);
 end
