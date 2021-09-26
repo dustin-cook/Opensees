@@ -28,13 +28,17 @@ else
 end
 
 % Load Analysis Data
-load([read_dir filesep 'element_analysis.mat'])
-load([read_dir filesep 'story_analysis.mat'])
-load([read_dir filesep 'model_analysis.mat'])
-load([read_dir filesep 'node_analysis.mat']);
-load([read_dir filesep 'joint_analysis.mat'])
-if exist([read_dir filesep 'hinge_analysis.mat'],'file')
-    load([read_dir filesep 'hinge_analysis.mat'])
+if exist(read_dir,'dir')
+    load([read_dir filesep 'element_analysis.mat'])
+    load([read_dir filesep 'story_analysis.mat'])
+    load([read_dir filesep 'model_analysis.mat'])
+    load([read_dir filesep 'node_analysis.mat']);
+    load([read_dir filesep 'joint_analysis.mat'])
+    if exist([read_dir filesep 'hinge_analysis.mat'],'file')
+        load([read_dir filesep 'hinge_analysis.mat'])
+    end
+else
+    load([read_dir_opensees filesep 'story_analysis.mat'])
 end
 
 if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this proceedure
@@ -73,7 +77,7 @@ if sum(analysis.type_list == 2) > 0 % Pushover was run as part of this proceedur
     pushover_analysis = load([pushover_read_dir filesep 'analysis_options.mat']);
     pushover_story_TH = load([pushover_read_dir filesep 'story_TH.mat']);
     % Plot Building Pushovers
-    [ model ] = fn_plot_pushover( pushover_read_dir, story.seismic_wt, pushover_story_TH.story_TH, model );
+    [ model ] = fn_plot_pushover( pushover_read_dir, story, pushover_story_TH.story_TH, model );
 
     if analysis.element_plots
         % Plot PM Diagrams for each element

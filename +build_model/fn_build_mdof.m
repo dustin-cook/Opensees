@@ -62,7 +62,7 @@ for s = 1:height(story)
 
                     if element_group.col_id(nb) ~= 0
                         ele_id = ele_id + 1;
-                        [ node, element ] = fn_create_element( 'col', ele_id, ele_props_table, element_group.col_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g}, 0, 0) );
+                        [ node, element ] = fn_create_element( 'col', ele_id, ele_props_table, element_group.col_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g}, 0, 0);
                     end
                     if element_group.beam_id(nb) ~= 0
                         ele_id = ele_id + 1;

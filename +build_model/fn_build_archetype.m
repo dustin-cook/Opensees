@@ -51,40 +51,38 @@ for s = 1:height(story)
                     if iscell(element_group.wall_id)
                         element_group.wall_id = str2double(strsplit(strrep(strrep(element_group.wall_id{1},'[',''),']',''),','));
                     end
-
+                    % Columns
                     if element_group.col_id(nb) ~= 0
                         ele_id = ele_id + 1;
-                        ele = element_table(element_table.id == element_group.col_id(nb),:);
-                        [ node, element ] = fn_create_element( 'col', ele_id, element_table, element_group.col_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g}, ele.trib_wt_1, ele.trib_wt_2 );
                         if nb > 1
                             element.inner_bay(ele_id,1) = 1;
                         else
                             element.inner_bay(ele_id,1) = 0;
                         end
+                        [ node, element ] = fn_create_element( 'col', ele_id, element_table, element_group.col_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g} );
                     end
+                    % Beams
                     if element_group.beam_id(nb) ~= 0
                         ele_id = ele_id + 1;
-                        ele = element_table(element_table.id == element_group.beam_id(nb),:);
-                        [ node, element ] = fn_create_element( 'beam', ele_id, element_table, element_group.beam_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g}, ele.trib_wt_1, ele.trib_wt_2 );
-                        if nb > 1 && nb <element_group.num_bays
+                        if nb > 1 && nb < element_group.num_bays
                             element.inner_bay(ele_id,1) = 1;
                         else
                             element.inner_bay(ele_id,1) = 0;
                         end
+                        [ node, element ] = fn_create_element( 'beam', ele_id, element_table, element_group.beam_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g} );
                     end
+                    % Walls
                     if element_group.wall_id(nb) ~= 0
                         ele_id = ele_id + 1;
-                        ele = element_table(element_table.id == element_group.wall_id(nb),:);
-                        [ node, element ] = fn_create_element( 'wall', ele_id, element_table, element_group.wall_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g}, ele.trib_wt_1, ele.trib_wt_2 );
                         element.inner_bay(ele_id,1) = 0;
+                        [ node, element ] = fn_create_element( 'wall', ele_id, element_table, element_group.wall_id(nb), nb, story_props, story_group(g,:), node, element, story_group.direction{g} );
                     end
                 end
                 % Last column in bay span
                 if sum(element_group.col_id ~=0) ~= 0 && element_group.col_id(nb+1) ~= 0
                     ele_id = ele_id + 1;
-                    ele = element_table(element_table.id == element_group.col_id(nb+1),:);
-                    [ node, element ] = fn_create_element( 'col', ele_id, element_table, element_group.col_id(nb+1), element_group.num_bays+1, story_props, story_group(g,:), node, element, story_group.direction{g}, ele.trib_wt_1, ele.trib_wt_2 );
                     element.inner_bay(ele_id,1) = 0;
+                    [ node, element ] = fn_create_element( 'col', ele_id, element_table, element_group.col_id(nb+1), element_group.num_bays+1, story_props, story_group(g,:), node, element, story_group.direction{g} );
                 end
             end
         end
@@ -96,8 +94,8 @@ for s = 1:height(story)
         element.dead_load_2(ele_story_filt,1)  = element.trib_wt_2(ele_story_filt)*(story.story_dead_load(s) - story.p_delta_dead_load(s));
         element.live_load_2(ele_story_filt,1)  = element.trib_wt_2(ele_story_filt)*(story.story_live_load(s) - story.p_delta_live_load(s));
         
-        element.seismic_wt_1(ele_story_filt,1) = element.trib_wt_1(ele_story_filt)*(story.seismic_wt(s));
-        element.seismic_wt_2(ele_story_filt,1) = element.trib_wt_2(ele_story_filt)*(story.seismic_wt(s));
+        element.seismic_wt_1(ele_story_filt,1) = element.trib_seismic_wt_1(ele_story_filt)*(story.seismic_wt(s));
+        element.seismic_wt_2(ele_story_filt,1) = element.trib_seismic_wt_2(ele_story_filt)*(story.seismic_wt(s));
     end
 end
 
@@ -294,6 +292,8 @@ if analysis.additional_elements
 
         element.trib_wt_1(ele_id,1) = 0;
         element.trib_wt_2(ele_id,1) = 0;
+        element.trib_seismic_wt_1(ele_id,1) = 0;
+        element.trib_seismic_wt_2(ele_id,1) = 0;
         element.seismic_wt_1(ele_id,1) = 0;
         element.seismic_wt_2(ele_id,1) = 0;
         element.inner_bay(ele_id,1) = 0;

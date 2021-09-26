@@ -19,9 +19,9 @@ fprintf(fileID,'wipe \n');
 
 % Build Model and Analysis Parameters
 fprintf(fileID,'source %s/model.tcl \n', model_dir);
-if analysis.run_eigen
-    fprintf(fileID,'source %s/eigen.tcl \n', write_dir);
-end
+% if analysis.run_eigen
+%     fprintf(fileID,'source %s/eigen.tcl \n', write_dir);
+% end
 fprintf(fileID,'source %s/loads.tcl \n', write_dir);
 fprintf(fileID,'source %s/recorders.tcl \n', write_dir);
 

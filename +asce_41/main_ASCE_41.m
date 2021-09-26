@@ -22,6 +22,8 @@ if analysis.model_type == 1 % SDOF
     model_table = readtable(['inputs' filesep 'sdof_models.csv'],'ReadVariableNames',true);
 elseif analysis.model_type == 2 % MDOF
     model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
+elseif analysis.model_type == 3 % Archetype
+    model_table = readtable(['inputs' filesep 'archetype_models.csv'],'ReadVariableNames',true);
 end
 
 % Pull in Element Database
@@ -72,7 +74,7 @@ if ~analysis.skip_2_outputs % Don't skip to plotters
         %% Postprocess ASCE 41 data
         disp('Post Processing Via ASCE 41 ...')
 %         [ capacity(:,i), torsion{i} ] = main_ASCE_41_post_process( analysis, ele_prop_table );
-        main_ASCE_41_post_process( analysis, ele_prop_table );
+%         main_ASCE_41_post_process( analysis, ele_prop_table );
 
         %% Analysis Checks
 %         disp('Validating Analysis Results ...')

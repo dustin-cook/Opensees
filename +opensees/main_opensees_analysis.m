@@ -99,7 +99,7 @@ for i = 1:num_OS_runs
     if analysis.run_opensees
         % Write TCL files
         main_write_tcl( model.dimension, write_dir_opensees, node, element, story, joint, hinge, analysis, read_dir_analysis, ground_motion, model );
-
+        
         % Run Opensees
         fprintf('Running Opensees Analysis %i of %i \n',i,num_OS_runs)
         main_run_opensees( write_dir_opensees, analysis )
