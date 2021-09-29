@@ -42,7 +42,11 @@ fprintf('Running Opensess... \n')
 if analysis.summit
     command = ['/projects/duco1061/software/OpenSeesSP/bin/OpenSeesSP ' ida_opensees_dir filesep 'run_analysis.tcl'];
 else
-    command = ['openseesSP ' ida_opensees_dir filesep 'run_analysis.tcl'];
+    if analysis.opensees_SP
+        command = ['openseesSP ' ida_opensees_dir filesep 'run_analysis.tcl'];
+    else
+        command = ['opensees ' ida_opensees_dir filesep 'run_analysis.tcl'];
+    end
 end
 if analysis.suppress_outputs
     [status,cmdout] = system(command);
