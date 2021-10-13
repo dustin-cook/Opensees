@@ -11,16 +11,16 @@ clc
 % analysis.model_id = 4;
 analysis.model_type = 3; % 1 = SDOF, 2 = MDOF (default), 3 = Archetype model
 analysis.proceedure = 'P58'; 
-analysis.id = 'EAL'; % ID of the analysis for it to create its own directory
+analysis.id = 'Dissertation_Study'; % ID of the analysis for it to create its own directory
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 0;
 
 % Analysis options
 analysis.summit = 0;
 analysis.run_parallel = 0;
-analysis.run_ida = 1;
-analysis.post_process_ida = 1;
-% analysis.create_fragilities = 0;
+analysis.run_ida = 0;
+analysis.post_process_ida = 0;
+analysis.create_fragilities = 1;
 % analysis.plot_ida = 0;
 % analysis.detialed_post_process = 0;
 analysis.run_sa_stripes = 1;
@@ -72,14 +72,14 @@ hazard.afe = 1/475;
 
 % Define models to run
 model_data = readtable(['inputs' filesep 'archetype_models.csv'],'ReadVariableNames',true);
-% model_data = model_data(model_data.num_stories == 20,:);
-model_data = model_data(model_data.num_stories ~= 20,:);
-model_data = model_data(model_data.ie ~= 1.25,:);
-model_data = model_data(~contains(model_data.name,'drift15'),:);
+model_data = model_data(model_data.num_stories == 12,:);
+% model_data = model_data(model_data.num_stories ~= 20,:);
+% model_data = model_data(model_data.ie ~= 1.25,:);
+% model_data = model_data(~contains(model_data.name,'drift15'),:);
 num_models = height(model_data);
 
 % Define remote directory
-remote_dir = ['G:\My Drive\NIST\Cost Benefit Study' filesep 'EAL Model Responses'];
+remote_dir = ['G:\My Drive\Dissertation Archetype Study\Archetypes RCMF\Archetype Model Responses'];
 
 %% Import Packages
 import ida.*
@@ -90,11 +90,13 @@ import opensees.main_eigen_analysis
 import usgs.*
 
 %% Pull Hazard Data
-rps2run = [10, 50, 100, 150, 250, 500, 750, 1000, 1500, 2500];
+rps2run = [43, 72, 108, 224, 475, 975, 2475, 4975];
+% rps2run = [10, 50, 100, 150, 250, 500, 750, 1000, 1500, 2500];
 [sa_spectra, sa_periods] = fn_call_USGS_hazard_API('E2014', site.lat, site.lng, site.vs30, 1./rps2run);
 
-% model_ids = 1:24;
-for m = 11:num_models % run for each model     
+col_data = table;
+p_exceed_ac = [];
+for m = 1:num_models % run for each model     
     %% Initial Setup
     % Load basic model data
     model = model_data(m,:);
@@ -115,7 +117,7 @@ for m = 11:num_models % run for each model
     if ~exist(model_remote_dir,'dir')
         mkdir(model_remote_dir)
     end
-    ELFP_model_dir = ['outputs' '/' model.name{1} '/' 'ELFP' '_' analysis.id '/' 'model_data'];
+%     ELFP_model_dir = ['outputs' '/' model.name{1} '/' 'ELFP' '_' analysis.id '/' 'model_data'];
     % tcl_dir = ['outputs' '/' model.name{1} '/' 'ELFP' '_' analysis.id '/' 'eigen_analysis'];
     % asce41_dir = [main_dir '/' 'asce_41_data'];
 
@@ -153,13 +155,16 @@ for m = 11:num_models % run for each model
     [ element ] = fn_factor_loads( analysis, element, [] );
 
     %% Interpolate Site Hazard for building period
-    % [design_values] = fn_call_USGS_design_value_API(1, 'asce7-16', site.lat, site.lng, 'II', model.site_class);
+%     [design_values] = fn_call_USGS_design_value_API(1, 'asce7-16', site.lat, site.lng, 'II', model.site_class);
     period_cropped = min(max(model.T1_x,min(sa_periods)),max(sa_periods)); % limit building period to the available periods
 %     sa_475 = interp1(sa_periods,sa_spectra,period_cropped);
     sa_levels = interp1(sa_periods,sa_spectra,period_cropped);
     
     % design level
-%     sa_dbe = min(site.sds,site.sd1/model.T1_x);
+    sa_dbe = min(site.sds,site.sd1/model.T1_x);
+
+    % MCE level
+    ida_results.mce = sa_dbe*1.5;
     
 %     analysis.sa_stripes = [sa_475, sa_dbe];
     analysis.sa_stripes = sa_levels;
@@ -168,9 +173,23 @@ for m = 11:num_models % run for each model
     if analysis.run_ida || analysis.post_process_ida
         fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir, main_dir)
     end
+    
+    %% Create Response and Consequence Fragilities
+    if analysis.create_fragilities
+        write_dir = [main_dir '/' 'IDA' '/' 'Fragility Data'];
+        if ~exist(write_dir,'dir')
+            mkdir(write_dir)
+        end
+        [col_med, col_beta, p_col_mce, p_col_dbe] = fn_create_collapse_fragility(analysis, gm_set_table, ida_results, main_dir, write_dir);
+        col_data.id(m,1) =  model.id;
+        col_data.model_name(m,1) =  model.name;
+        col_data.med_sa(m,1) = col_med;
+        col_data.beta(m,1) = col_beta;
+        col_data.p_col_mce(m,1) = p_col_mce;
+        col_data.p_col_dbe(m,1) = p_col_dbe;
+    end
 
-    %% Post Process Details of Specific GMs
-    % Collect EDP data
+    %% Post Process EDP data
     disp('Collecting EDP data for FEMA P-58 Assessment ...')
     id = 0;
     idr = [];
@@ -188,7 +207,7 @@ for m = 11:num_models % run for each model
             
             % Set values
             max_a_ratio.gm(gm,1) = gm;
-            sa_val = str2double(strrep(strrep(sa_folders(s).name,'Sa_',''),'_','.'));
+            sa_val = round(str2double(strrep(strrep(sa_folders(s).name,'Sa_',''),'_','.')),3);
             
             % Load Data
             if exist(outputs_file,'file')
@@ -324,12 +343,49 @@ for m = 11:num_models % run for each model
     mkdir(write_dir)
     writetable(idr_table_sort,[write_dir filesep 'idr.csv'])
     writetable(pfa_table_sort,[write_dir filesep 'pfa.csv'])
-    writetable(struct2table(max_a_ratio),[write_dir filesep 'a_ratio.csv'])
+    max_a_ratio_table = struct2table(max_a_ratio);
+    writetable(max_a_ratio_table,[write_dir filesep 'a_ratio.csv'])
     
     % Save P-58 input run data to remote location
     writetable(idr_table_sort,[model_remote_dir filesep 'idr.csv'])
     writetable(pfa_table_sort,[model_remote_dir filesep 'pfa.csv'])
     writetable(model,[model_remote_dir filesep 'model.csv'])
     writetable(story,[model_remote_dir filesep 'story.csv'])
+    
+    % Collect a_ratio data for ACI work
+    num_gms_exceed_ac = [];
+    num_gms = height(max_a_ratio_table);
+    for s = 1:length(analysis.sa_stripes)
+        gm_data = max_a_ratio_table{:,s+1};
+        num_gms_exceed_ac(s) = sum(gm_data > 0.5 | isnan(gm_data));
+    end
+    p_exceed_ac(m,:) = num_gms_exceed_ac / num_gms;
 end
 
+% write collapse data for all models
+writetable(col_data,[remote_dir filesep 'col_data.csv'])
+
+% write ACI data
+csvwrite([remote_dir filesep 'ACI_prob_exceedance.csv'],p_exceed_ac)
+
+% plot ACI data
+hold on
+plt = plot(analysis.sa_stripes, p_exceed_ac,'-o');
+legend(plt,strrep(model_data.name,'_',' '));
+legend('location', 'northwest')
+plot((2/3)*[ida_results.mce, ida_results.mce], [0, 1],'--k','HandleVisibility','off')
+text(1.05*(2/3)*ida_results.mce, 0.03, 'DE','FontName', 'times', 'FontSize', 8)
+plot([ida_results.mce, ida_results.mce], [0, 1],'--k','HandleVisibility','off')
+text(1.05*ida_results.mce, 0.03, 'MCE_r','FontName', 'times', 'FontSize', 8)
+upper_y = max(max(p_exceed_ac));
+ylim([0 upper_y])
+xlabel('Sa T_1 (g)')
+ylabel('Probability of Exceeding 0.5*a')
+box on
+grid on
+set(gcf,'position',[10,10,500,300])
+set(gca,'fontname','times')
+plt_name = 'ACI_plt';
+savefig([remote_dir filesep plt_name '.fig'])
+saveas(gcf,[remote_dir filesep plt_name],'png')
+close
