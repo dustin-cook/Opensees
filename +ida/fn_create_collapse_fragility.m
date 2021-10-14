@@ -136,6 +136,15 @@ beta_new = 0.6;
 p_col_mce_adj = logncdf(ida_results.mce,mu,beta_new);
 p_col_dbe_adj = logncdf((2/3)*ida_results.mce,mu,beta_new);
 
-%% Save data
+%% Collapse Mechanism histogram
+collapse_mech_list = ida_table.collapse_mech(~strcmp(ida_table.collapse_mech,'NA'));
+[uni,~,idx] = unique(collapse_mech_list);
+hist(idx,unique(idx))
+set(gca,'XTickLabel',uni)
+ylabel('Number of Collapse Cases')
+plt_name = 'collapse_mech';
+savefig([write_dir filesep plt_name '.fig'])
+saveas(gcf,[write_dir filesep plt_name],'png')
+close
 
 end
