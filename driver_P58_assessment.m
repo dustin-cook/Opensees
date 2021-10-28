@@ -18,12 +18,13 @@ analysis.run_z_motion = 0;
 % Analysis options
 analysis.summit = 0;
 analysis.run_parallel = 0;
-analysis.run_ida = 0;
-analysis.post_process_ida = 0;
+analysis.run_ida = 1;
+analysis.post_process_ida = 1;
 analysis.create_fragilities = 1;
 % analysis.plot_ida = 0;
 % analysis.detialed_post_process = 0;
 analysis.run_sa_stripes = 1;
+analysis.scale_method = 'maxdir'; % 'maxdir' or 'geomean'
 % analysis.scale_increment = 0.25;
 % analysis.sa_stripes = [0.2 0.4];
 analysis.collapse_drift = 0.10; % Drift ratio at which we are calling the model essentially collapsed
@@ -90,10 +91,11 @@ import opensees.main_eigen_analysis
 import usgs.*
 
 %% Pull Hazard Data
-rps2run = [43, 72, 108, 224, 475, 975, 2475, 4975];
+mce_stripes = [0.05, 0.1, 0.2, 0.4, 2/3, 0.8, 1.0, 1.25];
+% rps2run = [43, 72, 108, 224, 475, 975, 2475, 4975];
 % rps2run = [43, 72];
 % rps2run = [10, 50, 100, 150, 250, 500, 750, 1000, 1500, 2500];
-[sa_spectra, sa_periods] = fn_call_USGS_hazard_API('E2014', site.lat, site.lng, site.vs30, 1./rps2run);
+% [sa_spectra, sa_periods] = fn_call_USGS_hazard_API('E2014', site.lat, site.lng, site.vs30, 1./rps2run);
 
 collapse_data = table;
 for m = 1:num_models % run for each model     
@@ -156,19 +158,19 @@ for m = 1:num_models % run for each model
 
     %% Interpolate Site Hazard for building period
 %     [design_values] = fn_call_USGS_design_value_API(1, 'asce7-16', site.lat, site.lng, 'II', model.site_class);
-    period_cropped = min(max(model.T1_x,min(sa_periods)),max(sa_periods)); % limit building period to the available periods
+%     period_cropped = min(max(model.T1_x,min(sa_periods)),max(sa_periods)); % limit building period to the available periods
 %     sa_475 = interp1(sa_periods,sa_spectra,period_cropped);
-    sa_levels = interp1(sa_periods,sa_spectra,period_cropped);
+%     sa_levels = interp1(sa_periods,sa_spectra,period_cropped);
     
     % design level
     sa_dbe = min(site.sds,site.sd1/model.T1_x);
+    sa_mce = sa_dbe*1.5;
 
     % MCE level
-    ida_results.mce = sa_dbe*1.5;
+    ida_results.mce = sa_mce;
     
     % Augment Sa levels with design levels
-    design_stripes = [0.2, 0.4, 2/3, 0.8, 1]*ida_results.mce;
-    analysis.sa_stripes = sort([sa_levels, design_stripes]);
+    analysis.sa_stripes = mce_stripes*sa_mce;
 
     %% Run Opensees Models
     if analysis.run_ida || analysis.post_process_ida

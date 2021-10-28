@@ -31,8 +31,13 @@ for i = 1:length(analysis.sa_stripes)
         spectra_table = readtable([gm_alt.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
         sa_gm_z = interp1(spectra_table.period,spectra_table.psa_5,ida_results.period(1));
     end
-    sa_gm_geomean = sqrt(sa_gm_x*sa_gm_z);
-    scale_factor = analysis.sa_stripes(i) / sa_gm_geomean;
+    if strcmp(analysis.scale_method,'geomean')
+        sa_gm_geomean = sqrt(sa_gm_x*sa_gm_z);
+        scale_factor = analysis.sa_stripes(i) / sa_gm_geomean;
+    elseif strcmp(analysis.scale_method,'maxdir')
+        sa_gm_maxdir = max(sa_gm_x,sa_gm_z);
+        scale_factor = analysis.sa_stripes(i) / sa_gm_maxdir;
+    end
     ground_motion.x.sa = sa_gm_x*scale_factor;
     if analysis.run_z_motion
         ground_motion.z.sa = sa_gm_z*scale_factor;
