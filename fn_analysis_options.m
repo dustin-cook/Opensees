@@ -76,6 +76,17 @@ elseif strcmp(analysis.proceedure,'torsion')
     analysis.damp_ratio_list = [0.028, 0.028];
     
 elseif strcmp(analysis.proceedure,'Pushover')
+    analysis.type_list = [2]; % NonLinear Pushover then NL Pushover x 2
+    analysis.nonlinear_list = [1];
+    analysis.dead_load_list = [1];
+    analysis.live_load_list = [1];
+    analysis.case_list = {'backbones'};
+    analysis.pushover_drift_list_x = [0.10]; % Drift limit where the pushover will go till
+    analysis.pushover_drift_list_z = [0.10];
+    analysis.accidental_torsion_list = [0];
+    analysis.damp_ratio_list = [0.03]; % Analysis damping ratio
+    
+elseif strcmp(analysis.proceedure,'Pushover2')
     analysis.type_list = [2, 2]; % NonLinear Pushover then NL Pushover x 2
     analysis.nonlinear_list = [1, 1];
     analysis.dead_load_list = [1, 1];

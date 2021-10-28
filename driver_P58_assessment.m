@@ -18,9 +18,9 @@ analysis.run_z_motion = 0;
 % Analysis options
 analysis.summit = 0;
 analysis.run_parallel = 0;
-analysis.run_ida = 1;
-analysis.post_process_ida = 1;
-analysis.create_fragilities = 0;
+analysis.run_ida = 0;
+analysis.post_process_ida = 0;
+analysis.create_fragilities = 1;
 % analysis.plot_ida = 0;
 % analysis.detialed_post_process = 0;
 analysis.run_sa_stripes = 1;
@@ -72,7 +72,7 @@ hazard.afe = 1/475;
 
 % Define models to run
 model_data = readtable(['inputs' filesep 'archetype_models.csv'],'ReadVariableNames',true);
-model_data = model_data(model_data.num_stories == 4,:);
+model_data = model_data(model_data.num_stories == 8,:);
 % model_data = model_data(model_data.num_stories ~= 20,:);
 % model_data = model_data(model_data.ie ~= 1.25,:);
 % model_data = model_data(~contains(model_data.name,'drift15'),:);
@@ -95,7 +95,7 @@ rps2run = [43, 72, 108, 224, 475, 975, 2475, 4975];
 % rps2run = [10, 50, 100, 150, 250, 500, 750, 1000, 1500, 2500];
 [sa_spectra, sa_periods] = fn_call_USGS_hazard_API('E2014', site.lat, site.lng, site.vs30, 1./rps2run);
 
-col_data = table;
+collapse_data = table;
 for m = 1:num_models % run for each model     
     %% Initial Setup
     % Load basic model data
@@ -182,12 +182,12 @@ for m = 1:num_models % run for each model
 %             mkdir(write_dir)
 %         end
         [col_med, col_beta, p_col_mce, p_col_dbe] = fn_create_collapse_fragility(analysis, gm_set_table, ida_results, main_dir, model_remote_dir);
-        col_data.id(m,1) =  model.id;
-        col_data.model_name(m,1) =  model.name;
-        col_data.med_sa(m,1) = col_med;
-        col_data.beta(m,1) = col_beta;
-        col_data.p_col_mce(m,1) = p_col_mce;
-        col_data.p_col_dbe(m,1) = p_col_dbe;
+        collapse_data.id(m,1) =  model.id;
+        collapse_data.model_name(m,1) =  model.name;
+        collapse_data.med_sa(m,1) = col_med;
+        collapse_data.beta(m,1) = col_beta;
+        collapse_data.p_col_mce(m,1) = p_col_mce;
+        collapse_data.p_col_dbe(m,1) = p_col_dbe;
     end
 
     %% Post Process EDP data
@@ -362,6 +362,7 @@ for m = 1:num_models % run for each model
     writetable(pfa_table_sort,[model_remote_dir filesep 'pfa.csv'])
     writetable(model,[model_remote_dir filesep 'model.csv'])
     writetable(story,[model_remote_dir filesep 'story.csv'])
+    writetable(collapse_data(m,:),[model_remote_dir filesep 'collapse_data.csv'])
     
     % Collect a_ratio data for ACI work
     num_gms = height(max_a_ratio);
@@ -394,7 +395,7 @@ for m = 1:num_models % run for each model
 end
 
 % write collapse data for all models
-writetable(col_data,[remote_dir filesep 'col_data_12story.csv'])
+writetable(collapse_data,[remote_dir filesep 'collapse_data.csv'])
 
 % write ACI data
 dbe_levels = mce_levels * 2/3;

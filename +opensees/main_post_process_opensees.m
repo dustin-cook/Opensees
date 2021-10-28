@@ -374,22 +374,23 @@ for i = 1:length(dirs_ran)
     end
     
     % Load Mode shape data and period
-    if exist([opensees_dir filesep 'period.txt'],'file')
-        periods = dlmread([opensees_dir filesep 'period.txt']);
-        if strcmp(dirs_ran{i},'x')
+    eigen_dir = [analysis.out_dir filesep 'eigen_analysis'];
+    if exist([eigen_dir filesep 'period.txt'],'file')
+        periods = dlmread([eigen_dir filesep 'period.txt']);
+        if contains(dirs_ran{i},'x')
             % Save periods
-            model.(['T1_' dirs_ran{i}]) = periods(1);
+            model.T1_x = periods(1);
             % Save mode shapes
-            [ mode_shape_raw ] = fn_xml_read([opensees_dir filesep 'mode_shape_1.xml']);
+            [ mode_shape_raw ] = fn_xml_read([eigen_dir filesep 'mode_shape_1.xml']);
             mode_shape_norm = mode_shape_raw(1:3:end)/mode_shape_raw(end-2); % Extract every three values and normalize by roof
-            story.(['mode_shape_x'])(story.id > 0) = mode_shape_norm';
-        elseif strcmp(dirs_ran{i},'z')
+            story.mode_shape_x = mode_shape_norm';
+        elseif contains(dirs_ran{i},'z')
             % Save periods
-            model.(['T1_' dirs_ran{i}]) = periods(3);
+            model.T1_z = periods(3);
             % Save mode shapes
-            [ mode_shape_raw ] = fn_xml_read([opensees_dir filesep 'mode_shape_3.xml']); % fixed as NS first mode = 3rd mode
+            [ mode_shape_raw ] = fn_xml_read([eigen_dir filesep 'mode_shape_3.xml']); % fixed as NS first mode = 3rd mode
             mode_shape_norm = mode_shape_raw(2+(1:3:end))/mode_shape_raw(end); % Extract z values and normalize by roof
-            story.(['mode_shape_z'])(story.id > 0) = mode_shape_norm';
+            story.mode_shape_z = mode_shape_norm';
         end
     end
     

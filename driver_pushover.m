@@ -46,36 +46,94 @@ model_data = readtable(['inputs' filesep 'archetype_models.csv'],'ReadVariableNa
 model_data = model_data(model_data.num_stories == 12,:);
 % model_data = model_data(model_data.num_stories ~= 20,:);
 % model_data = model_data(model_data.ie ~= 1.25,:);
-model_data = model_data(~contains(model_data.name,'drift'),:);
+% model_data = model_data(~contains(model_data.name,'drift'),:);
 num_models = height(model_data);
 
 %% Initiate Analysis
-for m = 2:num_models % run for each model    
+data = table;
+for m = 1:num_models % run for each model    
     % Load basic model data
     model = model_data(m,:);
     analysis.model_id = model.id;
     fprintf('Running Model %i of %i: %s\n', m, num_models, model.name{1})
-
-    % Define read and write directories
-%     main_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id];
-%     model_dir = [main_dir '/' 'model_data'];
-%     if ~exist(model_dir,'dir')
-%         mkdir(model_dir)
-%     end
-%     tcl_dir = [main_dir '/' 'opensees_data'];
-%     if ~exist(tcl_dir,'dir')
-%         mkdir(tcl_dir)
-%     end
-%     model_remote_dir = [remote_dir filesep model.name{1}];
-%     if ~exist(model_remote_dir,'dir')
-%         mkdir(model_remote_dir)
-%     end
-%     ELFP_model_dir = ['outputs' '/' model.name{1} '/' 'ELFP' '_' analysis.id '/' 'model_data'];
-    % tcl_dir = ['outputs' '/' model.name{1} '/' 'ELFP' '_' analysis.id '/' 'eigen_analysis'];
-    % asce41_dir = [main_dir '/' 'asce_41_data'];
     
+    %% Run Pushover
     tic
     main_ASCE_41( analysis )
     toc
+    
+    %% Collect and save data
+    % Define read and write directories
+    main_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id];
+    opensees_dir = [main_dir '/' 'opensees_data'];
+    push_dir = [main_dir '/' 'pushover'];
+    
+    % Load pushover parameters
+    model_analysis = load([opensees_dir filesep 'model_analysis.mat']);
+    load([opensees_dir filesep 'story_analysis.mat'])
+    load([opensees_dir filesep 'node_analysis.mat']);
+    load([push_dir filesep 'story_TH.mat']);
+
+    % Grab pushover THs
+    control_nodes = node(node.primary_story == 1,:);
+    roof_node = control_nodes(control_nodes.y == max(control_nodes.y),:);
+    load([push_dir filesep 'node_TH_' num2str(roof_node.id) '.mat'])
+    roof_disp_x = abs(nd_TH.disp_x_TH);
+%     roof_disp_x_neg = abs(nd_TH.disp_x_neg_TH);
+    v_ratio_x = abs(story_TH.base_shear_x_TH)/sum(story.seismic_wt);
+%     v_ratio_x_neg = abs(story_TH.base_shear_x_neg_TH)/sum(story.seismic_wt);
+    
+    % Calculate p695 pushover parameters
+    % (Assume buildin is symmetric, so just use the x pos direction)
+    Vmax = max(v_ratio_x);
+    Vmax_80 = 0.8*Vmax;
+    delta_vmax = roof_disp_x(Vmax == v_ratio_x); 
+    post_peak_V = v_ratio_x(roof_disp_x > delta_vmax);
+    post_peak_delta = roof_disp_x(roof_disp_x > delta_vmax);
+    delta_u = post_peak_delta(find(post_peak_V < Vmax_80,1)); % Find the first time its less than 0.8Vmax post peak
+    C0 = story.mode_shape_x(end) * sum(story.seismic_wt .* story.mode_shape_x) / sum(story.seismic_wt .* story.mode_shape_x .^2);
+    g = 386.4; % in/s^2
+    Ct = 0.016; % table 12.8-2
+    x = 0.9; % table 12.8-2
+    hn = sum(story.story_ht)/12;
+    Sds = 1.0;
+    Cu = interp1([0.1, 0.15, 0.2, 0.3],... % Coefficient for upper limit on calculated period table 12.8-1
+                 [1.7,1.6,1.5,1.4],...
+                 min(max(Sds,0.1),0.3));
+    Ta = Ct*hn^x;
+    CuTa = Cu*Ta;
+    dy_eff = C0*Vmax * (g/(4*pi^2)) * max(model_analysis.model.T1_x,CuTa);
+    mu_t = delta_u / dy_eff;
+    
+    % Plot parameters for verification
+    hold on
+    plot(roof_disp_x,v_ratio_x,'DisplayName','Pushover')
+    scatter(delta_vmax,Vmax,'DisplayName','Vmax')
+    scatter(delta_u,Vmax_80,'DisplayName','delta_u')
+    plot([dy_eff,dy_eff],[0,Vmax],'--','DisplayName','dy_eff')
+    
+    
+    % collect data in table
+    try
+        data.model_id(m,1) = model.id;
+        data.period(m,1) = model_analysis.model.T1_x;
+        data.Vmax(m,1) = Vmax;
+        data.delta_u(m,1) = delta_u;
+        data.dy_eff(m,1) = dy_eff;
+        data.mu_t(m,1) = mu_t;
+    catch
+        test = 5;
+    end
+    
+    close
+    
+    % save individual model data
+    write_dir = [remote_dir filesep model.name{1}];
+    if ~exist(write_dir)
+        mkdir(write_dir)
+    end
+    writetable(data(m,:),[write_dir filesep 'pushover_data.csv'])
 end
 
+% Save data table
+writetable(data,[remote_dir filesep 'pushover_data.csv'])
