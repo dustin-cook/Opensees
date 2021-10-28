@@ -72,7 +72,7 @@ hazard.afe = 1/475;
 
 % Define models to run
 model_data = readtable(['inputs' filesep 'archetype_models.csv'],'ReadVariableNames',true);
-% model_data = model_data(model_data.num_stories == 12,:);
+model_data = model_data(model_data.num_stories == 4,:);
 % model_data = model_data(model_data.num_stories ~= 20,:);
 % model_data = model_data(model_data.ie ~= 1.25,:);
 % model_data = model_data(~contains(model_data.name,'drift15'),:);
@@ -90,8 +90,8 @@ import opensees.main_eigen_analysis
 import usgs.*
 
 %% Pull Hazard Data
-% rps2run = [43, 72, 108, 224, 475, 975, 2475, 4975];
-rps2run = [43, 72];
+rps2run = [43, 72, 108, 224, 475, 975, 2475, 4975];
+% rps2run = [43, 72];
 % rps2run = [10, 50, 100, 150, 250, 500, 750, 1000, 1500, 2500];
 [sa_spectra, sa_periods] = fn_call_USGS_hazard_API('E2014', site.lat, site.lng, site.vs30, 1./rps2run);
 
@@ -166,8 +166,9 @@ for m = 1:num_models % run for each model
     % MCE level
     ida_results.mce = sa_dbe*1.5;
     
-%     analysis.sa_stripes = [sa_475, sa_dbe];
-    analysis.sa_stripes = sa_levels;
+    % Augment Sa levels with design levels
+    design_stripes = [0.2, 0.4, 2/3, 0.8, 1]*ida_results.mce;
+    analysis.sa_stripes = sort([sa_levels, design_stripes]);
 
     %% Run Opensees Models
     if analysis.run_ida || analysis.post_process_ida
@@ -271,8 +272,8 @@ for m = 1:num_models % run for each model
                     id = id + 1;
                     % Formulate the IDR table for the P-58 assessment - X direction
                     idr.sa(id,1) = sa_val;
-                    idr.direction(id,1) = gm_set_table.pair{gm};
-                    idr.gm(id,1) = gm_set_table.set_id{gm};
+                    idr.direction(id,1) = gm_set_table.pair(gm);
+                    idr.gm(id,1) = gm_set_table.set_id(gm);
                     for n = 1:height(story)
                         if summary.collapse > 0 % set collapse values = NaN
                             idr.(['story_' num2str(n)])(id,1) = NaN;
@@ -283,8 +284,8 @@ for m = 1:num_models % run for each model
 
                     % Formulate the PFA table for the P-58 assessment - X direction
                     pfa.sa(id,1) = sa_val;
-                    pfa.direction(id,1) = gm_set_table.pair{gm};
-                    pfa.gm(id,1) = gm_set_table.set_id{gm};
+                    pfa.direction(id,1) = gm_set_table.pair(gm);
+                    pfa.gm(id,1) = gm_set_table.set_id(gm);
                     pfa.floor_1(id,1) = summary.pga_x;
                     for n = 1:height(story)
                         if summary.collapse > 0 % set collapse values = NaN
@@ -339,9 +340,9 @@ for m = 1:num_models % run for each model
     for i = 1:length(sa_vals)
         for d = 1:2
             filt = idr_table.sa == sa_vals(i) & idr_table.direction == d;
-            idr_table_sect = idr_table(filt,:);
+            idr_table_sect = sortrows(idr_table(filt,:),3);
             idr_table_sort = [idr_table_sort; idr_table_sect];
-            pfa_table_sect = pfa_table(filt,:);
+            pfa_table_sect = sortrows(pfa_table(filt,:),3);
             pfa_table_sort = [pfa_table_sort; pfa_table_sect];
         end
     end
