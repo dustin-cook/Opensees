@@ -18,9 +18,9 @@ analysis.run_z_motion = 0;
 % Analysis options
 analysis.summit = 0;
 analysis.run_parallel = 0;
-analysis.run_ida = 0;
-analysis.post_process_ida = 0;
-analysis.create_fragilities = 1;
+analysis.run_ida = 1;
+analysis.post_process_ida = 1;
+analysis.create_fragilities = 0;
 % analysis.plot_ida = 0;
 % analysis.detialed_post_process = 0;
 analysis.run_sa_stripes = 1;
@@ -72,7 +72,7 @@ hazard.afe = 1/475;
 
 % Define models to run
 model_data = readtable(['inputs' filesep 'archetype_models.csv'],'ReadVariableNames',true);
-model_data = model_data(model_data.num_stories == 12,:);
+% model_data = model_data(model_data.num_stories == 12,:);
 % model_data = model_data(model_data.num_stories ~= 20,:);
 % model_data = model_data(model_data.ie ~= 1.25,:);
 % model_data = model_data(~contains(model_data.name,'drift15'),:);
@@ -90,7 +90,8 @@ import opensees.main_eigen_analysis
 import usgs.*
 
 %% Pull Hazard Data
-rps2run = [43, 72, 108, 224, 475, 975, 2475, 4975];
+% rps2run = [43, 72, 108, 224, 475, 975, 2475, 4975];
+rps2run = [43, 72];
 % rps2run = [10, 50, 100, 150, 250, 500, 750, 1000, 1500, 2500];
 [sa_spectra, sa_periods] = fn_call_USGS_hazard_API('E2014', site.lat, site.lng, site.vs30, 1./rps2run);
 
@@ -270,8 +271,8 @@ for m = 1:num_models % run for each model
                     id = id + 1;
                     % Formulate the IDR table for the P-58 assessment - X direction
                     idr.sa(id,1) = sa_val;
-                    idr.direction(id,1) = 1;
-                    idr.gm(id,1) = gm;%gm_set_table.eq_name{gm};
+                    idr.direction(id,1) = gm_set_table.pair{gm};
+                    idr.gm(id,1) = gm_set_table.set_id{gm};
                     for n = 1:height(story)
                         if summary.collapse > 0 % set collapse values = NaN
                             idr.(['story_' num2str(n)])(id,1) = NaN;
@@ -282,8 +283,8 @@ for m = 1:num_models % run for each model
 
                     % Formulate the PFA table for the P-58 assessment - X direction
                     pfa.sa(id,1) = sa_val;
-                    pfa.direction(id,1) = 1;
-                    pfa.gm(id,1) = gm;%gm_set_table.eq_name{gm};
+                    pfa.direction(id,1) = gm_set_table.pair{gm};
+                    pfa.gm(id,1) = gm_set_table.set_id{gm};
                     pfa.floor_1(id,1) = summary.pga_x;
                     for n = 1:height(story)
                         if summary.collapse > 0 % set collapse values = NaN
@@ -292,60 +293,36 @@ for m = 1:num_models % run for each model
                             pfa.(['floor_' num2str(n+1)])(id,1) = story.max_accel_x(n);
                         end
                     end
-
-                    id = id + 1;
-
-                    % Formulate the IDR table for the P-58 assessment - Z direction 
-                    if analysis.run_z_motion
-                        idr.sa(id,1) = sa_val;
-                        idr.direction(id,1) = 2;
-                        idr.gm(id,1) = gm;%gm_set_table.eq_name{gm};
-                        for n = 1:height(story)
-                            if summary.collapse > 0 % set collapse values = NaN
-                                idr.(['story_' num2str(n)])(id,1) = NaN;
-                            else
-                                idr.(['story_' num2str(n)])(id,1) = story.max_drift_z(n);
-                            end
-                        end
-                    else
-                        idr.sa(id,1) = sa_val;
-                        idr.direction(id,1) = 2;
-                        idr.gm(id,1) = gm;%gm_set_table.eq_name{gm};
-                        for n = 1:height(story)
-                            if summary.collapse > 0 % set collapse values = NaN
-                                idr.(['story_' num2str(n)])(id,1) = NaN;
-                            else
-                                idr.(['story_' num2str(n)])(id,1) = story.max_drift_x(n);
-                            end
-                        end
-                    end
-
-                    % Formulate the PFA table for the P-58 assessment - Z direction 
-                    if analysis.run_z_motion
-                        pfa.sa(id,1) = sa_val;
-                        pfa.direction(id,1) = 2;
-                        pfa.gm(id,1) = gm;%gm_set_table.eq_name{gm};
-                        pfa.floor_1(id,1) = summary.pga_z;
-                        for n = 1:height(story)
-                            if summary.collapse > 0 % set collapse values = NaN
-                                pfa.(['floor_' num2str(n+1)])(id,1) = NaN;
-                            else
-                                pfa.(['floor_' num2str(n+1)])(id,1) = story.max_accel_z(n);
-                            end
-                        end
-                    else
-                        pfa.sa(id,1) = sa_val;
-                        pfa.direction(id,1) = 2;
-                        pfa.gm(id,1) = gm;%gm_set_table.eq_name{gm};
-                        pfa.floor_1(id,1) = summary.pga_x;
-                        for n = 1:height(story)
-                            if summary.collapse > 0 % set collapse values = NaN
-                                pfa.(['floor_' num2str(n+1)])(id,1) = NaN;
-                            else
-                                pfa.(['floor_' num2str(n+1)])(id,1) = story.max_accel_x(n);
-                            end
-                        end
-                    end
+                    
+%                     % Pull z direction response - need to update this if
+%                     I actually run
+%                     if analysis.run_z_motion
+%                         id = id + 1;
+%                         % Formulate the IDR table for the P-58 assessment - Z direction 
+%                         idr.sa(id,1) = sa_val;
+%                         idr.direction(id,1) = 2;
+%                         idr.gm(id,1) = gm;%gm_set_table.eq_name{gm};
+%                         for n = 1:height(story)
+%                             if summary.collapse > 0 % set collapse values = NaN
+%                                 idr.(['story_' num2str(n)])(id,1) = NaN;
+%                             else
+%                                 idr.(['story_' num2str(n)])(id,1) = story.max_drift_z(n);
+%                             end
+%                         end
+% 
+%                         % Formulate the PFA table for the P-58 assessment - Z direction 
+%                         pfa.sa(id,1) = sa_val;
+%                         pfa.direction(id,1) = 2;
+%                         pfa.gm(id,1) = gm;%gm_set_table.eq_name{gm};
+%                         pfa.floor_1(id,1) = summary.pga_z;
+%                         for n = 1:height(story)
+%                             if summary.collapse > 0 % set collapse values = NaN
+%                                 pfa.(['floor_' num2str(n+1)])(id,1) = NaN;
+%                             else
+%                                 pfa.(['floor_' num2str(n+1)])(id,1) = story.max_accel_z(n);
+%                             end
+%                         end
+%                     end
                 else
                     error('NEED TO EXPLICITLY HANDLE MISSING STORY TABLE')
                 end

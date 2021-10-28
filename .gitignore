@@ -5,3 +5,4 @@ mini_ida/model/outputs/*
 mini_ida/ida_results/*
 report_writers/temp
 Archive/*
+*.asv

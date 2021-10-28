@@ -20,14 +20,14 @@ import asce_41.main_combine_load_case
 % Pull in database of available models
 if analysis.model_type == 1 % SDOF
     model_table = readtable(['inputs' filesep 'sdof_models.csv'],'ReadVariableNames',true);
+    ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
 elseif analysis.model_type == 2 % MDOF
     model_table = readtable(['inputs' filesep 'model.csv'],'ReadVariableNames',true);
+    ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
 elseif analysis.model_type == 3 % Archetype
     model_table = readtable(['inputs' filesep 'archetype_models.csv'],'ReadVariableNames',true);
+    ele_prop_table = [];
 end
-
-% Pull in Element Database
-ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
 
 % Select Model for the analysis 
 model = model_table(model_table.id == analysis.model_id,:);

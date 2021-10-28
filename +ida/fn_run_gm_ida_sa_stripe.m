@@ -17,17 +17,21 @@ for i = 1:length(analysis.sa_stripes)
         ground_motion.z.eq_name = {[ground_motion.z.eq_name{1} '.tcl']};
     end
     
-    % Load spectral info, define scale factor, and save Sa
+    % Load spectral info and scale ground motion as geomean of pair
     spectra_table = readtable([ground_motion.x.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
     sa_gm_x = interp1(spectra_table.period,spectra_table.psa_5,ida_results.period(1));
     if analysis.run_z_motion
         spectra_table = readtable([ground_motion.z.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
 %         sa_gm_z = interp1(spectra_table.period,spectra_table.psa_5,ida_results.period(2));
         sa_gm_z = interp1(spectra_table.period,spectra_table.psa_5,ida_results.period(1)); % use the first mode period for both directions to be consistent with USGS geomean
-        sa_gm_geomean = geomean([sa_gm_x,sa_gm_z]);
     else
-        sa_gm_geomean = sa_gm_x;
+        % Find the gm pair
+        gm_alt = gm_set_table(gm_set_table.set_id == ground_motion.x.set_id & gm_set_table.pair ~= ground_motion.x.pair,:);
+        gm_alt.eq_dir = {['ground_motions' '/' analysis.gm_set '/' gm_alt.eq_name{1}]};
+        spectra_table = readtable([gm_alt.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
+        sa_gm_z = interp1(spectra_table.period,spectra_table.psa_5,ida_results.period(1));
     end
+    sa_gm_geomean = sqrt(sa_gm_x*sa_gm_z);
     scale_factor = analysis.sa_stripes(i) / sa_gm_geomean;
     ground_motion.x.sa = sa_gm_x*scale_factor;
     if analysis.run_z_motion

@@ -72,18 +72,35 @@ legend boxoff
 set(gca,'FontSize',12)
 fn_format_and_save_plot( [read_dir filesep 'Pushover_Plots'], 'BaseShear Pushover', 0 )
 
-% Calculate Peak drfits from pushover
+% Calculate Peak drfits from pushover (just from the positive pushover...)
+story_disp_x = zeros(1,length(base_shear.base_shear_x_TH));
+story_disp_z = zeros(1,length(base_shear.base_shear_x_TH));
 for n = 1:height(control_nodes)
     story_control_node = control_nodes(n,:);
     load([read_dir filesep 'node_TH_' num2str(story_control_node.id) '.mat'])
-    story.story_disp_x(story.id == story_control_node.story) = max(abs([nd_TH.disp_x_TH,nd_TH.disp_x_neg_TH]));
+    story_disp_x(n+1,:) = abs(nd_TH.disp_x_TH);
+%     story.story_disp_x(story.id == story_control_node.story) = max(story_disp_x(n+1,:));
     if isfield(nd_TH,'disp_z_TH')
-        story.story_disp_z(story.id == story_control_node.story) = max(abs([nd_TH.disp_z_TH,nd_TH.disp_z_neg_TH]));
+        story_disp_z(n+1,:) = abs(nd_TH.disp_z_TH);
+%         story.story_disp_z(story.id == story_control_node.story) = max(story_disp_z(n+1,:));
     end
 end
+story_rel_disp_x = story_disp_x(2:end,:) - story_disp_x(1:(end-1),:);
+story_drift_x = story_rel_disp_x ./ story.story_ht;
+max_story_drift_TH_x = max(story_drift_x);
+% story.rel_disp_x = story.story_disp_x - [0; story.story_disp_x(1:(end-1))];
+story.drift_x = max(story_drift_x,[],2);
 
-story.rel_disp_x = story.story_disp_x - [0; story.story_disp_x(1:(end-1))];
-story.drift_x = story.rel_disp_x ./ story.story_ht;
+% Plot Max Story Drift Pushover Normalized by Building Weight
+hold on
+plot(max_story_drift_TH_x,v_ratio_x,'color',matlab_colors(2,:),'linewidth',1.5,'DisplayName','EW (X)')
+ylabel('Base Shear / Seismic Weight')
+xlabel('Max Story Drift')
+box on
+legend('location','northeast')
+legend boxoff
+set(gca,'FontSize',12)
+fn_format_and_save_plot( [read_dir filesep 'Pushover_Plots'], 'Story Drift Pushover', 0 )
 
 % Plot pushover drift profile
 story_vector = sort([story.id; story.id(2:end); story.id(end)+1]);
