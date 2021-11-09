@@ -24,7 +24,7 @@ analysis.create_fragilities = 1;
 % analysis.plot_ida = 0;
 % analysis.detialed_post_process = 0;
 analysis.run_sa_stripes = 1;
-analysis.scale_method = 'maxdir'; % 'maxdir' or 'geomean'
+analysis.scale_method = 'geomean'; % 'maxdir' or 'geomean'
 % analysis.scale_increment = 0.25;
 % analysis.sa_stripes = [0.2 0.4];
 analysis.collapse_drift = 0.10; % Drift ratio at which we are calling the model essentially collapsed
@@ -73,8 +73,8 @@ hazard.afe = 1/475;
 
 % Define models to run
 model_data = readtable(['inputs' filesep 'archetype_models.csv'],'ReadVariableNames',true);
-model_data = model_data(model_data.num_stories == 8,:);
-% model_data = model_data(model_data.num_stories ~= 20,:);
+% model_data = model_data(model_data.num_stories == 4,:);
+model_data = model_data(model_data.num_stories ~= 20,:);
 % model_data = model_data(model_data.ie ~= 1.25,:);
 % model_data = model_data(~contains(model_data.name,'drift15'),:);
 num_models = height(model_data);
@@ -93,9 +93,10 @@ import usgs.*
 %% Pull Hazard Data
 mce_stripes = [0.05, 0.1, 0.2, 0.4, 2/3, 0.8, 1.0, 1.25];
 % rps2run = [43, 72, 108, 224, 475, 975, 2475, 4975];
+rps2run = [43, 72, 108, 475];
 % rps2run = [43, 72];
 % rps2run = [10, 50, 100, 150, 250, 500, 750, 1000, 1500, 2500];
-% [sa_spectra, sa_periods] = fn_call_USGS_hazard_API('E2014', site.lat, site.lng, site.vs30, 1./rps2run);
+[sa_spectra, sa_periods] = fn_call_USGS_hazard_API('E2014', site.lat, site.lng, site.vs30, 1./rps2run);
 
 collapse_data = table;
 for m = 1:num_models % run for each model     
@@ -158,9 +159,9 @@ for m = 1:num_models % run for each model
 
     %% Interpolate Site Hazard for building period
 %     [design_values] = fn_call_USGS_design_value_API(1, 'asce7-16', site.lat, site.lng, 'II', model.site_class);
-%     period_cropped = min(max(model.T1_x,min(sa_periods)),max(sa_periods)); % limit building period to the available periods
+    period_cropped = min(max(model.T1_x,min(sa_periods)),max(sa_periods)); % limit building period to the available periods
 %     sa_475 = interp1(sa_periods,sa_spectra,period_cropped);
-%     sa_levels = interp1(sa_periods,sa_spectra,period_cropped);
+    sa_levels = interp1(sa_periods,sa_spectra,period_cropped);
     
     % design level
     sa_dbe = min(site.sds,site.sd1/model.T1_x);
@@ -170,12 +171,13 @@ for m = 1:num_models % run for each model
     ida_results.mce = sa_mce;
     
     % Augment Sa levels with design levels
-    analysis.sa_stripes = mce_stripes*sa_mce;
+    analysis.sa_stripes = sa_levels;
+%     analysis.sa_stripes = mce_stripes*sa_mce;
 
     %% Run Opensees Models
-    if analysis.run_ida || analysis.post_process_ida
-        fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir, main_dir)
-    end
+%     if analysis.run_ida || analysis.post_process_ida
+%         fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir, main_dir)
+%     end
     
     %% Create Response and Consequence Fragilities
     if analysis.create_fragilities
@@ -205,12 +207,18 @@ for m = 1:num_models % run for each model
     num_bm_ac = table;
     collapse_table = table;
     for gm = 1:height(gm_set_table)
-        gm_dir = [main_dir '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_table.set_id(gm)) '_' num2str(gm_set_table.pair(gm))];
+        gm_set_id = gm_set_table.set_id(gm);
+        gm_pair_id = gm_set_table.pair(gm);
+        alt_gm_pair_id = gm_set_table.pair(gm_set_table.set_id == gm_set_id & gm_set_table.pair ~= gm_pair_id);
+        gm_dir     = [main_dir '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_id) '_' num2str(gm_pair_id)];
+        alt_gm_dir = [main_dir '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_id) '_' num2str(alt_gm_pair_id)];
         sa_folders = dir([gm_dir filesep 'Sa_*']);
         for s = 1:length(sa_folders)
             % Load data
-            outputs_dir = [main_dir '/' 'IDA' '/' 'Summary Data' '/' 'GM_' num2str(gm_set_table.set_id(gm)) '_' num2str(gm_set_table.pair(gm)) '/' sa_folders(s).name];
+            outputs_dir = [gm_dir '/' sa_folders(s).name];
+            outputs_dir_alt_dir = [alt_gm_dir '/' sa_folders(s).name];
             outputs_file = [outputs_dir filesep 'summary_results.mat'];
+            outputs_file_alt_dir = [outputs_dir_alt_dir filesep 'summary_results.mat'];
             story_file = [outputs_dir filesep 'story_analysis.mat'];
             hinge_file = [outputs_dir filesep 'hinge_analysis.mat'];
             
@@ -227,14 +235,18 @@ for m = 1:num_models % run for each model
             % Load Data
             if exist(outputs_file,'file')
                 load(outputs_file)
+                alt_dir_out = load(outputs_file_alt_dir);
             else
                 error('NEED TO EXPLICITLY HANDLE MISSING SUMMARY TABLE')
             end
             
+            % Define collapse based on two direction of motion
+            building_collapse = summary.collapse | alt_dir_out.summary.collapse;
+            
             % Component response
             if exist(hinge_file,'file')
                 load(hinge_file)
-                if summary.collapse > 0 % set collapse values = NaN
+                if building_collapse % set collapse values = NaN
                     collapse_table.(sa_folders(s).name)(gm,1) = 1;
                     max_a_ratio.(sa_folders(s).name)(gm,1) = NaN;
                     a_ratio_ac_any.(sa_folders(s).name)(gm,1) = 1;
@@ -267,7 +279,7 @@ for m = 1:num_models % run for each model
             end
             
             % EDPs
-            if summary.collapse == 0
+            if building_collapse == 0
                 if exist(story_file,'file')
                     load(story_file)
 
@@ -277,7 +289,7 @@ for m = 1:num_models % run for each model
                     idr.direction(id,1) = gm_set_table.pair(gm);
                     idr.gm(id,1) = gm_set_table.set_id(gm);
                     for n = 1:height(story)
-                        if summary.collapse > 0 % set collapse values = NaN
+                        if building_collapse % set collapse values = NaN
                             idr.(['story_' num2str(n)])(id,1) = NaN;
                         else
                             idr.(['story_' num2str(n)])(id,1) = story.max_drift_x(n);
@@ -290,7 +302,7 @@ for m = 1:num_models % run for each model
                     pfa.gm(id,1) = gm_set_table.set_id(gm);
                     pfa.floor_1(id,1) = summary.pga_x;
                     for n = 1:height(story)
-                        if summary.collapse > 0 % set collapse values = NaN
+                        if building_collapse % set collapse values = NaN
                             pfa.(['floor_' num2str(n+1)])(id,1) = NaN;
                         else
                             pfa.(['floor_' num2str(n+1)])(id,1) = story.max_accel_x(n);
@@ -393,7 +405,7 @@ for m = 1:num_models % run for each model
     p_exceed_ac.bm_ac(m,:) = prob_bm_ac;
     
     mce_levels(m,1) = ida_results.mce;   
-    collective_sa(m,:) = sa_levels;
+    collective_sa(m,:) = analysis.sa_stripes;
 end
 
 % write collapse data for all models
