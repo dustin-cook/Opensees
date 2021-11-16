@@ -91,9 +91,10 @@ import opensees.main_eigen_analysis
 import usgs.*
 
 %% Pull Hazard Data
-mce_stripes = [0.05, 0.1, 0.2, 0.4, 2/3, 0.8, 1.0, 1.25];
+% mce_stripes = [0.05, 0.1, 0.2, 0.4, 2/3, 0.8, 1.0, 1.25];
+mce_stripes = [0.2, 0.4, 2/3, 0.8, 1.0];
 % rps2run = [43, 72, 108, 224, 475, 975, 2475, 4975];
-rps2run = [43, 72, 108, 475];
+rps2run = [43, 72, 108, 224 475, 975, 2475, 4975];
 % rps2run = [43, 72];
 % rps2run = [10, 50, 100, 150, 250, 500, 750, 1000, 1500, 2500];
 [sa_spectra, sa_periods] = fn_call_USGS_hazard_API('E2014', site.lat, site.lng, site.vs30, 1./rps2run);
@@ -166,18 +167,30 @@ for m = 1:num_models % run for each model
     % design level
     sa_dbe = min(site.sds,site.sd1/model.T1_x);
     sa_mce = sa_dbe*1.5;
+    if period_cropped < 0.2
+        geo_coversion = 1.1;
+    elseif period_cropped < 1
+        geo_coversion = interp1([0.2,1],[1.1,1.3],period_cropped);
+    elseif period_cropped < 5
+        geo_coversion = interp1([1,5],[1.3,1.5],period_cropped);
+    else
+        geo_coversion = 1.5;
+    end
+    sa_mce_geo = sa_mce/geo_coversion;
+    sa_dbe_geo = (2/3)*sa_mce_geo;
 
     % MCE level
     ida_results.mce = sa_mce;
     
     % Augment Sa levels with design levels
-    analysis.sa_stripes = sa_levels;
+%     analysis.sa_stripes = sa_levels;
 %     analysis.sa_stripes = mce_stripes*sa_mce;
+    analysis.sa_stripes = [sa_levels, mce_stripes*sa_mce_geo, sa_dbe];
 
     %% Run Opensees Models
-%     if analysis.run_ida || analysis.post_process_ida
-%         fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir, main_dir)
-%     end
+    if analysis.run_ida || analysis.post_process_ida
+        fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir, main_dir)
+    end
     
     %% Create Response and Consequence Fragilities
     if analysis.create_fragilities
