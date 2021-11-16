@@ -1,4 +1,4 @@
-function [ adjusted_med_sa, beta, p_col_mce_adj, p_col_dbe_adj ] = fn_create_collapse_fragility(analysis, gm_set_table, ida_results, main_dir, write_dir)
+function [ adjusted_med_sa, beta, p_col_mce_adj, p_col_dbe_adj ] = fn_create_collapse_fragility(analysis, gm_set_table, ida_results, main_dir, write_dir, pushover_dir)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -110,6 +110,9 @@ mu = log(theta);
 p_col_mce = logncdf(ida_results.mce,mu,beta);
 p_col_dbe = logncdf((2/3)*ida_results.mce,mu,beta);
 
+% Find pushover ductility
+pushover = readtable([pushover_dir filesep 'pushover_data.csv']);
+
 % Adjust for P-695 values
 ssf_table = readtable(['+ida' filesep 'p695_ssf_factor_sdc_d.csv']);
 if analysis.run_z_motion
@@ -117,15 +120,10 @@ if analysis.run_z_motion
 else
     factor_3D = 1.0;
 end
-% mu_t_ew = 0.017 / 0.005; % rough estimate from pushover (may be slightly higher)
-mu_t = 6; % assume slightly less than R for now, need to calc based on a pushover
-
-% period_low = min(ssf_table.period - ida_results.period)
-% period_high
-
 ssf_table_filt = ssf_table{end,2:end};
 mu_t_list = [1.0 1.1 1.5 2 3 4 6 8];
-SSF = interp1(mu_t_list, ssf_table_filt, mu_t);
+mu_t_bounded = max(min(pushover.mu_t,max(mu_t_list)),min(mu_t_list));
+SSF = interp1(mu_t_list, ssf_table_filt, mu_t_bounded);
 cmr = theta / ida_results.mce;
 acmr = factor_3D * SSF * cmr;
 adjusted_med_sa = acmr * ida_results.mce;

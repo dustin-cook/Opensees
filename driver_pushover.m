@@ -105,27 +105,21 @@ for m = 1:num_models % run for each model
     dy_eff = C0*Vmax * (g/(4*pi^2)) * max(model_analysis.model.T1_x,CuTa);
     mu_t = delta_u / dy_eff;
     
-    % Plot parameters for verification
-    hold on
-    plot(roof_disp_x,v_ratio_x,'DisplayName','Pushover')
-    scatter(delta_vmax,Vmax,'DisplayName','Vmax')
-    scatter(delta_u,Vmax_80,'DisplayName','delta_u')
-    plot([dy_eff,dy_eff],[0,Vmax],'--','DisplayName','dy_eff')
-    
+%     % Plot parameters for verification
+%     hold on
+%     plot(roof_disp_x,v_ratio_x,'DisplayName','Pushover')
+%     scatter(delta_vmax,Vmax,'DisplayName','Vmax')
+%     scatter(delta_u,Vmax_80,'DisplayName','delta_u')
+%     plot([dy_eff,dy_eff],[0,Vmax],'--','DisplayName','dy_eff')
+%     close
     
     % collect data in table
-    try
-        data.model_id(m,1) = model.id;
-        data.period(m,1) = model_analysis.model.T1_x;
-        data.Vmax(m,1) = Vmax;
-        data.delta_u(m,1) = delta_u;
-        data.dy_eff(m,1) = dy_eff;
-        data.mu_t(m,1) = mu_t;
-    catch
-        test = 5;
-    end
-    
-    close
+    data.model_id(m,1) = model.id;
+    data.period(m,1) = model_analysis.model.T1_x;
+    data.Vmax(m,1) = Vmax;
+    data.delta_u(m,1) = delta_u;
+    data.dy_eff(m,1) = dy_eff;
+    data.mu_t(m,1) = mu_t;
     
     % save individual model data
     write_dir = [remote_dir filesep model.name{1}];

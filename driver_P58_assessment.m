@@ -18,8 +18,8 @@ analysis.run_z_motion = 0;
 % Analysis options
 analysis.summit = 0;
 analysis.run_parallel = 0;
-analysis.run_ida = 1;
-analysis.post_process_ida = 1;
+analysis.run_ida = 0;
+analysis.post_process_ida = 0;
 analysis.create_fragilities = 1;
 % analysis.plot_ida = 0;
 % analysis.detialed_post_process = 0;
@@ -120,6 +120,7 @@ for m = 1:num_models % run for each model
     if ~exist(model_remote_dir,'dir')
         mkdir(model_remote_dir)
     end
+    pushover_dir = [remote_dir filesep model.name{1}];
 %     ELFP_model_dir = ['outputs' '/' model.name{1} '/' 'ELFP' '_' analysis.id '/' 'model_data'];
     % tcl_dir = ['outputs' '/' model.name{1} '/' 'ELFP' '_' analysis.id '/' 'eigen_analysis'];
     % asce41_dir = [main_dir '/' 'asce_41_data'];
@@ -175,9 +176,9 @@ for m = 1:num_models % run for each model
 %     analysis.sa_stripes = mce_stripes*sa_mce;
 
     %% Run Opensees Models
-%     if analysis.run_ida || analysis.post_process_ida
-%         fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir, main_dir)
-%     end
+    if analysis.run_ida || analysis.post_process_ida
+        fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir, main_dir)
+    end
     
     %% Create Response and Consequence Fragilities
     if analysis.create_fragilities
@@ -185,7 +186,7 @@ for m = 1:num_models % run for each model
 %         if ~exist(write_dir,'dir')
 %             mkdir(write_dir)
 %         end
-        [col_med, col_beta, p_col_mce, p_col_dbe] = fn_create_collapse_fragility(analysis, gm_set_table, ida_results, main_dir, model_remote_dir);
+        [col_med, col_beta, p_col_mce, p_col_dbe] = fn_create_collapse_fragility(analysis, gm_set_table, ida_results, main_dir, model_remote_dir, pushover_dir);
         collapse_data.id(m,1) =  model.id;
         collapse_data.model_name(m,1) =  model.name;
         collapse_data.med_sa(m,1) = col_med;
