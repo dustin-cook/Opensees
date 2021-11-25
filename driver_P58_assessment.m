@@ -91,6 +91,7 @@ import opensees.main_eigen_analysis
 import usgs.*
 
 %% Pull Hazard Data
+im_ids = {'rp_43', 'rp_72', 'rp_108', 'rp_224' 'rp_475', 'rp_975', 'rp_2475', 'rp_4975', 'mce_geo_0p2', 'mce_geo_0p4', 'mce_geo_0p67', 'mce_geo_0p8', 'mce_geo_1p0', 'dbe_max'};
 % mce_stripes = [0.05, 0.1, 0.2, 0.4, 2/3, 0.8, 1.0, 1.25];
 mce_stripes = [0.2, 0.4, 2/3, 0.8, 1.0];
 % rps2run = [43, 72, 108, 224, 475, 975, 2475, 4975];
@@ -421,6 +422,11 @@ for m = 1:num_models % run for each model
     mce_levels(m,1) = ida_results.mce;   
     collective_sa(m,:) = analysis.sa_stripes;
 end
+
+% write sa table
+im_table = array2table([model_data.id collective_sa]);
+im_table.Properties.VariableNames = ['model_id', im_ids];
+writetable(im_table,[remote_dir filesep 'sa_data.csv'])
 
 % write collapse data for all models
 writetable(collapse_data,[remote_dir filesep 'collapse_data.csv'])
