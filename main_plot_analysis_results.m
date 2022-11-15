@@ -119,8 +119,8 @@ if sum(analysis.type_list == 1) > 0 % Dynamic Analysis was run as part of this p
 %     fn_plot_plan_view( hinge, element, ele_prop_table, node, 2, 'Story 1 - Top of Columns', [plot_dir filesep 'Acceptance Plots' filesep 'columns'])
 % 
 %     % Plot Element Scatter
-    fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
-    fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
+%     fn_plot_element_scatter( element, 'column', story, hinge, plot_dir )
+%     fn_plot_element_scatter( element, 'beam', story, hinge, plot_dir )
 %     fn_plot_element_scatter( element, 'wall', story, hinge, plot_dir )
 
     %% ASCE 41 Target Displacement

@@ -11,7 +11,7 @@ if analysis.type == 4
     element.gravity_load_2 = (analysis.eq_vert_load_factor*site.Sds + analysis.dead_load)*element.dead_load_2 + ...
                               analysis.live_out_load*element.live_load_2.*~element.inner_bay + analysis.live_in_load*element.live_load_2.*element.inner_bay;
 else
-    % No factors for all else
+    % Factor just based on user input
     element.gravity_load =   analysis.dead_load*element.dead_load   + analysis.live_load*element.live_load;
     element.gravity_load_1 = analysis.dead_load*element.dead_load_1 + analysis.live_load*element.live_load_1;
     element.gravity_load_2 = analysis.dead_load*element.dead_load_2 + analysis.live_load*element.live_load_2;

@@ -53,6 +53,8 @@ H = plot(G,'XData',new_node.x+20*new_node.x_disp,'YData',new_node.y,'NodeLabel',
 axis off
 
 %% Highlight Performance
+cmap = jet(100);
+
 % Highlight elemets that pass Acceptance Criteria
 for e = 1:length(ele_new.id)
     hinges = hinge(hinge.element_id == ele_new.id(e) & strcmp(hinge.direction,'primary'),:);
@@ -66,10 +68,14 @@ for e = 1:length(ele_new.id)
             hinge_node_2 = ele_new.node_2(ele_new.old_node_2 == hinges.node_1(h) | ele_new.old_node_1 == hinges.node_2(h));
             hinge_node = max([hinge_node_1, hinge_node_2]);
         end
-        if hinges.a_ratio(h) >= 1
-            highlight(H,hinge_node,'MarkerSize',min([max([hinges.b_ratio(h)*5,2]),10])) % Make hinge bigger
-            highlight(H,hinge_node,'NodeColor','r') % Highlight hinges
-        end
+%         if hinges.a_ratio(h) >= 1
+%             highlight(H,hinge_node,'MarkerSize',min([max([hinges.b_ratio(h)*5,2]),10])) % Make hinge bigger
+%             highlight(H,hinge_node,'NodeColor','r') % Highlight hinges
+%         end
+        
+        % Just highlight based on a-ratio
+        c_idx = min(ceil(hinges.plastic_deform(h) * 10000)+1,100);
+        highlight(H,hinge_node,'NodeColor', cmap(c_idx,:)) % Highlight hinges
     end
 end
 

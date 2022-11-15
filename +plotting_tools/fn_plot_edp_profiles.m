@@ -18,18 +18,18 @@ edp_plot_dir = [plot_dir filesep 'EDP Profiles'];
 % X accels
 if any(strcmp('max_accel_x',story.Properties.VariableNames))
     edp_accel_x = [ground_motion.x.pga; story.max_accel_x];
-    edp_accel_x_center = [ground_motion.x.pga; story.max_accel_center_x];
+%     edp_accel_x_center = [ground_motion.x.pga; story.max_accel_center_x];
 end
 
 % X disps
 edp_disp_x = [0; story.max_disp_x];
-edp_disp_x_center = [0; story.max_disp_center_x];
+% edp_disp_x_center = [0; story.max_disp_center_x];
 if any(strcmp('max_disp_x_mod',story.Properties.VariableNames))
     edp_mods.max_disp.x = [0; story.max_disp_x_mod];
-    edp_mods.max_disp_center.x = [0; story.max_disp_center_x_mod];
+%     edp_mods.max_disp_center.x = [0; story.max_disp_center_x_mod];
 else
     edp_mods.max_disp = [];
-    edp_mods.max_disp_center = [];
+%     edp_mods.max_disp_center = [];
 end
 
 % Z direction
@@ -37,7 +37,7 @@ if isfield(ground_motion,'z')
     % Z accels
     if any(strcmp('max_accel_z',story.Properties.VariableNames))
         edp_accel_z = [ground_motion.z.pga; story.max_accel_z];
-        edp_accel_z_center = [ground_motion.z.pga; story.max_accel_center_z];
+%         edp_accel_z_center = [ground_motion.z.pga; story.max_accel_center_z];
     end
     
     % Z disps
@@ -54,17 +54,17 @@ if isfield(ground_motion,'z')
     end
 else
     edp_accel_z = [];
-    edp_accel_z_center = [];
+%     edp_accel_z_center = [];
     edp_disp_z = [];
-    edp_disp_z_center = [];
+%     edp_disp_z_center = [];
     edp_disp_z_twist = [];
 end
 
 if isempty(record_edp)
     record_edp.max_accel = [];
-    record_edp.max_accel_center = [];
+%     record_edp.max_accel_center = [];
     record_edp.max_disp = [];
-    record_edp.max_disp_center = [];
+%     record_edp.max_disp_center = [];
     record_edp.max_twist = [];
 end
 
@@ -72,13 +72,13 @@ end
 % Acceleration
 if any(strcmp('max_accel_x',story.Properties.VariableNames))
     fn_plot_profile( edp_accel_x, edp_accel_z, [min(story.id);(story.id+1)], edp_plot_dir, 'Acceleration Profile', 'Acceleration (g)', NaN, record_edp.max_accel, [])
-    fn_plot_profile( edp_accel_x_center, edp_accel_z_center,  [min(story.id);(story.id+1)], edp_plot_dir, 'Acceleration Profile Center', 'Acceleration (g)', NaN, record_edp.max_accel_center, [])
+%     fn_plot_profile( edp_accel_x_center, edp_accel_z_center,  [min(story.id);(story.id+1)], edp_plot_dir, 'Acceleration Profile Center', 'Acceleration (g)', NaN, record_edp.max_accel_center, [])
 end
 % Displacement
 fn_plot_profile( edp_disp_x, edp_disp_z, [min(story.id);(story.id+1)], edp_plot_dir, 'Displacement Profile', 'Displacement (in)', target_disp_in, record_edp.max_disp, edp_mods.max_disp)
-if ~any(isnan(edp_disp_x_center))
-    fn_plot_profile( edp_disp_x_center, edp_disp_z_center, [min(story.id);(story.id+1)], edp_plot_dir, 'Displacement Profile Center', 'Displacement (in)', target_disp_in, record_edp.max_disp_center, edp_mods.max_disp_center)
-end
+% if ~any(isnan(edp_disp_x_center))
+%     fn_plot_profile( edp_disp_x_center, edp_disp_z_center, [min(story.id);(story.id+1)], edp_plot_dir, 'Displacement Profile Center', 'Displacement (in)', target_disp_in, record_edp.max_disp_center, edp_mods.max_disp_center)
+% end
     
 % Drift
 if isfield(ground_motion,'z')

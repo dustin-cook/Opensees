@@ -49,7 +49,7 @@ analysis.element_plots = 0; % Plot hinge backnones and other per element visuali
 analysis.plot_recordings = 0; % Plot analysis results v recorded results
 analysis.play_movie = 1; % Have opensees display a real time graphic of the building and analysis
 analysis.movie_scale = 10; % Visual scale of the movie playback
-analysis.hinge_stories_2_plot = 2;
+analysis.hinge_stories_2_plot = 3;
 analysis.suppress_outputs = 0;
 
 %% Define Proceedure Options
@@ -79,7 +79,7 @@ elseif strcmp(analysis.proceedure,'Pushover')
     analysis.type_list = [2]; % NonLinear Pushover then NL Pushover x 2
     analysis.nonlinear_list = [1];
     analysis.dead_load_list = [1];
-    analysis.live_load_list = [1];
+    analysis.live_load_list = [0.2];
     analysis.case_list = {'backbones'};
     analysis.pushover_drift_list_x = [0.10]; % Drift limit where the pushover will go till
     analysis.pushover_drift_list_z = [0.10];

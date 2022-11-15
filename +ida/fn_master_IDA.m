@@ -7,7 +7,7 @@ import ida.fn_run_gm_ida_sa_stripe
 % Clear existing data or look through outputs to see if GM have already been run
 gms2run = gm_set_table;
 outputs_dir = [main_dir '/' 'IDA' ];
-if analysis.clear_existing_data
+if analysis.clear_existing_data && isdir(outputs_dir)
     rmdir(outputs_dir, 's')
 elseif exist(outputs_dir,'dir')
     if analysis.run_sa_stripes

@@ -55,10 +55,9 @@ if analysis.type == 1
     % recorder Element <-file $fileName> <-time> <-ele ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-region $regTag> <-ele all> ($arg1 $arg2 ...)
     if ~analysis.simple_recorders 
         for i = 1:height(element)
-            if strcmp(dimension,'2D')
-                fprintf(fileID,'recorder Element %s %s/element_force_%s.%s -time -ele %i localForce \n', file_type, write_dir, num2str(element.id(i)), file_ext, element.id(i));
-            else
-                fprintf(fileID,'recorder Element %s %s/element_force_%s.%s -time -ele %i localForce \n', file_type, write_dir, num2str(element.id(i)), file_ext, element.id(i));
+            fprintf(fileID,'recorder Element %s %s/element_force_%s.%s -time -ele %i localForce \n', file_type, write_dir, num2str(element.id(i)), file_ext, element.id(i));
+            if strcmp(analysis.nonlinear_type,'fiber')
+                fprintf(fileID,'recorder Element %s %s/element_deform_%s.%s -time -ele %i basicDeformation \n', file_type, write_dir, num2str(element.id(i)), file_ext, element.id(i));
             end
         end
     end
@@ -121,6 +120,9 @@ elseif analysis.type == 2 || analysis.type == 3 || analysis.type == 4
     for i = 1:height(element)
         if ~strcmp(element.type{i},'truss')
             fprintf(fileID,'recorder Element %s %s/element_force_%s_%s.%s -time -ele %i localForce \n', file_type, write_dir, analysis.pushover_direction, num2str(element.id(i)), file_ext, element.id(i) );
+            if strcmp(analysis.nonlinear_type,'fiber')
+                fprintf(fileID,'recorder Element %s %s/element_deform_%s_%s.%s -time -ele %i basicDeformation \n', file_type, write_dir, analysis.pushover_direction, num2str(element.id(i)), file_ext, element.id(i));
+            end
         end
     end
     

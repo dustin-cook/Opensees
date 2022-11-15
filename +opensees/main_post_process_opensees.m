@@ -40,6 +40,9 @@ if ~analysis.simple_recorders
         % Force Time Histories
         if analysis.type == 1 % dynamic analysis
             ele_force_TH = fn_xml_read([opensees_dir filesep 'element_force_' num2str(i) '.xml']);
+            if strcmp(analysis.nonlinear_type,'fiber')
+                ele_deform_TH = fn_xml_read([opensees_dir filesep 'element_deform_' num2str(i) '.xml']);
+            end
         elseif analysis.type == 2 || analysis.type == 3 % pushover or cyclic analysis
             if strcmp(element.direction{i},'x')
                 ele_force_TH_pos = fn_xml_read([opensees_dir filesep 'element_force_x_' num2str(i) '.xml']);
@@ -47,6 +50,10 @@ if ~analysis.simple_recorders
                 if strcmp(model.dimension,'3D')
                     ele_force_TH_oop_pos = fn_xml_read([opensees_dir filesep 'element_force_z_' num2str(i) '.xml']);
                     ele_force_TH_oop_neg = fn_xml_read([opensees_dir filesep 'element_force_-z_' num2str(i) '.xml']);
+                end
+                if strcmp(analysis.nonlinear_type,'fiber')
+                    ele_deform_TH_pos = fn_xml_read([opensees_dir filesep 'element_deform_x_' num2str(i) '.xml']);
+                    ele_deform_TH_neg = fn_xml_read([opensees_dir filesep 'element_deform_-x_' num2str(i) '.xml']);
                 end
             elseif strcmp(element.direction{i},'z')
                 ele_force_TH_pos = fn_xml_read([opensees_dir filesep 'element_force_z_' num2str(i) '.xml']);
@@ -56,6 +63,9 @@ if ~analysis.simple_recorders
             end
             min_push_length = min(length(ele_force_TH_pos(:,1)),length(ele_force_TH_neg(:,1)));
             ele_force_TH = max(abs(ele_force_TH_pos(1:min_push_length,:)),abs(ele_force_TH_neg(1:min_push_length,:)));
+            if strcmp(analysis.nonlinear_type,'fiber')
+                ele_deform_TH = max(abs(ele_deform_TH_pos(1:min_push_length,:)),abs(ele_deform_TH_neg(1:min_push_length,:)));
+            end
             if strcmp(model.dimension,'3D')
                 min_push_length_oop = min(length(ele_force_TH_oop_pos(:,1)),length(ele_force_TH_oop_neg(:,1)));
                 ele_force_TH_oop = max(abs(ele_force_TH_oop_pos(1:min_push_length_oop,:)),abs(ele_force_TH_oop_neg(1:min_push_length_oop,:)));
@@ -69,10 +79,15 @@ if ~analysis.simple_recorders
             else
                 if strcmp(model.dimension,'3D') && contains(comp_names{j},'oop') && analysis.type == 2 % Pushover out of plane
                     element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH_oop(1:(end-clip),comp_keys(j))';
-                else
+                elseif strcmp(analysis.nonlinear_type,'fiber') && analysis.type == 1 && strcmp(element.type{i},'column') % columns for dynamic fiber models
+                    element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = comp_sign(j)*ele_force_TH(1:(end-clip),comp_keys(j))';
+                else 
                     element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH(1:(end-clip),comp_keys(j))';
                 end
             end
+        end
+        if strcmp(analysis.nonlinear_type,'fiber')
+            element_TH.(['ele_' num2str(element.id(i))]).rot = ele_deform_TH(1:(end-clip),4)'; % assumes rotation demamd is the fourth column
         end
 
         % Max Force for each element
@@ -281,12 +296,14 @@ for i = 1:length(dirs_ran)
                    eq_timespace = linspace(eq_dt,eq_length*eq_dt,eq_length);
                    if strcmp(dirs_ran{i},'x')
                        try
-                        node_accel_interp = interp1(eq_analysis_timespace,node_accel_raw(2,:),eq_timespace);
+                           analysis_steps = length(node_accel_raw(2,:));
+                           node_accel_interp = interp1(eq_analysis_timespace(1:analysis_steps),node_accel_raw(2,:),eq_timespace);
                        catch
                            test = 5;
                        end
                    else
-                       node_accel_interp = interp1(eq_analysis_timespace,node_accel_raw(3,:),eq_timespace);
+                       analysis_steps = length(node_accel_raw(3,:));
+                       node_accel_interp = interp1(eq_analysis_timespace(1:analysis_steps),node_accel_raw(3,1:analysis_steps),eq_timespace);
                    end
                    eq_analysis.(dirs_ran{i}) = eq_timespace*analysis.ground_motion_scale_factor;
               end
@@ -346,9 +363,9 @@ for i = 1:length(dirs_ran)
     end
     if analysis.type == 1 % Dynamic Analysis
         [ story.(['max_accel_' fld_names{i}]) ] = fn_calc_max_repsonse_profile( node.(['max_accel_' fld_names{i} '_abs']), story, node, 0 );
-        if ~analysis.simple_recorders
-            story.(['max_accel_center_' fld_names{i}]) = node.(['max_accel_' fld_names{i} '_abs'])(node.center == 1 & node.record_accel == 1 & node.on_slab == 1);
-        end
+%         if ~analysis.simple_recorders
+%             story.(['max_accel_center_' fld_names{i}]) = node.(['max_accel_' fld_names{i} '_abs'])(node.center == 1 & node.record_accel == 1 & node.on_slab == 1);
+%         end
     end
     if exist('node_TH','var')
         if analysis.simple_recorders
@@ -370,7 +387,6 @@ for i = 1:length(dirs_ran)
             story_TH.(['base_shear_' fld_names{i} '_TH']) = sum(base_node_reactions(1:(end-clip),2:end),2)';
             story.(['max_reaction_' fld_names{i}])(1) = max(abs(story_TH.(['base_shear_' fld_names{i} '_TH'])));
         end
-        
     end
     
     % Load Mode shape data and period

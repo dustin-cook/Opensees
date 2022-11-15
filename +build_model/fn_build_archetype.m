@@ -322,7 +322,7 @@ if analysis.additional_elements
 end
 
 %% Define Element nonlinear properties
-if analysis.nonlinear > 0
+if analysis.nonlinear == 1 && strcmp(analysis.nonlinear_type,'lumped')
     for i = 1:length(element.id)
         ele_filt = element_table.id == element.ele_id(i);
         element.e(i,1) = element_table.e(ele_filt);
@@ -411,7 +411,9 @@ end
 
 %% Create Nonlinear Rotational Springs at ends of all beams and columns, and shear springs at the bottom of walls
 hinge.id = [];
-[ node, element, hinge ] = fn_define_hinge( analysis, model, hinge, element, node, foundation_nodes_filter );
+if analysis.nonlinear == 1 && strcmp(analysis.nonlinear_type,'lumped')
+    [ node, element, hinge ] = fn_define_hinge( analysis, model, hinge, element, node, foundation_nodes_filter );
+end
 
 %% Define Foundation Hinges
 if model.foundation == 2 % partial fixity such as pile hinge

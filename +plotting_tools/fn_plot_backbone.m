@@ -32,19 +32,23 @@ import asce_41.*
 
 % For Beams and Columns and (walls controlled by flexure), plot rotational hinge
 if strcmp(ele.type,'beam') || strcmp(ele.type,'column') || (strcmp(ele.type,'wall') && strcmp(crit_mode,'flexure'))
-    n = 10;
-    if strcmp(hin_dir,'oop')
-        [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.(['Mn_oop_' ele_side]), ele.(['Mn_oop_' ele_side]), ele.(['Mp_oop_' ele_side]), ele.(['Mp_oop_' ele_side]), ele.length, ele_props.e, ele_props.iy, ele.(['a_hinge_oop_' ele_side]), ele.(['b_hinge_oop_' ele_side]), ele.(['c_hinge_oop_' ele_side]), n, 0.1, ele.(['critical_mode_oop_' ele_side]) );
-        if strcmp(ele.direction,'x')
-            ele_dir = 'z';
-        elseif strcmp(ele.direction,'z')
-            ele_dir = 'x';
-        end
-        mom_of_I = ele_props.iy;
+    if isempty(ele_side) % Fiber models
+            [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele_props.Mn_pos, ele_props.Mn_neg, ele_props.Mp_pos, ele_props.Mp_neg, ele_props.length, ele_props.e, ele_props.iz, ele_props.a_hinge, ele_props.b_hinge, ele_props.c_hinge, NaN, 0.1, ele_props.critical_mode );
     else
-        [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.(['Mn_pos_' ele_side]), ele.(['Mn_neg_' ele_side]), ele.(['Mp_pos_' ele_side]), ele.(['Mp_neg_' ele_side]), ele.length, ele_props.e, ele_props.iz, ele.(['a_hinge_' ele_side]), ele.(['b_hinge_' ele_side]), ele.(['c_hinge_' ele_side]), n, 0.1, ele.(['critical_mode_' ele_side]) );
-        ele_dir = ele.direction{1};
-        mom_of_I = ele_props.iz;
+        n = 10;
+        if strcmp(hin_dir,'oop')
+            [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.(['Mn_oop_' ele_side]), ele.(['Mn_oop_' ele_side]), ele.(['Mp_oop_' ele_side]), ele.(['Mp_oop_' ele_side]), ele.length, ele_props.e, ele_props.iy, ele.(['a_hinge_oop_' ele_side]), ele.(['b_hinge_oop_' ele_side]), ele.(['c_hinge_oop_' ele_side]), n, 0.1, ele.(['critical_mode_oop_' ele_side]) );
+            if strcmp(ele.direction,'x')
+                ele_dir = 'z';
+            elseif strcmp(ele.direction,'z')
+                ele_dir = 'x';
+            end
+            mom_of_I = ele_props.iy;
+        else
+            [ moment_vec_pos, moment_vec_neg, rot_vec_pos, rot_vec_neg ] = fn_define_backbone_rot( 'full', ele.(['Mn_pos_' ele_side]), ele.(['Mn_neg_' ele_side]), ele.(['Mp_pos_' ele_side]), ele.(['Mp_neg_' ele_side]), ele.length, ele_props.e, ele_props.iz, ele.(['a_hinge_' ele_side]), ele.(['b_hinge_' ele_side]), ele.(['c_hinge_' ele_side]), n, 0.1, ele.(['critical_mode_' ele_side]) );
+            ele_dir = ele.direction{1};
+            mom_of_I = ele_props.iz;
+        end
     end
     if plot_style == 1
         plot([0,rot_vec_pos],[0,moment_vec_pos/moment_vec_pos(1)],'Color',line_color,'LineWidth',2) % Don't need to worry about negative bending because this plot is normalized by Qy
@@ -57,14 +61,27 @@ if strcmp(ele.type,'beam') || strcmp(ele.type,'column') || (strcmp(ele.type,'wal
         xax = plot([-1e6,1e6],[0,0],'color',[0.5, 0.5, 0.5]);
         set(get(get(xax,'Annotation'),'LegendInformation'),'IconDisplayStyle','off')
         plot([fliplr(-(rot_vec_neg)),0,rot_vec_pos],[fliplr(-moment_vec_neg),0,moment_vec_pos]/1000,'Color','k','LineWidth',2,'DisplayName','ASCE 41 Backone') % Don't need to worry about negative bending because this plot is normalized by Qy
-        elastic_rotation = (hinge_force_to_plot*ele.length / (6*ele_props.e*mom_of_I))*(10/11);
-        plot(hinge_disp_to_plot + elastic_rotation,hinge_force_to_plot/1000,'color', plt_color, 'LineWidth',1.25,'DisplayName','Analysis'); % transform from lb-in to kip-in
+        if isempty(ele_side) % Fiber models
+            tot_rotation = hinge_disp_to_plot;
+        else
+            elastic_rotation = (hinge_force_to_plot*ele.length / (6*ele_props.e*mom_of_I))*(10/11);
+            tot_rotation = hinge_disp_to_plot + elastic_rotation;
+        end
+        plot(tot_rotation,hinge_force_to_plot/1000,'color', plt_color, 'LineWidth',1.25,'DisplayName','Analysis'); % transform from lb-in to kip-in
         xlabel('Total Rotation (rad)')
         ylabel('Moment (k-in)')
 %         xlim([-max(rot_vec_neg)*1.25,max(rot_vec_pos)*1.25])
-%         ylim([-max(moment_vec_neg)*1.25/1000,max(moment_vec_pos)*1.25/1000])
-        xlim([-0.05,0.05])
-        ylim([-15000,15000])
+        ylim([-max(moment_vec_neg)*1.25/1000,max(moment_vec_pos)*1.25/1000])
+        x_max = max(0.02, ceil(100*max(abs(tot_rotation)))/100);
+        xlim([-x_max,x_max])
+%         xlim([-0.05,0.05])
+%         ylim([-15000,15000])
+        if isempty(ele_side) % Fiber models
+            txt = sprintf('Plastic Rotation = %2.1f%s', 100*ele.plastic_deform,'%');
+        else
+            txt = sprintf('Plastic Rotation = %2.1f%s', 100*max(abs(hinge_disp_to_plot)),'%');
+        end
+        title(txt)
     end
     
 % For Walls Contolled by shear, Plot shear springs

@@ -195,26 +195,29 @@ if analysis.type == 1
         else
             fprintf(fileID,'set zeta %f\n',analysis.damp_ratio);		% percentage of critical damping
         end
-        fprintf(fileID,'set a0 [expr $zeta*2.0*$omega(1)*$omega(2)/($omega(1) + $omega(2))]\n');	% mass damping coefficient based on first and third modes
-        if analysis.nonlinear == 0
-            fprintf(fileID,'set a1 [expr $zeta*2.0/($omega(1) + $omega(2))]\n'); % stiffness damping coefficient based on first and third modes
-        else
+        
+        if analysis.nonlinear == 1 && strcmp(analysis.nonlinear_type,'lumped')
             % Modify Stiffness Proportional Coefficient for Nonlinear hinge model according to Ibbara 2005
             stiffness_mod = (analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod;
-            fprintf(fileID,'set a1 [expr %f*$zeta*2.0/($omega(1) + $omega(2))]\n',stiffness_mod); % stiffness damping coefficient based on first and third modes
+        else % Elastic and Fiber models
+            stiffness_mod = 1; % dont modify
         end
-
+        
+        % Rayleigh coefficients
+        fprintf(fileID,'set a0 [expr $zeta*2.0*$omega(1)*$omega(2)/($omega(1) + $omega(2))]\n');	% mass damping coefficient based on first and third modes
+        fprintf(fileID,'set a1 [expr %f*$zeta*2.0/($omega(1) + $omega(2))]\n',stiffness_mod); % stiffness damping coefficient based on first and third modes
+        
         % Set Damping
         if strcmp(analysis.damping,'rayleigh')
             % region $regTag <-ele ($ele1 $ele2 ...)> <-eleOnly ($ele1 $ele2 ...)> <-eleRange $startEle $endEle> <-eleOnlyRange $startEle $endEle> <-node ($node1 $node2 ...)> <-nodeOnly ($node1 $node2 ...)> <-nodeRange $startNode $endNode> <-nodeOnlyRange $startNode $endNode> <-node all> <-rayleigh $alphaM $betaK $betaKinit $betaKcomm>
     %         rayleigh $alphaM $betaK $betaKinit $betaKcomm
     %         fprintf(fileID,'rayleigh $a0 $a1 0.0 0.0 \n');
     %         Region Commands do not work (ie they apply no damping)
-            if analysis.nonlinear == 0
-                fprintf(fileID,'region 1 -ele %s -rayleigh 0.0 $a1 0.0 0.0 \n', num2str(element.id')); % Assign Stiffnes Proportional Damping to the elastic elements
-            else
-                fprintf(fileID,'region 1 -ele %s -rayleigh 0.0 $a1 0.0 0.0 \n', num2str(element.id(element.rigid == 0)')); % Assign Stiffnes Proportional Damping to the elastic elements
-            end
+%             if analysis.nonlinear == 0
+%                 fprintf(fileID,'region 1 -ele %s -rayleigh 0.0 $a1 0.0 0.0 \n', num2str(element.id')); % Assign Stiffnes Proportional Damping to the elastic elements
+%             else
+                fprintf(fileID,'region 1 -ele %s -rayleigh 0.0 $a1 0.0 0.0 \n', num2str(element.id(element.rigid == 0)')); % Assign Stiffnes Proportional Damping to the elastic elements (but not rigid elements)
+%             end
             fprintf(fileID,'region 2 -node %s -rayleigh $a0 0.0 0.0 0.0 \n', num2str(node.id(node.mass > 0)')); % Assign Mass Proportional Damping to the whole model (only triggers where there is mass)
         elseif strcmp(analysis.damping,'modal')
                 fprintf(fileID,'modalDamping %f \n',analysis.damp_ratio);

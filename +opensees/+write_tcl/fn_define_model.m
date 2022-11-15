@@ -107,23 +107,102 @@ for i = 1:height(element)
             % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
             fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),element.a,element.e,element.iz,geotransf);
         else %MDOF or archetype
-            if analysis.nonlinear ~= 0 % Nonlinear Analysis
-                if analysis.model_type == 3 % Archetype model
-                    Iz_ele = ele_props.iz_model*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
-                else
-                    Iz_ele = ele_props.iz*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
-                end
-                
-                if strcmp(dimension,'2D')
-                    % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
-                    fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,Iz_ele,geotransf);
-                    % element ElasticTimoshenkoBeam $eleTag $iNode $jNode $E $G $A $Iz $Avy $transfTag <-mass $massDens> <-cMass>
-%                     fprintf(fileID,'element ElasticTimoshenkoBeam %i %i %i %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.e,ele_props.g,ele_props.a,Iz_ele,(5/6)*ele_props.a,geotransf);
-                elseif strcmp(dimension,'3D')
-                    Iy_ele = ele_props.iy*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod);
+            if analysis.nonlinear ~= 0 && ~element.elastic(i) % Nonlinear Element
+                if strcmp(analysis.nonlinear_type,'lumped')
+                    % Lumped Plasticity Model of beams and columns
                     
-                    % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
-                    fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,Iy_ele,Iz_ele,geotransf);
+                    % Add stiffness to element to account for two springs, from appendix B of Ibarra and Krawinkler 2005
+                    if analysis.model_type == 3 % Archetype model
+                        Iz_ele = ele_props.iz_model*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod); 
+                    else
+                        Iz_ele = ele_props.iz*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod);
+                    end
+
+                    if strcmp(dimension,'2D')
+                        % element elasticBeamColumn $eleTag $iNode $jNode $A $E $Iz $transfTag
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,Iz_ele,geotransf);
+                        % element ElasticTimoshenkoBeam $eleTag $iNode $jNode $E $G $A $Iz $Avy $transfTag <-mass $massDens> <-cMass>
+    %                     fprintf(fileID,'element ElasticTimoshenkoBeam %i %i %i %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.e,ele_props.g,ele_props.a,Iz_ele,(5/6)*ele_props.a,geotransf);
+                    elseif strcmp(dimension,'3D')
+                        Iy_ele = ele_props.iy*((analysis.hinge_stiff_mod+1)/analysis.hinge_stiff_mod);
+
+                        % element elasticBeamColumn $eleTag $iNode $jNode $A $E $G $J $Iy $Iz $transfTag
+                        fprintf(fileID,'element elasticBeamColumn %i %i %i %f %f %f %f %f %f %i \n',element.id(i),element.node_1(i),element.node_2(i),ele_props.a,ele_props.e,ele_props.g,ele_props.j,Iy_ele,Iz_ele,geotransf);
+                    end
+                    
+                elseif strcmp(analysis.nonlinear_type,'fiber')
+                    % Fiber model of beams and columns
+                    
+                    % Fixed steel parameters
+                    fy_e = 70000;
+                    fy_h = fy_e;
+                    Es = 29000000;
+                    e_su = 0.09; % From ATC 114 vol 3 apendix B
+                    
+                    % Fixed concrete parameters
+                    fp_co = ele_props.fc_e;
+                    ec_o = 0.002;
+                    ec_sp = 2*ec_o;
+                    ec_t = 0.0001;
+                    fc_t = 7.5*sqrt(ele_props.fc_n);
+                    
+                    % Caluclate concrete parameters from ATC 114
+                    ke = (1-sum(ele_props.w_p)/(6*ele_props.b_c*ele_props.d_c))*(1-ele_props.s_p/(2*ele_props.b_c))*(1-ele_props.s_p/(2*ele_props.d_c))/(1-ele_props.rho_cc); % equation 5-9 from ATC 114 vol 3
+                    fp_l = 0.5*ke*ele_props.rho_s*fy_h; % equation 5-8 from ATC 114 vol 3
+                    fp_cc = fp_co*(-1.254 + 2.254*sqrt(1 + 7.94*fp_l/fp_co) - 2*fp_l/fp_co); % equation 5-10 from ATC 114 vol 3
+                    ec_c = ec_o*(1 + 5*(fp_cc/fp_co - 1)); % equation 5-7 from ATC 114 vol 3
+                    ec_u = 0.004 + 1.4*ele_props.rho_s*fy_h*e_su/fp_cc; % equation 5-11 from ATC 114 vol 3
+                    
+                    % uniaxialMaterial Steel02 $matTag $Fy $E $b $R0 $cR1 $cR2 <$a1 $a2 $a3 $a4 $sigInit>
+                    fprintf(fileID,'uniaxialMaterial Steel02 %i %f %f 0.01 15.0 0.925 0.15 \n', 1000 + element.id(i), fy_e, Es);
+
+                    % uniaxialMaterial Concrete04 $matTag $fc $ec $ecu $Ec <$fct $et> <$beta>
+                    fprintf(fileID,'uniaxialMaterial Concrete04 %i %f %f %f %f %f %f \n', 2000 + element.id(i), -fp_co, -ec_o, -ec_sp, ele_props.e, fc_t, ec_t); % UnConfined concrete
+
+                    % uniaxialMaterial Concrete04 $matTag $fc $ec $ecu $Ec <$fct $et> <$beta>
+                    fprintf(fileID,'uniaxialMaterial Concrete04 %i %f %f %f %f %f %f \n', 3000 + element.id(i), -fp_cc, -ec_c, -ec_u, ele_props.e, fc_t, ec_t); % Confined concrete
+                        
+                    % section Fiber $secTag <-GJ $GJ> {
+                    fprintf(fileID,'section Fiber %i { \n',element.id(i));
+                    
+                    As = str2double(strsplit(strrep(strrep(ele_props.As{1},'[',''),']','')));
+                    num_bars = str2double(strsplit(strrep(strrep(ele_props.n_b{1},'[',''),']','')));
+                    depth_bars = str2double(strsplit(strrep(strrep(ele_props.As_d{1},'[',''),']','')));
+    
+                   
+                    % Web/Core
+                    % patch rect $matTag $numSubdivY $numSubdivZ $yI $zI $yJ $zJ
+                    fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n', 2000 + element.id(i), 1, 1, ele_props.d_c/2, -ele_props.w/2, ele_props.h/2, ele_props.w/2); % top unconfined
+                    fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n', 2000 + element.id(i), 1, 1, -ele_props.h/2, -ele_props.w/2, -ele_props.d_c/2, ele_props.w/2); % bottom unconfined
+                    fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n', 2000 + element.id(i), floor(ele_props.d_c), 1, -ele_props.d_c/2, -ele_props.w/2,  ele_props.d_c/2, -ele_props.b_c/2); % left unconfined
+                    fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n', 2000 + element.id(i), floor(ele_props.d_c), 1, -ele_props.d_c/2, ele_props.b_c/2, ele_props.d_c/2, ele_props.w/2); % right unconfined
+                    fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n', 3000 + element.id(i), floor(ele_props.d_c), 1, -ele_props.d_c/2, -ele_props.b_c/2,  ele_props.d_c/2, ele_props.b_c/2); % confined core
+                    
+%                     fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n', 3000 + element.id(i), ele_props.h, 1, -ele_props.h/2, -ele_props.w/2, ele_props.h/2, ele_props.w/2); % confined core
+                        
+                    if strcmp(element.type{i},'beam') && ele_props.d_flange > 0
+                        % Flange to the left and right
+                        % patch rect $matTag $numSubdivY $numSubdivZ $yI $zI $yJ $zJ
+                        fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n', 2000 + element.id(i), 1, 1, ele_props.h/2-ele_props.d_flange, -ele_props.b_eff/2, ele_props.h/2, -ele_props.w/2);
+                        fprintf(fileID,'patch rect %i %i %i %f %f %f %f \n', 2000 + element.id(i), 1, 1, ele_props.h/2-ele_props.d_flange, ele_props.w/2, ele_props.h/2, ele_props.b_eff/2 );
+                    end
+
+                    % layer straight $matTag $numFiber $areaFiber $yStart $zStart $yEnd $zEnd
+                    yStart = -ele_props.w/2 + ele_props.clear_cover;
+                    yEnd = ele_props.w/2 - ele_props.clear_cover;
+                    for row = 1:length(As)
+                        if As(row) > 0
+                            z_coor = ele_props.h/2 - depth_bars(row);
+                            fprintf(fileID,'layer straight %i %i %f %f %f %f %f \n', 1000 + element.id(i), num_bars(row), As(row), yStart, z_coor, yEnd, z_coor);
+                        end
+                    end
+
+                    fprintf(fileID,'} \n');
+
+                    % element forceBeamColumn $eleTag $iNode $jNode $numIntgrPts $secTag $transfTag <-mass $massDens> <-iter $maxIters $tol> <-integration $intType>
+                    fprintf(fileID,'element forceBeamColumn %i %i %i %i %i %i \n',element.id(i),element.node_1(i),element.node_2(i),5,element.id(i),geotransf);  
+                else
+                    error('Nonlinear Model Type Not Recognized')
                 end
             else
                 if strcmp(dimension,'2D')
@@ -293,7 +372,8 @@ if height(joint) > 0
             if exist('joint_analysis','var')
                 joint_rigidity = joint_analysis.implicit_stiff(i);
             else
-                joint_rigidity = 3;
+                % Default assumption to Rigid columns sections in joints
+                joint_rigidity = 1;
             end
 
             % Grab element info

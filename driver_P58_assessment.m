@@ -11,16 +11,16 @@ clc
 % analysis.model_id = 4;
 analysis.model_type = 3; % 1 = SDOF, 2 = MDOF (default), 3 = Archetype model
 analysis.proceedure = 'P58'; 
-analysis.id = 'Dissertation_Study'; % ID of the analysis for it to create its own directory
+analysis.id = 'Dissertation_Study_LP'; % ID of the analysis for it to create its own directory
 analysis.gm_set = 'FEMA_far_field';
 analysis.run_z_motion = 0;
 
 % Analysis options
 analysis.summit = 0;
 analysis.run_parallel = 0;
-analysis.run_ida = 0;
-analysis.post_process_ida = 0;
-analysis.create_fragilities = 1;
+analysis.run_ida = 1;
+analysis.post_process_ida = 1;
+analysis.create_fragilities = 0;
 % analysis.plot_ida = 0;
 % analysis.detialed_post_process = 0;
 analysis.run_sa_stripes = 1;
@@ -28,12 +28,13 @@ analysis.scale_method = 'geomean'; % 'maxdir' or 'geomean'
 % analysis.scale_increment = 0.25;
 % analysis.sa_stripes = [0.2 0.4];
 analysis.collapse_drift = 0.10; % Drift ratio at which we are calling the model essentially collapsed
-analysis.clear_existing_data = 0;
+analysis.clear_existing_data = 1;
 analysis.general_ida = 0;
 analysis.write_xml = 1;
 
 % Nonlinear options
 analysis.nonlinear = 1;
+analysis.nonlinear_type = 'lumped'; % lumped or fiber
 analysis.stories_nonlinear = inf;
 analysis.stories_nonlinear_low = 0;
 analysis.elastic_beams = 0;
@@ -42,22 +43,25 @@ analysis.hinge_stiff_mod = 10;
 
 % Secondary options
 analysis.dead_load = 1; % Dead load factor
-analysis.live_load = 1; % live load factor
+analysis.live_load = 0.2; % live load factor
 analysis.opensees_SP = 0;
 analysis.type = 1;
 analysis.damping = 'rayleigh';
 analysis.damp_ratio = 0.03;
 analysis.solution_algorithm = 1;
 analysis.initial_timestep_factor = 1;
-analysis.suppress_outputs = 1;
+analysis.suppress_outputs = 0;
 analysis.play_movie = 0;
 analysis.movie_scale = 10;
 analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 analysis.joint_model = 1;
 analysis.joint_explicit = 0;
-analysis.simple_recorders = 1;
+analysis.simple_recorders = 0;
 analysis.additional_elements = 1;
+
+% Plotters
+analysis.hinge_stories_2_plot = 3;
 
 % Site inputs
 % Curt's thesis site
@@ -74,13 +78,12 @@ hazard.afe = 1/475;
 % Define models to run
 model_data = readtable(['inputs' filesep 'archetype_models.csv'],'ReadVariableNames',true);
 % model_data = model_data(model_data.num_stories == 4,:);
-model_data = model_data(model_data.num_stories ~= 20,:);
-% model_data = model_data(model_data.ie ~= 1.25,:);
-% model_data = model_data(~contains(model_data.name,'drift15'),:);
+% model_data = model_data(model_data.ie == 1,:);
+% model_data = model_data(model_data.design_drift == 0.02,:);
 num_models = height(model_data);
 
 % Define remote directory
-remote_dir = ['G:\My Drive\Dissertation Archetype Study\Archetypes RCMF\Archetype Model Responses'];
+remote_dir = ['G:\My Drive\Dissertation Archetype Study\Archetypes RCMF\Archetype Model Responses - LP'];
 
 %% Import Packages
 import ida.*
@@ -91,11 +94,15 @@ import opensees.main_eigen_analysis
 import usgs.*
 
 %% Pull Hazard Data
-im_ids = {'rp_43', 'rp_72', 'rp_108', 'rp_224' 'rp_475', 'rp_975', 'rp_2475', 'rp_4975', 'mce_geo_0p2', 'mce_geo_0p4', 'mce_geo_0p67', 'mce_geo_0p8', 'mce_geo_1p0', 'dbe_max'};
+im_ids = {'rp_224'};
+mce_stripes = [];
+rps2run = [224];
+
+% im_ids = {'rp_43', 'rp_72', 'rp_108', 'rp_224' 'rp_475', 'rp_975', 'rp_2475', 'rp_4975', 'mce_geo_0p2', 'mce_geo_0p4', 'mce_geo_0p67', 'mce_geo_0p8', 'mce_geo_1p0', 'dbe_max'};
 % mce_stripes = [0.05, 0.1, 0.2, 0.4, 2/3, 0.8, 1.0, 1.25];
-mce_stripes = [0.2, 0.4, 2/3, 0.8, 1.0];
+% mce_stripes = [0.2, 0.4, 2/3, 0.8, 1.0];
 % rps2run = [43, 72, 108, 224, 475, 975, 2475, 4975];
-rps2run = [43, 72, 108, 224 475, 975, 2475, 4975];
+% rps2run = [43, 72, 108, 224 475, 975, 2475, 4975];
 % rps2run = [43, 72];
 % rps2run = [10, 50, 100, 150, 250, 500, 750, 1000, 1500, 2500];
 [sa_spectra, sa_periods] = fn_call_USGS_hazard_API('E2014', site.lat, site.lng, site.vs30, 1./rps2run);
@@ -131,6 +138,10 @@ for m = 1:num_models % run for each model
     gm_set_table = readtable(['ground_motions' filesep analysis.gm_set filesep 'ground_motion_set.csv'],'ReadVariableNames',true);
     gm_median_pga = median(gm_set_table.pga);
 
+    %% Set Damping Ratio
+    H = model.story_ht_first + model.story_ht_others*(model.num_stories - 1);
+    analysis.damp_ratio = min(0.36/sqrt(H),0.05); % From equation 3-1 of ATC 114 v1
+    
     %% Build Model
     analysis.out_dir = main_dir;
     disp('Building Model ...')
@@ -152,9 +163,19 @@ for m = 1:num_models % run for each model
 %     analysis.nonlinear = 0;
     [ model ] = main_eigen_analysis( model, analysis );
 
+    %% Redefine model with fiber
+%     analysis.nonlinear_type = 'fiber'; % lumped or fiber
+%     main_build_model( model, analysis, [] )
+%     node = readtable([model_dir filesep 'node.csv'],'readVariableNames',true);
+%     story = readtable([model_dir filesep 'story.csv'],'readVariableNames',true);
+%     hinge = readtable([model_dir filesep 'hinge.csv'],'readVariableNames',true);
+%     element = readtable([model_dir filesep 'element.csv'],'readVariableNames',true);
+%     joint = readtable([model_dir filesep 'joint.csv'],'readVariableNames',true);
+    [ ~ ] = fn_define_model( tcl_dir, node, element, joint, hinge, analysis, model.dimension, story, [], model );
+    
     %% Modify Model Data
     % Set period variable
-    model.T1_x
+%     model.T1_x
     ida_results.period = model.T1_x;
 
     % Factor Loads
@@ -169,17 +190,17 @@ for m = 1:num_models % run for each model
     % design level
     sa_dbe = min(site.sds,site.sd1/model.T1_x);
     sa_mce = sa_dbe*1.5;
-    if period_cropped < 0.2
-        geo_coversion = 1.1;
-    elseif period_cropped < 1
-        geo_coversion = interp1([0.2,1],[1.1,1.3],period_cropped);
-    elseif period_cropped < 5
-        geo_coversion = interp1([1,5],[1.3,1.5],period_cropped);
-    else
-        geo_coversion = 1.5;
-    end
-    sa_mce_geo = sa_mce/geo_coversion;
-    sa_dbe_geo = (2/3)*sa_mce_geo;
+%     if period_cropped < 0.2
+%         geo_coversion = 1.1;
+%     elseif period_cropped < 1
+%         geo_coversion = interp1([0.2,1],[1.1,1.3],period_cropped);
+%     elseif period_cropped < 5
+%         geo_coversion = interp1([1,5],[1.3,1.5],period_cropped);
+%     else
+%         geo_coversion = 1.5;
+%     end
+%     sa_mce_geo = sa_mce/geo_coversion;
+%     sa_dbe_geo = (2/3)*sa_mce_geo;
 
     % MCE level
     ida_results.mce = sa_mce;
@@ -187,8 +208,9 @@ for m = 1:num_models % run for each model
     % Augment Sa levels with design levels
 %     analysis.sa_stripes = sa_levels;
 %     analysis.sa_stripes = mce_stripes*sa_mce;
-    analysis.sa_stripes = [sa_levels, mce_stripes*sa_mce_geo, sa_dbe];
-
+%     analysis.sa_stripes = [sa_levels, mce_stripes*sa_mce_geo, sa_dbe];
+    analysis.sa_stripes = sa_levels;
+    
     %% Run Opensees Models
     if analysis.run_ida || analysis.post_process_ida
         fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir, main_dir)
@@ -258,40 +280,40 @@ for m = 1:num_models % run for each model
             % Define collapse based on two direction of motion
             building_collapse = summary.collapse | alt_dir_out.summary.collapse;
             
-            % Component response
-            if exist(hinge_file,'file')
-                load(hinge_file)
-                if building_collapse % set collapse values = NaN
-                    collapse_table.(sa_folders(s).name)(gm,1) = 1;
-                    max_a_ratio.(sa_folders(s).name)(gm,1) = NaN;
-                    a_ratio_ac_any.(sa_folders(s).name)(gm,1) = 1;
-                    a_ratio_ac_10.(sa_folders(s).name)(gm,1) = 1;
-                    a_ratio_ac_25.(sa_folders(s).name)(gm,1) = 1;
-                    num_col_ac.(sa_folders(s).name)(gm,1) = NaN;
-                    num_bm_ac.(sa_folders(s).name)(gm,1) = NaN;
-                else
-                    collapse_table.(sa_folders(s).name)(gm,1) = 0;
-                    max_a_ratio.(sa_folders(s).name)(gm,1) = max(hinge.a_ratio);
-                    a_ratio_ac_any.(sa_folders(s).name)(gm,1) = 1*any(hinge.a_ratio > 0.5);
-                    num_col_ac.(sa_folders(s).name)(gm,1) = sum(strcmp(hinge.ele_type(hinge.a_ratio > 0.5),'column'));
-                    num_bm_ac.(sa_folders(s).name)(gm,1) = sum(strcmp(hinge.ele_type(hinge.a_ratio > 0.5),'beam'));
-                    st_a_ratio_hinge_ac = [];
-                    for st = 1:model.num_stories
-                        st_hinge = hinge(hinge.story == st,:);
-                        st_a_ratio_hinge_ac(st) = mean(st_hinge.a_ratio > 0.5);
-                    end
-                    a_ratio_ac_10.(sa_folders(s).name)(gm,1) = 1*any(st_a_ratio_hinge_ac > 0.1);
-                    a_ratio_ac_25.(sa_folders(s).name)(gm,1) = 1*any(st_a_ratio_hinge_ac > 0.25);
-                end
-            else
-                collapse_table.(sa_folders(s).name)(gm,1) = NaN;
-                max_a_ratio.(sa_folders(s).name)(gm,1) = NaN; % didnt collect hinge properties for this ground motion
-                a_ratio_ac_any.(sa_folders(s).name)(gm,1) = NaN;
-                a_ratio_ac_10.(sa_folders(s).name)(gm,1) = NaN;
-                a_ratio_ac_25.(sa_folders(s).name)(gm,1) = NaN;
-                num_col_ac.(sa_folders(s).name)(gm,1) = NaN;
-                num_bm_ac.(sa_folders(s).name)(gm,1) = NaN;
-            end
+%             % Component response
+%             if exist(hinge_file,'file')
+%                 load(hinge_file)
+%                 if building_collapse % set collapse values = NaN
+%                     collapse_table.(sa_folders(s).name)(gm,1) = 1;
+%                     max_a_ratio.(sa_folders(s).name)(gm,1) = NaN;
+%                     a_ratio_ac_any.(sa_folders(s).name)(gm,1) = 1;
+%                     a_ratio_ac_10.(sa_folders(s).name)(gm,1) = 1;
+%                     a_ratio_ac_25.(sa_folders(s).name)(gm,1) = 1;
+%                     num_col_ac.(sa_folders(s).name)(gm,1) = NaN;
+%                     num_bm_ac.(sa_folders(s).name)(gm,1) = NaN;
+%                 else
+%                     collapse_table.(sa_folders(s).name)(gm,1) = 0;
+%                     max_a_ratio.(sa_folders(s).name)(gm,1) = max(hinge.a_ratio);
+%                     a_ratio_ac_any.(sa_folders(s).name)(gm,1) = 1*any(hinge.a_ratio > 0.5);
+%                     num_col_ac.(sa_folders(s).name)(gm,1) = sum(strcmp(hinge.ele_type(hinge.a_ratio > 0.5),'column'));
+%                     num_bm_ac.(sa_folders(s).name)(gm,1) = sum(strcmp(hinge.ele_type(hinge.a_ratio > 0.5),'beam'));
+%                     st_a_ratio_hinge_ac = [];
+%                     for st = 1:model.num_stories
+%                         st_hinge = hinge(hinge.story == st,:);
+%                         st_a_ratio_hinge_ac(st) = mean(st_hinge.a_ratio > 0.5);
+%                     end
+%                     a_ratio_ac_10.(sa_folders(s).name)(gm,1) = 1*any(st_a_ratio_hinge_ac > 0.1);
+%                     a_ratio_ac_25.(sa_folders(s).name)(gm,1) = 1*any(st_a_ratio_hinge_ac > 0.25);
+%                 end
+%             else
+%                 collapse_table.(sa_folders(s).name)(gm,1) = NaN;
+%                 max_a_ratio.(sa_folders(s).name)(gm,1) = NaN; % didnt collect hinge properties for this ground motion
+%                 a_ratio_ac_any.(sa_folders(s).name)(gm,1) = NaN;
+%                 a_ratio_ac_10.(sa_folders(s).name)(gm,1) = NaN;
+%                 a_ratio_ac_25.(sa_folders(s).name)(gm,1) = NaN;
+%                 num_col_ac.(sa_folders(s).name)(gm,1) = NaN;
+%                 num_bm_ac.(sa_folders(s).name)(gm,1) = NaN;
+%             end
             
             % EDPs
             if building_collapse == 0
@@ -384,42 +406,42 @@ for m = 1:num_models % run for each model
     mkdir(write_dir)
     writetable(idr_table_sort,[write_dir filesep 'idr.csv'])
     writetable(pfa_table_sort,[write_dir filesep 'pfa.csv'])
-    writetable(max_a_ratio,[write_dir filesep 'a_ratio.csv'])
+%     writetable(max_a_ratio,[write_dir filesep 'a_ratio.csv'])
     
     % Save P-58 input run data to remote location
     writetable(idr_table_sort,[model_remote_dir filesep 'idr.csv'])
     writetable(pfa_table_sort,[model_remote_dir filesep 'pfa.csv'])
     writetable(model,[model_remote_dir filesep 'model.csv'])
     writetable(story,[model_remote_dir filesep 'story.csv'])
-    writetable(collapse_data(m,:),[model_remote_dir filesep 'collapse_data.csv'])
+%     writetable(collapse_data(m,:),[model_remote_dir filesep 'collapse_data.csv'])
     
-    % Collect a_ratio data for ACI work
-    num_gms = height(max_a_ratio);
-    num_gms_exceed_ac = [];
-    num_gms_exceed_ac_any = [];
-    num_gms_exceed_ac_10 = [];
-    num_gms_exceed_ac_25 = [];
-    num_gm_collapse = [];
-    prob_col_ac = [];
-    prob_bm_ac = [];
-    for s = 1:length(analysis.sa_stripes)
-        gm_data = max_a_ratio{:,s+1};
-        num_gms_exceed_ac(s) = sum(gm_data > 0.5 | isnan(gm_data));
-        num_gms_exceed_ac_any(s) = sum(a_ratio_ac_any{:,s+1});
-        num_gms_exceed_ac_10(s) = sum(a_ratio_ac_10{:,s+1});
-        num_gms_exceed_ac_25(s) = sum(a_ratio_ac_25{:,s+1});
-        num_gm_collapse(s) = sum(collapse_table{:,s+1});
-        prob_col_ac(s) = sum(num_col_ac{:,s+1} > 0) / sum(~isnan(num_col_ac{:,s+1}));
-        prob_bm_ac(s) = sum(num_bm_ac{:,s+1} > 0) / sum(~isnan(num_bm_ac{:,s+1}));
-    end
-    p_exceed_ac.ac_any(m,:) = num_gms_exceed_ac_any / num_gms;
-    p_exceed_ac.ac_10(m,:) = num_gms_exceed_ac_10 / num_gms;
-    p_exceed_ac.ac_25(m,:) = num_gms_exceed_ac_25 / num_gms;
-    p_exceed_ac.collapse(m,:) = num_gm_collapse / num_gms;
-    p_exceed_ac.col_ac(m,:) = prob_col_ac;
-    p_exceed_ac.bm_ac(m,:) = prob_bm_ac;
-    
-    mce_levels(m,1) = ida_results.mce;   
+%     % Collect a_ratio data for ACI work
+%     num_gms = height(max_a_ratio);
+%     num_gms_exceed_ac = [];
+%     num_gms_exceed_ac_any = [];
+%     num_gms_exceed_ac_10 = [];
+%     num_gms_exceed_ac_25 = [];
+%     num_gm_collapse = [];
+%     prob_col_ac = [];
+%     prob_bm_ac = [];
+%     for s = 1:length(analysis.sa_stripes)
+%         gm_data = max_a_ratio{:,s+1};
+%         num_gms_exceed_ac(s) = sum(gm_data > 0.5 | isnan(gm_data));
+%         num_gms_exceed_ac_any(s) = sum(a_ratio_ac_any{:,s+1});
+%         num_gms_exceed_ac_10(s) = sum(a_ratio_ac_10{:,s+1});
+%         num_gms_exceed_ac_25(s) = sum(a_ratio_ac_25{:,s+1});
+%         num_gm_collapse(s) = sum(collapse_table{:,s+1});
+%         prob_col_ac(s) = sum(num_col_ac{:,s+1} > 0) / sum(~isnan(num_col_ac{:,s+1}));
+%         prob_bm_ac(s) = sum(num_bm_ac{:,s+1} > 0) / sum(~isnan(num_bm_ac{:,s+1}));
+%     end
+%     p_exceed_ac.ac_any(m,:) = num_gms_exceed_ac_any / num_gms;
+%     p_exceed_ac.ac_10(m,:) = num_gms_exceed_ac_10 / num_gms;
+%     p_exceed_ac.ac_25(m,:) = num_gms_exceed_ac_25 / num_gms;
+%     p_exceed_ac.collapse(m,:) = num_gm_collapse / num_gms;
+%     p_exceed_ac.col_ac(m,:) = prob_col_ac;
+%     p_exceed_ac.bm_ac(m,:) = prob_bm_ac;
+%     
+%     mce_levels(m,1) = ida_results.mce;   
     collective_sa(m,:) = analysis.sa_stripes;
 end
 
@@ -428,43 +450,43 @@ im_table = array2table([model_data.id collective_sa]);
 im_table.Properties.VariableNames = ['model_id', im_ids];
 writetable(im_table,[remote_dir filesep 'sa_data.csv'])
 
-% write collapse data for all models
-writetable(collapse_data,[remote_dir filesep 'collapse_data.csv'])
-
-% write ACI data
-dbe_levels = mce_levels * 2/3;
-sa_norm = collective_sa ./ dbe_levels;
-ac_list = {'ac_any', 'ac_10', 'ac_25', 'collapse', 'col_ac', 'bm_ac'};
-labels = {'P(Any Component Exceeding 0.5*a)',...
-    'P(10% of Story Components Exceeding 0.5*a)', ...
-    'P(25% of Story Components Exceeding 0.5*a)', ...
-    'P(Collapse)', ...
-    'P(Columns Exceeding 0.5*a | Non-Collapse)', ...
-    'P(Beams Exceeding 0.5*a | Non-Collapse)'};
-for a = 1:length(ac_list)
-    csvwrite([remote_dir filesep 'ACI_prob_exceedance_12story_' ac_list{a} '.csv'],p_exceed_ac.(ac_list{a}))
-
-    % plot ACI data
-    hold on
-    plt = plot(sa_norm', p_exceed_ac.(ac_list{a})','-o');
-    legend(plt,strrep(model_data.name,'_',' '));
-    legend('location', 'northwest')
-%     plot([0.5, 0.5], [0, 1],'--k','HandleVisibility','off')
-%     text(0.53, 0.03, '72yr','FontName', 'times', 'FontSize', 8)
-%     plot([1, 1], [0, 1],'--k','HandleVisibility','off')
-%     text(1.03, 0.03, 'DE','FontName', 'times', 'FontSize', 8)
-%     plot([1.5, 1.5], [0, 1],'--k','HandleVisibility','off')
-%     text(1.53, 0.03, 'MCE_r','FontName', 'times', 'FontSize', 8)
-    upper_y = max(max(p_exceed_ac.(ac_list{a})));
-    ylim([0 upper_y])
-    xlabel('Ratio of Design Sa')
-    ylabel(labels{a})
-    box on
-    grid on
-    set(gcf,'position',[10,10,500,300])
-    set(gca,'fontname','times')
-    plt_name = ['ACI_plt_12story_' ac_list{a}];
-    savefig([remote_dir filesep plt_name '.fig'])
-    saveas(gcf,[remote_dir filesep plt_name],'png')
-    close
-end
+% % write collapse data for all models
+% writetable(collapse_data,[remote_dir filesep 'collapse_data.csv'])
+% 
+% % write ACI data
+% dbe_levels = mce_levels * 2/3;
+% sa_norm = collective_sa ./ dbe_levels;
+% ac_list = {'ac_any', 'ac_10', 'ac_25', 'collapse', 'col_ac', 'bm_ac'};
+% labels = {'P(Any Component Exceeding 0.5*a)',...
+%     'P(10% of Story Components Exceeding 0.5*a)', ...
+%     'P(25% of Story Components Exceeding 0.5*a)', ...
+%     'P(Collapse)', ...
+%     'P(Columns Exceeding 0.5*a | Non-Collapse)', ...
+%     'P(Beams Exceeding 0.5*a | Non-Collapse)'};
+% for a = 1:length(ac_list)
+%     csvwrite([remote_dir filesep 'ACI_prob_exceedance_12story_' ac_list{a} '.csv'],p_exceed_ac.(ac_list{a}))
+% 
+%     % plot ACI data
+%     hold on
+%     plt = plot(sa_norm', p_exceed_ac.(ac_list{a})','-o');
+%     legend(plt,strrep(model_data.name,'_',' '));
+%     legend('location', 'northwest')
+% %     plot([0.5, 0.5], [0, 1],'--k','HandleVisibility','off')
+% %     text(0.53, 0.03, '72yr','FontName', 'times', 'FontSize', 8)
+% %     plot([1, 1], [0, 1],'--k','HandleVisibility','off')
+% %     text(1.03, 0.03, 'DE','FontName', 'times', 'FontSize', 8)
+% %     plot([1.5, 1.5], [0, 1],'--k','HandleVisibility','off')
+% %     text(1.53, 0.03, 'MCE_r','FontName', 'times', 'FontSize', 8)
+%     upper_y = max(max(p_exceed_ac.(ac_list{a})));
+%     ylim([0 upper_y])
+%     xlabel('Ratio of Design Sa')
+%     ylabel(labels{a})
+%     box on
+%     grid on
+%     set(gcf,'position',[10,10,500,300])
+%     set(gca,'fontname','times')
+%     plt_name = ['ACI_plt_12story_' ac_list{a}];
+%     savefig([remote_dir filesep plt_name '.fig'])
+%     saveas(gcf,[remote_dir filesep plt_name],'png')
+%     close
+% end

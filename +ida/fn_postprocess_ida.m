@@ -7,10 +7,14 @@ function [ ] = fn_postprocess_ida(analysis, model, story, element, node, hinge, 
 import opensees.main_post_process_opensees
 import opensees.post_process.*
 import ida.*
-import plotting_tools.fn_curt_plot_2D
+import plotting_tools.*
 
 % Load element properties table
-ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
+if analysis.model_type == 3
+    ele_prop_table = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'],'Sheet','element'); % for archetype models, the model properties are already in the table
+else
+    ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
+end
 
 %% Post process IDA using opensees post processor
 main_post_process_opensees( analysis, model, story, node, element, joint, hinge, ground_motion, ida_opensees_dir )
@@ -176,6 +180,60 @@ if analysis.nonlinear ~= 0 && ~isempty(hinge)
 %     fn_curt_plot_2D( hinge, element, node, story, 'Collapse Mechanism', ida_summary_dir )
 end
 
+% Create some component deformation plots
+if ~analysis.simple_recorders
+    if strcmp(analysis.nonlinear_type,'fiber')
+        % Load hinge data from LP model
+%         load([strrep(ida_summary_dir,'fiber','LP') filesep 'hinge_analysis.mat'])
+            
+        % Filter out pdelta column elements
+        element(element.rigid == 1,:) = [];
+        
+        for i = 1:height(element)
+            % Load element rotation data
+            load([ida_opensees_dir filesep 'element_TH_' num2str(element.id(i)) '.mat']);
+            element.total_deform(i) = max(abs(ele_TH.rot));
+            
+            ele_prop = ele_prop_table(ele_prop_table.id == element.ele_id(i),:);
+%             ele_hinge = hinge(hinge.element_id == element.id(i),:);
+            
+            K_elastic = 6*ele_prop.e*ele_prop.iz/ele_prop.length;
+            theta_yeild_total = ele_prop.Mn_pos/K_elastic;
+                
+            element.plastic_deform(i) = max(element.total_deform(i) - theta_yeild_total,0);
+        end
+        
+        % Deformed shape plot
+%         fn_curt_plot_2D( hinge, element, node, story, 'Collapse Mechanism', ida_summary_dir )
+        
+        % Filter to just top 5 components with largest plastic deformation
+%         element_filt = sortrows(element,'plastic_deform','descend');
+        fn_plot_hinge_response_ida_fiber( ida_summary_dir, ida_opensees_dir, element(element.story == 1,:), ele_prop_table, analysis )
+        
+        % write hinge table to summary directory
+        writetable(element,[ida_summary_dir filesep 'element_data.csv'])
+    else
+        % Deformed shape plot
+        fn_curt_plot_2D( hinge, element, node, story, 'Collapse Mechanism', ida_summary_dir )
+
+        % Filter to just top 5 components with largest plastic deformation
+%         hinge_filt = sortrows(hinge,'plastic_deform','descend');
+        fn_plot_hinge_response_ida( ida_summary_dir, ida_opensees_dir, hinge(hinge.story == 1,:), element, ele_prop_table, node, analysis )
+
+        % write hinge table to summary directory
+        writetable(hinge,[ida_summary_dir filesep 'hinge_data.csv'])
+        
+        % Take max of hinge rotation and assign it to element
+        element(element.rigid == 1,:) = []; % Filter out pdelta column elements
+        for i = 1:height(element)
+            hin = hinge(hinge.element_id == element.id(i),:);
+            element.total_deform(i) = max(hin.tot_deform);
+            element.plastic_deform(i) = max(hin.plastic_deform);
+        end
+        writetable(element,[ida_summary_dir filesep 'element_data.csv'])
+    end
+end
+
 % Save data for this run
 fprintf('Writing IDA Results to Directory: %s \n',ida_summary_dir)
 % if ~analysis.simple_recorders 
@@ -185,11 +243,13 @@ save([ida_summary_dir filesep 'story_analysis.mat'],'story')
 save([ida_summary_dir filesep 'summary_results.mat'],'summary')
 
 % Delete post processed middle man opensees data
-try
-    rmdir(ida_opensees_dir, 's')
-catch
-    warning('Could not remove directory')
-end
+% if analysis.simple_recorders
+    try
+        rmdir(ida_opensees_dir, 's')
+    catch
+        warning('Could not remove directory')
+    end
+% end
 % delete([ida_opensees_dir filesep 'story_analysis.mat'])
 % delete([ida_opensees_dir filesep 'node_analysis.mat'])
 % delete([ida_opensees_dir filesep 'model_analysis.mat'])
