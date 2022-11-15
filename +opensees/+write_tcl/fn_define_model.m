@@ -7,7 +7,7 @@ import build_model.fn_node_exist
 
 %% Load element properties table
 if analysis.model_type == 3
-    ele_props_table = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'],'Sheet','element'); % for archetype models, the model properties are already in the table
+    ele_props_table = readtable(['inputs' filesep 'models' filesep model.design_sheet_name{1} '.xlsm'],'Sheet','element'); % for archetype models, the model properties are already in the table
 else
     ele_props_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
 end

@@ -8,11 +8,11 @@ import build_model.*
 import aci_318.*
 
 % Load data tables from design sheets
-story = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'],'Sheet','story');
-story_group_table = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'],'Sheet','story_group');
-element_group_table = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'],'Sheet','element_group');
-element_table = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'],'Sheet','element');
-additional_elements = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'],'Sheet','additional_elements');
+story = readtable(['inputs' filesep 'models' filesep model.design_sheet_name{1} '.xlsm'],'Sheet','story');
+story_group_table = readtable(['inputs' filesep 'models' filesep model.design_sheet_name{1} '.xlsm'],'Sheet','story_group');
+element_group_table = readtable(['inputs' filesep 'models' filesep model.design_sheet_name{1} '.xlsm'],'Sheet','element_group');
+element_table = readtable(['inputs' filesep 'models' filesep model.design_sheet_name{1} '.xlsm'],'Sheet','element');
+additional_elements = readtable(['inputs' filesep 'models' filesep model.design_sheet_name{1} '.xlsm'],'Sheet','additional_elements');
 
 % Story property calculations
 for s = 1:height(story)

@@ -21,32 +21,32 @@ analysis.id = 'Pushover_Model_LP'; % Unique String ID of the analysis for it to 
 analysis.nonlinear = 1; % Nonlinear
 analysis.nonlinear_type = 'lumped'; % lumped or fiber
 analysis.eq_lat_load_factor = 1;
-analysis.type = 2; % Pushover
+analysis.type = 2; % 1 = Dynamic, 2 = Pushover, 3 = Cyclic
 analysis.pushover_direction = 'x'; % {'x', '-x', 'z', '-z'} % Direction the pushover will run
 analysis.dead_load = 1; % Dead Load Factor
 analysis.live_load = 0.2; % Live Load Factor
-analysis.accidental_torsion = 0; % add accidental torsion
+analysis.accidental_torsion = 0; % boolean flag to add accidental torsion
 
 % Model Options
-analysis.stories_nonlinear = inf; % Default to all modeling all stories as nonlinear when doing NDP
+analysis.stories_nonlinear = inf; % Number of stories (from ground level up) to model as nonlinear (inf = all nonlinear)
 analysis.stories_nonlinear_low = 0; % all stories at or below this story to be elastic (0 = all nonlinear)
 analysis.elastic_beams = 0; % 0 = beams can be nonlinear (default), 1 = beams are assumed to be elastic
 analysis.rigid_diaphram = 1; % Default the model to assume rigid diaphrams (0 = non-rigid assuption)
 analysis.fiber_walls = 0; % 0 = Lumped plasticity walls, 1 = Fiber walls, 2 = MVLEM
-analysis.hinge_stiff_mod = 10; % Scale up stiffnes of hinges for a lumped plasticiy model. n value from Ibarra paper.
+analysis.hinge_stiff_mod = 10; % Scale up stiffness of hinges for a lumped plasticiy model. n value from Ibarra paper (for lumped plasticity model only)
 analysis.joint_model = 1; % 0 = centerline (almost), 1 = ASCE 41 implicit model, 2 = joint 3D, 3 = rigid (via beam/columns)
-analysis.joint_explicit = 0; % 0 = rigid, 1 = model joint nonlinearity (could automate this based on first assessment of joints)
-analysis.additional_elements = 1; % this is the leaning column
+analysis.joint_explicit = 0; % 0 = elastic joint, 1 = model joint nonlinearity
+analysis.additional_elements = 1; % include the leaning column
 
 % Damping Options
 analysis.damp_ratio = 0.03; % Critical damping ratio
 analysis.damping = 'rayleigh'; % rayleigh, modal, or simple
 
 % Recorder Options
-analysis.simple_recorders = 0;
-analysis.suppress_outputs = 1;
-analysis.play_movie = 0;
-analysis.hinge_group_length = 10;
+analysis.simple_recorders = 0; % flag to reduce the number of recorders used
+analysis.suppress_outputs = 1; % Flag to suppress run feedback
+analysis.play_movie = 0; % 1 = show displaced shape during opensees run
+analysis.hinge_group_length = 10; % Group hinges by this number to reduce the number of recorder files
 analysis.write_xml = 1; % Write and read opensees out files as xml files (0 = .txt files, which is currently broken, on purpose)
 
 % Other Analysis Options
@@ -61,7 +61,7 @@ import opensees.write_tcl.*
 import opensees.main_eigen_analysis
 
 % Pull Model Data
-model_data = readtable(['inputs' filesep 'archetype_models.csv'],'ReadVariableNames',true);
+model_data = readtable(['inputs' filesep 'models.csv'],'ReadVariableNames',true);
 num_models = height(model_data);
 
 %% Initiate Analysis
@@ -70,12 +70,6 @@ for m = 1:num_models % run for each model
     model = model_data(m,:);
     analysis.model_id = model.id;
     fprintf('Running Model %i of %i: %s\n', m, num_models, model.name{1})
-
-    % Pull in database of available models
-    model_table = readtable(['inputs' filesep 'archetype_models.csv'],'ReadVariableNames',true);
-
-    % Select Model for the analysis 
-    model = model_table(model_table.id == analysis.model_id,:);
 
     % Create Analysis Directory
     analysis.out_dir = ['outputs' filesep model.name{1} filesep analysis.id];

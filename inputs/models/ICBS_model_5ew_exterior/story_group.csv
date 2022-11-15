@@ -1,6 +1,0 @@
-id,story_group_id,element_group_id,description,direction,x_start,z_start,offset_start,offset_end,trib_wt
-1,1,5,story 1 exterior line,x,0,0,0,0,0.5
-9,2,6,story 2 exterior line,x,0,0,0,0,0.5
-15,3,6,story 3 exterior line,x,0,0,0,0,0.5
-21,4,6,story 4-5 exterior line,x,0,0,0,0,0.5
-27,5,7,story 6 exterior line,x,0,0,0,0,0.5

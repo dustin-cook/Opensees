@@ -1,0 +1,5 @@
+id,name,dimension,num_stories,framing_system_1,framing_system_2,year,ie,design_drift,lat,lng,site_class,vs30,sds,sd1,dim_1_ft,dim_2_ft,num_bays,num_bays_lfrs,story_ht_first,story_ht_others,foundation,primary_node_offset,design_sheet_name
+1,baseline_4story,2D,4,C1a,C1a,2020,1,0.02,34.05,-118.25,C,537,1,0.6,120,120,6,6,15,13,1,0,4Story_RCMF_baseline_Opensees
+2,baseline_8story,2D,8,C1a,C1a,2020,1,0.02,34.05,-118.25,C,537,1,0.6,120,120,6,6,15,13,1,0,8Story_RCMF_baseline_Opensees
+3,baseline_12story,2D,12,C1a,C1a,2020,1,0.02,34.05,-118.25,C,537,1,0.6,120,120,6,6,15,13,1,0,12Story_RCMF_baseline_Opensees
+4,baseline_20story,2D,20,C1a,C1a,2020,1,0.02,34.05,-118.25,C,537,1,0.6,120,120,6,6,15,13,1,0,20Story_RCMF_baseline_Opensees
