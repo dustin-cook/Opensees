@@ -1,4 +1,4 @@
-function [ ] = fn_postprocess_ida(analysis, model, story, element, node, hinge, joint, ground_motion, ida_opensees_dir, ida_summary_dir)
+function [ ] = fn_postprocess_ida(analysis, model, story, element, node, hinge, joint, ground_motion, ida_opensees_dir, ida_summary_dir, ele_props_table)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -10,11 +10,12 @@ import ida.*
 import plotting_tools.*
 
 % Load element properties table
-if analysis.model_type == 3
-    ele_prop_table = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'],'Sheet','element'); % for archetype models, the model properties are already in the table
-else
-    ele_prop_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
+% if analysis.model_type ~= 3
+% %     ele_props_table = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'],'Sheet','element'); % for archetype models, the model properties are already in the table
+if analysis.model_type ~= 3
+    ele_props_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
 end
+
 
 %% Post process IDA using opensees post processor
 main_post_process_opensees( analysis, model, story, node, element, joint, hinge, ground_motion, ida_opensees_dir )
@@ -38,7 +39,7 @@ if analysis.nonlinear ~= 0 && ~isempty(hinge)
         if analysis.model_type == 3
             ele_prop = ele;
         else
-            ele_prop = ele_prop_table(ele_prop_table.id == ele.ele_id,:);
+            ele_prop = ele_props_table(ele_props_table.id == ele.ele_id,:);
         end
         if exist([ida_opensees_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat'],'file')
             load([ida_opensees_dir filesep 'hinge_TH_' num2str(hinge.id(i)) '.mat']);
@@ -194,7 +195,7 @@ if ~analysis.simple_recorders
             load([ida_opensees_dir filesep 'element_TH_' num2str(element.id(i)) '.mat']);
             element.total_deform(i) = max(abs(ele_TH.rot));
             
-            ele_prop = ele_prop_table(ele_prop_table.id == element.ele_id(i),:);
+            ele_prop = ele_props_table(ele_props_table.id == element.ele_id(i),:);
 %             ele_hinge = hinge(hinge.element_id == element.id(i),:);
             
             K_elastic = 6*ele_prop.e*ele_prop.iz/ele_prop.length;
@@ -208,7 +209,7 @@ if ~analysis.simple_recorders
         
         % Filter to just top 5 components with largest plastic deformation
 %         element_filt = sortrows(element,'plastic_deform','descend');
-        fn_plot_hinge_response_ida_fiber( ida_summary_dir, ida_opensees_dir, element(element.story == 1,:), ele_prop_table, analysis )
+        fn_plot_hinge_response_ida_fiber( ida_summary_dir, ida_opensees_dir, element(element.story == 1,:), ele_props_table, analysis )
         
         % write hinge table to summary directory
         writetable(element,[ida_summary_dir filesep 'element_data.csv'])
@@ -218,7 +219,7 @@ if ~analysis.simple_recorders
 
         % Filter to just top 5 components with largest plastic deformation
 %         hinge_filt = sortrows(hinge,'plastic_deform','descend');
-        fn_plot_hinge_response_ida( ida_summary_dir, ida_opensees_dir, hinge(hinge.story == 1,:), element, ele_prop_table, node, analysis )
+        fn_plot_hinge_response_ida( ida_summary_dir, ida_opensees_dir, hinge(hinge.story == 1,:), element, ele_props_table, node, analysis )
 
         % write hinge table to summary directory
         writetable(hinge,[ida_summary_dir filesep 'hinge_data.csv'])

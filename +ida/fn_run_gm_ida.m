@@ -66,7 +66,7 @@ while scale_factor < analysis.scale_increment*25
         if analysis.general_ida
             fn_postprocess_ida_gen( analysis, model, node, element, ground_motion, ida_opensees_dir, ida_summary_dir )
         else 
-            fn_postprocess_ida(analysis, model, story, element, node, hinge, joint, ground_motion, ida_opensees_dir, ida_summary_dir)
+            fn_postprocess_ida(analysis, model, story, element, node, hinge, joint, ground_motion, ida_opensees_dir, ida_summary_dir, ele_props_table)
         end
     end
     

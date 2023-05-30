@@ -1,4 +1,4 @@
-function [ joint_ele_ids ] = fn_define_model( write_dir, node, element, joint, hinge, analysis, dimension, story, read_dir_analysis, model )
+function [ joint_ele_ids ] = fn_define_model( write_dir, node, element, joint, hinge, analysis, dimension, story, read_dir_analysis, model, ele_props_table )
 %UNTITLED6 Summary of this function goes here
 
 %% Import Tools
@@ -6,9 +6,9 @@ import asce_41.*
 import build_model.fn_node_exist
 
 %% Load element properties table
-if analysis.model_type == 3
-    ele_props_table = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'],'Sheet','element'); % for archetype models, the model properties are already in the table
-else
+% if analysis.model_type ~= 3
+% %     ele_props_table = readtable([model.design_sheet_dir{1} filesep model.design_sheet_name{1} '.xlsm'],'Sheet','element'); % for archetype models, the model properties are already in the table
+if analysis.model_type ~= 3
     ele_props_table = readtable(['inputs' filesep 'element.csv'],'ReadVariableNames',true);
 end
 

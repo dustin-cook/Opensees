@@ -18,17 +18,17 @@ analysis.run_z_motion = 0;
 % Analysis options
 analysis.summit = 0;
 analysis.run_parallel = 0;
-analysis.run_ida = 1;
-analysis.post_process_ida = 1;
+analysis.run_ida = 0;
+analysis.post_process_ida = 0;
 analysis.create_fragilities = 0;
 % analysis.plot_ida = 0;
 % analysis.detialed_post_process = 0;
 analysis.run_sa_stripes = 1;
-analysis.scale_method = 'geomean'; % 'maxdir' or 'geomean'
+analysis.scale_method = '2D'; % 'maxdir' or 'geomean' oe 2D
 % analysis.scale_increment = 0.25;
 % analysis.sa_stripes = [0.2 0.4];
 analysis.collapse_drift = 0.10; % Drift ratio at which we are calling the model essentially collapsed
-analysis.clear_existing_data = 1;
+analysis.clear_existing_data = 0;
 analysis.general_ida = 0;
 analysis.write_xml = 1;
 
@@ -47,21 +47,23 @@ analysis.live_load = 0.2; % live load factor
 analysis.opensees_SP = 0;
 analysis.type = 1;
 analysis.damping = 'rayleigh';
-analysis.damp_ratio = 0.03;
+analysis.damp_ratio = 0.025;
 analysis.solution_algorithm = 1;
 analysis.initial_timestep_factor = 1;
-analysis.suppress_outputs = 0;
+analysis.suppress_outputs = 1;
 analysis.play_movie = 0;
 analysis.movie_scale = 10;
 analysis.algorithm = 'KrylovNewton';
 analysis.integrator = 'Newmark 0.5 0.25';
 analysis.joint_model = 1;
 analysis.joint_explicit = 0;
-analysis.simple_recorders = 0;
+analysis.simple_recorders = 1;
 analysis.additional_elements = 1;
 
+analysis.model_build_remote = 1;
+
 % Plotters
-analysis.hinge_stories_2_plot = 3;
+analysis.hinge_stories_2_plot = 0;
 
 % Site inputs
 % Curt's thesis site
@@ -77,13 +79,14 @@ hazard.afe = 1/475;
 
 % Define models to run
 model_data = readtable(['inputs' filesep 'archetype_models.csv'],'ReadVariableNames',true);
+% model_data = model_data(1:4,:);
 % model_data = model_data(model_data.num_stories == 4,:);
 % model_data = model_data(model_data.ie == 1,:);
 % model_data = model_data(model_data.design_drift == 0.02,:);
 num_models = height(model_data);
 
 % Define remote directory
-remote_dir = ['G:\My Drive\Dissertation Archetype Study\Archetypes RCMF\Archetype Model Responses - LP'];
+remote_dir = ['C:\Users\dtc2\OneDrive - NIST\NIST\Dissertation Archetype Study\Models\Archetypes RCMF\EDPs_2D'];
 
 %% Import Packages
 import ida.*
@@ -94,20 +97,22 @@ import opensees.main_eigen_analysis
 import usgs.*
 
 %% Pull Hazard Data
-im_ids = {'rp_224'};
-mce_stripes = [];
-rps2run = [224];
+% im_ids = {'rp_224'};
+% mce_stripes = [];
+% rps2run = [224];
 
 % im_ids = {'rp_43', 'rp_72', 'rp_108', 'rp_224' 'rp_475', 'rp_975', 'rp_2475', 'rp_4975', 'mce_geo_0p2', 'mce_geo_0p4', 'mce_geo_0p67', 'mce_geo_0p8', 'mce_geo_1p0', 'dbe_max'};
 % mce_stripes = [0.05, 0.1, 0.2, 0.4, 2/3, 0.8, 1.0, 1.25];
 % mce_stripes = [0.2, 0.4, 2/3, 0.8, 1.0];
 % rps2run = [43, 72, 108, 224, 475, 975, 2475, 4975];
-% rps2run = [43, 72, 108, 224 475, 975, 2475, 4975];
+rps2run = [43, 72, 108, 224 475, 975, 2475, 4975];
 % rps2run = [43, 72];
 % rps2run = [10, 50, 100, 150, 250, 500, 750, 1000, 1500, 2500];
 [sa_spectra, sa_periods] = fn_call_USGS_hazard_API('E2014', site.lat, site.lng, site.vs30, 1./rps2run);
 
 collapse_data = table;
+
+%% Run and Post Process Analysis
 for m = 1:num_models % run for each model     
     %% Initial Setup
     % Load basic model data
@@ -117,17 +122,22 @@ for m = 1:num_models % run for each model
 
     % Define read and write directories
     main_dir = ['outputs' '/' model.name{1} '/' analysis.proceedure '_' analysis.id];
-    model_dir = [main_dir '/' 'model_data'];
-    if ~exist(model_dir,'dir')
-        mkdir(model_dir)
-    end
+
     tcl_dir = [main_dir '/' 'opensees_data'];
     if ~exist(tcl_dir,'dir')
         mkdir(tcl_dir)
     end
-    model_remote_dir = [remote_dir filesep model.name{1}];
+    model_remote_dir = [remote_dir filesep model.id{1}];
     if ~exist(model_remote_dir,'dir')
         mkdir(model_remote_dir)
+    end
+    if analysis.model_build_remote
+        model_dir = [model_remote_dir '/' 'model_data'];
+    else
+        model_dir = [main_dir '/' 'model_data'];
+        if ~exist(model_dir,'dir')
+            mkdir(model_dir)
+        end
     end
     pushover_dir = [remote_dir filesep model.name{1}];
 %     ELFP_model_dir = ['outputs' '/' model.name{1} '/' 'ELFP' '_' analysis.id '/' 'model_data'];
@@ -139,29 +149,32 @@ for m = 1:num_models % run for each model
     gm_median_pga = median(gm_set_table.pga);
 
     %% Set Damping Ratio
-    H = model.story_ht_first + model.story_ht_others*(model.num_stories - 1);
-    analysis.damp_ratio = min(0.36/sqrt(H),0.05); % From equation 3-1 of ATC 114 v1
+%     H = model.story_ht_first + model.story_ht_others*(model.num_stories - 1);
+%     analysis.damp_ratio = min(0.36/sqrt(H),0.05); % From equation 3-1 of ATC 114 v1
     
     %% Build Model
     analysis.out_dir = main_dir;
-    disp('Building Model ...')
-
+    
     % Create model tables
-    main_build_model( model, analysis, [] )
+    if analysis.model_build_remote == 0
+        disp('Building Model ...')
+        main_build_model( model, analysis, [] )
+    end
 
     % Load Model Data
     node = readtable([model_dir filesep 'node.csv'],'readVariableNames',true);
     story = readtable([model_dir filesep 'story.csv'],'readVariableNames',true);
     hinge = readtable([model_dir filesep 'hinge.csv'],'readVariableNames',true);
     element = readtable([model_dir filesep 'element.csv'],'readVariableNames',true);
+    ele_props_table = readtable([model_dir filesep 'element_table.csv'],'readVariableNames',true);
     joint = readtable([model_dir filesep 'joint.csv'],'readVariableNames',true);
 
     % Write model tcl file
-    [ ~ ] = fn_define_model( tcl_dir, node, element, joint, hinge, analysis, model.dimension, story, [], model );
+    [ ~ ] = fn_define_model( tcl_dir, node, element, joint, hinge, analysis, model.dimension, story, [], model, ele_props_table );
 
     %% Run Eigen Analysis
 %     analysis.nonlinear = 0;
-    [ model ] = main_eigen_analysis( model, analysis );
+    [ model ] = main_eigen_analysis( model, analysis, model_dir );
 
     %% Redefine model with fiber
 %     analysis.nonlinear_type = 'fiber'; % lumped or fiber
@@ -171,7 +184,7 @@ for m = 1:num_models % run for each model
 %     hinge = readtable([model_dir filesep 'hinge.csv'],'readVariableNames',true);
 %     element = readtable([model_dir filesep 'element.csv'],'readVariableNames',true);
 %     joint = readtable([model_dir filesep 'joint.csv'],'readVariableNames',true);
-    [ ~ ] = fn_define_model( tcl_dir, node, element, joint, hinge, analysis, model.dimension, story, [], model );
+%     [ ~ ] = fn_define_model( tcl_dir, node, element, joint, hinge, analysis, model.dimension, story, [], model );
     
     %% Modify Model Data
     % Set period variable
@@ -213,7 +226,7 @@ for m = 1:num_models % run for each model
     
     %% Run Opensees Models
     if analysis.run_ida || analysis.post_process_ida
-        fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir, main_dir)
+        fn_master_IDA(analysis, model, story, element, ele_props_table, node, hinge, joint, gm_set_table, ida_results, tcl_dir, main_dir)
     end
     
     %% Create Response and Consequence Fragilities
@@ -232,6 +245,7 @@ for m = 1:num_models % run for each model
     end
 
     %% Post Process EDP data
+    if 1 == 1
     disp('Collecting EDP data for FEMA P-58 Assessment ...')
     id = 0;
     idr = [];
@@ -268,6 +282,7 @@ for m = 1:num_models % run for each model
             num_col_ac.gm(gm,1) = gm;
             num_bm_ac.gm(gm,1) = gm;
             sa_val = round(str2double(strrep(strrep(sa_folders(s).name,'Sa_',''),'_','.')),3);
+            rp_val = rps2run(min(abs(sa_levels - sa_val)) == abs(sa_levels - sa_val));
             
             % Load Data
             if exist(outputs_file,'file')
@@ -320,29 +335,39 @@ for m = 1:num_models % run for each model
                 if exist(story_file,'file')
                     load(story_file)
 
-                    id = id + 1;
-                    % Formulate the IDR table for the P-58 assessment - X direction
-                    idr.sa(id,1) = sa_val;
-                    idr.direction(id,1) = gm_set_table.pair(gm);
-                    idr.gm(id,1) = gm_set_table.set_id(gm);
-                    for n = 1:height(story)
-                        if building_collapse % set collapse values = NaN
-                            idr.(['story_' num2str(n)])(id,1) = NaN;
-                        else
-                            idr.(['story_' num2str(n)])(id,1) = story.max_drift_x(n);
+                    for d = 1:2
+                        id = id + 1;
+                        % Formulate the IDR table for the P-58 assessment - X direction
+                        idr.sa(id,1) = sa_val;
+                        idr.rp(id,1) = rp_val;
+%                         idr.direction(id,1) = gm_set_table.pair(gm);
+                        idr.direction(id,1) = d;
+%                         idr.gm(id,1) = gm_set_table.set_id(gm);
+                        idr.gm(id,1) = gm_set_table.id(gm);
+                        for n = 1:height(story)
+                            if building_collapse % set collapse values = NaN
+                                idr.(['story_' num2str(n)])(id,1) = NaN;
+                            else
+                                idr.(['story_' num2str(n)])(id,1) = story.max_drift_x(n);
+                            end
                         end
-                    end
+%                     end
 
-                    % Formulate the PFA table for the P-58 assessment - X direction
-                    pfa.sa(id,1) = sa_val;
-                    pfa.direction(id,1) = gm_set_table.pair(gm);
-                    pfa.gm(id,1) = gm_set_table.set_id(gm);
-                    pfa.floor_1(id,1) = summary.pga_x;
-                    for n = 1:height(story)
-                        if building_collapse % set collapse values = NaN
-                            pfa.(['floor_' num2str(n+1)])(id,1) = NaN;
-                        else
-                            pfa.(['floor_' num2str(n+1)])(id,1) = story.max_accel_x(n);
+                        % Formulate the PFA table for the P-58 assessment - X direction
+                        pfa.sa(id,1) = sa_val;
+                        pfa.rp(id,1) = rp_val;
+%                     for d = 1:2
+%                         pfa.direction(id,1) = gm_set_table.pair(gm);
+                        pfa.direction(id,1) = d;
+%                         pfa.gm(id,1) = gm_set_table.set_id(gm);
+                        pfa.gm(id,1) = gm_set_table.id(gm);
+                        pfa.floor_1(id,1) = summary.pga_x;
+                        for n = 1:height(story)
+                            if building_collapse % set collapse values = NaN
+                                pfa.(['floor_' num2str(n+1)])(id,1) = NaN;
+                            else
+                                pfa.(['floor_' num2str(n+1)])(id,1) = story.max_accel_x(n);
+                            end
                         end
                     end
                     
@@ -411,8 +436,8 @@ for m = 1:num_models % run for each model
     % Save P-58 input run data to remote location
     writetable(idr_table_sort,[model_remote_dir filesep 'idr.csv'])
     writetable(pfa_table_sort,[model_remote_dir filesep 'pfa.csv'])
-    writetable(model,[model_remote_dir filesep 'model.csv'])
-    writetable(story,[model_remote_dir filesep 'story.csv'])
+%     writetable(model,[model_remote_dir filesep 'model.csv'])
+%     writetable(story,[model_remote_dir filesep 'story.csv'])
 %     writetable(collapse_data(m,:),[model_remote_dir filesep 'collapse_data.csv'])
     
 %     % Collect a_ratio data for ACI work
@@ -443,12 +468,13 @@ for m = 1:num_models % run for each model
 %     
 %     mce_levels(m,1) = ida_results.mce;   
     collective_sa(m,:) = analysis.sa_stripes;
+    end
 end
 
 % write sa table
-im_table = array2table([model_data.id collective_sa]);
-im_table.Properties.VariableNames = ['model_id', im_ids];
-writetable(im_table,[remote_dir filesep 'sa_data.csv'])
+% im_table = array2table([model_data.id collective_sa]);
+% im_table.Properties.VariableNames = ['model_id', im_ids];
+% writetable(im_table,[remote_dir filesep 'sa_data.csv'])
 
 % % write collapse data for all models
 % writetable(collapse_data,[remote_dir filesep 'collapse_data.csv'])

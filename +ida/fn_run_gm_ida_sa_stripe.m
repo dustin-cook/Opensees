@@ -1,4 +1,4 @@
-function [] = fn_run_gm_ida_sa_stripe(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gm_idx, ida_results, tcl_dir, main_dir)
+function [] = fn_run_gm_ida_sa_stripe(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gm_idx, ida_results, tcl_dir, main_dir, ele_props_table)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 import ida.fn_main_IDA
@@ -31,12 +31,17 @@ for i = 1:length(analysis.sa_stripes)
         spectra_table = readtable([gm_alt.eq_dir{1} filesep 'spectra.csv'],'ReadVariableNames',true);
         sa_gm_z = interp1(spectra_table.period,spectra_table.psa_5,ida_results.period(1));
     end
+    
+    % Scale ground motion based on the selected method
     if strcmp(analysis.scale_method,'geomean')
         sa_gm_geomean = sqrt(sa_gm_x*sa_gm_z);
         scale_factor = analysis.sa_stripes(i) / sa_gm_geomean;
     elseif strcmp(analysis.scale_method,'maxdir')
         sa_gm_maxdir = max(sa_gm_x,sa_gm_z);
         scale_factor = analysis.sa_stripes(i) / sa_gm_maxdir;
+    elseif strcmp(analysis.scale_method,'2D')
+        sa_gm_2D = sa_gm_x;
+        scale_factor = analysis.sa_stripes(i) / sa_gm_2D;
     end
     ground_motion.x.sa = sa_gm_x*scale_factor;
     if analysis.run_z_motion
@@ -78,7 +83,7 @@ for i = 1:length(analysis.sa_stripes)
         if analysis.general_ida
             fn_postprocess_ida_gen( analysis, model, node, element, ground_motion, ida_opensees_dir, ida_summary_dir )
         else 
-            fn_postprocess_ida(analysis, model, story, element, node, hinge, joint, ground_motion, ida_opensees_dir, ida_summary_dir)
+            fn_postprocess_ida(analysis, model, story, element, node, hinge, joint, ground_motion, ida_opensees_dir, ida_summary_dir, ele_props_table)
         end
     end
 end

@@ -1,4 +1,4 @@
-function [ ] = fn_master_IDA(analysis, model, story, element, node, hinge, joint, gm_set_table, ida_results, tcl_dir, main_dir)
+function [ ] = fn_master_IDA(analysis, model, story, element, ele_props_table, node, hinge, joint, gm_set_table, ida_results, tcl_dir, main_dir)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 import ida.fn_run_gm_ida
@@ -47,24 +47,24 @@ if analysis.run_sa_stripes
     if analysis.run_parallel
         parfor gms = 1:height(gms2run)
             % Loop through each scale of the GM
-            fn_run_gm_ida_sa_stripe(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gms, ida_results, tcl_dir, main_dir)
+            fn_run_gm_ida_sa_stripe(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gms, ida_results, tcl_dir, main_dir, ele_props_table)
         end
     else
         for gms = 1:height(gms2run)
             % Loop through each scale of the GM
-            fn_run_gm_ida_sa_stripe(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gms, ida_results, tcl_dir, main_dir)
+            fn_run_gm_ida_sa_stripe(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gms, ida_results, tcl_dir, main_dir, ele_props_table)
         end
     end
 else
     if analysis.run_parallel
         parfor gms = 1:height(gms2run)
             % Loop through each scale of the GM
-            fn_run_gm_ida(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gms, ida_results, tcl_dir, main_dir)
+            fn_run_gm_ida(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gms, ida_results, tcl_dir, main_dir, ele_props_table)
         end
     else
         for gms = 1:height(gms2run)
             % Loop through each scale of the GM
-            fn_run_gm_ida(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gms, ida_results, tcl_dir, main_dir)
+            fn_run_gm_ida(analysis, model, story, element, node, hinge, joint, gm_set_table, gms2run, gms, ida_results, tcl_dir, main_dir, ele_props_table)
         end
     end
 end

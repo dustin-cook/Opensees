@@ -452,6 +452,7 @@ hinge = struct2table(hinge);
 writetable(story,[write_dir filesep 'story.csv'])
 writetable(node,[write_dir filesep 'node.csv'])
 writetable(element,[write_dir filesep 'element.csv'])
+writetable(element_table,[write_dir filesep 'element_table.csv'])
 writetable(joint,[write_dir filesep 'joint.csv'])
 writetable(hinge,[write_dir filesep 'hinge.csv'])
 
