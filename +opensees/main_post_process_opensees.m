@@ -40,7 +40,7 @@ if ~analysis.simple_recorders
         % Force Time Histories
         if analysis.type == 1 % dynamic analysis
             ele_force_TH = fn_xml_read([opensees_dir filesep 'element_force_' num2str(i) '.xml']);
-            if strcmp(analysis.nonlinear_type,'fiber')
+            if analysis.nonlinear ~= 0 && strcmp(analysis.nonlinear_type,'fiber')
                 ele_deform_TH = fn_xml_read([opensees_dir filesep 'element_deform_' num2str(i) '.xml']);
             end
         elseif analysis.type == 2 || analysis.type == 3 % pushover or cyclic analysis
@@ -51,7 +51,7 @@ if ~analysis.simple_recorders
                     ele_force_TH_oop_pos = fn_xml_read([opensees_dir filesep 'element_force_z_' num2str(i) '.xml']);
                     ele_force_TH_oop_neg = fn_xml_read([opensees_dir filesep 'element_force_-z_' num2str(i) '.xml']);
                 end
-                if strcmp(analysis.nonlinear_type,'fiber')
+                if analysis.nonlinear ~= 0 && strcmp(analysis.nonlinear_type,'fiber')
                     ele_deform_TH_pos = fn_xml_read([opensees_dir filesep 'element_deform_x_' num2str(i) '.xml']);
                     ele_deform_TH_neg = fn_xml_read([opensees_dir filesep 'element_deform_-x_' num2str(i) '.xml']);
                 end
@@ -63,7 +63,7 @@ if ~analysis.simple_recorders
             end
             min_push_length = min(length(ele_force_TH_pos(:,1)),length(ele_force_TH_neg(:,1)));
             ele_force_TH = max(abs(ele_force_TH_pos(1:min_push_length,:)),abs(ele_force_TH_neg(1:min_push_length,:)));
-            if strcmp(analysis.nonlinear_type,'fiber')
+            if analysis.nonlinear ~= 0 && strcmp(analysis.nonlinear_type,'fiber')
                 ele_deform_TH = max(abs(ele_deform_TH_pos(1:min_push_length,:)),abs(ele_deform_TH_neg(1:min_push_length,:)));
             end
             if strcmp(model.dimension,'3D')
@@ -79,14 +79,14 @@ if ~analysis.simple_recorders
             else
                 if strcmp(model.dimension,'3D') && contains(comp_names{j},'oop') && analysis.type == 2 % Pushover out of plane
                     element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH_oop(1:(end-clip),comp_keys(j))';
-                elseif strcmp(analysis.nonlinear_type,'fiber') && analysis.type == 1 && strcmp(element.type{i},'column') % columns for dynamic fiber models
+                elseif analysis.nonlinear ~= 0 && strcmp(analysis.nonlinear_type,'fiber') && analysis.type == 1 && strcmp(element.type{i},'column') % columns for dynamic fiber models
                     element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = comp_sign(j)*ele_force_TH(1:(end-clip),comp_keys(j))';
                 else 
                     element_TH.(['ele_' num2str(element.id(i))]).(comp_names{j}) = ele_force_TH(1:(end-clip),comp_keys(j))';
                 end
             end
         end
-        if strcmp(analysis.nonlinear_type,'fiber')
+        if analysis.nonlinear ~= 0 && strcmp(analysis.nonlinear_type,'fiber')
             element_TH.(['ele_' num2str(element.id(i))]).rot = ele_deform_TH(1:(end-clip),4)'; % assumes rotation demamd is the fourth column
         end
 

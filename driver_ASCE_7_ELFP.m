@@ -16,7 +16,7 @@ fclose('all');
 % Assumptions:
 
 %% User Inputs (Think about changing this to a file read and command line execution)
-analysis.model_id = 24;
+analysis.model_id = 26;
 analysis.model_type = 3; % 1 = SDOF, 2 = MDOF (default), 3 = Archetype model
 analysis.proceedure = 'ELFP'; % LDP or NDP or test
 analysis.id = '1'; % ID of the analysis for it to create its own directory
@@ -34,6 +34,7 @@ analysis.algorithm = 'KrylovNewton';
 analysis.joint_model = 0;
 analysis.additional_elements = 0;
 analysis.nonlinear = 0;
+% analysis.nonlinear_type = 'lumped'; % lumped or fiber
 
 analysis.suppress_outputs = 0;
 analysis.simple_recorders = 0;

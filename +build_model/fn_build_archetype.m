@@ -1,4 +1,4 @@
-function [ ] = fn_build_archetype( model, analysis, write_dir)
+function [ ] = fn_build_archetype( model, analysis, write_dir )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
