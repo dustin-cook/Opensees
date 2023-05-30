@@ -181,7 +181,7 @@ if analysis.nonlinear ~= 0 && ~isempty(hinge)
 end
 
 % Create some component deformation plots
-if ~analysis.simple_recorders
+if ~analysis.simple_recorders && analysis.nonlinear
     if strcmp(analysis.nonlinear_type,'fiber')
         % Load hinge data from LP model
 %         load([strrep(ida_summary_dir,'fiber','LP') filesep 'hinge_analysis.mat'])

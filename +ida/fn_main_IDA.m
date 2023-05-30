@@ -4,11 +4,11 @@ function [ exit_status ] = fn_main_IDA(analysis, model, story, element, node, hi
 
 import opensees.write_tcl.*
 
-% Load spectral info and save Sa
-summary.sa_x = ground_motion.x.sa;
+% % Load spectral info and save Sa
+% summary.sa_x = ground_motion.x.sa;
 summary.pga_x = analysis.ground_motion_scale_factor * ground_motion.x.pga;
 if analysis.run_z_motion
-    summary.sa_z = ground_motion.z.sa;
+%     summary.sa_z = ground_motion.z.sa;
     summary.pga_z = analysis.ground_motion_scale_factor * ground_motion.z.pga;
 end
 
